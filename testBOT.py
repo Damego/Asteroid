@@ -2,8 +2,9 @@ import random
 import json
 import discord
 from discord.ext import commands
+import asyncio
+import os
 
-TOKEN = 'ODI4MjYyMjc1MjA2ODczMTA4.YGnBWg.u0AhcolLPnXPe5CZxTx0k9XTqts'
 userhelp = open('help.txt', encoding='UTF-8')
 
 def get_prefix(bot, message): 
@@ -12,6 +13,13 @@ def get_prefix(bot, message):
 
     return prefixes[str(message.guild.id)]
 
+def get_token(): 
+    with open('jsons/config.json', 'r') as f:
+        token = json.load(f)
+
+    return token["TOKEN"]
+
+TOKEN = get_token()
 bot = commands.Bot(command_prefix=get_prefix)
 
 
@@ -55,6 +63,19 @@ async def on_guild_remove(guild): # Когда бот отключается о�
 
 # COMMANDS
 
+@bot.command()
+async def load(ctx, extension):
+    bot.load_extension(f'extensions.{extension}')
+    embed = discord.Embed(title=f'Плагин {extension} загружен!')
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def unload(ctx, extension):
+    bot.unload_extension(f'extensions.{extension}')
+for filename in os.listdir('./extensions'):
+    if filename.endswith('.py'):
+        bot.load_extension(f'extensions.{filename[:-3]}')
+
 @bot.command(aliases=['реши'])
 async def exercise(ctx, arg): # Решает простой матемаический пример
     exercise = arg
@@ -85,7 +106,7 @@ async def info(ctx, *, member: discord.Member): # Выводит информа�
     embed.add_field(name='Дата присоединения:', value=member.joined_at.strftime("%#d %B %Y"), inline=False)
     embed.add_field(name='Дата регистрации:', value=member.created_at.strftime("%#d %B %Y"), inline=False)
     embed.set_thumbnail(url=member.avatar_url)
-    embed.add_field(name='Роли:', value=ctx.guild.get_role)
+    embed.add_field(name='Роли:', value=member.roles)
 
     await ctx.send(embed=embed)
 
@@ -128,11 +149,15 @@ async def changeprefix(ctx, prefix): # Меняет префикс у коман
 
 
 @bot.command(aliases=['мут'])
-async def mute(ctx, member:discord.Member, * ,reason=None):
+async def mute(ctx, member:discord.Member, mutetime:int,* ,reason=None):
     if ctx.author.guild_permissions.administrator:
         await member.edit(mute=True)
-        embed = discord.Embed(title=f'{member} был отправлен в мут!',description=f'Причина: {reason}', color=0xff0000)
+        embed = discord.Embed(title=f'{member} был отправлен в мут!', color=0xff0000)
+        embed.add_field(name='Причина:', value=f'{reason}',inline=False)
+        embed.add_field(name='Время:',value=f'{int(mutetime / 60)} минут')
         await ctx.send(embed=embed)
+        await asyncio.sleep(mutetime)
+        await unmute(ctx, member)
     else:
         await not_enough_perms(ctx)
 
