@@ -8,7 +8,7 @@ class Music(commands.Cog):
     def __init__(self,bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(aliases=['музыка','играть','муз','м'], help='Запускает музыку')
     async def play(self,ctx, url:str):
 
         if not ctx.message.author.voice:
@@ -42,15 +42,27 @@ class Music(commands.Cog):
                 info = ydl.extract_info(url, download=False)
 
             URL = info['formats'][0]['url']
+            title = info['title']
+            duration = info['duration']
+            dh = int(duration) // 3600
+            dm = (int(duration) // 60) - 60
+            ds = int(duration)-(dh*3600+dm*60)
 
+            
             embed = discord.Embed(title='Запуск музыки', color=0x00ff00)
-            ctx.send(embed=embed)
+            embed.add_field(name='Название:', value=title, inline=False)
+            if duration == 0.0:
+                embed.add_field(name='Продолжительность:',value=f'Прямая трансляция')
+            else: 
+                embed.add_field(name='Продолжительность:',value=f'{dh}:{dm}:{ds}')
+            embed.set_footer(text=f'Вызвано: {ctx.message.author}',icon_url=ctx.message.author.avatar_url)
+            await ctx.send(embed=embed)
             vc.play(discord.FFmpegPCMAudio(executable="./ffmpeg.exe", source = URL, **FFMPEG_OPTIONS))
 
 
         
 
-    @commands.command()
+    @commands.command(aliases=['стоп','с'], help='Останавливает музыку')
     async def stop(self,ctx):
         voice_client = ctx.message.guild.voice_client
 

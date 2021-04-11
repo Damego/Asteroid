@@ -21,13 +21,62 @@ def get_token():
 
 TOKEN = get_token()
 bot = commands.Bot(command_prefix=get_prefix)
+bot.remove_command('help')
+@bot.group(invoke_without_command=True)
+async def help(ctx):
+    cprefix = get_prefix(bot, ctx.message)
+    embed = discord.Embed(title='Справочник команд', color=0xff0800)
+    embed.add_field(name='Музыка', value=f'`{cprefix}help music || музыка`', inline=False)
+    embed.add_field(name='Модерация', value=f'`{cprefix}help moderation || модерация`', inline=False)
+    embed.add_field(name='Разное', value=f'`{cprefix}help other || разное || другое || остальное`')
+
+    await ctx.send(embed=embed)
+
+@help.command(aliases=['музыка'])
+async def music(ctx):
+    cprefix = get_prefix(bot, ctx.message)
+    embed = discord.Embed(title='Справочник по музыке', color=0xff0800)
+    embed.add_field(name=f'`{cprefix}play || музыка [ССЫЛКА]`', value='Запускает музыку из ютюба', inline=False)
+    embed.add_field(name=f'`{cprefix}stop || стоп`', value='Останавливает музыку', inline=False)
+    embed.add_field(name=f'`{cprefix}pause || пауза`', value='Ставит музыку на паузу [НЕ РАБОТАЕТ]', inline=False)
+    embed.add_field(name=f'`{cprefix}resume`', value='Возобновляет музыку [НЕ РАБОТАЕТ]', inline=False)
+
+    await ctx.send(embed=embed)
+
+
+
+@help.command(aliases=['модерация'])
+async def moderation(ctx):
+    cprefix = get_prefix(bot, ctx.message)
+    embed = discord.Embed(title='Справочник по модерации', color=0xff0800)
+    embed.add_field(name=f'`{cprefix}mute || мут [НИК] [ВРЕМЯ(секунды)] [ПРИЧИНА]`', value='Мутит участника голосового канала', inline=False)
+    embed.add_field(name=f'`{cprefix}unmute || анмут [НИК]`', value='Снимает мут', inline=False)
+    embed.add_field(name=f'`{cprefix}ban || бан [НИК] [ПРИЧИНА]`', value='Банит участника', inline=False)
+    embed.add_field(name=f'`{cprefix}unban [НИК]`', value='Снимает бан', inline=False)
+    embed.add_field(name=f'`{cprefix}kick || кик [НИК]`', value='Кикает участника', inline=False)
+    embed.add_field(name=f'`{cprefix}clear || очистить [КОЛИЧЕСТВО]`', value='Удаляет определённое количество сообщение в канале', inline=False)
+    embed.add_field(name=f'`{cprefix}nick || ник [СТАРЫЙ] [НОВЫЙ]`', value='Меняет ник у участника')
+
+    await ctx.send(embed=embed)
+
+
+@help.command(aliases=['разное', 'другое', 'остальное'])
+async def other(ctx):
+    cprefix = get_prefix(bot, ctx.message)
+    embed = discord.Embed(title='Справочник по остальным командам', color=0xff0800)
+    embed.add_field(name=f'`{cprefix}random || рандом [ОТ] [ДО]`', value='Выдаёт рандомное число в заданном промежутке', inline=False)
+    embed.add_field(name=f'`{cprefix}exercise || реши [ПРИМЕР]`', value='Решает простой математический пример', inline=False)
+    embed.add_field(name=f'`{cprefix}info || инфо [НИК]`', value='Выдаёт информацию о пользователе', inline=False)
+
+    await ctx.send(embed=embed)
 
 
 
 # EVENTS
 @bot.event
 async def on_ready():
-  print('Бот {0.user} готов к работе!'.format(bot))
+    print('Бот {0.user} готов к работе!'.format(bot))
+    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name='PornHub Premium', type=discord.ActivityType.watching))
 
 
 @bot.event
@@ -63,20 +112,20 @@ async def on_guild_remove(guild): # Когда бот отключается о�
 
 # COMMANDS
 
-@bot.command()
+@bot.command(name='load', help='Загрузка отдельных модулей', hidden=True)
 async def load(ctx, extension):
     bot.load_extension(f'extensions.{extension}')
     embed = discord.Embed(title=f'Плагин {extension} загружен!')
     await ctx.send(embed=embed)
 
-@bot.command()
+@bot.command(name='unload', help='Выгрузка отдельных модулей', hidden=True)
 async def unload(ctx, extension):
     bot.unload_extension(f'extensions.{extension}')
 for filename in os.listdir('./extensions'):
     if filename.endswith('.py'):
         bot.load_extension(f'extensions.{filename[:-3]}')
 
-@bot.command(aliases=['реши'])
+@bot.command(aliases=['реши'], help='Решает простой математический пример')
 async def exercise(ctx, arg): # Решает простой матемаический пример
     exercise = arg
     try:
@@ -86,7 +135,7 @@ async def exercise(ctx, arg): # Решает простой матемаичес
         await ctx.send('Указаны неверные числа/действие!!!')
     
 
-@bot.command(aliases=['рандом'])
+@bot.command(aliases=['рандом'],name='random', help='Выдаёт рандомное число в заданном промежутке')
 async def random_num(ctx, arg1, arg2): # Выдаёт рандомное число в заданном промежутке
     arg1 = int(arg1)
     arg2 = int(arg2)
@@ -94,12 +143,7 @@ async def random_num(ctx, arg1, arg2): # Выдаёт рандомное чис�
     await ctx.reply(f'Рандомное число: {num}')
 
 
-@bot.command(aliases=['помощь'])
-async def user_help(ctx):
-    await ctx.send(userhelp.read())
-
-
-@bot.command(aliases=['инфо'])
+@bot.command(aliases=['инфо'], help='Выводит информацию об участнике канала')
 async def info(ctx, *, member: discord.Member): # Выводит информацию об участнике канала
     embed = discord.Embed(title='Информация о пользователе:', color = 0xff0000)
     embed.add_field(name='Имя:', value=member, inline=False)
@@ -111,27 +155,27 @@ async def info(ctx, *, member: discord.Member): # Выводит информа�
     await ctx.send(embed=embed)
 
 
-@bot.command(aliases=['роль+'])
+@bot.command(aliases=['роль+'], help='Выдаёт роль участнику')
 async def add_role(ctx, member: discord.Member, role: discord.Role): # Выдаёт роль участнику
     if ctx.author.guild_permissions.administrator:
         await member.add_roles(role)
         embed = discord.Embed(title=f'{member} теперь {role}',color = 0x00ff00)
         await ctx.send(embed=embed)
     else:
-        await not_enough_perms(ctx)
+        await not_enough_perms1(ctx)
     
 
-@bot.command(aliases=['роль-'])
+@bot.command(aliases=['роль-'], help='Удаляёт роль у участника')
 async def remove_role(ctx, member: discord.Member, role: discord.Role): # Убирает роль с участника
     if ctx.author.guild_permissions.administrator:
         await member.remove_roles(role)
         embed = discord.Embed(title=f'{member}', description=f'Роль {role} была снята!',color = 0x00ff00) 
         await ctx.send(embed=embed)
     else:
-        await not_enough_perms(ctx)
+        await not_enough_perms1(ctx)
 
 
-@bot.command(aliases=['префикс'])
+@bot.command(aliases=['префикс'], help='Меняет префикс у команд')
 async def changeprefix(ctx, prefix): # Меняет префикс у команд
     if ctx.author.guild_permissions.administrator:
         with open('jsons/prefixes.json', 'r') as f:
@@ -145,65 +189,19 @@ async def changeprefix(ctx, prefix): # Меняет префикс у коман
         embed = discord.Embed(title=f'Префикс команд поменялся на {prefix}')
         await ctx.send(embed=embed)
     else:
-        await not_enough_perms(ctx)
+        await not_enough_perms1(ctx)
 
 
-@bot.command(aliases=['мут'])
-async def mute(ctx, member:discord.Member, mutetime:int,* ,reason=None):
-    if ctx.author.guild_permissions.administrator:
-        await member.edit(mute=True)
-        embed = discord.Embed(title=f'{member} был отправлен в мут!', color=0xff0000)
-        embed.add_field(name='Причина:', value=f'{reason}',inline=False)
-        embed.add_field(name='Время:',value=f'{int(mutetime / 60)} минут')
-        await ctx.send(embed=embed)
-        await asyncio.sleep(mutetime)
-        await unmute(ctx, member)
-    else:
-        await not_enough_perms(ctx)
+@bot.command(aliases=['ник'], help='Меняет ник у участника')
+async def nick(ctx, member:discord.Member, newnick):
+    oldnick = member
+    await member.edit(nick=newnick)
+    await ctx.send(f'{oldnick.mention} стал {newnick}')
 
-@bot.command(aliases=['дизмут', 'анмут'])
-async def unmute(ctx, member:discord.Member):
-    if ctx.author.guild_permissions.administrator:
-        await member.edit(mute=False)
-        embed = discord.Embed(title=f'Мут с {member} снят!', color=0xff0000)
-        await ctx.send(embed=embed)
-    else:
-        await not_enough_perms(ctx)
-
-@bot.command(aliases=['бан'])
-async def ban(ctx, member:discord.Member, *, reason=None):
-    if ctx.author.guild_permissions.administrator:
-        await member.ban(reason=reason)
-        embed = discord.Embed(title=f'{member} был заблокирован!',description=f'Причина: {reason}', color=0xff0000)
-        await ctx.send(embed=embed)
-    else:
-        await not_enough_perms(ctx)
-
-
-@bot.command(aliases=['анбан', 'дизбан'])
-async def unban(ctx, member):
-    if ctx.author.guild_permissions.administrator:
-        banned_users = await ctx.guild.bans()
-        member_name, member_disc = member.split('#')
-
-        for ban in banned_users:
-            user = ban.user
-            if (user.name, user.discriminator) == (member_name, member_disc):
-                await ctx.guild.unban(user)
-                embed = discord.Embed(title=f'С пользователя {member} снята блокировка!', color=0xff0000)
-                await ctx.send(embed=embed)
-                return
-    else:
-        await not_enough_perms(ctx)
-
-@bot.command(aliases=['кик'])
-async def kick(ctx, member:discord.Member, *, reason=None):
-    if ctx.author.guild_permissions.administrator:
-        await member.kick(reason=reason)
-        embed = discord.Embed(title=f'{member} был кикнут с сервера!',description=f'Причина: {reason}', color=0xff0000)
-        await ctx.send(embed=embed)
-    else:
-        await not_enough_perms(ctx)
+@bot.command(aliases=['очистить'], help='Удаляет определённое количество сообщений в текстовом канале')
+async def clear(ctx, amount:int):
+    await ctx.channel.purge(limit=amount+1)
+    
 
 # ERRORS
 @info.error
@@ -215,16 +213,20 @@ async def info_error(ctx, error): # Выдаёт сообщение, если п
         await ctx.send(embed=embed)
 
 
-@mute.error
-@unmute.error
-async def mute_error(ctx, error):
-    embed = discord.Embed(title='Пользователь не подключен к голосовому каналу!', color=0xff0000)
-    await ctx.send(embed=embed)
 
-@bot.command()
-async def not_enough_perms(ctx):
+
+@bot.command(hidden=True)
+async def not_enough_perms1(ctx):
     embed = discord.Embed(title=f'У вас недостаточно прав!',color = 0x00ff00)
     await ctx.send(embed=embed)
 
-
+@nick.error
+async def nick_error(ctx, error):
+    await ctx.send(error)
 bot.run(TOKEN)
+
+@clear.error
+async def clear_error(ctx, error):
+    if isinstance(error, commands.BadArgument):
+        embed = discord.Embed(title='Неверно указано количество сообщений!', color=0xff0000)
+        await ctx.send(embed=embed)
