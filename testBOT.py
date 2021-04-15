@@ -2,10 +2,10 @@ import random
 import json
 import discord
 from discord.ext import commands
+import qrcode
 import asyncio
 import os
 
-userhelp = open('help.txt', encoding='UTF-8')
 
 def get_prefix(bot, message): 
     with open('jsons/prefixes.json', 'r') as f:
@@ -38,8 +38,8 @@ async def music(ctx):
     embed = discord.Embed(title='Справочник по музыке', color=0xff0800)
     embed.add_field(name=f'`{cprefix}play || музыка [ССЫЛКА]`', value='Запускает музыку из ютюба', inline=False)
     embed.add_field(name=f'`{cprefix}stop || стоп`', value='Останавливает музыку', inline=False)
-    embed.add_field(name=f'`{cprefix}pause || пауза`', value='Ставит музыку на паузу [НЕ РАБОТАЕТ]', inline=False)
-    embed.add_field(name=f'`{cprefix}resume`', value='Возобновляет музыку [НЕ РАБОТАЕТ]', inline=False)
+    embed.add_field(name=f'`{cprefix}pause || пауза`', value='Ставит музыку на паузу', inline=False)
+    embed.add_field(name=f'`{cprefix}resume`', value='Возобновляет музыку', inline=False)
 
     await ctx.send(embed=embed)
 
@@ -67,6 +67,7 @@ async def other(ctx):
     embed.add_field(name=f'`{cprefix}random || рандом [ОТ] [ДО]`', value='Выдаёт рандомное число в заданном промежутке', inline=False)
     embed.add_field(name=f'`{cprefix}exercise || реши [ПРИМЕР]`', value='Решает простой математический пример', inline=False)
     embed.add_field(name=f'`{cprefix}info || инфо [НИК]`', value='Выдаёт информацию о пользователе', inline=False)
+    embed.add_field(name=f'`{cprefix}qr [ТЕКСТ]`', value='Создаёт QR-код')
 
     await ctx.send(embed=embed)
 
@@ -76,7 +77,14 @@ async def other(ctx):
 @bot.event
 async def on_ready():
     print('Бот {0.user} готов к работе!'.format(bot))
-    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name='PornHub Premium', type=discord.ActivityType.watching))
+    #await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name='PornHub Premium', type=discord.ActivityType.watching))
+    await change_activity()
+
+async def change_activity():
+    for i in range(500):
+        await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=f'{i+1} вкладку в Pornhub', type=discord.ActivityType.watching))
+        await asyncio.sleep(60)
+    await change_activity()
 
 
 @bot.event
@@ -120,12 +128,13 @@ async def load(ctx, extension):
 
 @bot.command(name='unload', help='Выгрузка отдельных модулей', hidden=True)
 async def unload(ctx, extension):
-    bot.unload_extension(f'extensions.{extension}')
+    if ctx.message.author.is_owner():
+        bot.unload_extension(f'extensions.{extension}')
 for filename in os.listdir('./extensions'):
     if filename.endswith('.py'):
         bot.load_extension(f'extensions.{filename[:-3]}')
 
-@bot.command(aliases=['реши'], help='Решает простой математический пример')
+@bot.command(aliases=['реши'])
 async def exercise(ctx, arg): # Решает простой матемаический пример
     exercise = arg
     try:
@@ -135,7 +144,7 @@ async def exercise(ctx, arg): # Решает простой матемаичес
         await ctx.send('Указаны неверные числа/действие!!!')
     
 
-@bot.command(aliases=['рандом'],name='random', help='Выдаёт рандомное число в заданном промежутке')
+@bot.command(aliases=['рандом'],name='random')
 async def random_num(ctx, arg1, arg2): # Выдаёт рандомное число в заданном промежутке
     arg1 = int(arg1)
     arg2 = int(arg2)
@@ -143,7 +152,7 @@ async def random_num(ctx, arg1, arg2): # Выдаёт рандомное чис�
     await ctx.reply(f'Рандомное число: {num}')
 
 
-@bot.command(aliases=['инфо'], help='Выводит информацию об участнике канала')
+@bot.command(aliases=['инфо'])
 async def info(ctx, *, member: discord.Member): # Выводит информацию об участнике канала
     embed = discord.Embed(title='Информация о пользователе:', color = 0xff0000)
     embed.add_field(name='Имя:', value=member, inline=False)
@@ -155,9 +164,9 @@ async def info(ctx, *, member: discord.Member): # Выводит информа�
     await ctx.send(embed=embed)
 
 
-@bot.command(aliases=['роль+'], help='Выдаёт роль участнику')
+@bot.command(aliases=['роль+'])
 async def add_role(ctx, member: discord.Member, role: discord.Role): # Выдаёт роль участнику
-    if ctx.author.guild_permissions.administrator:
+    if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.manage_roles:
         await member.add_roles(role)
         embed = discord.Embed(title=f'{member} теперь {role}',color = 0x00ff00)
         await ctx.send(embed=embed)
@@ -165,9 +174,9 @@ async def add_role(ctx, member: discord.Member, role: discord.Role): # Выда�
         await not_enough_perms1(ctx)
     
 
-@bot.command(aliases=['роль-'], help='Удаляёт роль у участника')
+@bot.command(aliases=['роль-'])
 async def remove_role(ctx, member: discord.Member, role: discord.Role): # Убирает роль с участника
-    if ctx.author.guild_permissions.administrator:
+    if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.manage_roles:
         await member.remove_roles(role)
         embed = discord.Embed(title=f'{member}', description=f'Роль {role} была снята!',color = 0x00ff00) 
         await ctx.send(embed=embed)
@@ -175,7 +184,7 @@ async def remove_role(ctx, member: discord.Member, role: discord.Role): # Уби
         await not_enough_perms1(ctx)
 
 
-@bot.command(aliases=['префикс'], help='Меняет префикс у команд')
+@bot.command(aliases=['префикс'])
 async def changeprefix(ctx, prefix): # Меняет префикс у команд
     if ctx.author.guild_permissions.administrator:
         with open('jsons/prefixes.json', 'r') as f:
@@ -192,15 +201,37 @@ async def changeprefix(ctx, prefix): # Меняет префикс у коман
         await not_enough_perms1(ctx)
 
 
-@bot.command(aliases=['ник'], help='Меняет ник у участника')
+@bot.command(aliases=['ник'])
 async def nick(ctx, member:discord.Member, newnick):
     oldnick = member
     await member.edit(nick=newnick)
     await ctx.send(f'{oldnick.mention} стал {newnick}')
 
-@bot.command(aliases=['очистить'], help='Удаляет определённое количество сообщений в текстовом канале')
+@bot.command(aliases=['очистить', 'очистка', 'чистить',"чист"])
 async def clear(ctx, amount:int):
     await ctx.channel.purge(limit=amount+1)
+
+@bot.command(name='qr')
+async def create_qr(ctx, *, text):
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=1
+    )
+    qr.add_data(data=text)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    img.save(f'./qrcodes/{ctx.message.author.id}.png')
+    await ctx.send(file = discord.File(f'./qrcodes/{ctx.message.author.id}.png'))
+    os.remove(f'./qrcodes/{ctx.message.author.id}.png')
+
+@bot.command()
+async def cr_channel(ctx, *, text=None):
+    if text == None:
+        await ctx.guild.create_text_channel(f'{ctx.message.author}')
+    else:
+        await ctx.guild.create_text_channel(f'{text}')
     
 
 # ERRORS
@@ -211,8 +242,6 @@ async def info_error(ctx, error): # Выдаёт сообщение, если п
     if isinstance(error, commands.BadArgument):
         embed = discord.Embed(title='Пользователь не найден!', color=0xff0000)
         await ctx.send(embed=embed)
-
-
 
 
 @bot.command(hidden=True)

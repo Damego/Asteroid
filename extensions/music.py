@@ -16,7 +16,8 @@ class Music(commands.Cog):
             await ctx.send(embed=not_connected_embed)
             return
         else:
-            voice_channel = ctx.message.author.voice.channel
+            self.voice_channel = ctx.message.author.voice.channel
+            self.start_author = ctx.message.author
 
         # Настройка параметров
         YDL_OPTIONS = {
@@ -31,10 +32,10 @@ class Music(commands.Cog):
 
         # Подключение к каналу
         
-        vc = await voice_channel.connect()
+        self.vc = await self.voice_channel.connect()
 
         # Запуск музыки
-        if vc.is_playing():
+        if self.vc.is_playing():
             await ctx.send(f'{ctx.message.author.mention}, музыка уже проигрывается.')
 
         else:
@@ -57,19 +58,48 @@ class Music(commands.Cog):
                 embed.add_field(name='Продолжительность:',value=f'{dh}:{dm}:{ds}')
             embed.set_footer(text=f'Вызвано: {ctx.message.author}',icon_url=ctx.message.author.avatar_url)
             await ctx.send(embed=embed)
-            vc.play(discord.FFmpegPCMAudio(executable="./ffmpeg.exe", source = URL, **FFMPEG_OPTIONS))
+            self.vc.play(discord.FFmpegPCMAudio(executable="./ffmpeg.exe", source = URL, **FFMPEG_OPTIONS))
 
 
         
 
     @commands.command(aliases=['стоп','с'], help='Останавливает музыку')
     async def stop(self,ctx):
-        voice_client = ctx.message.guild.voice_client
-
-        if voice_client.is_connected():
-            await voice_client.disconnect()
+        if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.move_members or (ctx.message.author == self.start_author):
+            if self.vc.is_connected():
+                await self.vc.disconnect()
+            else:
+                await ctx.send('Бот не подключён к каналу!')
         else:
-            await ctx.send('Бот не подключён к каналу!')
+            await ctx.send('```Вы не имеете права управлять музыкой!```')
+
+    @commands.command(aliases=['пауза'])
+    async def pause(self, ctx):
+        if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.move_members or (ctx.message.author == self.start_author):
+            if self.vc.is_playing():
+                self.vc.pause()
+            else:
+                embed = discord.Embed(title='Музыка не воспроизводиться!', color=0x00ff00)
+                await ctx.send(embed=embed)
+        else:
+            await ctx.send('```Вы не имеете права управлять музыкой!```')
+        
+    @commands.command(aliases=['продолжить'])
+    async def resume(self, ctx):
+        if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.move_members or (ctx.message.author == self.start_author):
+            if self.vc.is_playing():
+                embed = discord.Embed(title='Музыка уже играет!', color=0x00ff00)
+                await ctx.send(embed=embed)
+            else:
+                self.vc.resume()
+        else:
+            await ctx.send('```Вы не имеете права управлять музыкой!```')
+
+
+
+
+
+
 
 def setup(bot):
     bot.add_cog(Music(bot))
