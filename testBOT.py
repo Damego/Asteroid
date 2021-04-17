@@ -19,8 +19,22 @@ def get_token():
 
     return token["TOKEN"]
 
+def get_react_post_id():
+    with open('jsons/config.json', 'r') as f:
+        token = json.load(f)
+
+    return token["REACTION_POST_ID"]
+
+def get_emoji_role(emoji):
+    with open('jsons/roles.json', 'r') as f:
+        token = json.load(f)
+
+    return token[f"{emoji}"]
+
 TOKEN = get_token()
 bot = commands.Bot(command_prefix=get_prefix)
+
+
 bot.remove_command('help')
 @bot.group(invoke_without_command=True)
 async def help(ctx):
@@ -43,8 +57,6 @@ async def music(ctx):
 
     await ctx.send(embed=embed)
 
-
-
 @help.command(aliases=['модерация'])
 async def moderation(ctx):
     cprefix = get_prefix(bot, ctx.message)
@@ -58,7 +70,6 @@ async def moderation(ctx):
     embed.add_field(name=f'`{cprefix}nick || ник [СТАРЫЙ] [НОВЫЙ]`', value='Меняет ник у участника')
 
     await ctx.send(embed=embed)
-
 
 @help.command(aliases=['разное', 'другое', 'остальное'])
 async def other(ctx):
@@ -85,6 +96,24 @@ async def change_activity():
         await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=f'{i+1} вкладку в Pornhub', type=discord.ActivityType.watching))
         await asyncio.sleep(60)
     await change_activity()
+
+@bot.event
+async def on_raw_reaction_add(ctx):
+    post_id = get_react_post_id()
+    if ctx.message_id == post_id:
+        emoji = ctx.emoji.id
+        role = discord.utils.get(bot.get_guild(ctx.guild_id).roles, id=get_emoji_role(emoji))
+        await ctx.member.add_roles(role)
+
+@bot.event
+async def on_raw_reaction_remove(ctx):
+    post_id = get_react_post_id()
+    if ctx.message_id == post_id:
+        emoji = ctx.emoji.id
+        role = discord.utils.get(bot.get_guild(ctx.guild_id).roles, id=get_emoji_role(emoji))
+        guild = bot.get_guild(ctx.guild_id)
+        member = await guild.fetch_member(ctx.user_id)
+        await member.remove_roles(role)
 
 
 @bot.event
@@ -167,6 +196,7 @@ async def info(ctx, *, member: discord.Member): # Выводит информа�
 @bot.command(aliases=['роль+'])
 async def add_role(ctx, member: discord.Member, role: discord.Role): # Выдаёт роль участнику
     if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.manage_roles:
+        print(type(role))
         await member.add_roles(role)
         embed = discord.Embed(title=f'{member} теперь {role}',color = 0x00ff00)
         await ctx.send(embed=embed)
@@ -203,9 +233,12 @@ async def changeprefix(ctx, prefix): # Меняет префикс у коман
 
 @bot.command(aliases=['ник'])
 async def nick(ctx, member:discord.Member, newnick):
-    oldnick = member
-    await member.edit(nick=newnick)
-    await ctx.send(f'{oldnick.mention} стал {newnick}')
+    if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.manage_nicknames:
+        oldnick = member
+        await member.edit(nick=newnick)
+        await ctx.send(f'{oldnick.mention} стал {newnick}')
+    else:
+        await not_enough_perms1(ctx)
 
 @bot.command(aliases=['очистить', 'очистка', 'чистить',"чист"])
 async def clear(ctx, amount:int):
@@ -231,8 +264,27 @@ async def cr_channel(ctx, *, text=None):
     if text == None:
         await ctx.guild.create_text_channel(f'{ctx.message.author}')
     else:
-        await ctx.guild.create_text_channel(f'{text}')
+        await ctx.guild.create_text_channel(f'{text}') 
     
+
+
+@bot.command()
+async def create_post(ctx):
+    embed = discord.Embed(title='Выбери свою любимую игру', color=0xff0800)
+    embed.add_field(name=f':csgo:', value='`CS:GO`', inline=False)
+    embed.add_field(name=f':gtav:', value='`GTA V`', inline=False)
+    embed.add_field(name=f':osu:', value='`Osu!`', inline=False)
+    embed.add_field(name=f':minecraft:', value='`Minecraft`')
+
+    await ctx.send(embed=embed)
+
+
+
+
+
+
+
+
 
 # ERRORS
 @info.error
