@@ -46,8 +46,8 @@ class Music(commands.Cog):
             title = info['title']
             duration = info['duration']
             dh = int(duration) // 3600
-            dm = (int(duration) // 60) - 60
-            ds = int(duration)-(dh*3600+dm*60)
+            dm = (int(duration) // 60) % 60
+            ds = int(duration) % 60
 
             
             embed = discord.Embed(title='Запуск музыки', color=0x00ff00)
@@ -55,14 +55,12 @@ class Music(commands.Cog):
             if duration == 0.0:
                 embed.add_field(name='Продолжительность:',value=f'Прямая трансляция')
             else: 
-                embed.add_field(name='Продолжительность:',value=f'{dh}:{dm}:{ds}')
+                embed.add_field(name='Продолжительность:',value=f'{dh:02}:{dm:02}:{ds:02}')
             embed.set_footer(text=f'Вызвано: {ctx.message.author}',icon_url=ctx.message.author.avatar_url)
             await ctx.send(embed=embed)
             self.vc.play(discord.FFmpegPCMAudio(executable="./ffmpeg.exe", source = URL, **FFMPEG_OPTIONS))
 
-
         
-
     @commands.command(aliases=['стоп','с'], help='Останавливает музыку')
     async def stop(self,ctx):
         if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.move_members or (ctx.message.author == self.start_author):
