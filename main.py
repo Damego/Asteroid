@@ -6,6 +6,8 @@ import qrcode
 import asyncio
 import os
 
+from lifetime_alive import keep_alive
+
 
 def get_prefix(bot, message): 
     with open('jsons/prefixes.json', 'r') as f:
@@ -31,7 +33,7 @@ def get_emoji_role(emoji):
 
     return token[f"{emoji}"]
 
-TOKEN = get_token()
+#TOKEN = get_token()
 bot = commands.Bot(command_prefix=get_prefix)
 
 
@@ -279,13 +281,6 @@ async def create_post(ctx):
     await ctx.send(embed=embed)
 
 
-
-
-
-
-
-
-
 # ERRORS
 @info.error
 @add_role.error
@@ -304,10 +299,13 @@ async def not_enough_perms1(ctx):
 @nick.error
 async def nick_error(ctx, error):
     await ctx.send(error)
-bot.run(TOKEN)
 
 @clear.error
 async def clear_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         embed = discord.Embed(title='Неверно указано количество сообщений!', color=0xff0000)
         await ctx.send(embed=embed)
+
+keep_alive()
+bot.run(os.environ["TOKEN"])
+
