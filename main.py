@@ -6,98 +6,93 @@ import qrcode
 import asyncio
 import os
 
-from lifetime_alive import keep_alive
-
-
+# JSON PARSE
 def get_prefix(bot, message): 
-    with open('jsons/prefixes.json', 'r') as f:
-        prefixes = json.load(f)
+    """Get guild prexif from json """
+    with open('jsons/servers.json', 'r') as f:
+        server = json.load(f)
 
-    return prefixes[str(message.guild.id)]
+    return server[str(message.guild.id)]['prefix']
 
-def get_token(): 
-    with open('jsons/config.json', 'r') as f:
-        token = json.load(f)
-
-    return token["TOKEN"]
 
 def get_react_post_id():
+    """Get guild react post id from json """
     with open('jsons/config.json', 'r') as f:
         token = json.load(f)
 
     return token["REACTION_POST_ID"]
 
+
 def get_emoji_role(emoji):
+    """Get guild emoji roles from json """
     with open('jsons/roles.json', 'r') as f:
         token = json.load(f)
 
     return token[f"{emoji}"]
 
-#TOKEN = get_token()
-bot = commands.Bot(command_prefix=get_prefix)
+
+def get_stats(message, member):
+    """Get guild members stats from json """
+    with open('jsons/servers.json', 'r') as f:
+        server = json.load(f)
+    ls = {
+        'xp':server[str(message.guild.id)]['users'][str(member.id)]['xp'],
+        'lvl':server[str(message.guild.id)]['users'][str(member.id)]['level']
+        }
+    return ls
 
 
-bot.remove_command('help')
-@bot.group(invoke_without_command=True)
-async def help(ctx):
-    cprefix = get_prefix(bot, ctx.message)
-    embed = discord.Embed(title='Справочник команд', color=0xff0800)
-    embed.add_field(name='Музыка', value=f'`{cprefix}help music || музыка`', inline=False)
-    embed.add_field(name='Модерация', value=f'`{cprefix}help moderation || модерация`', inline=False)
-    embed.add_field(name='Разное', value=f'`{cprefix}help other || разное || другое || остальное`')
+def get_emoji_status(message):
+    """Get guild emoji status for stats from json """
+    with open('jsons/servers.json', 'r') as f:
+        server = json.load(f)
+    ls = {
+        'online':server[str(message.guild.id)]['emoji_status']['online'],
+        'dnd':server[str(message.guild.id)]['emoji_status']['dnd'],
+        'idle':server[str(message.guild.id)]['emoji_status']['idle'],
+        'offline':server[str(message.guild.id)]['emoji_status']['offline'],
+        }
+    return ls
 
-    await ctx.send(embed=embed)
 
-@help.command(aliases=['музыка'])
-async def music(ctx):
-    cprefix = get_prefix(bot, ctx.message)
-    embed = discord.Embed(title='Справочник по музыке', color=0xff0800)
-    embed.add_field(name=f'`{cprefix}play || музыка [ССЫЛКА]`', value='Запускает музыку из ютюба', inline=False)
-    embed.add_field(name=f'`{cprefix}stop || стоп`', value='Останавливает музыку', inline=False)
-    embed.add_field(name=f'`{cprefix}pause || пауза`', value='Ставит музыку на паузу', inline=False)
-    embed.add_field(name=f'`{cprefix}resume`', value='Возобновляет музыку', inline=False)
+def get_embed_color(message):
+    """Get color for embeds from json """
+    with open('jsons/servers.json', 'r') as f:
+        server = json.load(f)
 
-    await ctx.send(embed=embed)
+    return int(server[str(message.guild.id)]['embed_color'], 16)
 
-@help.command(aliases=['модерация'])
-async def moderation(ctx):
-    cprefix = get_prefix(bot, ctx.message)
-    embed = discord.Embed(title='Справочник по модерации', color=0xff0800)
-    embed.add_field(name=f'`{cprefix}mute || мут [НИК] [ВРЕМЯ(секунды)] [ПРИЧИНА]`', value='Мутит участника голосового канала', inline=False)
-    embed.add_field(name=f'`{cprefix}unmute || анмут [НИК]`', value='Снимает мут', inline=False)
-    embed.add_field(name=f'`{cprefix}ban || бан [НИК] [ПРИЧИНА]`', value='Банит участника', inline=False)
-    embed.add_field(name=f'`{cprefix}unban [НИК]`', value='Снимает бан', inline=False)
-    embed.add_field(name=f'`{cprefix}kick || кик [НИК]`', value='Кикает участника', inline=False)
-    embed.add_field(name=f'`{cprefix}clear || очистить [КОЛИЧЕСТВО]`', value='Удаляет определённое количество сообщение в канале', inline=False)
-    embed.add_field(name=f'`{cprefix}nick || ник [СТАРЫЙ] [НОВЫЙ]`', value='Меняет ник у участника')
 
-    await ctx.send(embed=embed)
 
-@help.command(aliases=['разное', 'другое', 'остальное'])
-async def other(ctx):
-    cprefix = get_prefix(bot, ctx.message)
-    embed = discord.Embed(title='Справочник по остальным командам', color=0xff0800)
-    embed.add_field(name=f'`{cprefix}random || рандом [ОТ] [ДО]`', value='Выдаёт рандомное число в заданном промежутке', inline=False)
-    embed.add_field(name=f'`{cprefix}exercise || реши [ПРИМЕР]`', value='Решает простой математический пример', inline=False)
-    embed.add_field(name=f'`{cprefix}info || инфо [НИК]`', value='Выдаёт информацию о пользователе', inline=False)
-    embed.add_field(name=f'`{cprefix}qr [ТЕКСТ]`', value='Создаёт QR-код')
 
-    await ctx.send(embed=embed)
 
+intents = discord.Intents.default()
+intents.typing = True
+intents.presences = True
+intents.members = True
+bot = commands.Bot(command_prefix=get_prefix, intents=intents)
+
+@bot.remove_command('help')
 
 
 # EVENTS
 @bot.event
 async def on_ready():
     print('Бот {0.user} готов к работе!'.format(bot))
-    #await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name='PornHub Premium', type=discord.ActivityType.watching))
     await change_activity()
+
+for filename in os.listdir('./extensions'):
+    if filename.endswith('.py') and not filename.startswith('json_parse'):
+        bot.load_extension(f'extensions.{filename[:-3]}')
+
+
 
 async def change_activity():
     for i in range(500):
         await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=f'{i+1} вкладку в Pornhub', type=discord.ActivityType.watching))
         await asyncio.sleep(60)
     await change_activity()
+
 
 @bot.event
 async def on_raw_reaction_add(ctx):
@@ -122,48 +117,25 @@ async def on_raw_reaction_remove(ctx):
 async def on_member_join(member):
     print(f'{member} Join')
 
-
 @bot.event
 async def on_member_remove(member):
     print(f'{member} Disconnected')
 
-
-@bot.event
-async def on_guild_join(guild): # Когда бот подключается к серверу, записывается в json айди сервера и префикс для команд
-    with open('jsons/prefixes.json', 'r') as f:
-        prefixes = json.load(f)
-
-    prefixes[str(guild.id)] = '.'
-
-    with open('jsons/prefixes.json', 'w') as f:
-        json.dump(prefixes, f, indent=4)
-
-
-@bot.event
-async def on_guild_remove(guild): # Когда бот отключается от сервера, удалятеся информация о префиксе
-    with open('jsons/prefixes.json', 'r') as f:
-        prefixes = json.load(f)
-
-    prefixes.pop(str(guild.id))
-
-    with open('jsons/prefixes.json', 'w') as f:
-        json.dump(prefixes, f, indent=4)
-
 # COMMANDS
 
 @bot.command(name='load', help='Загрузка отдельных модулей', hidden=True)
+@commands.is_owner()
 async def load(ctx, extension):
+
     bot.load_extension(f'extensions.{extension}')
     embed = discord.Embed(title=f'Плагин {extension} загружен!')
     await ctx.send(embed=embed)
 
 @bot.command(name='unload', help='Выгрузка отдельных модулей', hidden=True)
+@commands.is_owner()
 async def unload(ctx, extension):
-    if ctx.message.author.is_owner():
-        bot.unload_extension(f'extensions.{extension}')
-for filename in os.listdir('./extensions'):
-    if filename.endswith('.py'):
-        bot.load_extension(f'extensions.{filename[:-3]}')
+    bot.unload_extension(f'extensions.{extension}')
+
 
 @bot.command(aliases=['реши'])
 async def exercise(ctx, arg): # Решает простой матемаический пример
@@ -175,7 +147,7 @@ async def exercise(ctx, arg): # Решает простой матемаичес
         await ctx.send('Указаны неверные числа/действие!!!')
     
 
-@bot.command(aliases=['рандом'],name='random')
+@bot.command(aliases=['рандом'], name='random')
 async def random_num(ctx, arg1, arg2): # Выдаёт рандомное число в заданном промежутке
     arg1 = int(arg1)
     arg2 = int(arg2)
@@ -185,68 +157,58 @@ async def random_num(ctx, arg1, arg2): # Выдаёт рандомное чис�
 
 @bot.command(aliases=['инфо'])
 async def info(ctx, *, member: discord.Member): # Выводит информацию об участнике канала
-    embed = discord.Embed(title='Информация о пользователе:', color = 0xff0000)
-    embed.add_field(name='Имя:', value=member, inline=False)
-    embed.add_field(name='Дата присоединения:', value=member.joined_at.strftime("%#d %B %Y"), inline=False)
-    embed.add_field(name='Дата регистрации:', value=member.created_at.strftime("%#d %B %Y"), inline=False)
-    embed.set_thumbnail(url=member.avatar_url)
-    embed.add_field(name='Роли:', value=member.roles)
+    embed = discord.Embed(title=f'Информация о пользователе {member}', color = get_embed_color(ctx.message))
 
+    stats = get_stats(ctx.message, member)
+    lvl = stats['lvl']
+    xp = stats['xp']
+
+    member_roles_names = []
+    for role in member.roles:
+        member_roles_names.append(role.name)
+    member_roles_names = ', '.join(member_roles_names)
+
+    ls = get_emoji_status(ctx.message)
+    member_status = str(member.status)
+    if member_status == 'online':
+        member_status = '{} В сети'.format(ls['online'])
+    elif member_status == 'dnd':
+        member_status = '{} Не беспокоить'.format(ls['dnd'])
+    elif member_status == 'idle':
+        member_status = '{} Не активен'.format(ls['idle'])
+    elif member_status == 'offline':
+        member_status = '{} Не в сети'.format(ls['offline'])
+
+    embed.add_field(name= "Основная информация:" ,value=f"""
+        **Дата регистрации в Discord:** {member.created_at.strftime("%#d %B %Y")}
+        **Дата присоединения на сервер:** {member.joined_at.strftime("%#d %B %Y")}
+        **Текущий статус:** {member_status}
+        **Роли:** {member_roles_names}
+        """, inline=False)
+
+    embed.add_field(name='Уровень:', value=lvl)
+    embed.add_field(name='Опыт:', value=xp)
+
+    embed.set_thumbnail(url=member.avatar_url)
     await ctx.send(embed=embed)
 
 
-@bot.command(aliases=['роль+'])
-async def add_role(ctx, member: discord.Member, role: discord.Role): # Выдаёт роль участнику
-    if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.manage_roles:
-        print(type(role))
-        await member.add_roles(role)
-        embed = discord.Embed(title=f'{member} теперь {role}',color = 0x00ff00)
-        await ctx.send(embed=embed)
-    else:
-        await not_enough_perms1(ctx)
-    
-
-@bot.command(aliases=['роль-'])
-async def remove_role(ctx, member: discord.Member, role: discord.Role): # Убирает роль с участника
-    if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.manage_roles:
-        await member.remove_roles(role)
-        embed = discord.Embed(title=f'{member}', description=f'Роль {role} была снята!',color = 0x00ff00) 
-        await ctx.send(embed=embed)
-    else:
-        await not_enough_perms1(ctx)
-
-
+@commands.has_guild_permissions(administrator=True)
 @bot.command(aliases=['префикс'])
 async def changeprefix(ctx, prefix): # Меняет префикс у команд
-    if ctx.author.guild_permissions.administrator:
-        with open('jsons/prefixes.json', 'r') as f:
-            prefixes = json.load(f)
+        with open('jsons/servers.json', 'r') as f:
+            server = json.load(f)
 
-        prefixes[str(ctx.guild.id)] = prefix
+        server[str(ctx.guild.id)]['prefix'] = prefix
 
-        with open('jsons/prefixes.json', 'w') as f:
-            json.dump(prefixes, f, indent=4)
+        with open('jsons/servers.json', 'w') as f:
+            json.dump(server, f, indent=4)
 
         embed = discord.Embed(title=f'Префикс команд поменялся на {prefix}')
         await ctx.send(embed=embed)
-    else:
-        await not_enough_perms1(ctx)
 
 
-@bot.command(aliases=['ник'])
-async def nick(ctx, member:discord.Member, newnick):
-    if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.manage_nicknames:
-        oldnick = member
-        await member.edit(nick=newnick)
-        await ctx.send(f'{oldnick.mention} стал {newnick}')
-    else:
-        await not_enough_perms1(ctx)
-
-@bot.command(aliases=['очистить', 'очистка', 'чистить',"чист"])
-async def clear(ctx, amount:int):
-    await ctx.channel.purge(limit=amount+1)
-
-@bot.command(name='qr')
+@bot.command(name='qr', aliases=['QR', 'код'])
 async def create_qr(ctx, *, text):
     qr = qrcode.QRCode(
         version=None,
@@ -261,51 +223,49 @@ async def create_qr(ctx, *, text):
     await ctx.send(file = discord.File(f'./qrcodes/{ctx.message.author.id}.png'))
     os.remove(f'./qrcodes/{ctx.message.author.id}.png')
 
-@bot.command()
-async def cr_channel(ctx, *, text=None):
-    if text == None:
-        await ctx.guild.create_text_channel(f'{ctx.message.author}')
-    else:
-        await ctx.guild.create_text_channel(f'{text}') 
+@bot.command(aliases=['e_color', 'цвет'])
+@commands.has_guild_permissions(administrator=True)
+async def change_embed_color(ctx, new_color):
+    with open('jsons/servers.json', 'r') as f:
+        server = json.load(f)
+        server[str(ctx.guild.id)]['embed_color'] = '0x'+new_color
     
+    with open('jsons/servers.json', 'w') as f:
+        json.dump(server, f, indent=4)
 
+@bot.command(aliases=['записать_сервер'])
+@commands.is_owner() 
+async def add_guild_in_json(guild): # Если в файле не прописан сервер, то это команда прописывает
+    with open('jsons/servers.json', 'r') as f:
+        server = json.load(f)
 
-@bot.command()
-async def create_post(ctx):
-    embed = discord.Embed(title='Выбери свою любимую игру', color=0xff0800)
-    embed.add_field(name=f':csgo:', value='`CS:GO`', inline=False)
-    embed.add_field(name=f':gtav:', value='`GTA V`', inline=False)
-    embed.add_field(name=f':osu:', value='`Osu!`', inline=False)
-    embed.add_field(name=f':minecraft:', value='`Minecraft`')
+    server[str(guild.id)] = {
+        'prefix':'.',
+        "embed_color": "0xFFFFFE",
+        'emoji_status': {},
+        'users': {}
+    }
 
-    await ctx.send(embed=embed)
-
+    with open('jsons/servers.json', 'w') as f:
+        json.dump(server, f, indent=4)
 
 # ERRORS
-@info.error
-@add_role.error
-@remove_role.error
-async def info_error(ctx, error): # Выдаёт сообщение, если пользователь не найден
-    if isinstance(error, commands.BadArgument):
-        embed = discord.Embed(title='Пользователь не найден!', color=0xff0000)
-        await ctx.send(embed=embed)
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        desc = 'Потерян аргумент!'
+    elif isinstance(error, commands.MemberNotFound):
+        desc = 'Пользователь не найден!'
+    elif isinstance(error, commands.BadArgument):
+        desc = 'Неверный аргумент!'
+    elif isinstance(error, commands.NotOwner):
+        desc = 'Это команда доступна только владельцу бота!'
+    else:
+        desc = f'Произошла ошибка! {error}'
 
-
-@bot.command(hidden=True)
-async def not_enough_perms1(ctx):
-    embed = discord.Embed(title=f'У вас недостаточно прав!',color = 0x00ff00)
+    embed = discord.Embed(title=desc, color=0xff0000)
     await ctx.send(embed=embed)
 
-@nick.error
-async def nick_error(ctx, error):
-    await ctx.send(error)
 
-@clear.error
-async def clear_error(ctx, error):
-    if isinstance(error, commands.BadArgument):
-        embed = discord.Embed(title='Неверно указано количество сообщений!', color=0xff0000)
-        await ctx.send(embed=embed)
-
-keep_alive()
-bot.run(os.environ["TOKEN"])
+bot.run('ODMzMzQ5MTA5MzQ3Nzc4NTkx.YHxC1g.HrQIqoym_SRJXF2Zha1kJbdJtJY')
 

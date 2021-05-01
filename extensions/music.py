@@ -2,17 +2,25 @@ import discord
 from discord.ext import commands
 import youtube_dl
 import os
+import json
+
+def get_embed_color(message):
+    """Get color for embeds from json """
+    with open('jsons/servers.json', 'r') as f:
+        server = json.load(f)
+
+    return int(server[str(message.guild.id)]['embed_color'], 16)
 
 
 class Music(commands.Cog):
     def __init__(self,bot):
         self.bot = bot
 
+    
     @commands.command(aliases=['музыка','играть','муз','м'], help='Запускает музыку')
     async def play(self,ctx, url:str):
-
         if not ctx.message.author.voice:
-            not_connected_embed = discord.Embed(title='Вы не подключены к голосовому каналу!', color=0xff0000)
+            not_connected_embed = discord.Embed(title='Вы не подключены к голосовому каналу!', color=get_embed_color(ctx.message))
             await ctx.send(embed=not_connected_embed)
             return
         else:
@@ -37,7 +45,6 @@ class Music(commands.Cog):
         # Запуск музыки
         if self.vc.is_playing():
             await ctx.send(f'{ctx.message.author.mention}, музыка уже проигрывается.')
-
         else:
             with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl:
                 info = ydl.extract_info(url, download=False)
@@ -50,14 +57,17 @@ class Music(commands.Cog):
             ds = int(duration) % 60
 
             
-            embed = discord.Embed(title='Запуск музыки', color=0x00ff00)
+            embed = discord.Embed(title='Запуск музыки', color=get_embed_color(ctx.message))
             embed.add_field(name='Название:', value=title, inline=False)
+
             if duration == 0.0:
                 embed.add_field(name='Продолжительность:',value=f'Прямая трансляция')
             else: 
                 embed.add_field(name='Продолжительность:',value=f'{dh:02}:{dm:02}:{ds:02}')
+
             embed.set_footer(text=f'Вызвано: {ctx.message.author}',icon_url=ctx.message.author.avatar_url)
             await ctx.send(embed=embed)
+
             self.vc.play(discord.FFmpegPCMAudio(executable="./ffmpeg.exe", source = URL, **FFMPEG_OPTIONS))
 
         
@@ -69,7 +79,7 @@ class Music(commands.Cog):
             else:
                 await ctx.send('Бот не подключён к каналу!')
         else:
-            await ctx.send('```Вы не имеете права управлять музыкой!```')
+            await ctx.send(f'```Музыкой управляет {self.start_author}!```')
 
     @commands.command(aliases=['пауза'])
     async def pause(self, ctx):
@@ -77,21 +87,21 @@ class Music(commands.Cog):
             if self.vc.is_playing():
                 self.vc.pause()
             else:
-                embed = discord.Embed(title='Музыка не воспроизводиться!', color=0x00ff00)
+                embed = discord.Embed(title='Музыка не воспроизводиться!', color=get_embed_color(ctx.message))
                 await ctx.send(embed=embed)
         else:
-            await ctx.send('```Вы не имеете права управлять музыкой!```')
+            await ctx.send(f'```Музыкой управляет {self.start_author}!```')
         
     @commands.command(aliases=['продолжить'])
     async def resume(self, ctx):
         if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.move_members or (ctx.message.author == self.start_author):
             if self.vc.is_playing():
-                embed = discord.Embed(title='Музыка уже играет!', color=0x00ff00)
+                embed = discord.Embed(title='Музыка уже играет!', color=get_embed_color(ctx.message))
                 await ctx.send(embed=embed)
             else:
                 self.vc.resume()
         else:
-            await ctx.send('```Вы не имеете права управлять музыкой!```')
+            await ctx.send(f'```Музыкой управляет {self.start_author}!```')
 
 
 
