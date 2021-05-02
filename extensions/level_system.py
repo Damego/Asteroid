@@ -49,6 +49,9 @@ class Level(commands.Cog):
             with open('jsons/servers.json', 'r') as f:
                 server = json.load(f)
 
+            if not str(message.guild.id) in server:
+                await self.add_guild_in_json(message.guild)
+
             if not str(user) in server[str(message.guild.id)]['users']:
                 await self.add_member(server, message)
             else:
@@ -57,6 +60,21 @@ class Level(commands.Cog):
             with open('jsons/servers.json', 'w') as f:
                 json.dump(server, f, indent=4)
 
+
+    async def add_guild_in_json(self, guild):
+        """Add guild in json"""
+        with open('jsons/servers.json', 'r') as f:
+            server = json.load(f)
+
+        server[str(guild.id)] = {
+            'prefix':'.',
+            "embed_color": "0xFFFFFE",
+            'emoji_status': {},
+            'users': {}
+        }
+
+        with open('jsons/servers.json', 'w') as f:
+            json.dump(server, f, indent=4)
 
     async def add_member(self, server, message):
         server[str(message.guild.id)]['users'][str(message.author.id)] = {}
@@ -81,6 +99,13 @@ class Level(commands.Cog):
             server = json.load(f)
 
         server[str(message.guild.id)]['users'][str(member.id)]['xp'] += xp
+
+        exp = server[str(message.guild.id)]['users'][str(message.author.id)]['xp']
+        level_end = exp ** (1/4)
+
+        server[str(message.guild.id)]['users'][str(message.author.id)]['level'] = round(level_end)
+        lvl = server[str(message.guild.id)]['users'][str(message.author.id)]['level']
+        await message.channel.send(f'{message.author.mention} получил {lvl}-й уровень')
 
         with open('jsons/servers.json', 'w') as f:
             json.dump(server, f, indent=4)

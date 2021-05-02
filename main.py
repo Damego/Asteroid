@@ -6,6 +6,7 @@ import qrcode
 import asyncio
 import os
 
+from lifetime_alive import keep_alive
 # JSON PARSE
 def get_prefix(bot, message): 
     """Get guild prexif from json """
@@ -168,16 +169,32 @@ async def info(ctx, *, member: discord.Member): # Выводит информа�
         member_roles_names.append(role.name)
     member_roles_names = ', '.join(member_roles_names)
 
-    ls = get_emoji_status(ctx.message)
+    
+    try:
+        ls = get_emoji_status(ctx.message)
+    except Exception:
+        ls = None
     member_status = str(member.status)
-    if member_status == 'online':
-        member_status = '{} В сети'.format(ls['online'])
-    elif member_status == 'dnd':
-        member_status = '{} Не беспокоить'.format(ls['dnd'])
-    elif member_status == 'idle':
-        member_status = '{} Не активен'.format(ls['idle'])
-    elif member_status == 'offline':
-        member_status = '{} Не в сети'.format(ls['offline'])
+
+    if ls != None:
+        if member_status == 'online':
+            member_status = '{} В сети'.format(ls['online'])
+        elif member_status == 'dnd':
+            member_status = '{} Не беспокоить'.format(ls['dnd'])
+        elif member_status == 'idle':
+            member_status = '{} Не активен'.format(ls['idle'])
+        elif member_status == 'offline':
+            member_status = '{} Не в сети'.format(ls['offline'])
+    else:
+        if member_status == 'online':
+            member_status = 'В сети'
+        elif member_status == 'dnd':
+            member_status = 'Не беспокоить'
+        elif member_status == 'idle':
+            member_status = 'Не активен'
+        elif member_status == 'offline':
+            member_status = 'Не в сети'
+
 
     embed.add_field(name= "Основная информация:" ,value=f"""
         **Дата регистрации в Discord:** {member.created_at.strftime("%#d %B %Y")}
@@ -196,16 +213,16 @@ async def info(ctx, *, member: discord.Member): # Выводит информа�
 @commands.has_guild_permissions(administrator=True)
 @bot.command(aliases=['префикс'])
 async def changeprefix(ctx, prefix): # Меняет префикс у команд
-        with open('jsons/servers.json', 'r') as f:
-            server = json.load(f)
+    with open('jsons/servers.json', 'r') as f:
+        server = json.load(f)
 
-        server[str(ctx.guild.id)]['prefix'] = prefix
+    server[str(ctx.guild.id)]['prefix'] = prefix
 
-        with open('jsons/servers.json', 'w') as f:
-            json.dump(server, f, indent=4)
+    with open('jsons/servers.json', 'w') as f:
+        json.dump(server, f, indent=4)
 
-        embed = discord.Embed(title=f'Префикс команд поменялся на {prefix}')
-        await ctx.send(embed=embed)
+    embed = discord.Embed(title=f'Префикс команд поменялся на {prefix}')
+    await ctx.send(embed=embed)
 
 
 @bot.command(name='qr', aliases=['QR', 'код'])
@@ -233,21 +250,6 @@ async def change_embed_color(ctx, new_color):
     with open('jsons/servers.json', 'w') as f:
         json.dump(server, f, indent=4)
 
-@bot.command(aliases=['записать_сервер'])
-@commands.is_owner() 
-async def add_guild_in_json(guild): # Если в файле не прописан сервер, то это команда прописывает
-    with open('jsons/servers.json', 'r') as f:
-        server = json.load(f)
-
-    server[str(guild.id)] = {
-        'prefix':'.',
-        "embed_color": "0xFFFFFE",
-        'emoji_status': {},
-        'users': {}
-    }
-
-    with open('jsons/servers.json', 'w') as f:
-        json.dump(server, f, indent=4)
 
 # ERRORS
 @bot.event
@@ -267,5 +269,6 @@ async def on_command_error(ctx, error):
     await ctx.send(embed=embed)
 
 
-bot.run('ODMzMzQ5MTA5MzQ3Nzc4NTkx.YHxC1g.HrQIqoym_SRJXF2Zha1kJbdJtJY')
+keep_alive()
+bot.run(os.environ["TOKEN"])
 

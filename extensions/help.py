@@ -27,10 +27,9 @@ class Help(commands.Cog):
         embed = discord.Embed(title='Справочник команд', color=get_embed_color(ctx.message)) 
         embed.add_field(name='Музыка', value=f'`{cprefix}help music || музыка`', inline=False)
         embed.add_field(name='Модерация', value=f'`{cprefix}help moderation || модерация`', inline=False)
-        embed.add_field(name='Разное', value=f'`{cprefix}help other || разное || другое || остальное`')
-
-        if ctx.message.author.has_guild_permissions(administrator=True):
-            embed.add_field(name='Администрация', value=f'`{cprefix}help admin || админ || администрация`')
+        embed.add_field(name='Разное', value=f'`{cprefix}help other || разное || другое || остальное`', inline=False)
+        if ctx.message.author.guild_permissions.administrator:
+            embed.add_field(name='Администрация', value=f'`{cprefix}help admin || админ || администрация`', inline=False)
 
         await ctx.send(embed=embed)
 
