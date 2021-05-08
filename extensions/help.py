@@ -1,84 +1,53 @@
 import discord
 from discord.ext import commands
 import json
+import os
+from replit import Database, db
+
+if db != None:
+    server = db
+else:
+    from dotenv import load_dotenv
+    load_dotenv()
+    url = os.getenv('URL')
+    server = Database(url)
 
 def get_prefixs(message): 
     """Get guild prexif from json """
-    with open('jsons/servers.json', 'r') as f:
-        server = json.load(f)
-
     return server[str(message.guild.id)]['prefix']
 
 def get_embed_color(message):
     """Get color for embeds from json """
-    with open('jsons/servers.json', 'r') as f:
-        server = json.load(f)
-
     return int(server[str(message.guild.id)]['embed_color'], 16)
 
 class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.bot.remove_command('help')
 
 
-    @commands.group(invoke_without_command=True) 
-    async def help(self, ctx):
+    @commands.command(description='Показывает это сообщение')
+    async def help(self, ctx, arg=None):
+        ls = ['Music', 'Moderation', 'Administration', 'Other']
         cprefix = get_prefixs(ctx.message)
-        embed = discord.Embed(title='Справочник команд', color=get_embed_color(ctx.message)) 
-        embed.add_field(name='Музыка', value=f'`{cprefix}help music || музыка`', inline=False)
-        embed.add_field(name='Модерация', value=f'`{cprefix}help moderation || модерация`', inline=False)
-        embed.add_field(name='Разное', value=f'`{cprefix}help other || разное || другое || остальное`', inline=False)
-        if ctx.message.author.guild_permissions.administrator:
-            embed.add_field(name='Администрация', value=f'`{cprefix}help admin || админ || администрация`', inline=False)
+        if arg in ls:
+            embed = None
+            for commands.command in self.bot.commands:
+                if commands.command.cog_name == arg:
+                    if embed is None:
+                        embed = discord.Embed(title=f'Справочник по {commands.command.cog_name}', color=get_embed_color(ctx.message))
+                    embed.add_field(name=f'`{cprefix}{commands.command}`', value=f'{commands.command.description}', inline=False)
+            await ctx.send(embed=embed)
+        elif arg is None:
+            embed = discord.Embed(title='Справочник команд', color=get_embed_color(ctx.message)) 
+            embed.add_field(name='Музыка', value=f'`{cprefix}help Music`', inline=False)
+            embed.add_field(name='Модерация', value=f'`{cprefix}help Moderation`', inline=False)
+            embed.add_field(name='Разное', value=f'`{cprefix}help Other`', inline=False)
+            if ctx.message.author.guild_permissions.administrator:
+                embed.add_field(name='Администрация', value=f'`{cprefix}help Administration`', inline=False)
 
-        await ctx.send(embed=embed)
+            await ctx.send(embed=embed)
 
-    @help.command(aliases=['музыка'])
-    async def music(self, ctx):
-        cprefix = get_prefixs(ctx.message)
-        embed = discord.Embed(title='Справочник по музыке', color=get_embed_color(ctx.message))
-        embed.add_field(name=f'`{cprefix}play || музыка [ССЫЛКА]`', value='Запускает музыку из ютюба', inline=False)
-        embed.add_field(name=f'`{cprefix}stop || стоп`', value='Останавливает музыку', inline=False)
-        embed.add_field(name=f'`{cprefix}pause || пауза`', value='Ставит музыку на паузу', inline=False)
-        embed.add_field(name=f'`{cprefix}resume`', value='Возобновляет музыку', inline=False)
-
-        await ctx.send(embed=embed)
-
-    @help.command(aliases=['модерация'])
-    async def moderation(self, ctx):
-        cprefix = get_prefixs(ctx.message)
-        embed = discord.Embed(title='Справочник по модерации', color=get_embed_color(ctx.message))
-        embed.add_field(name=f'`{cprefix}mute || мут [НИК] [ВРЕМЯ(секунды)] [ПРИЧИНА]`', value='Мутит участника голосового канала', inline=False)
-        embed.add_field(name=f'`{cprefix}unmute || анмут [НИК]`', value='Снимает мут', inline=False)
-        embed.add_field(name=f'`{cprefix}ban || бан [НИК] [ПРИЧИНА]`', value='Банит участника', inline=False)
-        embed.add_field(name=f'`{cprefix}unban [НИК]`', value='Снимает бан', inline=False)
-        embed.add_field(name=f'`{cprefix}kick || кик [НИК]`', value='Кикает участника', inline=False)
-        embed.add_field(name=f'`{cprefix}clear || очистить [КОЛИЧЕСТВО]`', value='Удаляет сообщения в канале', inline=False)
-        embed.add_field(name=f'`{cprefix}nick || ник [СТАРЫЙ] [НОВЫЙ]`', value='Меняет ник у участника')
-
-        await ctx.send(embed=embed)
-
-    @help.command(aliases=['разное', 'другое', 'остальное'])
-    async def other(self, ctx):
-        cprefix = get_prefixs(ctx.message)
-        embed = discord.Embed(title='Справочник по остальным командам', color=get_embed_color(ctx.message))
-        embed.add_field(name=f'`{cprefix}random || рандом [ОТ] [ДО]`', value='Выдаёт рандомное число в заданном промежутке', inline=False)
-        embed.add_field(name=f'`{cprefix}exercise || реши [ПРИМЕР]`', value='Решает простой математический пример', inline=False)
-        embed.add_field(name=f'`{cprefix}info || инфо [НИК]`', value='Выдаёт информацию о пользователе', inline=False)
-        embed.add_field(name=f'`{cprefix}QR || код [ТЕКСТ]`', value='Создаёт QR-код')
-
-        await ctx.send(embed=embed)
     
-    @help.command(aliases=['admin', 'админ', 'администрация'])
-    @commands.has_guild_permissions(administrator=True)
-    async def administration(self, ctx):
-        cprefix = get_prefixs(ctx.message)
-        embed = discord.Embed(title='Справочник по Администрации', color=get_embed_color(ctx.message))
-        embed.add_field(name=f'`{cprefix}add_xp || опыт [НИК] [КОЛИЧЕСТВО]`', value='Выдаёт опыт', inline=False)
-        embed.add_field(name=f'`{cprefix}changeprefix || префикс [ПРЕФИКС]`', value='Задаёт новый префикс команд', inline=False)
-        embed.add_field(name=f'`{cprefix}change_embed_color || цвет [ЦВЕТ]`', value='Задаёт новый цвет', inline=False)
-
-        await ctx.send(embed=embed)
-
 def setup(bot):
     bot.add_cog(Help(bot))

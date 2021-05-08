@@ -2,17 +2,21 @@ import random
 import json
 import discord
 from discord.ext import commands
-import qrcode
 import asyncio
 import os
+from replit import Database, db
 
-from lifetime_alive import keep_alive
+if db != None:
+    server = db
+else:
+    from dotenv import load_dotenv
+    load_dotenv()
+    url = os.getenv('URL')
+    server = Database(url)
+
 # JSON PARSE
 def get_prefix(bot, message): 
     """Get guild prexif from json """
-    with open('jsons/servers.json', 'r') as f:
-        server = json.load(f)
-
     return server[str(message.guild.id)]['prefix']
 
 
@@ -23,7 +27,6 @@ def get_react_post_id():
 
     return token["REACTION_POST_ID"]
 
-
 def get_emoji_role(emoji):
     """Get guild emoji roles from json """
     with open('jsons/roles.json', 'r') as f:
@@ -31,50 +34,11 @@ def get_emoji_role(emoji):
 
     return token[f"{emoji}"]
 
-
-def get_stats(message, member):
-    """Get guild members stats from json """
-    with open('jsons/servers.json', 'r') as f:
-        server = json.load(f)
-    ls = {
-        'xp':server[str(message.guild.id)]['users'][str(member.id)]['xp'],
-        'lvl':server[str(message.guild.id)]['users'][str(member.id)]['level']
-        }
-    return ls
-
-
-def get_emoji_status(message):
-    """Get guild emoji status for stats from json """
-    with open('jsons/servers.json', 'r') as f:
-        server = json.load(f)
-    ls = {
-        'online':server[str(message.guild.id)]['emoji_status']['online'],
-        'dnd':server[str(message.guild.id)]['emoji_status']['dnd'],
-        'idle':server[str(message.guild.id)]['emoji_status']['idle'],
-        'offline':server[str(message.guild.id)]['emoji_status']['offline'],
-        }
-    return ls
-
-
-def get_embed_color(message):
-    """Get color for embeds from json """
-    with open('jsons/servers.json', 'r') as f:
-        server = json.load(f)
-
-    return int(server[str(message.guild.id)]['embed_color'], 16)
-
-
-
-
-
 intents = discord.Intents.default()
 intents.typing = True
 intents.presences = True
 intents.members = True
 bot = commands.Bot(command_prefix=get_prefix, intents=intents)
-
-@bot.remove_command('help')
-
 
 # EVENTS
 @bot.event
@@ -138,117 +102,9 @@ async def unload(ctx, extension):
     bot.unload_extension(f'extensions.{extension}')
 
 
-@bot.command(aliases=['реши'])
-async def exercise(ctx, arg): # Решает простой матемаический пример
-    exercise = arg
-    try:
-        exercise = eval(exercise)
-        await ctx.send(exercise)
-    except Exception:
-        await ctx.send('Указаны неверные числа/действие!!!')
-    
-
-@bot.command(aliases=['рандом'], name='random')
-async def random_num(ctx, arg1, arg2): # Выдаёт рандомное число в заданном промежутке
-    arg1 = int(arg1)
-    arg2 = int(arg2)
-    num = random.randint(arg1,arg2)
-    await ctx.reply(f'Рандомное число: {num}')
 
 
-@bot.command(aliases=['инфо'])
-async def info(ctx, *, member: discord.Member): # Выводит информацию об участнике канала
-    embed = discord.Embed(title=f'Информация о пользователе {member}', color = get_embed_color(ctx.message))
 
-    stats = get_stats(ctx.message, member)
-    lvl = stats['lvl']
-    xp = stats['xp']
-
-    member_roles_names = []
-    for role in member.roles:
-        member_roles_names.append(role.name)
-    member_roles_names = ', '.join(member_roles_names)
-
-    
-    try:
-        ls = get_emoji_status(ctx.message)
-    except Exception:
-        ls = None
-    member_status = str(member.status)
-
-    if ls != None:
-        if member_status == 'online':
-            member_status = '{} В сети'.format(ls['online'])
-        elif member_status == 'dnd':
-            member_status = '{} Не беспокоить'.format(ls['dnd'])
-        elif member_status == 'idle':
-            member_status = '{} Не активен'.format(ls['idle'])
-        elif member_status == 'offline':
-            member_status = '{} Не в сети'.format(ls['offline'])
-    else:
-        if member_status == 'online':
-            member_status = 'В сети'
-        elif member_status == 'dnd':
-            member_status = 'Не беспокоить'
-        elif member_status == 'idle':
-            member_status = 'Не активен'
-        elif member_status == 'offline':
-            member_status = 'Не в сети'
-
-
-    embed.add_field(name= "Основная информация:" ,value=f"""
-        **Дата регистрации в Discord:** {member.created_at.strftime("%#d %B %Y")}
-        **Дата присоединения на сервер:** {member.joined_at.strftime("%#d %B %Y")}
-        **Текущий статус:** {member_status}
-        **Роли:** {member_roles_names}
-        """, inline=False)
-
-    embed.add_field(name='Уровень:', value=lvl)
-    embed.add_field(name='Опыт:', value=xp)
-
-    embed.set_thumbnail(url=member.avatar_url)
-    await ctx.send(embed=embed)
-
-
-@commands.has_guild_permissions(administrator=True)
-@bot.command(aliases=['префикс'])
-async def changeprefix(ctx, prefix): # Меняет префикс у команд
-    with open('jsons/servers.json', 'r') as f:
-        server = json.load(f)
-
-    server[str(ctx.guild.id)]['prefix'] = prefix
-
-    with open('jsons/servers.json', 'w') as f:
-        json.dump(server, f, indent=4)
-
-    embed = discord.Embed(title=f'Префикс команд поменялся на {prefix}')
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='qr', aliases=['QR', 'код'])
-async def create_qr(ctx, *, text):
-    qr = qrcode.QRCode(
-        version=None,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=10,
-        border=1
-    )
-    qr.add_data(data=text)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    img.save(f'./qrcodes/{ctx.message.author.id}.png')
-    await ctx.send(file = discord.File(f'./qrcodes/{ctx.message.author.id}.png'))
-    os.remove(f'./qrcodes/{ctx.message.author.id}.png')
-
-@bot.command(aliases=['e_color', 'цвет'])
-@commands.has_guild_permissions(administrator=True)
-async def change_embed_color(ctx, new_color):
-    with open('jsons/servers.json', 'r') as f:
-        server = json.load(f)
-        server[str(ctx.guild.id)]['embed_color'] = '0x'+new_color
-    
-    with open('jsons/servers.json', 'w') as f:
-        json.dump(server, f, indent=4)
 
 
 # ERRORS
@@ -269,6 +125,5 @@ async def on_command_error(ctx, error):
     await ctx.send(embed=embed)
 
 
-keep_alive()
-bot.run(os.environ["TOKEN"])
+bot.run('ODMzMzQ5MTA5MzQ3Nzc4NTkx.YHxC1g.yoHJA_7bBQ_s78OoM8Qf02u8564') 
 

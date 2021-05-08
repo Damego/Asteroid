@@ -3,6 +3,15 @@ from discord.ext import commands
 import youtube_dl
 import os
 import json
+from replit import Database, db
+
+if db != None:
+    server = db
+else:
+    from dotenv import load_dotenv
+    load_dotenv()
+    url = os.getenv('URL')
+    server = Database(url)
 
 def get_embed_color(message):
     """Get color for embeds from json """
@@ -17,7 +26,7 @@ class Music(commands.Cog):
         self.bot = bot
 
     
-    @commands.command(aliases=['музыка','играть','муз','м'], help='Запускает музыку')
+    @commands.command(aliases=['музыка','играть','муз','м'], description='Запускает музыку')
     async def play(self,ctx, url:str):
         if not ctx.message.author.voice:
             not_connected_embed = discord.Embed(title='Вы не подключены к голосовому каналу!', color=get_embed_color(ctx.message))
@@ -71,7 +80,7 @@ class Music(commands.Cog):
             self.vc.play(discord.FFmpegPCMAudio(executable="./ffmpeg.exe", source = URL, **FFMPEG_OPTIONS))
 
         
-    @commands.command(aliases=['стоп','с'], help='Останавливает музыку')
+    @commands.command(aliases=['стоп','с'], description='Останавливает музыку')
     async def stop(self,ctx):
         if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.move_members or (ctx.message.author == self.start_author):
             if self.vc.is_connected():
@@ -81,7 +90,7 @@ class Music(commands.Cog):
         else:
             await ctx.send(f'```Музыкой управляет {self.start_author}!```')
 
-    @commands.command(aliases=['пауза'])
+    @commands.command(aliases=['пауза'], description="Ставит музыку на паузу")
     async def pause(self, ctx):
         if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.move_members or (ctx.message.author == self.start_author):
             if self.vc.is_playing():
@@ -92,7 +101,7 @@ class Music(commands.Cog):
         else:
             await ctx.send(f'```Музыкой управляет {self.start_author}!```')
         
-    @commands.command(aliases=['продолжить'])
+    @commands.command(description='Снимает паузу с музыки')
     async def resume(self, ctx):
         if ctx.author.guild_permissions.administrator or ctx.author.guild_permissions.move_members or (ctx.message.author == self.start_author):
             if self.vc.is_playing():

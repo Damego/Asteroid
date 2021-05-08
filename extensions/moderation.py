@@ -2,11 +2,22 @@ import discord
 from discord.ext import commands
 import asyncio
 import json
+import os
+from replit import Database, db
+
+
+if db != None:
+    server = db
+else:
+    from dotenv import load_dotenv
+    load_dotenv()
+    url = os.getenv('URL')
+    server = Database(url)
 
 def get_embed_color(message):
     """Get color for embeds from json """
-    with open('jsons/servers.json', 'r') as f:
-        server = json.load(f)
+    """with open('jsons/servers.json', 'r') as f:
+        server = json.load(f)"""
 
     return int(server[str(message.guild.id)]['embed_color'], 16)
 
@@ -44,7 +55,7 @@ class Moderation(commands.Cog):
                 await message.channel.send(f'**{message.author.mention}, Ваши сообщения были удалены из-за спама!**')
 
 
-    @commands.command(aliases=['мут'], help='Даёт мут участнику на время')
+    @commands.command(aliases=['мут'], description='Даёт мут участнику на время')
     @commands.has_guild_permissions(mute_members=True)
     async def mute(self, ctx, member:discord.Member, time:int,* ,reason=None):
         await member.edit(mute=True)
@@ -53,9 +64,12 @@ class Moderation(commands.Cog):
         embed.add_field(name='Время:',value=f'{time // 60} мин. {time % 60} сек.')
         await ctx.send(embed=embed)
         await asyncio.sleep(time)
-        await self.unmute(ctx, member)
+        try:
+            await self.unmute(ctx, member)
+        except Exception:
+            print('[Moderation] unmute USER NOT FOUND')
 
-    @commands.command(aliases=['дизмут', 'анмут'], help='Снимает мут с участника')
+    @commands.command(aliases=['дизмут', 'анмут'], description='Снимает мут с участника')
     @commands.has_guild_permissions(mute_members=True)
     async def unmute(self, ctx, member:discord.Member):
         await member.edit(mute=False)
@@ -63,14 +77,14 @@ class Moderation(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.has_guild_permissions(ban_members=True)
-    @commands.command(aliases=['бан'], help='Банит участника сервера')
+    @commands.command(aliases=['бан'], description='Банит участника сервера')
     async def ban(self, ctx, member:discord.Member, *, reason=None):
         await member.ban(reason=reason)
         embed = discord.Embed(title=f'{member} был заблокирован!',description=f'Причина: {reason}', color=get_embed_color(ctx.message))
         await ctx.send(embed=embed)
 
 
-    @commands.command(aliases=['анбан', 'дизбан'], help='Снимает бан у участника')
+    @commands.command(aliases=['анбан', 'дизбан'], description='Снимает бан у участника')
     @commands.has_guild_permissions(ban_members=True)
     async def unban(self, ctx, member):
         banned_users = await ctx.guild.bans()
@@ -84,7 +98,7 @@ class Moderation(commands.Cog):
                 return await ctx.send(embed=embed)
                     
 
-    @commands.command(aliases=['кик'], help='Кикает участника с сервера')
+    @commands.command(aliases=['кик'], description='Кикает участника с сервера')
     @commands.has_guild_permissions(kick_members=True)
     async def kick(self, ctx, member:discord.Member, *, reason=None):
         await member.kick(reason=reason)
@@ -101,7 +115,7 @@ class Moderation(commands.Cog):
 
 
 
-    @commands.command(aliases=['роль-'])
+    @commands.command(aliases=['роль-'], description='Удаляет роль с участника')
     @commands.has_guild_permissions(manage_roles=True)
     async def remove_role(self, ctx, member: discord.Member, role: discord.Role): # Убирает роль с участника
         """Remove role from member"""
@@ -109,7 +123,7 @@ class Moderation(commands.Cog):
         embed = discord.Embed(title=f'{member}', description=f'Роль {role} была снята!',color = get_embed_color(ctx.message)) 
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=['роль+'])
+    @commands.command(aliases=['роль+'], description='Добавляет роль участнику')
     @commands.has_guild_permissions(manage_roles=True)
     async def add_role(self, ctx, member: discord.Member, role: discord.Role, time=None): # Выдаёт роль участнику
         await member.add_roles(role)
@@ -125,14 +139,15 @@ class Moderation(commands.Cog):
             await self.remove_role(ctx, member, role)
 
     @commands.has_guild_permissions(manage_nicknames=True)
-    @commands.command(aliases=['ник'])
+    @commands.command(aliases=['ник'], description='Меняет ник участнику')
     async def nick(self, ctx, member:discord.Member, newnick):
         oldnick = member
         await member.edit(nick=newnick)
         await ctx.send(f'{oldnick.mention} стал {newnick}')
 
 
-    @commands.command(aliases=['очистить', 'очистка', 'чистить',"чист"])
+    @commands.command(aliases=['очистить', 'очистка', 'чистить',"чист"], description='Очищает сообщения', help='clear [КОЛВО]')
+    @commands.has_guild_permissions(manage_messages=True)
     async def clear(self, ctx, amount:int):
         await ctx.channel.purge(limit=amount+1)
 
