@@ -5,6 +5,7 @@ from discord.ext import commands
 import asyncio
 import os
 from replit import Database, db
+from lifetime_alive import keep_alive
 
 if db != None:
     server = db
@@ -96,7 +97,7 @@ async def load(ctx, extension):
     embed = discord.Embed(title=f'Плагин {extension} загружен!')
     await ctx.send(embed=embed)
 
-@bot.command(name='unload', help='Выгрузка отдельных модулей', hidden=True)
+@bot.command(name='unload', help='Отключение отдельных модулей', hidden=True)
 @commands.is_owner()
 async def unload(ctx, extension):
     bot.unload_extension(f'extensions.{extension}')
@@ -124,6 +125,6 @@ async def on_command_error(ctx, error):
     embed = discord.Embed(title=desc, color=0xff0000)
     await ctx.send(embed=embed)
 
-
-bot.run('ODMzMzQ5MTA5MzQ3Nzc4NTkx.YHxC1g.yoHJA_7bBQ_s78OoM8Qf02u8564') 
+keep_alive()
+bot.run('ODMzMzQ5MTA5MzQ3Nzc4NTkx.YHxC1g.5mE437ErtMkLpdUAy9PohteRabY') 
 
