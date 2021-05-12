@@ -49,7 +49,9 @@ class HLTV(commands.Cog):
                     ls[str(day)][str(m_id)] = {
                         'team1': match.find('div',class_='matchTeam team1').get_text(strip=True),
                         'team2': match.find('div',class_='matchTeam team2').get_text(strip=True),
-                        'time': match.find('div',class_='matchTime').get_text(strip=True)
+                        'time': match.find('div',class_='matchTime').get_text(strip=True),
+                        'event': match.find('div', class_='matchEventName').get_text(strip=True),
+                        'format': match.find('div', class_='matchMeta').get_text(strip=True)
                     }
         return ls
 
@@ -85,7 +87,9 @@ class HLTV(commands.Cog):
                             embed.add_field(name='===========', value="""
                             Время: {}
                             Команды: {} и {}
-                            """.format(time.strftime('%H:%M'), match_data['team1'], match_data['team2']), inline=False)
+                            Событие: {}
+                            Формат: {}
+                            """.format(time.strftime('%H:%M'), match_data['team1'], match_data['team2'], match_data['event'], match_data['format']), inline=False)
                     
                     m_id +=1
             await ctx.send(embed=embed)
