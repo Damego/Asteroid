@@ -1,8 +1,8 @@
-import discord
-from discord.ext import commands
-import json
 import os
 from random import randint
+
+import discord
+from discord.ext import commands
 from replit import Database, db
 
 if db != None:
@@ -19,6 +19,7 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
+        await self.add_member(server, member)
         print(f'{member} Join')
 
 
@@ -26,23 +27,6 @@ class Level(commands.Cog):
     async def on_member_remove(self, member):
         print(f'{member} Disconnected')
 
-
-    @commands.Cog.listener()
-    async def on_guild_join(self, guild): # Когда бот подключается к серверу, записывается в json айди сервера и префикс для команд
-        server[str(guild.id)] = {
-            'prefix':'.',
-            'embed_color': 0xFFFFFE,
-            'emoji_status': {"online":" ",
-                            "dnd":" ",
-                            "idle":" ",
-                            "offline":" "},
-            'users': {},
-            'role_by_level': {}
-        }
-
-    @commands.Cog.listener()
-    async def on_guild_remove(self, guild): # Когда бот отключается от сервера, удалятеся информация о сервере
-        server.pop(str(guild.id))
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -55,23 +39,9 @@ class Level(commands.Cog):
             if not str(user) in server[str(message.guild.id)]['users']:
                 await self.add_member(server, message)
             else:
-                xp = randint(15,25)
+                xp = randint(5,10)
                 await self.update_member(server, message, xp)
 
-
-    async def add_guild_in_json(self, guild):
-        """Add guild in json"""
-
-        server[str(guild.id)] = {
-            'prefix':'.',
-            "embed_color": "0xFFFFFE",
-            'emoji_status': {"online":" ",
-                            "dnd":" ",
-                            "idle":" ",
-                            "offline":" "},
-            'users': {},
-            'role_by_level': {}
-        }
 
 
     async def add_member(self, server, message):
@@ -91,9 +61,23 @@ class Level(commands.Cog):
             lvl = server[str(message.guild.id)]['users'][str(message.author.id)]['level']
             await message.channel.send(f'{message.author.mention} получил {lvl}-й уровень')
 
-        
+    @commands.command(description='Устанавливает опыт участнику')
+    @commands.has_guild_permissions(administrator=True)
+    async def set_xp(self, message, member:discord.Member, xp:int):
+        server[str(message.guild.id)]['users'][str(member.id)]['xp'] = xp
+        exp = server[str(message.guild.id)]['users'][str(member.id)]['xp']
+        level_end = exp ** (1/4)
+
+        server[str(message.guild.id)]['users'][str(member.id)]['level'] = round(level_end)
+        lvl = server[str(message.guild.id)]['users'][str(member.id)]['level']
+        await message.channel.send(f'{member.mention} получил {lvl}-й уровень')
 
 
+    @commands.command(description='Устанавливает уровень участнику')
+    @commands.has_guild_permissions(administrator=True)
+    async def set_lvl(self, message, member:discord.Member, lvl:int):
+        server[str(message.guild.id)]['users'][str(member.id)]['level'] = lvl
+        await message.channel.send(f'{member.mention} получил {lvl}-й уровень')
 
 
 def setup(bot):

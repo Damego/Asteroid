@@ -1,7 +1,7 @@
+import os
+
 import discord
 from discord.ext import commands
-import json
-import os
 from replit import Database, db
 
 if db != None:
@@ -20,11 +20,11 @@ def get_embed_color(message):
     """Get color for embeds from json """
     return int(server[str(message.guild.id)]['embed_color'], 16)
 
+
 class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.bot.remove_command('help')
-
 
     @commands.group(invoke_without_command=True,description='Показывает это сообщение')
     async def help(self, ctx):
@@ -37,7 +37,6 @@ class Help(commands.Cog):
             embed.add_field(name='Администрация', value=f'`{cprefix}help Administration`', inline=False)
 
             await ctx.send(embed=embed)
-
 
     @help.command(aliases=['Music','музыка','music'], description='Показывает команды Музыки')
     async def music_cmds(self, ctx):
@@ -86,10 +85,6 @@ class Help(commands.Cog):
                     embed = discord.Embed(title=f'Справочник по {commands.command.cog_name}', color=get_embed_color(ctx.message))
                 embed.add_field(name=f'`{cprefix}{commands.command}`', value=f'{commands.command.description}', inline=False)
         await ctx.send(embed=embed)
-
-
-
-
 
 
 

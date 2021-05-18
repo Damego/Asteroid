@@ -1,9 +1,9 @@
+import os
+from random import randint
+
 import discord
 from discord.ext import commands
-import json
-import os
 from replit import Database, db
-from random import randint
 import qrcode
 
 if db != None:
@@ -23,7 +23,6 @@ def get_stats(message, member):
         }
     return ls
 
-
 def get_emoji_status(message):
     """Get guild emoji status for stats from json """
     ls = {
@@ -34,19 +33,15 @@ def get_emoji_status(message):
         }
     return ls
 
-
 def get_embed_color(message):
     """Get color for embeds from json """
     return int(server[str(message.guild.id)]['embed_color'], 16)
-
-
 
 
 class Other(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        
     @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке')
     async def random_num(self, ctx, arg1, arg2):
         arg1 = int(arg1)
@@ -54,46 +49,34 @@ class Other(commands.Cog):
         num = randint(arg1,arg2)
         await ctx.reply(f'Рандомное число: {num}')
 
-    
     @commands.command(aliases=['инфо'], description='Выводит информацию об участнике канала')
     async def info(self, ctx, *, member: discord.Member):
-        embed = discord.Embed(title=f'Информация о пользователе {member}', color = get_embed_color(ctx.message))
+        embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.message))
 
-        stats = get_stats(ctx.message, member)
-        lvl = stats['lvl']
-        xp = stats['xp']
-
-        member_roles_names = []
+        member_roles = []
         for role in member.roles:
             if role.name != "@everyone":
-                member_roles_names.append(role.mention)
-        member_roles_names = ', '.join(member_roles_names)
+                member_roles.append(role.mention)
+        member_roles = member_roles[::-1]
+        member_roles = ', '.join(member_roles)
         
-        ls = get_emoji_status(ctx.message)
+        emoji_status = get_emoji_status(ctx.message)
+
         member_status = str(member.status)
+        if member_status == 'online': member_status = '{} В сети'.format(emoji_status['online'])
+        elif member_status == 'dnd': member_status = '{} Не беспокоить'.format(emoji_status['dnd'])
+        elif member_status == 'idle': member_status = '{} Не активен'.format(emoji_status['idle'])
+        elif member_status == 'offline': member_status = '{} Не в сети'.format(emoji_status['offline'])
 
-        if member_status == 'online':
-            member_status = '{} В сети'.format(ls['online'])
-        elif member_status == 'dnd':
-            member_status = '{} Не беспокоить'.format(ls['dnd'])
-        elif member_status == 'idle':
-            member_status = '{} Не активен'.format(ls['idle'])
-        elif member_status == 'offline':
-            member_status = '{} Не в сети'.format(ls['offline'])
-
-        embed.add_field(name= "Основная информация:" ,value=f"""
+        embed.add_field(name= "Основная информация:", value=f"""
             **Дата регистрации в Discord:** {member.created_at.strftime("%#d %B %Y")}
             **Дата присоединения на сервер:** {member.joined_at.strftime("%#d %B %Y")}
             **Текущий статус:** {member_status}
-            **Роли:** {member_roles_names}
+            **Роли:** {member_roles}
             """, inline=False)
-
-        embed.add_field(name='Уровень:', value=lvl)
-        embed.add_field(name='Опыт:', value=f'{xp}/{lvl ** 4}')
 
         embed.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=embed)
-
 
     @commands.command(name='qr', aliases=['QR', 'код'], description='Создаёт QR-код')
     async def create_qr(self, ctx, *, text):
@@ -110,16 +93,15 @@ class Other(commands.Cog):
         await ctx.send(file = discord.File(f'./qrcodes/{ctx.message.author.id}.png'))
         os.remove(f'./qrcodes/{ctx.message.author.id}.png')
 
-
     @commands.command(aliases=['реши'], description='Решает простой матемаический пример')
     async def exercise(self, ctx, arg):
-        exercise = arg
         try:
-            exercise = eval(exercise)
+            exercise = eval(arg)
             await ctx.send(exercise)
         except Exception:
-            await ctx.send('Указаны неверные числа/действие!!!')
+            await ctx.send('Указаны неверные числа/действие!')
         
+
 
 def setup(bot):
     bot.add_cog(Other(bot))
