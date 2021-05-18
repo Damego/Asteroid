@@ -139,6 +139,6 @@ async def on_command_error(ctx, error):
     await ctx.send(embed=embed)
 
 
-#keep_alive()
-bot.run('ODMzMzQ5MTA5MzQ3Nzc4NTkx.YHxC1g.U3rnrmm-BTVgArDyGmFYE-LyHFA') 
+keep_alive()
+bot.run(os.environ['TOKEN']) 
 
