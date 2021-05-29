@@ -2,13 +2,13 @@ import os
 from datetime import datetime, timedelta
 
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 from replit import Database, db
 import requests
 from bs4 import BeautifulSoup
 
 
-if db != None:
+if db is not None:
     server = db
 else:
     from dotenv import load_dotenv
@@ -20,9 +20,11 @@ def get_embed_color(message):
     """Get color for embeds from json """
     return int(server[str(message.guild.id)]['embed_color'], 16)
 
-class HLTV(commands.Cog):
+class HLTV(commands.Cog, description='HLTV'):
     def __init__(self, bot):
         self.bot = bot
+        self.hidden = False
+
         self.URL = 'https://www.hltv.org/matches'
         self.HEADERS = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36', 'accept': '*/*'}
 
@@ -43,9 +45,7 @@ class HLTV(commands.Cog):
 
             for match in matches:
                 
-                if (match.find('div',class_='matchTeam') == None) or (match.find('div',class_='matchTeam').text == 'TDB'):
-                    pass
-                else:
+                if (match.find('div',class_='matchTeam') is not None) or (match.find('div',class_='matchTeam').text != 'TDB'):
                     match_id +=1
                     ls[str(day)][str(match_id)] = {
                         'team1': match.find('div',class_='matchTeam team1').get_text(strip=True),
@@ -54,6 +54,7 @@ class HLTV(commands.Cog):
                         'event': match.find('div', class_='matchEventName').get_text(strip=True),
                         'format': match.find('div', class_='matchMeta').get_text(strip=True)
                     }
+                    
         return ls
 
     async def parse(self, ctx, arg):
@@ -61,23 +62,23 @@ class HLTV(commands.Cog):
 
         html = self.get_html(self.URL)
         if html.status_code == 200:
-            all_matches = self.get_content(html.text)
+            all_days = self.get_content(html.text)
 
-            for day in all_matches:
-                flag = True
+            for day in all_days:
+                date_was_printed = False
                 date = day.split(' ')[2]
                 date = datetime.strptime(date, '%Y-%m-%d').strftime('%d.%m.%Y')
-                in_day_matches = all_matches.get(str(day))
+                matches_in_day = all_days.get(str(day))
 
-                for match in in_day_matches:
-                    match_data = in_day_matches.get(str(match))
+                for match in matches_in_day:
+                    match_data = matches_in_day.get(str(match))
                     if match_data['team1'] == arg or match_data['team2'] == arg:
-                        if flag:
+                        if not date_was_printed:
                                 embed.add_field(name='\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_', value=f'**{date}**')
-                                flag = False
+                                date_was_printed = True
                         if match_data is not None:
                             time = (datetime.strptime(match_data['time'], '%H:%M') + timedelta(hours=3)).strftime('%H:%M')
-                            embed.add_field(name='===========', value="""
+                            embed.add_field(name='==================', value="""
                             Время: {}
                             Команды: {} и {}
                             Событие: {}
@@ -85,25 +86,6 @@ class HLTV(commands.Cog):
                             """.format(time, match_data['team1'], match_data['team2'], match_data['event'], match_data['format']), inline=False)
                     
             await ctx.send(embed=embed)
-
-    @commands.command()
-    async def subscribe(self, ctx, *, arg):
-        ctx.member.add_role(843178317871317054)
-
-    @commands.command()
-    async def unsubscribe(self,ctx, *, arg):
-        ctx.member.remove_role(843178317871317054)
-
-    @commands.command()
-    async def startloop(self,ctx):
-        pass
-
-
-    @tasks.loop(minutes=1)
-    async def test_tasks(self, ctx):
-        html = self.get_html(self.URL)
-        if html.status_code == 200:
-            pass
 
     @commands.command()
     async def games(self, ctx, *, arg):

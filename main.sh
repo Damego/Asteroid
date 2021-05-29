@@ -3,5 +3,6 @@ pip install discord
 pip install lavalink
 pip install requests
 pip install beautifulsoup4
-java -jar Lavalink.jar
+pip install python-dotenv
+
 python main.py

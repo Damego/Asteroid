@@ -6,7 +6,7 @@ from discord.ext import commands
 from replit import Database, db
 import qrcode
 
-if db != None:
+if db is not None:
     server = db
 else:
     from dotenv import load_dotenv
@@ -38,18 +38,19 @@ def get_embed_color(message):
     return int(server[str(message.guild.id)]['embed_color'], 16)
 
 
-class Other(commands.Cog):
+class Other(commands.Cog, description='Остальное'):
     def __init__(self, bot):
         self.bot = bot
+        self.hidden = False
 
-    @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке')
+    @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке', help='[от] [до]')
     async def random_num(self, ctx, arg1, arg2):
         arg1 = int(arg1)
         arg2 = int(arg2)
         num = randint(arg1,arg2)
         await ctx.reply(f'Рандомное число: {num}')
 
-    @commands.command(aliases=['инфо'], description='Выводит информацию об участнике канала')
+    @commands.command(aliases=['инфо'], description='Выводит информацию об участнике канала', help='[ник]')
     async def info(self, ctx, *, member: discord.Member):
         embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.message))
 
@@ -63,22 +64,24 @@ class Other(commands.Cog):
         emoji_status = get_emoji_status(ctx.message)
 
         member_status = str(member.status)
-        if member_status == 'online': member_status = '{} В сети'.format(emoji_status['online'])
-        elif member_status == 'dnd': member_status = '{} Не беспокоить'.format(emoji_status['dnd'])
-        elif member_status == 'idle': member_status = '{} Не активен'.format(emoji_status['idle'])
-        elif member_status == 'offline': member_status = '{} Не в сети'.format(emoji_status['offline'])
+        status = {
+            'online':'{} В сети'.format(emoji_status['online']),
+            'dnd':'{} Не беспокоить'.format(emoji_status['dnd']),
+            'idle':'{} Не активен'.format(emoji_status['idle']),
+            'offline':'{} Не в сети'.format(emoji_status['offline'])
+        }
 
         embed.add_field(name= "Основная информация:", value=f"""
             **Дата регистрации в Discord:** {member.created_at.strftime("%#d %B %Y")}
             **Дата присоединения на сервер:** {member.joined_at.strftime("%#d %B %Y")}
-            **Текущий статус:** {member_status}
+            **Текущий статус:** {status.get(member_status)}
             **Роли:** {member_roles}
             """, inline=False)
 
         embed.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=embed)
 
-    @commands.command(name='qr', aliases=['QR', 'код'], description='Создаёт QR-код')
+    @commands.command(name='qr', aliases=['QR', 'код'], description='Создаёт QR-код', help='[текст]')
     async def create_qr(self, ctx, *, text):
         qr = qrcode.QRCode(
             version=None,
@@ -93,7 +96,7 @@ class Other(commands.Cog):
         await ctx.send(file = discord.File(f'./qrcodes/{ctx.message.author.id}.png'))
         os.remove(f'./qrcodes/{ctx.message.author.id}.png')
 
-    @commands.command(aliases=['реши'], description='Решает простой матемаический пример')
+    @commands.command(aliases=['реши'], description='Решает простой математический пример', help='[пример]')
     async def exercise(self, ctx, arg):
         try:
             exercise = eval(arg)
