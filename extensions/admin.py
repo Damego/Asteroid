@@ -26,7 +26,7 @@ class Administration(commands.Cog, description='Администрация'):
         embed = discord.Embed(title=f'Префикс для команд изменился на `{prefix}`')
         await ctx.send(embed=embed)
 
-    @commands.command(name='color', aliases=['цвет'], description='Меняет цвет у сообщений бота', help='[цвет(HEX)]')
+    @commands.command(name='color', aliases=['цвет'], description='Меняет цвет сообщений бота', help='[цвет(HEX)]')
     @commands.has_guild_permissions(administrator=True)
     async def change_guild_embed_color(self, ctx, new_color):
         server[str(ctx.guild.id)]['embed_color'] = '0x'+new_color

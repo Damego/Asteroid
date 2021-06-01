@@ -1,4 +1,5 @@
 import os
+from time import time
 
 import discord
 from discord.ext import commands
@@ -37,11 +38,7 @@ class Music(commands.Cog, description='Музыка'):
         ws = self.bot._connection._get_websocket(guild_id)
         await ws.voice_state(str(guild_id), channel_id)
 
-    @commands.Cog.listener()
-    async def reload_node(self, event:lavalink.NodeException):
-        print('ERROR WITH NODE!!!')
-
-    @commands.command(name='play', aliases=['музыка','играть','муз','м'], description='Запускает музыку', help='[ссылка]')
+    @commands.command(name='play', aliases=['музыка','играть','муз','м'], description='Запускает музыку', help='[ссылка || название видео]')
     async def play_music(self, ctx, *, query):
         if ctx.message.author.voice:
             self.vc = ctx.message.author.voice.channel
@@ -53,12 +50,17 @@ class Music(commands.Cog, description='Музыка'):
                 await self.connect_to(ctx.guild.id, str(self.vc.id))
 
             self.player = self.bot.music.player_manager.get(ctx.guild.id)
-            results = await self.player.node.get_tracks(query)
+
+            if query.startswith('https') or query.startswith('youtube'):
+                result = query
+            else:
+                result = f'ytsearch: {query}'
+
+            results = await self.player.node.get_tracks(result)
             track = results['tracks'][0]
 
             title = track['info']['title']
             uri = track['info']['uri']
-
 
             if not track['info']['isStream']:
                 duration = int(track['info']['length']) // 1000
@@ -87,10 +89,11 @@ class Music(commands.Cog, description='Музыка'):
 
     @commands.command(aliases=['стоп','с'], description='Останавливает музыку', help='Останавливает произведение музыки')
     async def stop(self, ctx):
-        if self.player.is_connected:
+        if self.player.is_playing:
             await self.player.stop()
+            await self.connect_to(ctx.guild.id, None)
         else:
-            await ctx.send('Бот не подключён к каналу!')
+            await ctx.send('Музыка не воспроизводится!', delete_after=10)
 
 
     @commands.command(aliases=['пауза'], description="Ставит музыку на паузу", help='Приостанавливает произведение музыки')
@@ -99,7 +102,7 @@ class Music(commands.Cog, description='Музыка'):
             self.player.set_pause(True)
         else:
             embed = discord.Embed(title='Музыка не воспроизводится!', color=get_embed_color(ctx.message))
-            await ctx.send(embed=embed)
+            await ctx.send(embed=embed, delete_after=10)
 
 
     @commands.command(description='Снимает паузу с музыки', help='')
@@ -108,7 +111,13 @@ class Music(commands.Cog, description='Музыка'):
             self.player.set_pause(False)
         else:
             embed = discord.Embed(title='Музыка уже играет!', color=get_embed_color(ctx.message))
-            await ctx.send(embed=embed)
+            await ctx.send(embed=embed, delete_after=10)
+
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, lavalink.NodeException):
+            ctx.send('Не удаётся подключится к серверу')
+
 
 
 def setup(bot):

@@ -1,5 +1,5 @@
 import os
-import asyncio
+from time import sleep
 
 import discord
 from discord.ext import commands
@@ -15,6 +15,7 @@ else:
     load_dotenv()
     url = os.getenv('URL')
     server = Database(url)
+
 
 def get_prefix(bot, message): 
     """Get guild prexif from json """
@@ -33,14 +34,8 @@ async def on_ready():
     for filename in os.listdir('./extensions'):
         if filename.endswith('.py'):
             bot.load_extension(f'extensions.{filename[:-3]}')
+    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name='Чилит'))
     print(f'Бот {bot.user} готов к работе!')
-    await change_activity()
-
-async def change_activity():
-    for i in range(500):
-        await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=f'{i+1} вкладку в Pornhub', type=discord.ActivityType.watching))
-        await asyncio.sleep(60)
-    await change_activity()
 
 @bot.event
 async def on_guild_join(guild):
@@ -80,25 +75,38 @@ async def reload(ctx, extension):
     bot.load_extension(f'extensions.{extension}')
     await ctx.send(f'Плагин {extension} перезагружен!')
 
+@bot.command(name='cmd', description='None', help='None')
+@commands.is_owner()
+async def custom_command(ctx, *, cmd):
+    await eval(cmd)
+
+
 
 # ERRORS
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        desc = f'Потерян аргумент!'
-    elif isinstance(error, commands.MemberNotFound):
-        desc = 'Пользователь не найден!'
-    elif isinstance(error, commands.BadArgument):
-        desc = 'Неправильно задан аргумент!'
-    elif isinstance(error, commands.NotOwner):
+    if isinstance(error, commands.NotOwner):
         desc = 'Это команда доступна только владельцу бота!'
+    elif isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument)) and not isinstance(error, commands.MemberNotFound):
+        full_desc = f'**Неправильный или потерян аргумент!** \n'
+        help = f'`{get_prefix(None, ctx.message)}{ctx.command} {ctx.command.help}`'
+        desc = full_desc + help
+    elif isinstance(error, commands.ExtensionNotLoaded):
+        desc = 'Плагин не загружен'
+    elif isinstance(error, commands.ExtensionAlreadyLoaded):
+        desc = 'Плагин уже загружен'
+    elif isinstance(error, commands.BotMissingPermissions):
+        desc = 'У бота недостаточно прав!'
+    elif isinstance(error, commands.MissingPermissions):
+        desc = 'Недостаточно прав!'
     else:
         desc = f'Произошла ошибка! {error}'
 
-    embed = discord.Embed(title=desc, color=0xff0000)
+    embed = discord.Embed(description = '❌ '+desc, color=0xff0000)
     await ctx.send(embed=embed)
 
 start_lavalink()
+sleep(10)
 keep_alive()
 bot.run(os.environ['TOKEN'])
 

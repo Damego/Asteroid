@@ -34,37 +34,45 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 await self.update_member(server, message, xp)
 
     async def add_member(self, server, message):
-        server[str(message.guild.id)]['users'][str(message.author.id)] = {}
-        server[str(message.guild.id)]['users'][str(message.author.id)]['role'] = ""
-        server[str(message.guild.id)]['users'][str(message.author.id)]['xp'] = 0
-        server[str(message.guild.id)]['users'][str(message.author.id)]['level'] = 1
+        userstats = server[str(message.guild.id)]['users'][str(message.author.id)]
+        userstats = {}
+        userstats['role'] = ""
+        userstats['xp'] = 0
+        userstats['level'] = 1
 
     async def update_member(self, server, message, xp):
-        server[str(message.guild.id)]['users'][str(message.author.id)]['xp'] += xp
-        exp = server[str(message.guild.id)]['users'][str(message.author.id)]['xp']
-        level_start = server[str(message.guild.id)]['users'][str(message.author.id)]['level']
+        userstats = server[str(message.guild.id)]['users'][str(message.author.id)]
+        userstats['xp'] += xp
+        exp = userstats['xp']
+        level_start = userstats['level']
         level_end = exp ** (1/4)
 
         if level_start < level_end:
-            server[str(message.guild.id)]['users'][str(message.author.id)]['level'] += 1
-            lvl = server[str(message.guild.id)]['users'][str(message.author.id)]['level']
+            userstats['level'] += 1
+            lvl = userstats['level']
             await message.channel.send(f'{message.author.mention} получил {lvl}-й уровень')
 
     @commands.command(description='Устанавливает опыт участнику', help='[ник] [опыт]')
     @commands.has_guild_permissions(administrator=True)
     async def set_xp(self, message, member:discord.Member, xp:int):
-        server[str(message.guild.id)]['users'][str(member.id)]['xp'] = xp
-        exp = server[str(message.guild.id)]['users'][str(member.id)]['xp']
+        userstats = server[str(message.guild.id)]['users'][str(member.id)]
+        
+        userstats['xp'] = xp
+        exp = userstats['xp']
         level_end = exp ** (1/4)
 
-        server[str(message.guild.id)]['users'][str(member.id)]['level'] = round(level_end)
-        lvl = server[str(message.guild.id)]['users'][str(member.id)]['level']
+        userstats['level'] = round(level_end)
+        lvl = userstats['level']
         await message.channel.send(f'{member.mention} получил {lvl}-й уровень')
 
     @commands.command(description='Устанавливает уровень участнику', help='[ник] [уровень]')
     @commands.has_guild_permissions(administrator=True)
     async def set_lvl(self, message, member:discord.Member, lvl:int):
-        server[str(message.guild.id)]['users'][str(member.id)]['level'] = lvl
+        userstats = server[str(message.guild.id)]['users'][str(member.id)]
+        
+        userstats['level'] = lvl
+        userstats['xp'] = lvl ** 4
+
         await message.channel.send(f'{member.mention} получил {lvl}-й уровень')
 
 

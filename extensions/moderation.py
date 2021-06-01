@@ -52,9 +52,10 @@ class Moderation(commands.Cog, description='Модерация'):
                     await message.channel.purge(limit=count)
                     await message.channel.send(content=f'**{message.author.mention}, Ваши сообщения были удалены из-за спама!**', delete_after=10)
 
-    @commands.command(aliases=['мут'], description='Даёт мут участнику на время', help='[ник] [время(сек)] [причина]')
+    @commands.command(description='Даёт мут участнику на время', help='[ник] [время(сек)] [причина]')
     @commands.has_guild_permissions(mute_members=True)
     async def mute(self, ctx, member:discord.Member, time:int,* ,reason=None):
+        await ctx.message.add_reaction('✅')
         await member.edit(mute=True)
         embed = discord.Embed(title=f'{member} был отправлен в мут!', color=get_embed_color(ctx.message))
         embed.add_field(name='Причина:', value=f'{reason}',inline=False)
@@ -66,7 +67,7 @@ class Moderation(commands.Cog, description='Модерация'):
         except Exception:
             print('[Moderation] Member not found for unmuting')
 
-    @commands.command(aliases=['дизмут', 'анмут'], description='Снимает мут с участника', help='[ник]')
+    @commands.command(description='Снимает мут с участника', help='[ник]')
     @commands.has_guild_permissions(mute_members=True)
     async def unmute(self, ctx, member:discord.Member):
         await member.edit(mute=False)
@@ -74,20 +75,20 @@ class Moderation(commands.Cog, description='Модерация'):
         await ctx.send(embed=embed)
 
     @commands.has_guild_permissions(ban_members=True)
-    @commands.command(aliases=['бан'], description='Банит участника сервера', help='[ник] [причина]')
+    @commands.command(description='Банит участника сервера', help='[ник] [причина]')
     async def ban(self, ctx, member:discord.Member, *, reason=None):
         await member.ban(reason=reason)
         embed = discord.Embed(title=f'{member} был заблокирован!',description=f'Причина: {reason}', color=get_embed_color(ctx.message))
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=['анбан', 'дизбан'], description='Снимает бан у участника', help='[ник]')
+    @commands.command(description='Снимает бан у участника', help='[ник]')
     @commands.has_guild_permissions(ban_members=True)
     async def unban(self, ctx, member:discord.Member):
         await member.unban()
         embed = discord.Embed(title=f'С пользователя {member} снята блокировка!', color=get_embed_color(ctx.message))
         await ctx.send(embed=embed)
                     
-    @commands.command(aliases=['кик'], description='Кикает участника с сервера', help='[ник] [причина]')
+    @commands.command(description='Кикает участника с сервера', help='[ник] [причина]')
     @commands.has_guild_permissions(kick_members=True)
     async def kick(self, ctx, member:discord.Member, *, reason=None):
         await member.kick(reason=reason)
@@ -104,18 +105,12 @@ class Moderation(commands.Cog, description='Модерация'):
 
     @commands.command(aliases=['роль+'], description='Добавляет роль участнику', help='[ник] [роль]')
     @commands.has_guild_permissions(manage_roles=True)
-    async def add_role(self, ctx, member: discord.Member, role: discord.Role, time=None):
+    async def add_role(self, ctx, member: discord.Member, role: discord.Role):
         await member.add_roles(role)
-        if time != None:
-            desc = f'Роль {role} была добавлена! \n Время: {time} сек.'
-        else:
-            desc = f'Роль {role} была добавлена!'
+        desc = f'Роль {role} была добавлена!'
         embed = discord.Embed(title=f'{member}', description=desc,color = get_embed_color(ctx.message))
         await ctx.send(embed=embed)
 
-        if time != None:
-            await asyncio.sleep(int(time))
-            await self.remove_role(ctx, member, role)
 
     @commands.has_guild_permissions(manage_nicknames=True)
     @commands.command(aliases=['ник'], description='Меняет ник участнику', help='[ник] [новый ник]')
@@ -124,16 +119,15 @@ class Moderation(commands.Cog, description='Модерация'):
         await member.edit(nick=newnick)
         await ctx.send(f'{oldnick.mention} стал {newnick}')
 
-    @commands.command(aliases=['очистить', 'очистка', 'чистить',"чист"], description='Очищает сообщения', help='[Кол-во сообщений]')
+    @commands.command(description='Очищает сообщения', help='[Кол-во сообщений]')
     @commands.has_guild_permissions(manage_messages=True)
     async def clear(self, ctx, amount:int):
         await ctx.channel.purge(limit=amount+1)
 
-    @mute.error
-    @unmute.error
-    async def mute_error(self, ctx, error):
-        if isinstance(error, commands.BadArgument):
-            embed = discord.Embed(title=f'Пользователь не подключен к голосовому каналу! {error}', color=get_embed_color(ctx.message))
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.MemberNotFound):
+            embed = discord.Embed(title=f'Пользователь не подключен к голосовому каналу!', color=get_embed_color(ctx.message))
             await ctx.send(embed=embed)
 
 

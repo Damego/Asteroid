@@ -96,15 +96,6 @@ class Other(commands.Cog, description='Остальное'):
         await ctx.send(file = discord.File(f'./qrcodes/{ctx.message.author.id}.png'))
         os.remove(f'./qrcodes/{ctx.message.author.id}.png')
 
-    @commands.command(aliases=['реши'], description='Решает простой математический пример', help='[пример]')
-    async def exercise(self, ctx, arg):
-        try:
-            exercise = eval(arg)
-            await ctx.send(exercise)
-        except Exception:
-            await ctx.send('Указаны неверные числа/действие!')
-        
-
 
 def setup(bot):
     bot.add_cog(Other(bot))

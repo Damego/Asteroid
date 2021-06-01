@@ -88,7 +88,7 @@ class HLTV(commands.Cog, description='HLTV'):
             await ctx.send(embed=embed)
 
     @commands.command()
-    async def games(self, ctx, *, arg):
+    async def hltv(self, ctx, *, arg):
         await self.parse(ctx, arg)
 
 def setup(bot):
