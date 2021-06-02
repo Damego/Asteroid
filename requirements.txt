@@ -1,4 +1,6 @@
-discord.py==1.7.0
-PyNaCl==1.4.0
-youtube-dl==2021.4.7
-qrcode==6.1
+discord.py
+qrcode
+discord-components
+lavalink
+requests
+beautifulsoup4
