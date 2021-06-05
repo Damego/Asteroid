@@ -64,13 +64,13 @@ class Games(commands.Cog, description='Игры'):
                     Button(style=ButtonStyle.gray, id=2, emoji='🧾'),
                     Button(style=ButtonStyle.gray, id=3, emoji='✂️')
                 ]])
-        res1 = await self.bot.wait_for("button_click", check=player_1 or player_2)
-        res2 = await self.bot.wait_for("button_click", check=player_1 or player_2)
+        res1 = await self.bot.wait_for("button_click", check=player_1)
+        res2 = await self.bot.wait_for("button_click", check=player_2)
 
         await self.rps_check_results(res1, res2)
 
-    @commands.command(description='Запускает игру Камень-ножницы-бумага', help='[ник] [кол-во игр]')
-    async def rps(self, ctx, member:discord.Member, quantity:int):
+    @commands.command(description='Запускает игру Камень-ножницы-бумага\nПервый ход получает тот, кого пригласили в игру', help='[ник] [кол-во игр]')
+    async def rps(self, ctx, member:discord.Member, quantity:int=1):
         self.count1 = 0
         self.count2 = 0
 
@@ -78,7 +78,7 @@ class Games(commands.Cog, description='Игры'):
             return member == res.user
 
         msg = await ctx.send(
-            f"{member.mention}! {ctx.author.name} приглашает тебя в игру 🪨-✂️-🧾",
+            f"{member.mention}! {ctx.author.name} приглашает тебя в игру Камень-ножницы-бумага",
             components=[
                 [
                     Button(style=ButtonStyle.green, label='Согласиться', id=1),
@@ -96,9 +96,9 @@ class Games(commands.Cog, description='Игры'):
             winner = await self.rps_who_won(ctx, res)
 
             embed = discord.Embed(title='`          ИТОГИ ИГРЫ            `')
-            embed.add_field(name=f'**Игроки: {ctx.author.display_name} и {member.display_name}**',
+            embed.add_field(name=f'**Название игры: Камень-ножницы-бумага**',
                             value=f"""
-                            **Название игры: 🪨-✂️-🧾**
+                            **Игроки: {ctx.author.display_name} и {member.display_name}**
                             **Количество сыгранных игр:** {quantity}
                             **Счёт:** {self.count1}:{self.count2}
                             **Победитель:** {winner}
@@ -109,7 +109,7 @@ class Games(commands.Cog, description='Игры'):
             await msg.delete()
             await ctx.send(f'{res.user} отказался от игры')
 
-    @commands.command()
+    @commands.command(description='Запускает игру Крестики-Нолики \nПервый ход получает тот, кого пригласили в игру', help='[ник]')
     async def ttt(self, ctx, member:discord.Member):
         def member_agree(res):
             return member == res.user
