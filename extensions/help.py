@@ -33,19 +33,21 @@ class Help(commands.Cog, description='Помощь'):
         cprefix = get_prefix(ctx.message)
 
         if extension is None:
-            embed = discord.Embed(title='```               「📝」КОМАНДЫ:                ```', color=get_embed_color(ctx.message))
+            embed = discord.Embed(color=0x2f3136)
+            embed.add_field(name='\u200b', value='```               「📝」КОМАНДЫ:               ```', inline=False)
             for cog in self.bot.cogs:
                 if not self.bot.cogs[cog].hidden:
                     embed.add_field(name=self.bot.cogs[cog].description, value=f'`{cprefix}help {cog}`')
 
         elif extension in self.bot.cogs:
             cog_name = self.bot.cogs[extension].description
-            embed = discord.Embed(title=f'Справочник команд: {cog_name}', color=get_embed_color(ctx.message))
+            embed = discord.Embed(color=0x2f3136)
+            embed.add_field(name='**Справочник команд**', value=f'```               「📝」{cog_name}               ```', inline=False)
             all_cmds = self.bot.cogs[extension].get_commands()
             for cmd in all_cmds:
                 embed.add_field(name=f'`{cprefix}{cmd} {cmd.help}`', value=f'{cmd.description}', inline=False)
         else:
-            embed = discord.Embed(title=f'Плагин `{extension}`` не найден!', color=get_embed_color(ctx.message))
+            embed = discord.Embed(title=f'Плагин `{extension}` не найден!',color=0x2f3136)
         await ctx.message.channel.purge(limit=1)
         await ctx.send(embed=embed, delete_after=60)
 

@@ -16,17 +16,11 @@ else:
     url = os.getenv('URL')
     server = Database(url)
 
-
 def get_prefix(bot, message): 
     """Get guild prexif from json """
     return server[str(message.guild.id)]['prefix']
 
-
-intents = discord.Intents.default()
-intents.typing = True
-intents.presences = True
-intents.members = True
-bot = commands.Bot(command_prefix=get_prefix, intents=intents)
+bot = commands.Bot(command_prefix=get_prefix, intents=discord.Intents.all())
 
 # EVENTS
 @bot.event
@@ -54,7 +48,6 @@ async def on_guild_join(guild):
 async def on_guild_remove(guild):
     server.pop(str(guild.id))
 
-
 # COMMANDS
 @bot.command(name='load', help='Загрузка плагина', hidden=True)
 @commands.is_owner()
@@ -68,7 +61,7 @@ async def unload(ctx, extension):
     bot.unload_extension(f'extensions.{extension}')
     await ctx.send(f'Плагин {extension} отключен!')
 
-@bot.command(name='reload', help='Перезагрузка плагина', hidden=True)
+@bot.command(aliases=['r'],name='reload', help='Перезагрузка плагина', hidden=True)
 @commands.is_owner()
 async def reload(ctx, extension):
     bot.unload_extension(f'extensions.{extension}')
@@ -80,14 +73,12 @@ async def reload(ctx, extension):
 async def custom_command(ctx, *, cmd):
     await eval(cmd)
 
-
-
 # ERRORS
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.NotOwner):
         desc = 'Это команда доступна только владельцу бота!'
-    elif isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument)) and not isinstance(error, commands.MemberNotFound):
+    elif isinstance(error, commands.BadArgument):
         full_desc = f'**Неправильный или потерян аргумент!** \n'
         help = f'`{get_prefix(None, ctx.message)}{ctx.command} {ctx.command.help}`'
         desc = full_desc + help
@@ -100,9 +91,9 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.MissingPermissions):
         desc = 'Недостаточно прав!'
     else:
-        desc = f'Произошла ошибка! {error}'
+        desc = error
 
-    embed = discord.Embed(description = '❌ '+desc, color=0xff0000)
+    embed = discord.Embed(description = desc, color=0xff0000)
     await ctx.send(embed=embed)
 
 start_lavalink()

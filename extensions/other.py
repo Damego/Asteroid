@@ -61,14 +61,13 @@ class Other(commands.Cog, description='Остальное'):
         member_roles = member_roles[::-1]
         member_roles = ', '.join(member_roles)
         
-        emoji_status = get_emoji_status(ctx.message)
 
         member_status = str(member.status)
         status = {
-            'online':'{} В сети'.format(emoji_status['online']),
-            'dnd':'{} Не беспокоить'.format(emoji_status['dnd']),
-            'idle':'{} Не активен'.format(emoji_status['idle']),
-            'offline':'{} Не в сети'.format(emoji_status['offline'])
+            'online':'<:s_online:850792217031082051> В сети',
+            'dnd':'<:dnd:850792216943525936> Не беспокоить',
+            'idle':'<:s_afk:850792216732368937> Не активен',
+            'offline':'<:s_offline:850792217262030969> Не в сети'
         }
 
         embed.add_field(name= "Основная информация:", value=f"""

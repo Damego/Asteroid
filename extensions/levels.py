@@ -34,8 +34,8 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 await self.update_member(server, message, xp)
 
     async def add_member(self, server, message):
+        server[str(message.guild.id)]['users'][str(message.author.id)] = {}
         userstats = server[str(message.guild.id)]['users'][str(message.author.id)]
-        userstats = {}
         userstats['role'] = ""
         userstats['xp'] = 0
         userstats['level'] = 1
