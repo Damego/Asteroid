@@ -74,8 +74,8 @@ class Games(commands.Cog, description='Игры'):
         self.count1 = 0
         self.count2 = 0
 
-        def member_agree(res):
-            return member == res.user
+        def member_agree(res, ctx):
+            return res.user.id == member.id and res.channel.id == ctx.channel.id and str(res.message.id) == str(msg.id)
 
         msg = await ctx.send(
             f"{member.mention}! {ctx.author.name} приглашает тебя в игру Камень-ножницы-бумага",
@@ -86,7 +86,7 @@ class Games(commands.Cog, description='Игры'):
                 ]])
 
         try:
-            res = await self.bot.wait_for("button_click", check=member_agree, timeout=60)
+            res = await self.bot.wait_for("button_click", check=member_agree(ctx), timeout=60)
         except Exception:
             res = None
         if res.component.id == '1':
@@ -112,7 +112,7 @@ class Games(commands.Cog, description='Игры'):
     @commands.command(description='Запускает игру Крестики-Нолики \nПервый ход получает тот, кого пригласили в игру', help='[ник]')
     async def ttt(self, ctx, member:discord.Member):
         def member_agree(res):
-            return member == res.user
+            return res.user.id == member.id and res.channel.id == ctx.channel.id and res.message.id == msg.id
 
         msg = await ctx.send(
             f"{member.mention}! {ctx.author.name} приглашает тебя в игру Крестики-Нолики",
@@ -130,19 +130,36 @@ class Games(commands.Cog, description='Игры'):
                 embed = discord.Embed(title='Крестики-Нолики', description=f'{ctx.author.display_name} VS {member.display_name}',color=get_embed_color(ctx.message))
                 await msg.edit(context=' ', embed=embed)
             else:
-                await msg.edit(content=f'{member.display_name} отказался от игры!')
+                await msg.edit(content=f'{member.display_name} отказался от игры!', components=[])
                 return
         except:
             await msg.edit(content=f'От {member.display_name} нет ответа!')
             return
 
+        async def move(player_id, emoji_id, player):
+            if player_id == 'player_1':
+                check = player_1
+            elif player_id == 'player_2':
+                check = player_2
+
+            res = await self.bot.wait_for('button_click', check=check)
+            await res.respond(type=6)
+            move_id = res.component.id
+            pos1, pos2 = move_id.split(' ')
+            board[int(pos1)][int(pos2)] = Button(style=ButtonStyle.red, emoji=self.bot.get_emoji(emoji_id), id='0', disabled=True)
+            await msg.edit(components=board)
+            move_board[int(pos1)][int(pos2)] = player
+            if is_won(player):
+                await self.pick_a_winner(msg, ctx, member, ctx.author, player.display_name)
+                return 'Game_end'
+            if is_tie(player):
+                await self.pick_a_winner(msg, ctx, member, ctx.author)
+                return 'Game_end'
 
         def player_1(res):
-            if res.user == member:
-                return res.component.id
+            return res.user.id == member.id and res.channel.id == ctx.channel.id and res.message.id == msg.id
         def player_2(res):
-            if res.user == ctx.author:
-                return res.component.id
+            return res.user.id == ctx.member.id and res.channel.id == ctx.channel.id and res.message.id == msg.id
 
         move_board = [
             [
@@ -192,19 +209,19 @@ class Games(commands.Cog, description='Игры'):
 
         board = [
             [
-                Button(style=ButtonStyle.gray, label='\u200b', id='0 0'),
-                Button(style=ButtonStyle.gray, label='\u200b', id='0 1'),
-                Button(style=ButtonStyle.gray, label='\u200b', id='0 2'),
+                Button(style=ButtonStyle.gray, label=' ', id='0 0'),
+                Button(style=ButtonStyle.gray, label=' ', id='0 1'),
+                Button(style=ButtonStyle.gray, label=' ', id='0 2'),
             ],
             [
-                Button(style=ButtonStyle.gray, label='\u200b', id='1 0'),
-                Button(style=ButtonStyle.gray, label='\u200b', id='1 1'),
-                Button(style=ButtonStyle.gray, label='\u200b', id='1 2'),
+                Button(style=ButtonStyle.gray, label=' ', id='1 0'),
+                Button(style=ButtonStyle.gray, label=' ', id='1 1'),
+                Button(style=ButtonStyle.gray, label=' ', id='1 2'),
             ],
             [
-                Button(style=ButtonStyle.gray, label='\u200b', id='2 0'),
-                Button(style=ButtonStyle.gray, label='\u200b', id='2 1'),
-                Button(style=ButtonStyle.gray, label='\u200b', id='2 2'),
+                Button(style=ButtonStyle.gray, label=' ', id='2 0'),
+                Button(style=ButtonStyle.gray, label=' ', id='2 1'),
+                Button(style=ButtonStyle.gray, label=' ', id='2 2'),
             ],
         ]
 
@@ -213,35 +230,18 @@ class Games(commands.Cog, description='Игры'):
         player_1_move = True
         while accept:
             if player_1_move:
-                res = await self.bot.wait_for('button_click', check=player_1)
-                await res.respond(type=6)
-                move_id = res.component.id
-                pos1, pos2 = move_id.split(' ')
-                board[int(pos1)][int(pos2)] = Button(style=ButtonStyle.green, emoji=self.bot.get_emoji(850792048080060456), id='0', disabled=True)
-                await msg.edit(components=board)
-                move_board[int(pos1)][int(pos2)] = 'Player_1'
-                if is_won('Player_1'):
-                    await self.pick_a_winner(msg, ctx, member, ctx.author, member.display_name)
-                    return
-                if is_tie('Player_1'):
-                    await self.pick_a_winner(msg, ctx, member, ctx.author)
-                    return
+                result = await move('player_1', 850792048080060456, member)
                 player_1_move = False
+                if result == 'Game_end':
+                    return
             if not player_1_move:
-                res = await self.bot.wait_for('button_click', check=player_2)
-                await res.respond(type=6)
-                move_id = res.component.id
-                pos1, pos2 = move_id.split(' ')
-                board[int(pos1)][int(pos2)] = Button(style=ButtonStyle.red, emoji=self.bot.get_emoji(850792047698509826), id='0', disabled=True)
-                await msg.edit(components=board)
-                move_board[int(pos1)][int(pos2)] = 'Player_2'
-                if is_won('Player_2'):
-                    await self.pick_a_winner(msg, ctx, member, ctx.author, ctx.author.display_name)
+                result = await move('player_2', 850792047698509826, ctx.author)
+                player_1_move = False
+                if result == 'Game_end':
                     return
-                if is_tie('Player_2'):
-                    await self.pick_a_winner(msg, ctx, member, ctx.author)
-                    return
-                player_1_move = True
+
+        
+
 
 
     async def pick_a_winner(self, msg, ctx, player1, player2, winner='Ничья'):

@@ -96,8 +96,8 @@ async def on_command_error(ctx, error):
     embed = discord.Embed(description = desc, color=0xff0000)
     await ctx.send(embed=embed)
 
-start_lavalink()
-sleep(10)
-keep_alive()
+#start_lavalink()
+#sleep(10)
+#keep_alive()
 bot.run(os.environ['TOKEN'])
 
