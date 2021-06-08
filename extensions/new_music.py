@@ -68,16 +68,16 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
                 id = res.component.id
 
                 if id == '1':
-                    await self.pause_music(ctx, msg)
+                    await self.new_pause_music(ctx, msg)
                 elif id == '2':
-                    await self.stop_music(ctx, msg)
+                    await self.new_stop_music(ctx, msg)
                     return
                 elif id == '3':
-                    await self.skip_music(ctx, msg)
+                    await self.new_skip_music(ctx, msg)
                 elif id == '4':
-                    await self.resume_music(ctx, msg)
+                    await self.new_resume_music(ctx, msg)
                 elif id == '5':
-                    await self.repeat_music(ctx, msg)
+                    await self.new_repeat_music(ctx, msg)
 
     async def send_msg(self, ctx, track):
         duration = track.duration

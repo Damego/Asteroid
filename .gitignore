@@ -1,6 +1,3 @@
 
 .env
-extensions/__pycache__/games.cpython-39.pyc
-extensions/__pycache__/music.cpython-39.pyc
-extensions/__pycache__/other.cpython-39.pyc
 *.pyc
