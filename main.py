@@ -1,12 +1,10 @@
 import os
-from time import sleep
 
 import discord
 from discord.ext import commands
 from replit import Database, db
 
 from lifetime_alive import keep_alive
-from lavalink_server import start_lavalink
 
 if db is not None:
     server = db
@@ -78,7 +76,7 @@ async def custom_command(ctx, *, cmd):
 async def on_command_error(ctx, error):
     if isinstance(error, commands.NotOwner):
         desc = 'Это команда доступна только владельцу бота!'
-    elif isinstance(error, commands.BadArgument):
+    elif isinstance(error, commands.UserInputError):
         full_desc = f'**Неправильный или потерян аргумент!** \n'
         help = f'`{get_prefix(None, ctx.message)}{ctx.command} {ctx.command.help}`'
         desc = full_desc + help
@@ -91,13 +89,18 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.MissingPermissions):
         desc = 'Недостаточно прав!'
     else:
-        desc = error
+        desc = str(error)
+        if len(desc) == 0:
+            return
 
     embed = discord.Embed(description = desc, color=0xff0000)
-    await ctx.send(embed=embed)
+    try:
+        await ctx.send(embed=embed)
+    except:
+        await ctx.send(desc)
 
-#start_lavalink()
-#sleep(10)
-#keep_alive()
+
+
+keep_alive()
 bot.run(os.environ['TOKEN'])
 

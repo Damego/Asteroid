@@ -1,8 +1,10 @@
 pip install qrcode
 pip install discord
-pip install lavalink
 pip install requests
 pip install beautifulsoup4
 pip install python-dotenv
+pip install discord_components
+pip install youtube-dl
+pip install git+https://github.com/Damego/DiscordUtils.git#egg=DiscordUtils
 
 python main.py

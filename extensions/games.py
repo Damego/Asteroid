@@ -1,4 +1,3 @@
-from discord_slash import context
 from extensions.music import get_embed_color
 import discord
 from discord.ext import commands
@@ -159,7 +158,7 @@ class Games(commands.Cog, description='Игры'):
         def player_1(res):
             return res.user.id == member.id and res.channel.id == ctx.channel.id and res.message.id == msg.id
         def player_2(res):
-            return res.user.id == ctx.member.id and res.channel.id == ctx.channel.id and res.message.id == msg.id
+            return res.user.id == ctx.author.id and res.channel.id == ctx.channel.id and res.message.id == msg.id
 
         move_board = [
             [

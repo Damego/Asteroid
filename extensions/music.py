@@ -3,8 +3,7 @@ import os
 import discord
 from discord.ext import commands
 from replit import Database, db
-from discord_components import DiscordComponents, Button, ButtonStyle
-import lavalink
+import DiscordUtils
 
 if db is not None:
     server = db
@@ -14,211 +13,140 @@ else:
     url = os.getenv('URL')
     server = Database(url)
 
+
 def get_embed_color(message):
     """Get color for embeds from json """
     return int(server[str(message.guild.id)]['embed_color'], 16)
 
+
 class NotConnectedToVoice(commands.CommandError):
     pass
 
-class Music(commands.Cog, description='Музыка'):
-    def __init__(self,bot):
+
+class Music(commands.Cog, description='Музыка без плеера'):
+    def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-
-        self.bot.music = lavalink.Client(self.bot.user.id)
-        self.bot.music.add_node('localhost', 7000, 'testing', 'eu', 'music-node')
-        self.bot.add_listener(self.bot.music.voice_update_handler, 'on_socket_response')
-        self.bot.music.add_event_hook(self.track_hook)
+        self.music = DiscordUtils.Music()
 
         self.track_dict = {}
-
-    async def track_hook(self, event):
-        #if isinstance(event, lavalink.events.QueueEndEvent):
-        #    guild_id = int(event.player.guild_id)
-        #    await self.connect_to(guild_id, None)
-        if isinstance(event, lavalink.TrackStartEvent):
-            await self.update_message(event.track['title'])
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         if not member.bot and after.channel is None:
             if not [m for m in before.channel.members if not m.bot]:
-                await self.connect_to(member.guild.id, None)
+                await self.voice_client.disconnect()
                 await self.msg.edit(components=[])
                 await self.msg.channel.send('**Бот отключился, из-за отсутствия слушателей!**', delete_after=10)
 
-
-    async def connect_to(self, guild_id: int, channel_id: str):
-        ws = self.bot._connection._get_websocket(guild_id)
-        await ws.voice_state(str(guild_id), channel_id)
-
-    async def track_parse(self, track):
-        title = track['info']['title']
-        uri = track['info']['uri']
-
-        if not track['info']['isStream']:
-            duration = int(track['info']['length']) // 1000
-            dur_hours = duration // 3600
-            dur_min = (duration // 60) % 60
-            dur_sec = duration % 60
-            lenght = f'{dur_hours:02}:{dur_min:02}:{dur_sec:02}'
-        else:
-            lenght = 'Прямая трансляция'
-
-        video_id = uri.split('=')[1]
-
-        video_thumbnail = f'https://img.youtube.com/vi/{video_id}/0.jpg'
-        return title, uri, lenght, video_thumbnail
-
-    async def get_player(self, obj):
-        if isinstance(obj, commands.Context):
-            guild_id = obj.guild.id
-        elif isinstance(obj, discord.Guild):
-            guild_id = obj.id
-            
-        player = self.bot.music.player_manager.get(guild_id)
-        if player is None:
-            player = self.bot.music.player_manager.create(guild_id, endpoint='russia')
-        return player
-
-    def check(self, ctx):
-        if ctx.author.voice in ctx.bot.voice_clients:
-            return True
-
-    async def wait_button_click(self, ctx, msg, track):
-        while True:
-            res = await self.bot.wait_for("button_click", check=self.check(ctx))
-            await res.respond(type=6)
-            id = res.component.id
-
-            if id == '1':
-                await self.pause(ctx, msg)
-            elif id == '2':
-                await self.stop(ctx, msg)
-                return
-            elif id == '3':
-                await self.skip(ctx, msg)
-            elif id == '4':
-                await self.resume(ctx, msg)
-            elif id == '5':
-                await self.repeat(ctx, track)
-            
-
+    
     async def send_msg(self, ctx, track):
-        title, uri, lenght, video_thumbnail = await self.track_parse(track)
-        embed = discord.Embed(title='Запуск музыки', color=get_embed_color(ctx.message))
-        embed.add_field(name='Название:', value=f'[{title}]({uri})', inline=False)
-        embed.add_field(name='Продолжительность:',value=lenght, inline=False)
-        embed.set_footer(text=f'Добавлено: {ctx.message.author}',icon_url=ctx.message.author.avatar_url)
-        embed.set_thumbnail(url=video_thumbnail)
+        duration = track.duration
+        if duration != 0.0:
+            duration_hours = duration // 3600
+            duration_minutes = (duration // 60) % 60
+            duration_seconds = duration % 60
+            duration = f'{duration_hours:02}:{duration_minutes:02}:{duration_seconds:02}'
+        else:
+            duration = 'Прямая трансляция'
 
-        components = [[
-            Button(style=ButtonStyle.gray, label='Пауза', id=1),
-            Button(style=ButtonStyle.red, label='Стоп', id=2),
-            Button(style=ButtonStyle.blue, label='Пропустить', id=3),
-            Button(style=ButtonStyle.blue, label='Повтор', id=5)
-        ]]
+        embed = discord.Embed(title='Запуск музыки',
+                            color=get_embed_color(ctx.message))
+        embed.add_field(name='Название:',
+                        value=f'[{track.name}]({track.url})', inline=False)
+        embed.add_field(name='Продолжительность:',
+                        value=duration, inline=False)
+        embed.set_footer(text=f'Добавлено: {ctx.message.author}', icon_url=ctx.message.author.avatar_url)
+        embed.set_thumbnail(url=track.thumbnail)
 
-        await ctx.message.delete()
-        msg = await ctx.send(embed=embed,
-        components=components)
+
+        msg = await ctx.send(embed=embed)
         self.msg = msg
         return msg
 
-    async def update_message(self, track):
-        try:
-            track_info = self.track_dict.get(track)
-            track = track_info['track']
-            track_requester_msg = track_info['requester_msg']
-            title, uri, lenght, video_thumbnail = await self.track_parse(track)
-        except:
-            return
-
-        embed = discord.Embed(title='Запуск музыки', color=get_embed_color(track_requester_msg))
-        embed.add_field(name='Название:', value=f'[{title}]({uri})', inline=False)
-        embed.add_field(name='Продолжительность:',value=lenght, inline=False)
-        embed.set_footer(text=f'Добавлено: {track_requester_msg.author}',icon_url=track_requester_msg.author.avatar_url)
-        embed.set_thumbnail(url=video_thumbnail)
-        await self.msg.edit(embed=embed)
-
-
-    @commands.command(name='play', aliases=['музыка','играть','муз','м'], description='Запускает музыку', help='[ссылка || название видео]')
+    @commands.command(name='play', description='Запускает музыку', help='[ссылка || название видео]')
     async def play_music(self, ctx, *, query):
         if not ctx.message.author.voice:
             raise NotConnectedToVoice
-        
-        player = await self.get_player(ctx)
-        voice_channel = ctx.message.author.voice.channel
-        self.author_of_query = ctx.message.author
 
-        if not player.is_connected:
-            player.store('channel', ctx.channel.id)
-            await self.connect_to(ctx.guild.id, str(voice_channel.id))
+        voice_channel = ctx.author.voice.channel
+        if not ctx.voice_client:
+            await voice_channel.connect()
+            self.voice_client = ctx.voice_client
 
-        if query.startswith('https') or query.startswith('youtube'):
-            result = query
-        else:
-            result = f'ytsearch: {query}'
+        player = self.music.get_player(guild_id=ctx.guild.id)
+        if player is None:
+            player = self.music.create_player(ctx, ffmpeg_error_betterfix=True)
 
-        results = await player.node.get_tracks(result)
-        track = results['tracks'][0]
-        
-        if not player.is_playing:
-            self.author_of_query = ctx.message
-            player.add(requester=ctx.author.id, track=track)
+        track = await player.queue(query, search=True)
+        await ctx.message.delete()
+        if not ctx.voice_client.is_playing():
             await player.play()
-            msg = await self.send_msg(ctx, track)
-            await self.wait_button_click(ctx, msg, track)
+            await self.send_msg(ctx, track)
         else:
-            player.add(requester=ctx.author.id, track=track)
-            await ctx.message.delete()
-            await ctx.send(f"`{track['info']['title']}` был добавлен в очередь")
-            self.track_dict[track['info']['title']] = {'track':track, 'requester_msg':ctx.message}
+            await ctx.send(f"`{track.name}` был добавлен в очередь")
+            self.track_dict[track.name] = {'track': track, 'requester_msg': ctx.author}
+
+
+    @commands.command(name='stop', description='Останавливает произведение музыку', help=' ')
+    async def stop_music(self, ctx):
+        player = self.music.get_player(guild_id=ctx.guild.id)
+        try:
+            if ctx.voice_client.is_playing():
+                try:
+                    await player.stop()
+                except Exception:
+                    pass
+            await ctx.voice_client.disconnect()
+            await ctx.message.add_reaction('✅')
+        except Exception:
+            await ctx.message.add_reaction('❌')
         
 
-    async def stop(self, ctx, msg):
-        player = await self.get_player(ctx)
-        if player.is_playing:
-            await player.stop()
-            await self.connect_to(ctx.guild.id, None)
-        return await msg.edit(components=[])
+    @commands.command(name='pause', aliases=['fp'], description='Ставит музыку на паузу', help=' ')
+    async def pause_music(self, ctx):
+        try:
+            player = self.music.get_player(guild_id=ctx.guild.id)
+            if ctx.voice_client.is_playing():
+                await player.pause()
+                await ctx.message.add_reaction('✅')
+                return
+        except Exception:
+            await ctx.message.add_reaction('❌')
 
-    async def pause(self, ctx, msg):
-        player = await self.get_player(ctx)
-        if player.is_playing:
-            await player.set_pause(True)
-
-            await msg.edit(components=[[
-                Button(style=ButtonStyle.green, label='Продолжить', id=4),
-                Button(style=ButtonStyle.red, label='Стоп', id=2),
-                Button(style=ButtonStyle.blue, label='Пропустить', id=3),
-                Button(style=ButtonStyle.blue, label='Повтор', id=5)
-            ]])
-        else:
-            embed = discord.Embed(title='Музыка не воспроизводится!', color=get_embed_color(ctx.message))
-            await ctx.send(embed=embed, delete_after=10)
+    @commands.command(name='resume', aliases=['fr'], description='Снимает паузу с музыки', help=' ')
+    async def resume_music(self, ctx):
+        try:
+            player = self.music.get_player(guild_id=ctx.guild.id)
+            if not ctx.voice_client.is_playing():
+                await player.resume()
+                await ctx.message.add_reaction('✅')
+                return
+        except Exception:
+            await ctx.message.add_reaction('❌')
 
 
-    async def resume(self, ctx, msg):
-        player = await self.get_player(ctx)
-        await player.set_pause(False)
+    @commands.command(name='repeat', description='Включает/Выключает повтор музыки', help=' ')
+    async def repeat_music(self, ctx):
+        try:
+            player = self.music.get_player(guild_id=ctx.guild.id)
+            await player.toggle_song_loop()
+            await ctx.message.add_reaction('✅')
+        except Exception:
+            await ctx.message.add_reaction('❌')
 
-        await msg.edit(components=[[
-            Button(style=ButtonStyle.gray, label='Пауза', id=1), 
-            Button(style=ButtonStyle.red, label='Стоп', id=2), 
-            Button(style=ButtonStyle.blue, label='Пропустить', id=3), 
-            Button(style=ButtonStyle.blue, label='Повтор', id=5)
-        ]])
 
-    async def repeat(self, ctx, track):
-        player = await self.get_player(ctx)
-        player.add(requester=ctx.author.id, track=track)
-        await player.play()
-
-    async def skip(self, ctx, msg):
-        player = await self.get_player(ctx)
-        await player.skip()
+    @commands.command(name='skip', aliases=['fs'], description='Пропускает музыку', help=' ')
+    async def skip_music(self, ctx):
+        try:
+            player = self.music.get_player(guild_id=ctx.guild.id)
+            try:
+                old_track, new_track = await player.skip(force=True)
+            except TypeError:
+                await ctx.send('**Плейлист пуст! Добавьте музыку!**', delete_after=15)
+            return await ctx.message.add_reaction('✅')
+        except Exception:
+            await ctx.message.add_reaction('❌')
 
     # ERRORS
     @play_music.error
@@ -226,12 +154,6 @@ class Music(commands.Cog, description='Музыка'):
         if isinstance(error, NotConnectedToVoice):
             await ctx.send('Вы не подключены к голосовому чату!')
 
-    @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, lavalink.NodeException):
-            await ctx.send('Не удаётся подключится к серверу')
-
 
 def setup(bot):
-    DiscordComponents(bot)
     bot.add_cog(Music(bot))

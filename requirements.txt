@@ -1,6 +1,0 @@
-discord.py
-qrcode
-discord-components
-lavalink
-requests
-beautifulsoup4

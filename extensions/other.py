@@ -95,6 +95,11 @@ class Other(commands.Cog, description='Остальное'):
         await ctx.send(file = discord.File(f'./qrcodes/{ctx.message.author.id}.png'))
         os.remove(f'./qrcodes/{ctx.message.author.id}.png')
 
+    @commands.command(description='Показывает пинг бота', help='')
+    async def ping(self, ctx):
+        embed = discord.Embed()
+        embed.add_field(name='🏓 Pong!', value=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс')
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Other(bot))
