@@ -239,10 +239,7 @@ class Games(commands.Cog, description='Игры'):
                 if result == 'Game_end':
                     return
 
-        
-
-
-
+    
     async def pick_a_winner(self, msg, ctx, player1, player2, winner='Ничья'):
         embed = discord.Embed(title='`          ИТОГИ ИГРЫ            `', color=get_embed_color(ctx.message))
         embed.add_field(name=f'**Название: Крестики-Нолики**',
@@ -251,7 +248,6 @@ class Games(commands.Cog, description='Игры'):
                         **Победитель:** {winner}
                         """)
         await msg.edit(content=' ', embed=embed)
-
 
 
 
