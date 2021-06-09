@@ -63,8 +63,10 @@ class Games(commands.Cog, description='Игры'):
                     Button(style=ButtonStyle.gray, id=2, emoji='🧾'),
                     Button(style=ButtonStyle.gray, id=3, emoji='✂️')
                 ]])
-        res1 = await self.bot.wait_for("button_click", check=player_1)
-        res2 = await self.bot.wait_for("button_click", check=player_2)
+        res1 = await self.bot.wait_for("button_click", check=player_2)
+        res1.respond(type=6)
+        res2 = await self.bot.wait_for("button_click", check=player_1)
+        res2.respond(type=6)
 
         await self.rps_check_results(res1, res2)
 
@@ -73,8 +75,8 @@ class Games(commands.Cog, description='Игры'):
         self.count1 = 0
         self.count2 = 0
 
-        def member_agree(res, ctx):
-            return res.user.id == member.id and res.channel.id == ctx.channel.id and str(res.message.id) == str(msg.id)
+        def member_agree(res):
+            return res.user.id == member.id
 
         msg = await ctx.send(
             f"{member.mention}! {ctx.author.name} приглашает тебя в игру Камень-ножницы-бумага",
@@ -85,7 +87,8 @@ class Games(commands.Cog, description='Игры'):
                 ]])
 
         try:
-            res = await self.bot.wait_for("button_click", check=member_agree(ctx), timeout=60)
+            res = await self.bot.wait_for("button_click", check=member_agree, timeout=60)
+            res.respond(type=6)
         except Exception:
             res = None
         if res.component.id == '1':
