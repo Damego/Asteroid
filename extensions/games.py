@@ -138,14 +138,17 @@ class Games(commands.Cog, description='Игры'):
         async def move(player_id, emoji_id, player):
             if player_id == 'player_1':
                 check = player_1
+                style = ButtonStyle.green
             elif player_id == 'player_2':
                 check = player_2
+                style = ButtonStyle.red
+                
 
             res = await self.bot.wait_for('button_click', check=check)
             await res.respond(type=6)
             move_id = res.component.id
             pos1, pos2 = move_id.split(' ')
-            board[int(pos1)][int(pos2)] = Button(style=ButtonStyle.red, emoji=self.bot.get_emoji(emoji_id), id='0', disabled=True)
+            board[int(pos1)][int(pos2)] = Button(style=style, emoji=self.bot.get_emoji(emoji_id), id='0', disabled=True)
             await msg.edit(components=board)
             move_board[int(pos1)][int(pos2)] = player
             if is_won(player):
@@ -156,9 +159,9 @@ class Games(commands.Cog, description='Игры'):
                 return 'Game_end'
 
         def player_1(res):
-            return res.user.id == member.id and res.channel.id == ctx.channel.id and res.message.id == msg.id
+            return res.user.id == member.id
         def player_2(res):
-            return res.user.id == ctx.author.id and res.channel.id == ctx.channel.id and res.message.id == msg.id
+            return res.user.id == ctx.author.id
 
         move_board = [
             [
@@ -235,7 +238,7 @@ class Games(commands.Cog, description='Игры'):
                     return
             if not player_1_move:
                 result = await move('player_2', 850792047698509826, ctx.author)
-                player_1_move = False
+                player_1_move = True
                 if result == 'Game_end':
                     return
 
