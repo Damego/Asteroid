@@ -2,22 +2,25 @@ import os
 
 import discord
 from discord.ext import commands
-from replit import Database, db
 
 from lifetime_alive import keep_alive
 
-if db is not None:
-    server = db
-else:
-    from dotenv import load_dotenv
-    load_dotenv()
-    url = os.getenv('URL')
-    server = Database(url)
+def get_db():
+    from replit import Database, db
+    if db is not None:
+        server = db
+    else:
+        from dotenv import load_dotenv
+        load_dotenv()
+        url = os.getenv('URL')
+        server = Database(url)
+    return server
 
-def get_prefix(bot, message): 
+def get_prefix(bot, message):
     """Get guild prexif from json """
-    return server[str(message.guild.id)]['prefix']
-
+    prefix = server[str(message.guild.id)]['prefix']
+    return commands.when_mentioned_or(prefix)(bot, message)
+     
 bot = commands.Bot(command_prefix=get_prefix, intents=discord.Intents.all())
 
 # EVENTS
@@ -71,6 +74,7 @@ async def reload(ctx, extension):
 async def custom_command(ctx, *, cmd):
     await eval(cmd)
 
+
 # ERRORS
 @bot.event
 async def on_command_error(ctx, error):
@@ -91,7 +95,7 @@ async def on_command_error(ctx, error):
     else:
         desc = str(error)
         if len(desc) == 0:
-            return
+            desc = 'NO DESCRIPTION FOR THIS ERROR'
 
     embed = discord.Embed(description = desc, color=0xff0000)
     try:
@@ -101,6 +105,8 @@ async def on_command_error(ctx, error):
 
 
 
-keep_alive()
-bot.run(os.environ['TOKEN'])
+if __name__ == '__main__':
+    server = get_db()
+    #keep_alive()
+    bot.run(os.environ['TOKEN'])
 

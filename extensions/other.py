@@ -3,17 +3,10 @@ from random import randint
 
 import discord
 from discord.ext import commands
-from replit import Database, db
 import qrcode
 
-if db is not None:
-    server = db
-else:
-    from dotenv import load_dotenv
-    load_dotenv()
-    url = os.getenv('URL')
-    server = Database(url)
-
+from extensions.bot_settings import get_embed_color, get_db
+server = get_db()
 
 def get_stats(message, member):
     """Get guild members stats from json """
@@ -32,10 +25,6 @@ def get_emoji_status(message):
         'offline':server[str(message.guild.id)]['emoji_status']['offline'],
         }
     return ls
-
-def get_embed_color(message):
-    """Get color for embeds from json """
-    return int(server[str(message.guild.id)]['embed_color'], 16)
 
 
 class Other(commands.Cog, description='Остальное'):

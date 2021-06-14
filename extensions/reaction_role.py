@@ -1,16 +1,10 @@
-from os import getenv
-
 import discord
 from discord.ext import commands
-from replit import db, Database
 
-if db is not None:
-    server = db
-else:
-    from dotenv import load_dotenv
-    load_dotenv()
-    url = getenv('URL')
-    server = Database(url)
+
+from extensions.bot_settings import get_embed_color, get_db
+
+server = get_db
 
 def get_react_post_id(guild_id):
     """Get guild react post id from json """
@@ -94,7 +88,6 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         embed = discord.Embed(title='Emoji удалено!')
         await ctx.message.channel.purge(limit=1)
         await ctx.send(embed=embed, delete_after=5)
-
 
 
 def setup(bot):

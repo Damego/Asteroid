@@ -1,24 +1,9 @@
-import os
-
 import discord
 from discord.ext import commands
-from discord.ext.commands.core import command
-from replit import Database, db
 from discord_components import DiscordComponents, Button, ButtonStyle
 import DiscordUtils
 
-if db is not None:
-    server = db
-else:
-    from dotenv import load_dotenv
-    load_dotenv()
-    url = os.getenv('URL')
-    server = Database(url)
-
-
-def get_embed_color(message):
-    """Get color for embeds from json """
-    return int(server[str(message.guild.id)]['embed_color'], 16)
+from extensions.bot_settings import get_embed_color, get_db
 
 
 class NotConnectedToVoice(commands.CommandError):
@@ -35,13 +20,24 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
+        player = self.music.get_player(guild_id=member.guild.id)
+        print('after channel', after.channel)
         if not member.bot and after.channel is None:
             if not [m for m in before.channel.members if not m.bot]:
+                await self.msg.channel.send('**Бот отключился, из-за отсутствия слушателей!**', delete_after=10)
+                try:
+                    await player.stop()
+                except AttributeError:
+                    print('cant stop')
                 await self.voice_client.disconnect()
                 await self.msg.edit(components=[])
-                await self.msg.channel.send('**Бот отключился, из-за отсутствия слушателей!**', delete_after=10)
-
-    
+        elif member.bot and after.channel is None:
+            await player.stop()
+            print('vc b',self.voice_client)
+            await self.voice_client.disconnect()
+            print('vc a',self.voice_client)
+            await self.msg.edit(components=[])
+            
 
     async def wait_button_click(self, ctx, msg):
         async def check(res):
@@ -53,7 +49,7 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
                 try:
                     members_in_channel = member.voice.channel.members
                 except Exception:
-                    ctx.send('**Вы не подключены к голосовому каналу!**', delete_after=10)
+                    pass
                 for channel_member in members_in_channel:
                     if channel_member.bot:
                         return True
@@ -136,11 +132,38 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
     async def new_play_music(self, ctx, *, query):
         if not ctx.message.author.voice:
             raise NotConnectedToVoice
+        
 
         voice_channel = ctx.author.voice.channel
+
+        print(ctx.voice_client)
+        if not ctx.voice_client is None:
+             if not ctx.voice_client.is_playing():
+                print('disconnect')
+                try:
+                    await ctx.voice_client.stop()
+                except Exception as e:
+                    print('discnn', e)
+                    try:
+                        await ctx.voice_client.disconnect()
+                    except Exception as e:
+                        print('in try try', e)
+
+
+        print('after discnn',ctx.voice_client)
+        try:
+            print('is conn', ctx.voice_client.is_connected())
+
+            if not ctx.voice_client.is_connected():
+                await voice_channel.connect()
+        except Exception as e:
+            print(e)
+
+
         if not ctx.voice_client:
             await voice_channel.connect()
             self.voice_client = ctx.voice_client
+        print(ctx.voice_client)
 
         player = self.music.get_player(guild_id=ctx.guild.id)
         if player is None:
@@ -194,7 +217,6 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
                 style=ButtonStyle.blue, label='Вкл. повтор', id=5)
         await msg.edit(components=self.components)
 
-    @commands.command(name='nskip', description='Пропускает музыку', help=' ')
     async def new_skip_music(self, ctx, msg):
         player = self.music.get_player(guild_id=ctx.guild.id)
         try:

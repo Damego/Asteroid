@@ -3,15 +3,10 @@ from random import randint
 
 import discord
 from discord.ext import commands
-from replit import Database, db
 
-if db is not None:
-    server = db
-else:
-    from dotenv import load_dotenv
-    load_dotenv()
-    url = os.getenv('URL')
-    server = Database(url)
+from extensions.bot_settings import get_embed_color, get_db
+
+server = get_db()
 
 class Levels(commands.Cog, description='Cистема уровней'):
     def __init__(self, bot):

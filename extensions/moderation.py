@@ -1,22 +1,11 @@
-import os
 import asyncio
 
 import discord
 from discord.ext import commands
-from replit import Database, db
 
+from extensions.bot_settings import get_embed_color, get_db
 
-if db is not None:
-    server = db
-else:
-    from dotenv import load_dotenv
-    load_dotenv()
-    url = os.getenv('URL')
-    server = Database(url)
-
-def get_embed_color(message):
-    """Get color for embeds from json """
-    return int(server[str(message.guild.id)]['embed_color'], 16)
+server = get_db()
 
 def get_prefixs(message): 
     """Get guild prexif from json """

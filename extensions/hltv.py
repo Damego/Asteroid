@@ -1,20 +1,14 @@
-import os
 from datetime import datetime, timedelta
 
 import discord
 from discord.ext import commands
-from replit import Database, db
 import requests
 from bs4 import BeautifulSoup
 
 
-if db is not None:
-    server = db
-else:
-    from dotenv import load_dotenv
-    load_dotenv()
-    url = os.getenv('URL')
-    server = Database(url)
+from extensions.bot_settings import get_embed_color, get_db
+
+server = get_db()
 
 def get_embed_color(message):
     """Get color for embeds from json """
