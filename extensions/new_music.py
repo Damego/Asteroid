@@ -24,13 +24,14 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
         print('after channel', after.channel)
         if not member.bot and after.channel is None:
             if not [m for m in before.channel.members if not m.bot]:
-                await self.msg.channel.send('**Бот отключился, из-за отсутствия слушателей!**', delete_after=10)
                 try:
+                    await self.msg.channel.send('**Бот отключился, из-за отсутствия слушателей!**', delete_after=10)
                     await player.stop()
-                except AttributeError:
-                    print('cant stop')
-                await self.voice_client.disconnect()
-                await self.msg.edit(components=[])
+                    await self.voice_client.disconnect()
+                    await self.msg.edit(components=[])
+                except:
+                    pass
+                
         elif member.bot and after.channel is None:
             await player.stop()
             print('vc b',self.voice_client)
@@ -40,9 +41,10 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
             
 
     async def wait_button_click(self, ctx, msg):
-        async def check(res):
+        async def check(interaction):
             member_converter = commands.MemberConverter()
-            member = await member_converter.convert(ctx, res.user.name)
+            member = await member_converter.convert(ctx, interaction.user.name)
+            
             if ('move_members', True) in member.guild_permissions:
                 return True
             else:
@@ -55,25 +57,28 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
                         return True
 
         while True:
-            res = await self.bot.wait_for("button_click")
-            is_in_channel = await check(res)
+            interaction = await self.bot.wait_for("button_click")
+            is_in_channel = await check(interaction)
             if not is_in_channel:
-                await res.respond(type=5, content='Подключитесь к каналу, для управления музыкой')
+                await interaction.interactionpond(type=5, content='Подключитесь к каналу, для управления музыкой')
             else:
-                await res.respond(type=6)
-                id = res.component.id
-
-                if id == '1':
-                    await self.new_pause_music(ctx, msg)
-                elif id == '2':
-                    await self.new_stop_music(ctx, msg)
-                    return
-                elif id == '3':
-                    await self.new_skip_music(ctx, msg)
-                elif id == '4':
-                    await self.new_resume_music(ctx, msg)
-                elif id == '5':
-                    await self.new_repeat_music(ctx, msg)
+                await interaction.interactionpond(type=6)
+                id = interaction.component.id
+                
+                try:
+                    if id == '1':
+                        await self.new_pause_music(ctx, msg)
+                    elif id == '2':
+                        await self.new_stop_music(ctx, msg)
+                        return
+                    elif id == '3':
+                        await self.new_skip_music(ctx, msg)
+                    elif id == '4':
+                        await self.new_resume_music(ctx, msg)
+                    elif id == '5':
+                        await self.new_repeat_music(ctx, msg)
+                except Exception as e:
+                    print(e)
 
     async def send_msg(self, ctx, track):
         duration = track.duration
@@ -190,9 +195,12 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if ctx.voice_client.is_playing():
             await player.pause()
-            self.components[0][0] = Button(
-                style=ButtonStyle.green, label='Продолжить', id=4)
-            await msg.edit(components=self.components)
+            try:
+                self.components[0][0] = Button(
+                    style=ButtonStyle.green, label='Продолжить', id=4)
+                await msg.edit(components=self.components)
+            except Exception as e:
+                print('IN PAUSE', e)
         else:
             embed = discord.Embed(
                 title='Музыка не воспроизводится!', color=get_embed_color(ctx.message))

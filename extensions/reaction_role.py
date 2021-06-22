@@ -8,11 +8,11 @@ server = get_db
 
 def get_react_post_id(guild_id):
     """Get guild react post id from json """
-    return server[str(guild_id)]['REACTION_POSTS']
+    return server[str(guild_id)]['reaction_posts']
 
-def get_emoji_role(guild_id, message_id, emoji):
+def get_emoji_role(payload, emoji):
     """Get guild emoji roles from json """
-    return server[str(guild_id)]['REACTION_POSTS'][str(message_id)][str(emoji)]
+    return server[str(payload.guild_id)]['reaction_posts'][str(payload.message_id)][str(emoji)]
 
 
 class ReactionRole(commands.Cog, description='Роль по реакции'):
@@ -22,14 +22,15 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        posts = get_react_post_id(payload.guild_id)
-        if str(payload.message_id) in posts:
-            emoji = payload.emoji.id
-            if payload.emoji.id == None:
-                emoji = payload.emoji
+        if not payload.member.bot:
+            posts = get_react_post_id(payload.guild_id)
+            if str(payload.message_id) in posts:
+                emoji = payload.emoji.id
+                if payload.emoji.id == None:
+                    emoji = payload.emoji
 
-            role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(payload.guild_id, payload.message_id, emoji))
-            await payload.member.add_roles(role)
+                role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(payload, emoji))
+                await payload.member.add_roles(role)
     
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
@@ -39,7 +40,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
             if payload.emoji.id == None:
                 emoji = payload.emoji
 
-            role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(payload.guild_id, payload.message_id, emoji))
+            role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(payload, emoji))
             guild = self.bot.get_guild(payload.guild_id)
             member = guild.get_member(payload.user_id)
             await member.remove_roles(role)
@@ -47,7 +48,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     @commands.command(description='Записывает пост для выдачи роли по реакции', help='[id поста]')
     @commands.has_guild_permissions(administrator=True)
     async def add_react_post(self, ctx, post_id:int):
-        server[str(ctx.guild.id)]['REACTION_POSTS'][str(post_id)] = {}
+        server[str(ctx.guild.id)]['reaction_posts'][str(post_id)] = {}
 
         embed = discord.Embed(title='Пост записан')
         await ctx.message.channel.purge(limit=1)
@@ -56,7 +57,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     @commands.command(description='Удаляет пост для выдачи роли по реакции', help='[id поста]')
     @commands.has_guild_permissions(administrator=True)
     async def remove_react_post(self, ctx, post_id:int):
-        del server[str(ctx.guild.id)]['REACTION_POSTS'][str(post_id)]
+        del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)]
 
         embed = discord.Embed(title='Пост удалён')
         await ctx.message.channel.purge(limit=1)
@@ -71,7 +72,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         """
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>','')
-        server[str(ctx.guild.id)]['REACTION_POSTS'][str(post_id)][str(emoji)] = role.id
+        server[str(ctx.guild.id)]['reaction_posts'][str(post_id)][str(emoji)] = role.id
 
         embed = discord.Embed(title='Emoji записано!')
         await ctx.message.channel.purge(limit=1)
@@ -83,7 +84,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     async def remove_react_role(self, ctx, post_id, emoji):
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>','')
-        del server[str(ctx.guild.id)]['REACTION_POSTS'][str(post_id)][str(emoji)]
+        del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)][str(emoji)]
 
         embed = discord.Embed(title='Emoji удалено!')
         await ctx.message.channel.purge(limit=1)

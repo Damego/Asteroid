@@ -1,15 +1,9 @@
-import asyncio
-
 import discord
 from discord.ext import commands
 
-from extensions.bot_settings import get_embed_color, get_db
+from extensions.bot_settings import get_embed_color, get_db, get_prefix
 
 server = get_db()
-
-def get_prefixs(message): 
-    """Get guild prexif from json """
-    return server[str(message.guild.id)]['prefix']
 
 
 class Moderation(commands.Cog, description='Модерация'):
@@ -22,7 +16,7 @@ class Moderation(commands.Cog, description='Модерация'):
     async def on_message(self, message):
         if not message.author.bot:
             msg = message.content
-            if msg[0] != get_prefixs(message):
+            if not msg.startswith(get_prefix(message)):
                 if message.author.id not in self.spam_ls or msg != self.spam_ls[message.guild.id][message.channel.id][message.author.id]['message_content']:
                     print(f'[SPAM_FILTER] {message.author} wrote message: "{message.content}"')
                     self.spam_ls[message.guild.id] = {}
@@ -45,25 +39,20 @@ class Moderation(commands.Cog, description='Модерация'):
 
     @commands.command(description='Даёт мут участнику на время', help='[ник] [время(сек)] [причина]')
     @commands.has_guild_permissions(mute_members=True)
-    async def mute(self, ctx, member:discord.Member, time:int,* ,reason=None):
+    async def mute(self, ctx, member:discord.Member, * ,reason=None):
         await ctx.message.add_reaction('✅')
         await member.edit(mute=True)
         embed = discord.Embed(title=f'{member} был отправлен в мут!', color=get_embed_color(ctx.message))
-        embed.add_field(name='Причина:', value=f'{reason}',inline=False)
-        embed.add_field(name='Время:',value=f'{time // 60} мин. {time % 60} сек.')
+        if reason is not None:
+            embed.add_field(name='Причина:', value=f'{reason}',inline=False)
         await ctx.send(embed=embed)
-        await asyncio.sleep(time)
-        try:
-            await self.unmute(ctx, member)
-        except Exception:
-            print('[Moderation] Member not found for unmuting')
 
     @commands.command(description='Снимает мут с участника', help='[ник]')
     @commands.has_guild_permissions(mute_members=True)
     async def unmute(self, ctx, member:discord.Member):
         await member.edit(mute=False)
         embed = discord.Embed(title=f'Мут с {member} снят!', color=get_embed_color(ctx.message))
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, delete_after=15)
 
     @commands.has_guild_permissions(ban_members=True)
     @commands.command(description='Банит участника сервера', help='[ник] [причина]')
@@ -77,7 +66,7 @@ class Moderation(commands.Cog, description='Модерация'):
     async def unban(self, ctx, member:discord.Member):
         await member.unban()
         embed = discord.Embed(title=f'С пользователя {member} снята блокировка!', color=get_embed_color(ctx.message))
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, delete_after=15)
                     
     @commands.command(description='Кикает участника с сервера', help='[ник] [причина]')
     @commands.has_guild_permissions(kick_members=True)
@@ -89,9 +78,8 @@ class Moderation(commands.Cog, description='Модерация'):
     @commands.command(aliases=['роль-'], description='Удаляет роль с участника', help='[ник] [роль]')
     @commands.has_guild_permissions(manage_roles=True)
     async def remove_role(self, ctx, member: discord.Member, role: discord.Role):
-        """Remove role from member"""
         await member.remove_roles(role)
-        embed = discord.Embed(title=f'{member}', description=f'Роль {role} была снята!',color = get_embed_color(ctx.message)) 
+        embed = discord.Embed(title=f'{member}', description=f'Роль {role} была снята!', color = get_embed_color(ctx.message)) 
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['роль+'], description='Добавляет роль участнику', help='[ник] [роль]')
@@ -99,7 +87,7 @@ class Moderation(commands.Cog, description='Модерация'):
     async def add_role(self, ctx, member: discord.Member, role: discord.Role):
         await member.add_roles(role)
         desc = f'Роль {role} была добавлена!'
-        embed = discord.Embed(title=f'{member}', description=desc,color = get_embed_color(ctx.message))
+        embed = discord.Embed(title=f'{member}', description=desc, color = get_embed_color(ctx.message))
         await ctx.send(embed=embed)
 
 
@@ -119,7 +107,7 @@ class Moderation(commands.Cog, description='Модерация'):
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.MemberNotFound):
             embed = discord.Embed(title=f'Пользователь не подключен к голосовому каналу!', color=get_embed_color(ctx.message))
-            await ctx.send(embed=embed)
+            await ctx.send(embed=embed, delete_after=15)
 
 
 def setup(bot):

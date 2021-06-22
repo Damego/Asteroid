@@ -18,7 +18,7 @@ def get_db():
 
 def get_prefix(bot, message):
     """Get guild prexif from json """
-    prefix = server[str(message.guild.id)]['prefix']
+    prefix = server[str(message.guild.id)]['configuration']['prefix']
     return commands.when_mentioned_or(prefix)(bot, message)
      
 bot = commands.Bot(command_prefix=get_prefix, intents=discord.Intents.all())
@@ -35,14 +35,25 @@ async def on_ready():
 @bot.event
 async def on_guild_join(guild):
     server[str(guild.id)] = {
-        'prefix':'.',
-        'embed_color': 0xFFFFFE,
-        'emoji_status': {"online":" ",
-                        "dnd":" ",
-                        "idle":" ",
-                        "offline":" "},
+        'configuration':{
+            'prefix':'!d',
+            'embed_color': 0xFFFFFE
+        },
+        'roles_by_level':{},
         'users': {},
-        'REACTION_POSTS':{}
+        'reaction_posts':{}
+    }
+
+@bot.command()
+@commands.is_owner()
+async def clear_stats(ctx):
+    server[str(ctx.guild.id)] = {
+        'configuration':{
+            'prefix':'!d',
+            'embed_color': 0xFFFFFE
+        },
+        'users': {},
+        'reaction_posts':{}
     }
 
 @bot.event
@@ -107,6 +118,6 @@ async def on_command_error(ctx, error):
 
 if __name__ == '__main__':
     server = get_db()
-    #keep_alive()
+    keep_alive()
     bot.run(os.environ['TOKEN'])
 
