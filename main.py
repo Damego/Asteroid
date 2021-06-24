@@ -20,7 +20,8 @@ def get_prefix(bot, message):
     """Get guild prexif from json """
     prefix = server[str(message.guild.id)]['configuration']['prefix']
     return commands.when_mentioned_or(prefix)(bot, message)
-     
+
+
 bot = commands.Bot(command_prefix=get_prefix, intents=discord.Intents.all())
 
 # EVENTS
@@ -73,7 +74,7 @@ async def unload(ctx, extension):
     bot.unload_extension(f'extensions.{extension}')
     await ctx.send(f'Плагин {extension} отключен!')
 
-@bot.command(aliases=['r'],name='reload', help='Перезагрузка плагина', hidden=True)
+@bot.command(aliases=['r'], name='reload', help='Перезагрузка плагина', hidden=True)
 @commands.is_owner()
 async def reload(ctx, extension):
     bot.unload_extension(f'extensions.{extension}')
@@ -91,18 +92,20 @@ async def custom_command(ctx, *, cmd):
 async def on_command_error(ctx, error):
     if isinstance(error, commands.NotOwner):
         desc = 'Это команда доступна только владельцу бота!'
-    elif isinstance(error, commands.UserInputError):
-        full_desc = f'**Неправильный или потерян аргумент!** \n'
-        help = f'`{get_prefix(None, ctx.message)}{ctx.command} {ctx.command.help}`'
-        desc = full_desc + help
+    elif isinstance(error, commands.MissingRequiredArgument):
+        desc=f'**Потерян аргумент**: `{error.param}`'
+    elif isinstance(error, commands.BadArgument):
+        title = f'**Неправильный аргумент!** \n'
+        help = f'`{get_prefix(bot, ctx.message)[2]}{ctx.command} {ctx.command.help}`'
+        desc = title + help
     elif isinstance(error, commands.ExtensionNotLoaded):
         desc = 'Плагин не загружен'
     elif isinstance(error, commands.ExtensionAlreadyLoaded):
         desc = 'Плагин уже загружен'
     elif isinstance(error, commands.BotMissingPermissions):
-        desc = 'У бота недостаточно прав!'
+        desc = f'**Для использования этой команды Боту необходимы следующие права:**\n{", ".join(error.missing_perms)}'
     elif isinstance(error, commands.MissingPermissions):
-        desc = 'Недостаточно прав!'
+        desc = f'**Для использования этой команды вам необходимы следующие права:**\n{", ".join(error.missing_perms)}'
     else:
         desc = str(error)
         if len(desc) == 0:
@@ -118,6 +121,6 @@ async def on_command_error(ctx, error):
 
 if __name__ == '__main__':
     server = get_db()
-    keep_alive()
+    #keep_alive()
     bot.run(os.environ['TOKEN'])
 

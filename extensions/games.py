@@ -237,7 +237,7 @@ class Games(commands.Cog, description='Игры'):
         await msg.edit(content=f'{member.display_name} отказался от игры!', components=[])
         return msg, False
 
-    @commands.command(name='game_21', description='', help='')
+    @commands.command(name='game_21', description='', help='', hidden=True)
     async def game_21(self, ctx):
         async def is_end(diler_move=False):
             # ? maybe remove `ctx.send` and take out in separate function?

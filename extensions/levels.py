@@ -19,7 +19,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        await self.add_member(server, member)
+        await self.add_member(member)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -29,17 +29,17 @@ class Levels(commands.Cog, description='Cистема уровней'):
         elif member not in before.channel.members:
             try:
                 sit_time = time() - self.member_voice_time[member.id]
-                exp = int((sit_time // 60) * self.koef)
+                del self.member_voice_time[member.id]
+                exp = (int(sit_time) // 60) * self.koef
                 await self.update_member(member, exp)
                 print(f'Выдано {member.display_name} {exp} опыта')
-                del self.member_voice_time[member.id]
             except Exception as e:
                 print('ERROR', e)
 
     @commands.Cog.listener()
     async def on_message(self, message):
         if not message.author.bot:
-            if message.content.startswith(get_prefix(message)):
+            if message.content.startswith(get_prefix(message.guild)):
                 return
             user_id = message.author.id
 
@@ -49,21 +49,26 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 xp = randint(10,25)
                 await self.update_member(message, xp)
 
-    async def add_member(self, message):
-        server[str(message.guild.id)]['users'][str(message.author.id)] = {}
-        userstats = server[str(message.guild.id)]['users'][str(message.author.id)]
+    async def add_member(self, arg):
+        if isinstance(arg, discord.Message):
+            member = arg.message.author
+        elif isinstance(arg, discord.Member):
+            member = arg
+
+        server[str(member.guild.id)]['users'][str(member.id)] = {}
+        userstats = server[str(member.guild.id)]['users'][str(member.id)]
 
         userstats['xp'] = 0
         userstats['level'] = 0
         userstats['role'] = ''
 
-    async def update_member(self, member_or_message, xp):
-        if isinstance(member_or_message, discord.Message):
-            message = member_or_message
+    async def update_member(self, arg, xp):
+        if isinstance(arg, discord.Message):
+            message = arg
             member = message.author
             from_msg = True
-        elif isinstance(member_or_message, discord.Member):
-            member = member_or_message
+        elif isinstance(arg, discord.Member):
+            member = arg
             from_msg = False
 
         guild_levels = server[str(member.guild.id)]['roles_by_level']
@@ -112,7 +117,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
         userstats['xp'] = 0
         userstats['role'] = ''
 
-    @commands.command(description='Устанавливает опыт участнику', help='[ник] [опыт]')
+    @commands.command(description='Устанавливает опыт участнику', help='[Участник] [опыт]')
     @commands.has_guild_permissions(administrator=True)
     async def set_xp(self, message, member:discord.Member, xp:int):
         userstats = server[str(message.guild.id)]['users'][str(member.id)]
@@ -125,7 +130,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
         lvl = userstats['level']
         await message.channel.send(f'{member.mention} получил {lvl}-й уровень')
 
-    @commands.command(description='Устанавливает уровень участнику', help='[ник] [уровень]')
+    @commands.command(description='Устанавливает уровень участнику', help='[Участник] [уровень]')
     @commands.has_guild_permissions(administrator=True)
     async def set_lvl(self, ctx, member:discord.Member, lvl:int):
         userstats = server[str(ctx.guild.id)]['users'][str(member.id)]
@@ -141,10 +146,15 @@ class Levels(commands.Cog, description='Cистема уровней'):
         server[str(ctx.guild.id)]['roles_by_level'][level] = role.id
         await ctx.message.add_reaction('✅')
 
-    @commands.command(name='remove_level_role', description='Удаляёт уровень для роли', help='[уровень]')
+    @commands.command(name='remove_level_role', description='Удаляёт уровень для роли', help='[уровень или роль]')
     @commands.has_guild_permissions(administrator=True)
-    async def remove_level_role(self, ctx, level:str):
-        del server[str(ctx.guild.id)]['roles_by_level'][level]
+    async def remove_level_role(self, ctx, arg):
+        levels = server[str(ctx.guild.id)]['roles_by_level']
+        if isinstance(arg, discord.Role):
+            level = levels.get(arg.id)
+        elif isinstance(arg, str):
+            level = arg
+        del levels[level]
         await ctx.message.add_reaction('✅')
 
     @commands.command(name='update', description='Очищает весь список уровней', help=' ')

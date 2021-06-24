@@ -50,18 +50,14 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     async def add_react_post(self, ctx, post_id:int):
         server[str(ctx.guild.id)]['reaction_posts'][str(post_id)] = {}
 
-        embed = discord.Embed(title='Пост записан')
-        await ctx.message.channel.purge(limit=1)
-        await ctx.send(embed=embed, delete_after=5)
+        await ctx.message.add_reaction('✅')
 
     @commands.command(description='Удаляет пост для выдачи роли по реакции', help='[id поста]')
     @commands.has_guild_permissions(administrator=True)
     async def remove_react_post(self, ctx, post_id:int):
         del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)]
 
-        embed = discord.Embed(title='Пост удалён')
-        await ctx.message.channel.purge(limit=1)
-        await ctx.send(embed=embed, delete_after=5)
+        await ctx.message.add_reaction('✅')
 
     @commands.command(description='Добавляет роль по реакции', help='[id поста] [эмодзи] [роль]')
     @commands.has_guild_permissions(administrator=True)
@@ -74,9 +70,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
             emoji = emoji.split(':')[2].replace('>','')
         server[str(ctx.guild.id)]['reaction_posts'][str(post_id)][str(emoji)] = role.id
 
-        embed = discord.Embed(title='Emoji записано!')
-        await ctx.message.channel.purge(limit=1)
-        await ctx.send(embed=embed, delete_after=5)
+        await ctx.message.add_reaction('✅')
 
 
     @commands.command(description='Удаляет роль по реакции',help='[id поста] [эмодзи]')
@@ -86,9 +80,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
             emoji = emoji.split(':')[2].replace('>','')
         del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)][str(emoji)]
 
-        embed = discord.Embed(title='Emoji удалено!')
-        await ctx.message.channel.purge(limit=1)
-        await ctx.send(embed=embed, delete_after=5)
+        await ctx.message.add_reaction('✅')
 
 
 def setup(bot):

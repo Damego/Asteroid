@@ -15,7 +15,7 @@ class Help(commands.Cog, description='Помощь'):
 
     @commands.command(description='Показывает это сообщение')
     async def help(self, ctx, extension=None):
-        prefix = get_prefix(ctx.message)
+        prefix = get_prefix(ctx.message.guild)
 
         if extension is None:
             embed = discord.Embed(color=0x2f3136)
@@ -30,19 +30,24 @@ class Help(commands.Cog, description='Помощь'):
             embed.add_field(name='**Справочник команд**', value=f'```               「📝」{cog_name}               ```', inline=False)
             all_cmds = self.bot.cogs[extension].get_commands()
             for cmd in all_cmds:
-                if cmd.aliases:
-                    aliases = ', '.join(cmd.aliases)
+                if cmd.hidden:
+                    continue
+
+                if cmd.aliases: aliases = ', '.join(cmd.aliases)
                 else: aliases = 'Нет'
+
                 embed.add_field(name=f'`{prefix}{cmd} {cmd.help}`', value=f'**Описание: **{cmd.description}\n **Псевдонимы:** {aliases}', inline=False)
+
                 if isinstance(cmd, commands.Group):
                     group_cmds = cmd.commands
                     for group_cmd in group_cmds:
-                        if group_cmd.aliases:
-                            aliases = ', '.join(cmd.aliases)
+                        if group_cmd.aliases: aliases = ', '.join(cmd.aliases)
                         else: aliases = 'Нет'
+
                         embed.add_field(name=f'`{prefix}{group_cmd} {group_cmd.help}`', value=f'**Описание:** {group_cmd.description}\n **Псевдонимы:** {aliases}', inline=False)
         else:
             embed = discord.Embed(title=f'Плагин `{extension}` не найден!',color=0x2f3136)
+
         await ctx.message.delete()
         await ctx.send(embed=embed, delete_after=60)
 

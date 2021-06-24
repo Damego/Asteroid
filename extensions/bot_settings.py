@@ -18,9 +18,9 @@ def get_embed_color(message):
     """Get color for embeds from json """
     return int(server[str(message.guild.id)]['configuration']['embed_color'], 16)
 
-def get_prefix(message):
+def get_prefix(guild):
     """Get guild prexif from json """
-    prefix = server[str(message.guild.id)]['configuration']['prefix']
+    prefix = server[str(guild.id)]['configuration']['prefix']
     return prefix
 
 server = get_db()
@@ -38,6 +38,7 @@ class Settings(commands.Cog, description='Настройка бота'):
 
     
     @set_conf.command(name='prefix', aliases=['префикс'], description='Меняет префикс для команд', help='[префикс]')
+    @commands.has_guild_permissions(administrator=True)
     async def change_guild_prefix(self, ctx, prefix):
         server[str(ctx.guild.id)]['configuration']['prefix'] = prefix
 
@@ -45,6 +46,7 @@ class Settings(commands.Cog, description='Настройка бота'):
         await ctx.send(embed=embed, delete_after=10)
 
     @set_conf.command(name='color', aliases=['цвет'], description='Меняет цвет сообщений бота', help='[цвет(HEX)]')
+    @commands.has_guild_permissions(administrator=True)
     async def change_guild_embed_color(self, ctx, color):
         newcolor = '0x'+color
         server[str(ctx.guild.id)]['configuration']['embed_color'] = newcolor
