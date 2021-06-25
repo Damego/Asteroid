@@ -14,9 +14,9 @@ def get_db():
         server = Database(url)
     return server
 
-def get_embed_color(message):
+def get_embed_color(guild):
     """Get color for embeds from json """
-    return int(server[str(message.guild.id)]['configuration']['embed_color'], 16)
+    return int(server[str(guild.id)]['configuration']['embed_color'], 16)
 
 def get_prefix(guild):
     """Get guild prexif from json """
@@ -47,7 +47,13 @@ class Settings(commands.Cog, description='Настройка бота'):
 
     @set_conf.command(name='color', aliases=['цвет'], description='Меняет цвет сообщений бота', help='[цвет(HEX)]')
     @commands.has_guild_permissions(administrator=True)
-    async def change_guild_embed_color(self, ctx, color):
+    async def change_guild_embed_color(self, ctx, color:str):
+        if color.startswith('#') and len(color) == 7:
+            color.replace('#', '')
+        elif len(color) != 6:
+            await ctx.send('Неверный формат цвета')
+            return
+            
         newcolor = '0x'+color
         server[str(ctx.guild.id)]['configuration']['embed_color'] = newcolor
 

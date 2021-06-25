@@ -41,6 +41,8 @@ class Help(commands.Cog, description='Помощь'):
                 if isinstance(cmd, commands.Group):
                     group_cmds = cmd.commands
                     for group_cmd in group_cmds:
+                        if group_cmd.hidden:
+                            continue
                         if group_cmd.aliases: aliases = ', '.join(cmd.aliases)
                         else: aliases = 'Нет'
 

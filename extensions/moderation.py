@@ -8,7 +8,7 @@ class Moderation(commands.Cog, description='Модерация'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.spam_ls = {}
+        #self.spam_ls = {}
 
     # ! Temporaly disabled
     #@commands.Cog.listener()
@@ -37,6 +37,7 @@ class Moderation(commands.Cog, description='Модерация'):
     #            await message.channel.purge(limit=count)
     #            await message.channel.send(content=f'**{message.author.mention}, Ваши сообщения были удалены из-за спама!**', delete_after=10)
 
+
     @commands.command(description='Даёт мут участнику на время', help='[Участник] [время(сек)] [причина]')
     @commands.has_guild_permissions(mute_members=True)
     async def mute(self, ctx, member:discord.Member, *, reason=None):
@@ -47,11 +48,13 @@ class Moderation(commands.Cog, description='Модерация'):
             embed.add_field(name='Причина:', value=f'{reason}',inline=False)
         await ctx.send(embed=embed)
 
+
     @commands.command(description='Снимает мут с участника', help='[Участник]')
     @commands.has_guild_permissions(mute_members=True)
     async def unmute(self, ctx, member:discord.Member):
         await member.edit(mute=False)
         await ctx.message.add_reaction('✅')
+
 
     @commands.has_guild_permissions(ban_members=True)
     @commands.command(description='Банит участника сервера', help='[Участник] [причина]')
@@ -60,6 +63,7 @@ class Moderation(commands.Cog, description='Модерация'):
         await ctx.message.add_reaction('✅')
         embed = discord.Embed(title=f'{member} был заблокирован!',description=f'Причина: {reason}', color=get_embed_color(ctx.message))
         await ctx.send(embed=embed)
+
 
     @commands.command(description='Снимает бан у участника', help='[Участник]')
     @commands.has_guild_permissions(ban_members=True)
@@ -75,11 +79,13 @@ class Moderation(commands.Cog, description='Модерация'):
         embed = discord.Embed(title=f'{member} был кикнут с сервера!',description=f'Причина: {reason}', color=get_embed_color(ctx.message))
         await ctx.send(embed=embed)
 
+
     @commands.command(aliases=['роль-'], description='Удаляет роль с участника', help='[Участник] [роль]')
     @commands.has_guild_permissions(manage_roles=True)
     async def remove_role(self, ctx, member: discord.Member, role: discord.Role):
         await member.remove_roles(role)
         await ctx.message.add_reaction('✅')
+
 
     @commands.command(aliases=['роль+'], description='Добавляет роль участнику', help='[Участник] [роль]')
     @commands.has_guild_permissions(manage_roles=True)
@@ -94,10 +100,12 @@ class Moderation(commands.Cog, description='Модерация'):
         await member.edit(nick=newnick)
         await ctx.message.add_reaction('✅')
 
+
     @commands.command(description='Очищает сообщения', help='[Кол-во сообщений]')
     @commands.has_guild_permissions(manage_messages=True)
     async def clear(self, ctx, amount:int):
         await ctx.channel.purge(limit=amount+1)
+
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
