@@ -38,11 +38,22 @@ async def on_guild_join(guild):
     server[str(guild.id)] = {
         'configuration':{
             'prefix':'!d',
-            'embed_color': 0xFFFFFE
+            'embed_color': 0xFFFFFE,
+            'extensions':{
+                'Games': True,
+                'HLTV': True,
+                'Levels': True,
+                'Misc': True,
+                'Moderation': True,
+                'ReactionRole': True,
+                'Tags': True,
+                'NewMusic': True,
+            }
         },
         'roles_by_level':{},
         'users': {},
-        'reaction_posts':{}
+        'reaction_posts':{},
+        'tags':{}
     }
 
 @bot.command()
@@ -51,10 +62,22 @@ async def clear_stats(ctx):
     server[str(ctx.guild.id)] = {
         'configuration':{
             'prefix':'!d',
-            'embed_color': 0xFFFFFE
+            'embed_color': 0xFFFFFE,
+            'extensions':{
+                'Games': True,
+                'HLTV': True,
+                'Levels': True,
+                'Misc': True,
+                'Moderation': True,
+                'ReactionRole': True,
+                'Tags': True,
+                'NewMusic': True,
+            }
         },
+        'roles_by_level':{},
         'users': {},
-        'reaction_posts':{}
+        'reaction_posts':{},
+        'tags':{}
     }
 
 @bot.event

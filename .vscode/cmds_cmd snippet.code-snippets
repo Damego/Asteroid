@@ -7,5 +7,25 @@
 			"async def $1(self, ctx):"
 		],
 		"description": "Create async def with decorator @commands.command"
+	},
+	"create class": {
+		"scope": "python",
+		"prefix": "dclass",
+		"body": [
+			"import discord",
+			"from discord.ext import commands",
+			"",
+			"",
+			"",
+			"class $1(commands.Cog, description=''):",
+			"    def __init__(self, bot):",
+			"        self.bot = bot",
+			"",
+			"",
+			"",
+			"def setup(bot):",
+			"    bot.add_cog($1(bot))"
+		],
+		"description": "Create new class for discord bot"
 	}
 }

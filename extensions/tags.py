@@ -11,7 +11,9 @@ class Tags(commands.Cog, description='Теги'):
         self.hidden = False
         self.server = get_db()
 
-    @commands.group(name='tag', description='Позволяет управлять тегами', help='[тег || команда]', invoke_without_command=True)
+        self.forbidden_tags = ['add', 'edit', 'list', 'remove', 'help', 'name']
+
+    @commands.group(name='tag', description='Показывает содержание тега и управляет тегом', help='[тег || команда]', invoke_without_command=True)
     async def tag(self, ctx, tag_name):
         if not tag_name in self.server[str(ctx.guild.id)]['tags']:
             return await ctx.reply('Такого тега не существует!')
@@ -22,8 +24,12 @@ class Tags(commands.Cog, description='Теги'):
         embed = discord.Embed(title=title, description=description, color=get_embed_color(ctx.guild))
         await ctx.send(embed=embed)
 
-    @tag.command(aliases=['+'], name='add', description='Создаёт новый тег', help='[название_тега] [заголовок]')
+    @tag.command(name='add', description='Создаёт новый тег (Админ)', help='[название тега] [заголовок]')
+    @commands.has_guild_permissions(administrator=True)
     async def add(self, ctx, tag_name, *, title):
+        if tag_name in self.forbidden_tags:
+            return await ctx.reply('Этот тег нельзя использовать!')
+            
         if not self.server[str(ctx.guild.id)]['tags']:
             self.server[str(ctx.guild.id)]['tags'] = {}
 
@@ -37,14 +43,16 @@ class Tags(commands.Cog, description='Теги'):
         await ctx.message.add_reaction('✅')
 
 
-    @tag.command(name='edit', description='Добавляет описание к тегу', help='[название_тега] [описание]')
+    @tag.command(name='edit', description='Добавляет описание к тегу (Админ)', help='[название тега] [описание]')
+    @commands.has_guild_permissions(administrator=True)
     async def edit(self, ctx, tag_name, *, description):
         description = f"""{description}"""
         self.server[str(ctx.guild.id)]['tags'][tag_name]['description'] = description
         await ctx.message.add_reaction('✅')
 
 
-    @tag.command(aliases=['-'], name='remove', description='Удаляет тег', help='[название_тега]')
+    @tag.command(aliases=['-'], name='remove', description='Удаляет тег (Админ)', help='[название тега]')
+    @commands.has_guild_permissions(administrator=True)
     async def remove(self, ctx, tag_name):
         del self.server[str(ctx.guild.id)]['tags'][tag_name]
         await ctx.message.add_reaction('✅')
@@ -90,9 +98,33 @@ class Tags(commands.Cog, description='Теги'):
                     embed.add_field(name=f'`{prefix}{group_cmd} {group_cmd.help}`', value=f'**Описание:** {group_cmd.description}\n **Псевдонимы:** {aliases}', inline=False)
         await ctx.send(embed=embed)
 
+    @tag.command(name='name', description='Меняет название тега', help='[название тега] [новое название тега]')
+    @commands.has_guild_permissions(administrator=True)
+    async def name(self, ctx, tag_name, new_tag_name):
+        if not tag_name in self.server[str(ctx.guild.id)]['tags']:
+            return await ctx.reply('Такого тега не существует!')
+        if new_tag_name in self.forbidden_tags:
+            return await ctx.reply('Этот тег нельзя использовать!')
+        
+        title = self.server[str(ctx.guild.id)]['tags'][tag_name]['title']
+        description = self.server[str(ctx.guild.id)]['tags'][tag_name]['description']
 
-    @commands.command(name='btag', description='Открывает меню управления тегом', help='[название тега]')
+        del self.server[str(ctx.guild.id)]['tags'][tag_name]
+
+        self.server[str(ctx.guild.id)]['tags'][new_tag_name] = {
+            'title': title,
+            'description': description
+        }
+
+        await ctx.message.add_reaction('✅')
+
+
+    @commands.command(name='btag', description='Открывает меню управления тегом (Админ)', help='[название тега]')
+    @commands.has_guild_permissions(administrator=True)
     async def btag(self, ctx, tag_name):
+        if tag_name in self.forbidden_tags:
+            return await ctx.reply('Этот тег нельзя использовать!')
+
         if tag_name in self.server[str(ctx.guild.id)]['tags']:
             self.embed = discord.Embed(color=get_embed_color(ctx.guild))
             self.embed.title = self.server[str(ctx.guild.id)]['tags'][tag_name]['title']
@@ -156,7 +188,7 @@ class Tags(commands.Cog, description='Теги'):
         else: label = '`Описание`'
 
         await interaction.respond(type=4, content=f'Введите {label}')
-        msg = await self.bot.wait_for('message', check=lambda res: res.user.id == ctx.author.id)
+        msg = await self.bot.wait_for('message', check=lambda msg: msg.author.id == ctx.author.id)
         content = msg.content
         await msg.delete()
 

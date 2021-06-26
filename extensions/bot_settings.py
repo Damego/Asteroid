@@ -43,26 +43,35 @@ class Settings(commands.Cog, description='Настройка бота'):
         server[str(ctx.guild.id)]['configuration']['prefix'] = prefix
 
         embed = discord.Embed(title=f'Префикс для команд изменился на `{prefix}`', color=0x2f3136)
-        await ctx.send(embed=embed, delete_after=10)
+        await ctx.send(embed=embed, delete_after=30)
 
     @set_conf.command(name='color', aliases=['цвет'], description='Меняет цвет сообщений бота', help='[цвет(HEX)]')
     @commands.has_guild_permissions(administrator=True)
     async def change_guild_embed_color(self, ctx, color:str):
         if color.startswith('#') and len(color) == 7:
-            color.replace('#', '')
+            color = color.replace('#', '')
         elif len(color) != 6:
             await ctx.send('Неверный формат цвета')
             return
             
-        newcolor = '0x'+color
+        newcolor = '0x' + color
         server[str(ctx.guild.id)]['configuration']['embed_color'] = newcolor
 
-        embed = discord.Embed(title=f'Изменился цвет сообщений бота !`', color=int(newcolor, 16))
-        await ctx.send(embed=embed, delete_after=10)
+        embed = discord.Embed(title=f'Цвет у объявлений был изменён!', color=int(newcolor, 16))
+        await ctx.send(embed=embed)
 
     @commands.command(name='prefix', description='Показывает текущий префикс на сервере', help=' ')
     async def show_guild_prefix(self, ctx):
         embed = discord.Embed(title=f'Текущий префикс: `{get_prefix(ctx.message)}`', color=0x2f3136)
+        await ctx.send(embed=embed)
+
+    @commands.command(aliases=['cl'], name='changelog', description='Показывает изменения последнего обновления', help='')
+    async def changelog(self, ctx):
+        with open('changelog.txt', 'r', encoding='UTF-8') as file:
+            version = file.readline()
+            text = file.read()
+
+        embed = discord.Embed(title=version, description=text, color=0x2f3136)
         await ctx.send(embed=embed)
 
 

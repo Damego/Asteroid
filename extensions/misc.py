@@ -4,7 +4,6 @@ from random import randint, choice
 import discord
 from discord.ext import commands
 import qrcode
-from discord_components import DiscordComponents, Button, ButtonStyle
 
 
 from extensions.bot_settings import get_embed_color, get_db
@@ -27,6 +26,8 @@ def get_emoji_status(message):
         'offline':server[str(message.guild.id)]['emoji_status']['offline'],
         }
     return ls
+
+
 
 class Misc(commands.Cog, description='Остальное'):
     def __init__(self, bot):
@@ -96,12 +97,10 @@ class Misc(commands.Cog, description='Остальное'):
 
     @commands.command(description='Показывает пинг бота', help='')
     async def ping(self, ctx):
-        embed = discord.Embed()
-        embed.add_field(name='🏓 Pong!', value=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс')
+        embed = discord.Embed(title='🏓 Pong!', description=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс', color=get_embed_color(ctx.guild))
         await ctx.send(embed=embed)
 
 
 
 def setup(bot):
-    DiscordComponents(bot)
     bot.add_cog(Misc(bot))
