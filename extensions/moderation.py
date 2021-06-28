@@ -1,13 +1,14 @@
 import discord
 from discord.ext import commands
 
-from extensions.bot_settings import get_embed_color, get_prefix
+from extensions.bot_settings import get_embed_color, get_prefix, get_footer_text
 
 
 class Moderation(commands.Cog, description='Модерация'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
+        self.embed_footer = get_footer_text()
         #self.spam_ls = {}
 
     # ! Temporaly disabled
@@ -44,6 +45,7 @@ class Moderation(commands.Cog, description='Модерация'):
         await ctx.message.add_reaction('✅')
         await member.edit(mute=True)
         embed = discord.Embed(title=f'{member} был отправлен в мут!', color=get_embed_color(ctx.message))
+        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         if reason is not None:
             embed.add_field(name='Причина:', value=f'{reason}',inline=False)
         await ctx.send(embed=embed)
@@ -62,6 +64,7 @@ class Moderation(commands.Cog, description='Модерация'):
         await member.ban(reason=reason)
         await ctx.message.add_reaction('✅')
         embed = discord.Embed(title=f'{member} был заблокирован!',description=f'Причина: {reason}', color=get_embed_color(ctx.message))
+        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
 
@@ -77,6 +80,7 @@ class Moderation(commands.Cog, description='Модерация'):
     async def kick(self, ctx, member:discord.Member, *, reason=None):
         await member.kick(reason=reason)
         embed = discord.Embed(title=f'{member} был кикнут с сервера!',description=f'Причина: {reason}', color=get_embed_color(ctx.message))
+        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
 
@@ -111,6 +115,7 @@ class Moderation(commands.Cog, description='Модерация'):
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.MemberNotFound):
             embed = discord.Embed(title=f'Пользователь не подключен к голосовому каналу!', color=get_embed_color(ctx.message))
+            embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
             await ctx.send(embed=embed, delete_after=15)
 
 

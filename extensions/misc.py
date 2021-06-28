@@ -1,12 +1,14 @@
 import os
 from random import randint, choice
+from asyncio import sleep
 
 import discord
 from discord.ext import commands
 import qrcode
 
+from extensions.bot_settings import DurationConverter, get_embed_color, get_db, get_footer_text, multiplier
 
-from extensions.bot_settings import get_embed_color, get_db
+
 server = get_db()
 
 def get_stats(message, member):
@@ -33,6 +35,7 @@ class Misc(commands.Cog, description='Остальное'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
+        self.embed_footer = get_footer_text()
 
     @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке', help='[от] [до]')
     async def random_num(self, ctx, arg1:int, arg2:int):
@@ -53,6 +56,7 @@ class Misc(commands.Cog, description='Остальное'):
     @commands.command(aliases=['инфо'], description='Выводит информацию об участнике канала', help='[ник]')
     async def info(self, ctx, *, member: discord.Member):
         embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.message))
+        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
 
         member_roles = []
         for role in member.roles:
@@ -98,8 +102,18 @@ class Misc(commands.Cog, description='Остальное'):
     @commands.command(description='Показывает пинг бота', help='')
     async def ping(self, ctx):
         embed = discord.Embed(title='🏓 Pong!', description=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс', color=get_embed_color(ctx.guild))
+        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
+    @commands.command(name='announce', aliases=['an'], description='Отправляет объявление', help='[канал] [сообщение]')
+    async def announce(self, ctx, channel:discord.TextChannel, *, message):
+        await channel.send(message)
+
+    @commands.command(name='remind', description='', help='')
+    async def remind(self, ctx, duration:DurationConverter, *, message):
+        amount, time_format = duration
+        await sleep(amount * multiplier[time_format])
+    
 
 
 def setup(bot):

@@ -23,13 +23,38 @@ def get_prefix(guild):
     prefix = server[str(guild.id)]['configuration']['prefix']
     return prefix
 
+def get_footer_text() -> str:
+    text = 'Damego Bot v1.0.0 Beta'
+    return text
+
 server = get_db()
 
+multiplier = {
+    'д': 8640,
+    'ч': 360,
+    'м': 60,
+    'с': 1,
+    'd': 8640,
+    'h': 360,
+    'm': 60,
+    's': 1
+    }
+
+class DurationConverter(commands.Converter):
+    async def convert(self, ctx, argument):
+        amount = argument[:-1]
+        time_format = argument[-1]
+
+        if amount.isdigit() and time_format in ['д', 'ч', 'м', 'с', 'd', 'h', 'm', 's']:
+            return (int(amount), time_format)
+
+        raise commands.BadArgument(message='Неверный формат времени!')
 
 class Settings(commands.Cog, description='Настройка бота'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
+        
 
     @commands.has_guild_permissions(administrator=True)
     @commands.group(invoke_without_command=True, name='set', description='Команда, позволяющая изменять настройки бота', help='[арг]')
@@ -57,7 +82,7 @@ class Settings(commands.Cog, description='Настройка бота'):
         newcolor = '0x' + color
         server[str(ctx.guild.id)]['configuration']['embed_color'] = newcolor
 
-        embed = discord.Embed(title=f'Цвет у объявлений был изменён!', color=int(newcolor, 16))
+        embed = discord.Embed(title=f'Цвет сообщений был изменён!', color=int(newcolor, 16))
         await ctx.send(embed=embed)
 
     @commands.command(name='prefix', description='Показывает текущий префикс на сервере', help=' ')
