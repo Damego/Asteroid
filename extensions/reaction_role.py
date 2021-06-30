@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 
-from extensions.bot_settings import get_embed_color, get_db
+from extensions.bot_settings import get_db, get_prefix
 
 server = get_db
 
@@ -19,6 +19,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
+        self.aliases = ['reactionrole', 'rr', 'react']
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -45,43 +46,53 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
             member = guild.get_member(payload.user_id)
             await member.remove_roles(role)
 
-    @commands.command(description='Записывает пост для выдачи роли по реакции', help='[id поста]')
+
+    @commands.group(name='reactionrole', aliases=['rr'], description='', help='[команда]', invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
-    async def add_react_post(self, ctx, post_id:int):
+    async def reactionrole(self, ctx):
+        await ctx.send(f'Используйте `{get_prefix(ctx.guild)}help ReactionRole` для получения информации')
+
+    @reactionrole.group(name='add', aliases=['+', 'a'], description='', help='[команда]', invoke_without_command=True)
+    @commands.has_guild_permissions(administrator=True)
+    async def add(self, ctx):
+        ...
+
+    @add.command(name='post', description='Записывает пост для выдачи роли по реакции', help='[id поста]')
+    @commands.has_guild_permissions(administrator=True)
+    async def post(self, ctx, post_id:int):
         server[str(ctx.guild.id)]['reaction_posts'][str(post_id)] = {}
-
         await ctx.message.add_reaction('✅')
 
-    @commands.command(description='Удаляет пост для выдачи роли по реакции', help='[id поста]')
+    @add.command(name='role', description='Добавляет роль по реакции', help='[id поста] [эмодзи] [роль]')
     @commands.has_guild_permissions(administrator=True)
-    async def remove_react_post(self, ctx, post_id:int):
-        del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)]
-
-        await ctx.message.add_reaction('✅')
-
-    @commands.command(description='Добавляет роль по реакции', help='[id поста] [эмодзи] [роль]')
-    @commands.has_guild_permissions(administrator=True)
-    async def add_react_role(self, ctx, post_id, emoji, role:discord.Role):
-        """
-        I don't know, why discord.PartialEmoji can't convert unicode emoji!
-        discord.ext.commands.errors.PartialEmojiConversionFailure: Couldn't convert "😄" to PartialEmoji.
-        """
+    async def role(self, ctx, post_id, emoji, role:discord.Role):
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>','')
+
         server[str(ctx.guild.id)]['reaction_posts'][str(post_id)][str(emoji)] = role.id
 
         await ctx.message.add_reaction('✅')
 
-
-    @commands.command(description='Удаляет роль по реакции',help='[id поста] [эмодзи]')
+    @reactionrole.group(name='remove', aliases=['-', 'r'], description='', help='[команда]', invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
-    async def remove_react_role(self, ctx, post_id, emoji):
+    async def remove(self, ctx):
+        ...
+
+    @remove.command(name='post', description='Удаляет пост для выдачи роли по реакции', help='[id поста]')
+    @commands.has_guild_permissions(administrator=True)
+    async def post(self, ctx, post_id:int):
+        del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)]
+
+        await ctx.message.add_reaction('✅')
+
+    @remove.command(name='role', description='Удаляет роль по реакции',help='[id поста] [эмодзи]')
+    @commands.has_guild_permissions(administrator=True)
+    async def role(self, ctx, post_id, emoji):
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>','')
         del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)][str(emoji)]
 
         await ctx.message.add_reaction('✅')
-
 
 def setup(bot):
     bot.add_cog(ReactionRole(bot))

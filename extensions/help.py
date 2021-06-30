@@ -1,9 +1,8 @@
 import discord
 from discord.ext import commands
 
-from extensions.bot_settings import get_db, get_prefix, get_footer_text
+from extensions.bot_settings import get_prefix
 
-server = get_db()
 
 
 class Help(commands.Cog, description='Помощь'):
@@ -11,54 +10,53 @@ class Help(commands.Cog, description='Помощь'):
         self.bot = bot
         self.bot.remove_command('help')
         self.hidden = True
-        self.embed_footer = get_footer_text()
         
 
     @commands.command(description='Показывает это сообщение')
     async def help(self, ctx, extension=None):
-        prefix = get_prefix(ctx.guild)
+        await ctx.message.delete()
 
+        prefix = get_prefix(ctx.guild)
         if extension is None:
             embed = discord.Embed(description='```               「📝」КОМАНДЫ:               ```', color=0x2f3136)
-            embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
 
             for cog in self.bot.cogs:
                 if not self.bot.cogs[cog].hidden:
                     embed.add_field(name=self.bot.cogs[cog].description, value=f'```{prefix}help {cog}```')
-
-        elif extension in self.bot.cogs:
-            cog_name = self.bot.cogs[extension].description
-
-            embed = discord.Embed(description=f'```               「📝」{cog_name}               ```',color=0x2f3136)
-            embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
-            
-            all_cmds = self.bot.cogs[extension].get_commands()
-            for cmd in all_cmds:
-                if cmd.hidden:
-                    continue
-
-                if cmd.aliases: aliases = ', '.join(cmd.aliases)
-                else: aliases = 'Нет'
-
-                embed.add_field(name=f'`{prefix}{cmd} {cmd.help}`', value=f'**Описание: **{cmd.description}\n **Псевдонимы:** {aliases}', inline=False)
-
-                if isinstance(cmd, commands.Group):
-                    group_cmds = cmd.commands
-
-                    for group_cmd in group_cmds:
-                        if group_cmd.hidden:
-                            continue
-
-                        if group_cmd.aliases: aliases = ', '.join(cmd.aliases)
-                        else: aliases = 'Нет'
-
-                        embed.add_field(name=f'`{prefix}{group_cmd} {group_cmd.help}`', value=f'**Описание:** {group_cmd.description}\n **Псевдонимы:** {aliases}', inline=False)
         else:
-            embed = discord.Embed(title=f'Плагин `{extension}` не найден!',color=0x2f3136)
-            embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
-
-        await ctx.message.delete()
+            for cog in self.bot.cogs:
+                if not hasattr(self.bot.cogs[cog], 'aliases'):
+                    continue
+                if extension in self.bot.cogs[cog].aliases:
+                    extension = cog
+                    break
+            else:
+                raise commands.BadArgument(f'Плагин {extension} не найден')
+            cog_name = self.bot.cogs[extension].description
+            embed = discord.Embed(description=f'```               「📝」{cog_name}               ```',color=0x2f3136)
+            
+            _commands = self.bot.cogs[extension]
+            await self.out_commands(_commands, embed, prefix)
+            
         await ctx.send(embed=embed, delete_after=60)
+
+
+    async def out_commands(self, cmds, embed, prefix):
+        if isinstance(cmds, commands.Group):
+            _commands = cmds.commands
+        else: _commands = cmds.get_commands()
+
+        for _command in _commands:
+            if _command.hidden:
+                continue
+
+            if _command.aliases: aliases = ', '.join(_command.aliases)
+            else: aliases = 'Нет'
+
+            embed.add_field(name=f'`{prefix}{_command} {_command.help}`', value=f'**Описание: **{_command.description}\n **Псевдонимы:** {aliases}', inline=False)
+
+            if isinstance(_command, commands.Group):
+                await self.out_commands(_command, embed, prefix)
 
 
 

@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 from discord_components import Button, ButtonStyle, DiscordComponents
 
-from extensions.bot_settings import get_embed_color, get_footer_text, DurationConverter, multiplier
+from extensions.bot_settings import get_embed_color, DurationConverter, multiplier
 
 
 
@@ -13,7 +13,7 @@ class Giveaway(commands.Cog, description='Раздача ролей'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.embed_footer = get_footer_text()
+        self.aliases = ['giveaways', 'ga']
 
         self.members = {}
 
@@ -33,7 +33,6 @@ class Giveaway(commands.Cog, description='Раздача ролей'):
         ]
 
         embed = discord.Embed(title=f'Раздача роли {role}', description=message, color=get_embed_color(ctx.guild))
-        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         self.msg = await ctx.send(embed=embed, components=components)
 
         isend = await self.process_giveaway(ctx, duration, role)
@@ -51,7 +50,7 @@ class Giveaway(commands.Cog, description='Раздача ролей'):
             member = await ctx.guild.fetch_member(winner)
             await member.add_roles(role)
 
-            await ctx.send(f'Победитель, {member.mention}! Вы получаете роль: {role}')
+            await ctx.send(f'Победитель, {member.mention}! Вы получаете роль: `{role}`')
             del self.members[ctx.guild.id][self.msg.id]
             return True
         except KeyError:

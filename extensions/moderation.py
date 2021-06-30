@@ -1,14 +1,15 @@
+from asyncio.tasks import sleep
 import discord
 from discord.ext import commands
 
-from extensions.bot_settings import get_embed_color, get_prefix, get_footer_text
+from extensions.bot_settings import DurationConverter, get_embed_color, multiplier
 
 
 class Moderation(commands.Cog, description='Модерация'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.embed_footer = get_footer_text()
+        self.aliases = ['moderation', 'moder', 'mod']
         #self.spam_ls = {}
 
     # ! Temporaly disabled
@@ -39,22 +40,40 @@ class Moderation(commands.Cog, description='Модерация'):
     #            await message.channel.send(content=f'**{message.author.mention}, Ваши сообщения были удалены из-за спама!**', delete_after=10)
 
 
-    @commands.command(description='Даёт мут участнику на время', help='[Участник] [время(сек)] [причина]')
+    @commands.command(description='Даёт мут участнику на время', help='[Участник] [время] [причина]')
     @commands.has_guild_permissions(mute_members=True)
-    async def mute(self, ctx, member:discord.Member, *, reason=None):
-        await ctx.message.add_reaction('✅')
-        await member.edit(mute=True)
-        embed = discord.Embed(title=f'{member} был отправлен в мут!', color=get_embed_color(ctx.message))
-        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
+    async def mute(self, ctx, member:discord.Member, duration:DurationConverter, *, reason=None):
+        amount, time_format = duration
+        
+        muted_role = await self.get_muted_role(ctx)
+        await member.add_roles(muted_role, reason=reason)
+        embed = discord.Embed(title=f'{member} был отправлен в мут!', color=get_embed_color(ctx.guild))
+        _description = f"""**Время**: {amount} {time_format}\n"""
+
         if reason is not None:
-            embed.add_field(name='Причина:', value=f'{reason}',inline=False)
+            _description += f'**Причина**: {reason}'
+        embed.description = _description
         await ctx.send(embed=embed)
+
+        await sleep(amount * multiplier[time_format])
+        await member.remove_roles(muted_role)
+        
+    async def get_muted_role(self, ctx):
+        muted_role = discord.utils.get(ctx.guild.roles, name='Muted')
+        if not muted_role:
+            muted_role = await ctx.guild.create_role(name='Muted')
+
+            for channel in ctx.guild.channels:
+                await channel.set_permissions(muted_role, speak=False, send_messages=False)
+                await sleep(0.05)
+        return muted_role
 
 
     @commands.command(description='Снимает мут с участника', help='[Участник]')
     @commands.has_guild_permissions(mute_members=True)
     async def unmute(self, ctx, member:discord.Member):
-        await member.edit(mute=False)
+        muted_role = await self.get_muted_role(ctx)
+        await member.remove_roles(muted_role)
         await ctx.message.add_reaction('✅')
 
 
@@ -64,7 +83,6 @@ class Moderation(commands.Cog, description='Модерация'):
         await member.ban(reason=reason)
         await ctx.message.add_reaction('✅')
         embed = discord.Embed(title=f'{member} был заблокирован!',description=f'Причина: {reason}', color=get_embed_color(ctx.message))
-        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
 
@@ -80,7 +98,6 @@ class Moderation(commands.Cog, description='Модерация'):
     async def kick(self, ctx, member:discord.Member, *, reason=None):
         await member.kick(reason=reason)
         embed = discord.Embed(title=f'{member} был кикнут с сервера!',description=f'Причина: {reason}', color=get_embed_color(ctx.message))
-        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
 
@@ -115,7 +132,6 @@ class Moderation(commands.Cog, description='Модерация'):
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.MemberNotFound):
             embed = discord.Embed(title=f'Пользователь не подключен к голосовому каналу!', color=get_embed_color(ctx.message))
-            embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
             await ctx.send(embed=embed, delete_after=15)
 
 

@@ -30,12 +30,12 @@ def get_footer_text() -> str:
 server = get_db()
 
 multiplier = {
-    'д': 8640,
-    'ч': 360,
+    'д': 86400,
+    'ч': 3600,
     'м': 60,
     'с': 1,
-    'd': 8640,
-    'h': 360,
+    'd': 86400,
+    'h': 3600,
     'm': 60,
     's': 1
     }
@@ -54,6 +54,7 @@ class Settings(commands.Cog, description='Настройка бота'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
+        self.aliases = ['settings']
         
 
     @commands.has_guild_permissions(administrator=True)
@@ -98,7 +99,6 @@ class Settings(commands.Cog, description='Настройка бота'):
 
         embed = discord.Embed(title=version, description=text, color=0x2f3136)
         await ctx.send(embed=embed)
-
 
 
 

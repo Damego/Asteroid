@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands
 import qrcode
 
-from extensions.bot_settings import DurationConverter, get_embed_color, get_db, get_footer_text, multiplier
+from extensions.bot_settings import DurationConverter, get_embed_color, get_db, multiplier
 
 
 server = get_db()
@@ -31,11 +31,11 @@ def get_emoji_status(message):
 
 
 
-class Misc(commands.Cog, description='Остальное'):
+class Misc(commands.Cog, description='Остальные команды'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.embed_footer = get_footer_text()
+        self.aliases = ['misc', 'other']
 
     @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке', help='[от] [до]')
     async def random_num(self, ctx, arg1:int, arg2:int):
@@ -56,7 +56,6 @@ class Misc(commands.Cog, description='Остальное'):
     @commands.command(aliases=['инфо'], description='Выводит информацию об участнике канала', help='[ник]')
     async def info(self, ctx, *, member: discord.Member):
         embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.message))
-        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
 
         member_roles = []
         for role in member.roles:
@@ -102,7 +101,6 @@ class Misc(commands.Cog, description='Остальное'):
     @commands.command(description='Показывает пинг бота', help='')
     async def ping(self, ctx):
         embed = discord.Embed(title='🏓 Pong!', description=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс', color=get_embed_color(ctx.guild))
-        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
     @commands.command(name='announce', aliases=['an'], description='Отправляет объявление', help='[канал] [сообщение]')
@@ -113,6 +111,25 @@ class Misc(commands.Cog, description='Остальное'):
     async def remind(self, ctx, duration:DurationConverter, *, message):
         amount, time_format = duration
         await sleep(amount * multiplier[time_format])
+        await ctx.send(message) # ! 
+
+    @commands.command(name='serverinfo', description='', help='')
+    async def serverinfo(self, ctx):
+        guild = ctx.guild
+        embed = discord.Embed(title=f'Информация о сервере {guild.name}', color=get_embed_color(guild))
+        embed.add_field(name='Дата создания:', value=guild.created_at, inline=False)
+        embed.add_field(name='Основатель сервера:', value=guild.owner.mention, inline=False)
+        embed.add_field(name='Количество ролей:', value=len(guild.roles), inline=False)
+        embed.add_field(name='Количество участников:', value=guild.member_count, inline=False)
+        embed.add_field(name='Количество каналов:', value=f"""
+        :hash: Категорий: {len(guild.categories)}
+        :writing_hand: Текстовых каналов: {len(guild.text_channels)}
+        :speaker: Голосовых каналов: {len(guild.voice_channels)}
+        """, inline=False)
+        embed.set_thumbnail(url=guild.icon_url)
+        # ! Channels
+
+        await ctx.send(embed=embed)
     
 
 

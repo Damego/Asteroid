@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-from extensions.bot_settings import get_embed_color, get_db, get_footer_text
+from extensions.bot_settings import get_embed_color, get_db
 
 server = get_db()
 
@@ -18,7 +18,7 @@ class HLTV(commands.Cog, description='HLTV'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.embed_footer = get_footer_text()
+        self.aliases = ['hltv']
 
         self.URL = 'https://www.hltv.org/matches'
         self.HEADERS = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36', 'accept': '*/*'}
@@ -54,7 +54,6 @@ class HLTV(commands.Cog, description='HLTV'):
 
     async def parse(self, ctx, arg):
         embed = discord.Embed(title='Расписание игр по CS:GO', description=f'Ближайшие игры команды {arg}', color=get_embed_color(ctx.message))
-        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
 
         html = self.get_html(self.URL)
         if html.status_code == 200:

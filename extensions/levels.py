@@ -12,6 +12,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
+        self.aliases = ['levels']
 
         self.member_voice_time = {}
         self.koef = 10

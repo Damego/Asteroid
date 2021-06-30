@@ -4,7 +4,7 @@ import discord
 from discord_components import DiscordComponents, Button, ButtonStyle
 from discord.ext import commands
 
-from extensions.bot_settings import get_embed_color, get_db, get_footer_text
+from extensions.bot_settings import get_embed_color, get_db
 
 server = get_db
 
@@ -13,7 +13,7 @@ class Games(commands.Cog, description='Игры'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.embed_footer = get_footer_text()
+        self.aliases = ['games']
 
     async def rps_logic(self, player_1_interact, player_2_interact):
         """Проверяет ходы участников и даёт очко тому, кто выиграл"""
@@ -54,7 +54,6 @@ class Games(commands.Cog, description='Игры'):
             return interaction.user == ctx.author
 
         embed = discord.Embed(title='🪨-✂️-🧾')
-        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         embed.add_field(name=f'**{ctx.author.display_name}** VS **{member.display_name}**',
                         value=f'**Счёт:** {self.count1}:{self.count2} \n**Игра:** {round+1}/{total_rounds}'
                         )
@@ -95,7 +94,6 @@ class Games(commands.Cog, description='Игры'):
         winner = self.rps_winner(ctx, member)
 
         embed = discord.Embed(title='`          ИТОГИ ИГРЫ            `')
-        embed.set_footer(text=get_footer_text, icon_url=self.bot.user.avatar_url)
         embed.add_field(name=f'**Название игры: Камень-ножницы-бумага**',
                         value=f"""
                         **Игроки: {ctx.author.display_name} и {member.display_name}**
@@ -205,7 +203,6 @@ class Games(commands.Cog, description='Игры'):
     async def pick_a_winner(self, msg, ctx, player1, player2, winner='Ничья'):
         embed = discord.Embed(
             title='`          ИТОГИ ИГРЫ            `', color=get_embed_color(ctx.message))
-        embed.set_footer(text=get_footer_text, icon_url=self.bot.user.avatar_url)
         embed.add_field(name=f'**Название: Крестики-Нолики**',
                         value=f"""
                         **Игроки: {player1.display_name} и {player2.display_name}**
@@ -235,7 +232,6 @@ class Games(commands.Cog, description='Игры'):
         if interaction.component.id == '1':
             embed = discord.Embed(
                 title=game_name, description=f'{ctx.author.display_name} VS {member.display_name}', color=get_embed_color(ctx.message))
-            embed.set_footer(text=get_footer_text, icon_url=self.bot.user.avatar_url)
             await msg.edit(context=' ', embed=embed)
             return msg, True
 
@@ -281,7 +277,6 @@ class Games(commands.Cog, description='Игры'):
                 sum_diler_cards = diler_sum
 
             embed = discord.Embed(title='21 Очко')
-            embed.set_footer(text=get_footer_text, icon_url=self.bot.user.avatar_url)
             embed.add_field(
                 name='Карты дилера:', value=f'{diler_cards_str}\nСумма карт: {sum_diler_cards}', inline=False)
             embed.add_field(

@@ -2,7 +2,7 @@ from discord.ext import commands
 import discord
 from discord_components import Button, ButtonStyle, DiscordComponents
 
-from extensions.bot_settings import get_embed_color, get_db, get_prefix, get_footer_text
+from extensions.bot_settings import get_embed_color, get_db, get_prefix
 
 
 
@@ -11,7 +11,7 @@ class Tags(commands.Cog, description='Теги'):
         self.bot = bot
         self.hidden = False
         self.server = get_db()
-        self.embed_footer = get_footer_text()
+        self.aliases = ['tags', 'tag']
 
         self.forbidden_tags = ['add', 'edit', 'list', 'remove', 'help', 'name']
 
@@ -24,7 +24,6 @@ class Tags(commands.Cog, description='Теги'):
         description = self.server[str(ctx.guild.id)]['tags'][tag_name]['description']
 
         embed = discord.Embed(title=title, description=description, color=get_embed_color(ctx.guild))
-        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
     @tag.command(name='add', description='Создаёт новый тег (Админ)', help='[название тега] [заголовок]')
@@ -70,7 +69,6 @@ class Tags(commands.Cog, description='Теги'):
             description += f'**{count}. {tag}**\n'
             count += 1
         embed = discord.Embed(title='Список тегов', color=get_embed_color(ctx.guild))
-        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         embed.description = description
         await ctx.send(embed=embed)
 
@@ -80,7 +78,6 @@ class Tags(commands.Cog, description='Теги'):
         prefix = get_prefix(ctx.guild)
         cog_name = self.bot.cogs['Tags'].description
         embed = discord.Embed(color=0x2f3136)
-        embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
         embed.add_field(name='**Справочник команд**', value=f'```               「📝」{cog_name}               ```', inline=False)
         all_cmds = self.bot.cogs['Tags'].get_commands()
         for cmd in all_cmds:
@@ -132,7 +129,6 @@ class Tags(commands.Cog, description='Теги'):
 
         if tag_name in self.server[str(ctx.guild.id)]['tags']:
             self.embed = discord.Embed(color=get_embed_color(ctx.guild))
-            self.embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
             self.embed.title = self.server[str(ctx.guild.id)]['tags'][tag_name]['title']
             self.embed.description = self.server[str(ctx.guild.id)]['tags'][tag_name]['description']
             components = [[
@@ -180,7 +176,6 @@ class Tags(commands.Cog, description='Теги'):
             self.title = 'Заголовок'
             self.description = 'Описание'
             self.embed = discord.Embed(title=self.title, description=self.description, color=get_embed_color(ctx.guild))
-            self.embed.set_footer(text=self.embed_footer, icon_url=self.bot.user.avatar_url)
             self.msg = await ctx.send(embed=self.embed, components=components)
         else:
             await self.msg.edit(components=components)
