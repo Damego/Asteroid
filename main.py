@@ -167,6 +167,6 @@ async def on_command_error(ctx, error):
 
 if __name__ == '__main__':
     server = get_db()
-    #keep_alive()
+    keep_alive()
     bot.run(os.environ['TOKEN'])
 

@@ -4,7 +4,7 @@ from discord.ext import commands
 
 from extensions.bot_settings import get_db, get_prefix
 
-server = get_db
+server = get_db()
 
 def get_react_post_id(guild_id):
     """Get guild react post id from json """
@@ -60,6 +60,12 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     @add.command(name='post', description='Записывает пост для выдачи роли по реакции', help='[id поста]')
     @commands.has_guild_permissions(administrator=True)
     async def post(self, ctx, post_id:int):
+        server[str(ctx.guild.id)]['reaction_posts'][str(post_id)] = {}
+        await ctx.message.add_reaction('✅')
+
+    @commands.command(description='Записывает пост для выдачи роли по реакции', help='[id поста]')
+    @commands.has_guild_permissions(administrator=True)
+    async def rr_add_post(self, ctx, post_id:int):
         server[str(ctx.guild.id)]['reaction_posts'][str(post_id)] = {}
         await ctx.message.add_reaction('✅')
 

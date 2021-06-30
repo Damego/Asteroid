@@ -52,7 +52,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
     async def add_member(self, arg):
         if isinstance(arg, discord.Message):
-            member = arg.message.author
+            member = arg.author
         elif isinstance(arg, discord.Member):
             member = arg
 
