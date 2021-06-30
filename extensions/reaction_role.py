@@ -69,6 +69,16 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         server[str(ctx.guild.id)]['reaction_posts'][str(post_id)] = {}
         await ctx.message.add_reaction('✅')
 
+    @commands.command(description='Добавляет роль по реакции', help='[id поста] [эмодзи] [роль]')
+    @commands.has_guild_permissions(administrator=True)
+    async def rr_add_role(self, ctx, post_id, emoji, role:discord.Role):
+        if emoji[0] == '<':
+            emoji = emoji.split(':')[2].replace('>','')
+
+        server[str(ctx.guild.id)]['reaction_posts'][str(post_id)][str(emoji)] = role.id
+
+        await ctx.message.add_reaction('✅')
+
     @add.command(name='role', description='Добавляет роль по реакции', help='[id поста] [эмодзи] [роль]')
     @commands.has_guild_permissions(administrator=True)
     async def role(self, ctx, post_id, emoji, role:discord.Role):
