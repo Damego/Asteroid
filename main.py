@@ -18,7 +18,11 @@ def get_db():
 
 def get_prefix(bot, message):
     """Get guild prexif from json """
-    prefix = server[str(message.guild.id)]['configuration']['prefix']
+    try:
+        prefix = server[str(message.guild.id)]['configuration']['prefix']
+    except KeyError:
+        prefix = '!d'
+
     return commands.when_mentioned_or(prefix)(bot, message)
 
 
@@ -57,7 +61,7 @@ async def on_guild_join(guild):
 
 @bot.command()
 @commands.is_owner()
-async def clear_stats(ctx):
+async def full_clear_guild_db(ctx):
     server[str(ctx.guild.id)] = {
         'configuration':{
             'prefix':'!d',
@@ -77,6 +81,26 @@ async def clear_stats(ctx):
         'users': {},
         'reaction_posts':{},
         'tags':{}
+    }
+
+@bot.command()
+@commands.is_owner()
+async def clear_guild_db(ctx):
+    server[str(ctx.guild.id)] = {
+        'configuration':{
+            'prefix':'!d',
+            'embed_color': 0xFFFFFE,
+            'extensions':{
+                'Games': True,
+                'HLTV': True,
+                'Levels': True,
+                'Misc': True,
+                'Moderation': True,
+                'ReactionRole': True,
+                'Tags': True,
+                'NewMusic': True,
+            }
+        }
     }
 
 @bot.event
