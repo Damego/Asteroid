@@ -16,7 +16,11 @@ class Tags(commands.Cog, description='Теги'):
         self.forbidden_tags = ['add', 'edit', 'list', 'remove', 'help', 'name']
 
     @commands.group(name='tag', description='Показывает содержание тега и управляет тегом', help='[тег || команда]', invoke_without_command=True)
-    async def tag(self, ctx, tag_name):
+    async def tag(self, ctx, tag_name=None):
+        prefix = get_prefix(ctx.guild)
+        if tag_name is None:
+            return await ctx.reply(f'Упс... А тут ничего нет! Используйте `{prefix}help Tags` для получения информации')
+
         if not tag_name in self.server[str(ctx.guild.id)]['tags']:
             return await ctx.reply('Такого тега не существует!')
 
@@ -72,33 +76,6 @@ class Tags(commands.Cog, description='Теги'):
         embed.description = description
         await ctx.send(embed=embed)
 
-
-    @tag.command(name='help', description='Показывает список команд', help='')
-    async def help(self, ctx):
-        prefix = get_prefix(ctx.guild)
-        cog_name = self.bot.cogs['Tags'].description
-        embed = discord.Embed(color=0x2f3136)
-        embed.add_field(name='**Справочник команд**', value=f'```               「📝」{cog_name}               ```', inline=False)
-        all_cmds = self.bot.cogs['Tags'].get_commands()
-        for cmd in all_cmds:
-            if cmd.hidden:
-                continue
-
-            if cmd.aliases: aliases = ', '.join(cmd.aliases)
-            else: aliases = 'Нет'
-
-            embed.add_field(name=f'`{prefix}{cmd} {cmd.help}`', value=f'**Описание: **{cmd.description}\n **Псевдонимы:** {aliases}', inline=False)
-
-            if isinstance(cmd, commands.Group):
-                group_cmds = cmd.commands
-                for group_cmd in group_cmds:
-                    if group_cmd.hidden:
-                        continue
-                    if group_cmd.aliases: aliases = ', '.join(cmd.aliases)
-                    else: aliases = 'Нет'
-
-                    embed.add_field(name=f'`{prefix}{group_cmd} {group_cmd.help}`', value=f'**Описание:** {group_cmd.description}\n **Псевдонимы:** {aliases}', inline=False)
-        await ctx.send(embed=embed)
 
     @tag.command(name='name', description='Меняет название тега', help='[название тега] [новое название тега]')
     @commands.has_guild_permissions(administrator=True)
