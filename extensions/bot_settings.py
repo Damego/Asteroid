@@ -101,6 +101,12 @@ class Settings(commands.Cog, description='Настройка бота'):
         await ctx.send(embed=embed)
 
 
+    @commands.Cog.listener()
+    async def on_error(self, event, *args, **kwargs):
+        channel = await self.bot.fetch_channel(859816092008316928)
+        await channel.send(f'**[ERROR]:** {event}')
+
+
 
 def setup(bot):
     bot.add_cog(Settings(bot))
