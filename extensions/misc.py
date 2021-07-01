@@ -55,8 +55,12 @@ class Misc(commands.Cog, description='Остальные команды'):
 
     @commands.command(aliases=['инфо'], description='Выводит информацию об участнике канала', help='[ник]')
     async def info(self, ctx, member: discord.Member):
-        user_level = server[str(ctx.guild.id)]['users'][str(member.id)]['level']
-        user_xp = server[str(ctx.guild.id)]['users'][str(member.id)]['xp']
+        try:
+            user_level = server[str(ctx.guild.id)]['users'][str(member.id)]['level']
+            user_xp = server[str(ctx.guild.id)]['users'][str(member.id)]['xp']
+        except KeyError:
+            user_level = 0
+            user_xp = 0
 
         embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild))
 
