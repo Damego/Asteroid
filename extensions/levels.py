@@ -100,18 +100,17 @@ class Levels(commands.Cog, description='Cистема уровней'):
         if current_level < new_level:
             userstats['level'] += 1
             lvl = userstats['level']
-
+            
             old_role = userstats['role']
-
-            for role in member.roles:
-                if role.id == old_role:
-                    await member.remove_roles(role, reason='Удаление старого уровня')
-                    break
 
             new_role = guild_levels.get(str(lvl))
             new_role = member.guild.get_role(new_role)
 
             if new_role is not None:
+                for role in member.roles:
+                    if role.id == old_role:
+                        await member.remove_roles(role, reason='Удаление старого уровня')
+                        break
                 await member.add_roles(new_role, reason='Повышение уровня')
                 userstats['role'] = new_role.id
                 
