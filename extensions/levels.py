@@ -15,6 +15,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
         self.aliases = ['levels']
 
         self.member_voice_time = {}
+        self.last_user_message = {}
         self.koef = 10
 
 
@@ -67,7 +68,20 @@ class Levels(commands.Cog, description='Cистема уровней'):
         if isinstance(arg, discord.Message):
             message = arg
             member = message.author
+            member_id = str(message.author.id)
+            guild_id = str(message.guild.id)
             from_msg = True
+            if not guild_id in self.last_user_message:
+                self.last_user_message[guild_id] = {}
+
+            if member_id in self.last_user_message[guild_id]:
+                last_msg_time = self.last_user_message[guild_id][member_id]
+                current_time = time()
+                if current_time - last_msg_time < 30:
+                    self.last_user_message[guild_id][member_id] = time()
+                    return
+            self.last_user_message[guild_id][member_id] = time()
+
         elif isinstance(arg, discord.Member):
             member = arg
             from_msg = False
@@ -93,7 +107,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
             new_role = guild_levels.get(str(lvl))
             new_role = member.guild.get_role(new_role)
-            
+
             if new_role is not None:
                 await member.add_roles(new_role, reason='Повышение уровня')
                 userstats['role'] = new_role.id
@@ -108,6 +122,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
                     await message.channel.send(f'{member.mention} получил `{lvl}-й` уровень', delete_after=15)
                 else:
                     await member.send(f'Вы получили `{lvl}-й` уровень', delete_after=15)
+
 
     @commands.command(name='clear_lvl', description='', help='')
     @commands.has_guild_permissions(administrator=True)

@@ -59,29 +59,14 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
 
     @add.command(name='post', description='Записывает пост для выдачи роли по реакции', help='[id поста]')
     @commands.has_guild_permissions(administrator=True)
-    async def post(self, ctx, post_id:int):
-        server[str(ctx.guild.id)]['reaction_posts'][str(post_id)] = {}
+    async def post(ctx, post_id):
+        server[str(ctx.guild.id)]['reaction_posts'][post_id] = {}
         await ctx.message.add_reaction('✅')
 
-    @commands.command(description='Записывает пост для выдачи роли по реакции', help='[id поста]')
-    @commands.has_guild_permissions(administrator=True)
-    async def rr_add_post(self, ctx, post_id:int):
-        server[str(ctx.guild.id)]['reaction_posts'][str(post_id)] = {}
-        await ctx.message.add_reaction('✅')
-
-    @commands.command(description='Добавляет роль по реакции', help='[id поста] [эмодзи] [роль]')
-    @commands.has_guild_permissions(administrator=True)
-    async def rr_add_role(self, ctx, post_id, emoji, role:discord.Role):
-        if emoji[0] == '<':
-            emoji = emoji.split(':')[2].replace('>','')
-
-        server[str(ctx.guild.id)]['reaction_posts'][str(post_id)][str(emoji)] = role.id
-
-        await ctx.message.add_reaction('✅')
 
     @add.command(name='role', description='Добавляет роль по реакции', help='[id поста] [эмодзи] [роль]')
     @commands.has_guild_permissions(administrator=True)
-    async def role(self, ctx, post_id, emoji, role:discord.Role):
+    async def role(ctx, post_id, emoji, role:discord.Role):
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>','')
 
@@ -96,14 +81,14 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
 
     @remove.command(name='post', description='Удаляет пост для выдачи роли по реакции', help='[id поста]')
     @commands.has_guild_permissions(administrator=True)
-    async def post(self, ctx, post_id:int):
+    async def post(ctx, post_id:int):
         del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)]
 
         await ctx.message.add_reaction('✅')
 
     @remove.command(name='role', description='Удаляет роль по реакции',help='[id поста] [эмодзи]')
     @commands.has_guild_permissions(administrator=True)
-    async def role(self, ctx, post_id, emoji):
+    async def role(ctx, post_id, emoji):
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>','')
         del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)][str(emoji)]

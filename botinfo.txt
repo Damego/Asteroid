@@ -1,0 +1,6 @@
+**Создатель:** {self.bot.get_user(self.bot.owner_id)}  
+**Количество серверов:** {len(self.bot.guilds)}
+**Количество пользователей:** {len(self.bot.users)}
+**Количество команд:** {len(self.bot.commands)}
+**Текущий пинг:** {int(self.bot.latency * 1000)}` мс
+**Префикс на сервере:** {self.bot.command_prefix}
