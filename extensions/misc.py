@@ -114,16 +114,18 @@ class Misc(commands.Cog, description='Остальные команды'):
         await ctx.send(embed=embed)
 
     @commands.command(name='send', aliases=['an'], description='Отправляет сообщение в указанный канал', help='[канал] [сообщение]')
+    @commands.has_guild_permissions(manage_messages=True)
     async def send_msg(self, ctx, channel:discord.TextChannel, *, message):
         await channel.send(message)
 
     @commands.command(name='delay_send', description='Отправляет отложенное сообщение', help='[канал] [время] [сообщение]')
+    @commands.has_guild_permissions(manage_messages=True)
     async def delay_send_msg(self, ctx, channel:discord.TextChannel, duration:DurationConverter, *, message):
         amount, time_format = duration
         await sleep(amount * multiplier[time_format])
         await channel.send(message)
 
-    @commands.command(name='serverinfo', description='', help='')
+    @commands.command(name='serverinfo', aliases=['si', 'server', 'сервер'], description='Показывает информацию о текущем сервере', help='')
     async def serverinfo(self, ctx):
         guild = ctx.guild
         embed = discord.Embed(title=f'Информация о сервере {guild.name}', color=get_embed_color(guild))

@@ -71,6 +71,9 @@ class Giveaway(commands.Cog, description='Раздача ролей'):
 
         try:
             if not interaction.responded:
+                if not message in self.members[guild]:
+                    await interaction.respond(type=4, content='Раздача закончилась! Ждите следующей!')
+                    return
                 if user in self.members[guild][message]:
                     await interaction.respond(type=4, content='Вы уже приняли участие в этой раздаче!')
                 else:
