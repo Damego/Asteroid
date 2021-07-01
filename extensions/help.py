@@ -12,7 +12,7 @@ class Help(commands.Cog, description='Помощь'):
         self.hidden = True
         
 
-    @commands.command(description='Показывает это сообщение')
+    @commands.command(description='Показывает это сообщение', help='[Плагин]')
     async def help(self, ctx, extension=None):
         await ctx.message.delete()
 
@@ -31,7 +31,8 @@ class Help(commands.Cog, description='Помощь'):
                     extension = cog
                     break
             else:
-                raise commands.BadArgument(f'Плагин {extension} не найден')
+                if not extension in self.bot.cogs:
+                    raise commands.BadArgument(f'Плагин {extension} не найден')
             cog_name = self.bot.cogs[extension].description
             embed = discord.Embed(description=f'```               「📝」{cog_name}               ```',color=0x2f3136)
             
