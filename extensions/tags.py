@@ -109,9 +109,9 @@ class Tags(commands.Cog, description='Теги'):
             self.embed.title = self.server[str(ctx.guild.id)]['tags'][tag_name]['title']
             self.embed.description = self.server[str(ctx.guild.id)]['tags'][tag_name]['description']
             components = [[
-                Button(style=ButtonStyle.green, label='Редактировать', id='1'),
-                Button(style=ButtonStyle.red, label='Удалить', id='2'),
-                Button(style=ButtonStyle.red, label='Выйти', id='3')
+                Button(style=ButtonStyle.green, label='Редактировать', id='edit_tag'),
+                Button(style=ButtonStyle.red, label='Удалить', id='remove_tag'),
+                Button(style=ButtonStyle.red, label='Выйти', id='exit')
             ]]
             self.msg = await ctx.send(embed=self.embed, components=components)
         else:
@@ -121,20 +121,20 @@ class Tags(commands.Cog, description='Теги'):
             interaction = await self.bot.wait_for('button_click', check=lambda res: res.user.id == ctx.author.id)
             button_id = interaction.component.id
 
-            if button_id == '1':
+            if button_id == 'edit_tag':
                 await self.create_buttons(ctx, isnew=False)
-            elif button_id == '2':
+            elif button_id == 'remove_tag':
                 del self.server[str(ctx.guild.id)]['tags'][tag_name]
                 await self.remove_message()
                 return
-            elif button_id == '3':
+            elif button_id == 'exit':
                 await self.remove_message()
                 return
-            elif button_id == '10':
+            elif button_id == 'set_title':
                 await self.edit_tag(ctx, interaction, 'title')
-            elif button_id == '11':
+            elif button_id == 'set_description':
                 await self.edit_tag(ctx, interaction, 'description')
-            elif button_id == '12':
+            elif button_id == 'save_tag':
                 await self.save_tag(ctx, interaction, tag_name)
             elif button_id == 'get_raw':
                 await self.get_raw_description(ctx, interaction, tag_name)
@@ -145,11 +145,11 @@ class Tags(commands.Cog, description='Теги'):
 
     async def create_buttons(self, ctx, isnew=True):
         components = [[
-            Button(style=ButtonStyle.blue, label='Заголовок', id='10'),
-            Button(style=ButtonStyle.blue, label='Описание', id='11'),
+            Button(style=ButtonStyle.blue, label='Заголовок', id='set_title'),
+            Button(style=ButtonStyle.blue, label='Описание', id='set_description'),
             Button(style=ButtonStyle.gray, label='Получить исходник', id='get_raw'),
-            Button(style=ButtonStyle.green, label='Сохранить', id='12'),
-            Button(style=ButtonStyle.red, label='Выйти', id='3'),
+            Button(style=ButtonStyle.green, label='Сохранить', id='save_tag'),
+            Button(style=ButtonStyle.red, label='Выйти', id='exit'),
         ]]
 
         if isnew:
