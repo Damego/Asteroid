@@ -54,8 +54,11 @@ class Misc(commands.Cog, description='Остальные команды'):
 
 
     @commands.command(aliases=['инфо'], description='Выводит информацию об участнике канала', help='[ник]')
-    async def info(self, ctx, *, member: discord.Member):
-        embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.message))
+    async def info(self, ctx, member: discord.Member):
+        user_level = server[str(ctx.guild.id)]['users'][str(member.id)]['level']
+        user_xp = server[str(ctx.guild.id)]['users'][str(member.id)]['xp']
+
+        embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild))
 
         member_roles = []
         for role in member.roles:
@@ -80,6 +83,9 @@ class Misc(commands.Cog, description='Остальные команды'):
             **Роли:** {member_roles}
             """, inline=False)
 
+        embed.add_field(name='Уровень:', value=user_level)
+        embed.add_field(name='Опыт:', value=f'{user_xp}/{user_level ** 4}')
+
         embed.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=embed)
 
@@ -103,15 +109,15 @@ class Misc(commands.Cog, description='Остальные команды'):
         embed = discord.Embed(title='🏓 Pong!', description=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс', color=get_embed_color(ctx.guild))
         await ctx.send(embed=embed)
 
-    @commands.command(name='announce', aliases=['an'], description='Отправляет объявление', help='[канал] [сообщение]')
-    async def announce(self, ctx, channel:discord.TextChannel, *, message):
+    @commands.command(name='send', aliases=['an'], description='Отправляет сообщение в указанный канал', help='[канал] [сообщение]')
+    async def send_msg(self, ctx, channel:discord.TextChannel, *, message):
         await channel.send(message)
 
-    @commands.command(name='remind', description='', help='')
-    async def remind(self, ctx, duration:DurationConverter, *, message):
+    @commands.command(name='delay_send', description='Отправляет отложенное сообщение', help='[канал] [время] [сообщение]')
+    async def delay_send_msg(self, ctx, channel:discord.TextChannel, duration:DurationConverter, *, message):
         amount, time_format = duration
         await sleep(amount * multiplier[time_format])
-        await ctx.send(message) # ! 
+        await channel.send(message)
 
     @commands.command(name='serverinfo', description='', help='')
     async def serverinfo(self, ctx):
@@ -127,7 +133,6 @@ class Misc(commands.Cog, description='Остальные команды'):
         :speaker: Голосовых каналов: {len(guild.voice_channels)}
         """, inline=False)
         embed.set_thumbnail(url=guild.icon_url)
-        # ! Channels
 
         await ctx.send(embed=embed)
     
