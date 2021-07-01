@@ -128,12 +128,6 @@ class Moderation(commands.Cog, description='Модерация'):
         await ctx.channel.purge(limit=amount+1)
 
 
-    @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.MemberNotFound):
-            embed = discord.Embed(title=f'Пользователь не подключен к голосовому каналу!', color=get_embed_color(ctx.message))
-            await ctx.send(embed=embed, delete_after=15)
-
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
