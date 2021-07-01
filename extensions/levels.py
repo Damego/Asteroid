@@ -74,13 +74,16 @@ class Levels(commands.Cog, description='Cистема уровней'):
             if not guild_id in self.last_user_message:
                 self.last_user_message[guild_id] = {}
 
+            
+
             if member_id in self.last_user_message[guild_id]:
                 last_msg_time = self.last_user_message[guild_id][member_id]
                 current_time = time()
                 if current_time - last_msg_time < 30:
-                    self.last_user_message[guild_id][member_id] = time()
                     return
-            self.last_user_message[guild_id][member_id] = time()
+                
+            if not member_id in self.last_user_message[guild_id]:
+                self.last_user_message[guild_id][member_id] = time()
 
         elif isinstance(arg, discord.Member):
             member = arg
