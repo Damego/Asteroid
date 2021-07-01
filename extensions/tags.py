@@ -159,6 +159,8 @@ class Tags(commands.Cog, description='Теги'):
                 await self.edit_tag(ctx, interaction, 'description')
             elif button_id == '12':
                 await self.save_tag(ctx, interaction, tag_name)
+            elif button_id == 'get_raw':
+                await self.get_raw_description(ctx, interaction, tag_name)
 
             if not interaction.responded:
                 await interaction.respond(type=6)
@@ -168,6 +170,7 @@ class Tags(commands.Cog, description='Теги'):
         components = [[
             Button(style=ButtonStyle.blue, label='Заголовок', id='10'),
             Button(style=ButtonStyle.blue, label='Описание', id='11'),
+            Button(style=ButtonStyle.gray, label='Получить исходник', id='get_raw'),
             Button(style=ButtonStyle.green, label='Сохранить', id='12'),
             Button(style=ButtonStyle.red, label='Выйти', id='3'),
         ]]
@@ -208,6 +211,14 @@ class Tags(commands.Cog, description='Теги'):
             'description': self.embed.description
         }
         await interaction.respond(type=4, content=f'**Сохранено!**')
+
+    async def get_raw_description(self, ctx, interaction, tag_name):
+        try:
+            content = self.server[str(ctx.guild.id)]['tags'][tag_name]['description']
+        except KeyError:
+            await interaction.respond(type=4, content=f'Сохраните, чтобы получить исходник!')
+            return
+        await interaction.respond(type=4, content=f'```{content}```')
 
 
 
