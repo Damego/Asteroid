@@ -17,7 +17,7 @@ class Tags(commands.Cog, description='Теги'):
 
     @commands.group(name='tag', description='Показывает содержание тега и управляет тегом', help='[тег || команда]', invoke_without_command=True)
     async def tag(self, ctx, tag_name=None):
-        prefix = get_prefix(ctx.guild)
+        prefix = get_prefix(ctx.guild.id)
         if tag_name is None:
             return await ctx.reply(f'Упс... А тут ничего нет! Используйте `{prefix}help Tags` для получения информации')
 
@@ -27,7 +27,7 @@ class Tags(commands.Cog, description='Теги'):
         title = self.server[str(ctx.guild.id)]['tags'][tag_name]['title']
         description = self.server[str(ctx.guild.id)]['tags'][tag_name]['description']
 
-        embed = discord.Embed(title=title, description=description, color=get_embed_color(ctx.guild))
+        embed = discord.Embed(title=title, description=description, color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
     @tag.command(name='add', description='Создаёт новый тег (Админ)', help='[название тега] [заголовок]')
@@ -72,7 +72,7 @@ class Tags(commands.Cog, description='Теги'):
         for tag in all_tags:
             description += f'**{count}. {tag}**\n'
             count += 1
-        embed = discord.Embed(title='Список тегов', color=get_embed_color(ctx.guild))
+        embed = discord.Embed(title='Список тегов', color=get_embed_color(ctx.guild.id))
         embed.description = description
         await ctx.send(embed=embed)
 
@@ -105,7 +105,7 @@ class Tags(commands.Cog, description='Теги'):
             return await ctx.reply('Этот тег нельзя использовать!')
 
         if tag_name in self.server[str(ctx.guild.id)]['tags']:
-            self.embed = discord.Embed(color=get_embed_color(ctx.guild))
+            self.embed = discord.Embed(color=get_embed_color(ctx.guild.id))
             self.embed.title = self.server[str(ctx.guild.id)]['tags'][tag_name]['title']
             self.embed.description = self.server[str(ctx.guild.id)]['tags'][tag_name]['description']
             components = [[
@@ -155,7 +155,7 @@ class Tags(commands.Cog, description='Теги'):
         if isnew:
             self.title = 'Заголовок'
             self.description = 'Описание'
-            self.embed = discord.Embed(title=self.title, description=self.description, color=get_embed_color(ctx.guild))
+            self.embed = discord.Embed(title=self.title, description=self.description, color=get_embed_color(ctx.guild.id))
             self.msg = await ctx.send(embed=self.embed, components=components)
         else:
             await self.msg.edit(components=components)

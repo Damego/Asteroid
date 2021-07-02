@@ -14,13 +14,13 @@ def get_db():
         server = Database(url)
     return server
 
-def get_embed_color(guild):
+def get_embed_color(guild_id):
     """Get color for embeds from json """
-    return int(server[str(guild.id)]['configuration']['embed_color'], 16)
+    return int(server[str(guild_id)]['configuration']['embed_color'], 16)
 
-def get_prefix(guild):
+def get_prefix(guild_id):
     """Get guild prexif from json """
-    prefix = server[str(guild.id)]['configuration']['prefix']
+    prefix = server[str(guild_id)]['configuration']['prefix']
     return prefix
 
 def get_footer_text() -> str:
@@ -88,7 +88,7 @@ class Settings(commands.Cog, description='Настройка бота'):
 
     @commands.command(name='prefix', description='Показывает текущий префикс на сервере', help=' ')
     async def show_guild_prefix(self, ctx):
-        embed = discord.Embed(title=f'Текущий префикс: `{get_prefix(ctx.message)}`', color=0x2f3136)
+        embed = discord.Embed(title=f'Текущий префикс: `{get_prefix(ctx.guild.id)}`', color=0x2f3136)
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['cl'], name='changelog', description='Показывает изменения последнего обновления', help='')
@@ -103,8 +103,11 @@ class Settings(commands.Cog, description='Настройка бота'):
 
     @commands.Cog.listener()
     async def on_error(self, event, *args, **kwargs):
-        channel = await self.bot.fetch_channel(859816092008316928)
-        await channel.send(f'**[ERROR]:** {event}')
+        try:
+            channel = await self.bot.fetch_channel(859816092008316928)
+            await channel.send(f'**[ERROR]:** {event}')
+        except Exception as e:
+            print('[ERROR] ', e)
 
 
 

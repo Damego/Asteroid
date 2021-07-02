@@ -47,7 +47,7 @@ class Moderation(commands.Cog, description='Модерация'):
         
         muted_role = await self.get_muted_role(ctx)
         await member.add_roles(muted_role, reason=reason)
-        embed = discord.Embed(title=f'{member} был отправлен в мут!', color=get_embed_color(ctx.guild))
+        embed = discord.Embed(title=f'{member} был отправлен в мут!', color=get_embed_color(ctx.guild.id))
         _description = f"""**Время**: {amount} {time_format}\n"""
 
         if reason is not None:
@@ -82,7 +82,7 @@ class Moderation(commands.Cog, description='Модерация'):
     async def ban(self, ctx, member:discord.Member, *, reason=None):
         await member.ban(reason=reason)
         await ctx.message.add_reaction('✅')
-        embed = discord.Embed(title=f'{member} был заблокирован!',description=f'Причина: {reason}', color=get_embed_color(ctx.message))
+        embed = discord.Embed(title=f'{member} был заблокирован!',description=f'Причина: {reason}', color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
 
@@ -97,7 +97,7 @@ class Moderation(commands.Cog, description='Модерация'):
     @commands.has_guild_permissions(kick_members=True)
     async def kick(self, ctx, member:discord.Member, *, reason=None):
         await member.kick(reason=reason)
-        embed = discord.Embed(title=f'{member} был кикнут с сервера!',description=f'Причина: {reason}', color=get_embed_color(ctx.message))
+        embed = discord.Embed(title=f'{member} был кикнут с сервера!',description=f'Причина: {reason}', color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
 

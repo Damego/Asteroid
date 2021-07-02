@@ -16,7 +16,7 @@ class Help(commands.Cog, description='Помощь'):
     async def help(self, ctx, extension=None):
         await ctx.message.delete()
 
-        prefix = get_prefix(ctx.guild)
+        prefix = get_prefix(ctx.guild.id)
         if extension is None:
             embed = discord.Embed(description='```               「📝」КОМАНДЫ:               ```', color=0x2f3136)
 

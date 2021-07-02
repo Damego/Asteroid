@@ -53,7 +53,7 @@ class HLTV(commands.Cog, description='HLTV'):
         return ls
 
     async def parse(self, ctx, arg):
-        embed = discord.Embed(title='Расписание игр по CS:GO', description=f'Ближайшие игры команды {arg}', color=get_embed_color(ctx.message))
+        embed = discord.Embed(title='Расписание игр по CS:GO', description=f'Ближайшие игры команды {arg}', color=get_embed_color(ctx.guild.id))
 
         html = self.get_html(self.URL)
         if html.status_code == 200:

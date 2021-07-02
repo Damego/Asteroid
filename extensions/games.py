@@ -202,7 +202,7 @@ class Games(commands.Cog, description='Игры'):
 
     async def pick_a_winner(self, msg, ctx, player1, player2, winner='Ничья'):
         embed = discord.Embed(
-            title='`          ИТОГИ ИГРЫ            `', color=get_embed_color(ctx.guild))
+            title='`          ИТОГИ ИГРЫ            `', color=get_embed_color(ctx.guild.id))
         embed.add_field(name=f'**Название: Крестики-Нолики**',
                         value=f"""
                         **Игроки: {player1.display_name} и {player2.display_name}**
@@ -231,7 +231,7 @@ class Games(commands.Cog, description='Игры'):
 
         if interaction.component.id == '1':
             embed = discord.Embed(
-                title=game_name, description=f'{ctx.author.display_name} VS {member.display_name}', color=get_embed_color(ctx.guild))
+                title=game_name, description=f'{ctx.author.display_name} VS {member.display_name}', color=get_embed_color(ctx.guild.id))
             await msg.edit(context=' ', embed=embed)
             return msg, True
 

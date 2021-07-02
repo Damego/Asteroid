@@ -62,7 +62,7 @@ class Misc(commands.Cog, description='Остальные команды'):
             user_level = 0
             user_xp = 0
 
-        embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild))
+        embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild.id))
 
         member_roles = []
         for role in member.roles:
@@ -110,7 +110,7 @@ class Misc(commands.Cog, description='Остальные команды'):
 
     @commands.command(description='Показывает пинг бота', help='')
     async def ping(self, ctx):
-        embed = discord.Embed(title='🏓 Pong!', description=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс', color=get_embed_color(ctx.guild))
+        embed = discord.Embed(title='🏓 Pong!', description=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс', color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
     @commands.command(name='send', aliases=['an'], description='Отправляет сообщение в указанный канал', help='[канал] [сообщение]')
@@ -128,7 +128,7 @@ class Misc(commands.Cog, description='Остальные команды'):
     @commands.command(name='serverinfo', aliases=['si', 'server', 'сервер'], description='Показывает информацию о текущем сервере', help='')
     async def serverinfo(self, ctx):
         guild = ctx.guild
-        embed = discord.Embed(title=f'Информация о сервере {guild.name}', color=get_embed_color(guild))
+        embed = discord.Embed(title=f'Информация о сервере {guild.name}', color=get_embed_color(guild.id))
         embed.add_field(name='Дата создания:', value=guild.created_at, inline=False)
         embed.add_field(name='Основатель сервера:', value=guild.owner.mention, inline=False)
         embed.add_field(name='Количество ролей:', value=len(guild.roles), inline=False)

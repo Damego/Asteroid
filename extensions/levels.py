@@ -34,14 +34,18 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 del self.member_voice_time[member.id]
                 exp = (int(sit_time) // 60) * self.koef
                 await self.update_member(member, exp)
+
+                # LOG INTO MY DISCORD GUILD
                 print(f'Выдано {member.display_name} {exp} опыта')
+                channel = await self.bot.fetch_channel(859816092008316928)
+                await channel.send(f'Выдано {member.display_name} {exp} опыта')
             except Exception as e:
                 print('ERROR', e)
 
     @commands.Cog.listener()
     async def on_message(self, message):
         if not message.author.bot:
-            if message.content.startswith(get_prefix(message.guild)):
+            if message.content.startswith(get_prefix(message.guild.id)):
                 return
             user_id = message.author.id
 

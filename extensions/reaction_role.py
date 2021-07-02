@@ -50,7 +50,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     @commands.group(name='reactionrole', aliases=['rr'], description='', help='[команда]', invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
     async def reactionrole(self, ctx):
-        await ctx.send(f'Используйте `{get_prefix(ctx.guild)}help ReactionRole` для получения информации')
+        await ctx.send(f'Используйте `{get_prefix(ctx.guild.id)}help ReactionRole` для получения информации')
 
     @reactionrole.group(name='add', aliases=['+', 'a'], description='', help='[команда]', invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)

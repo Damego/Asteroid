@@ -32,7 +32,7 @@ class Giveaway(commands.Cog, description='Раздача ролей'):
             Button(style=ButtonStyle.green, label='Принять участие', id='giveaway_accept')
         ]
 
-        embed = discord.Embed(title=f'Раздача роли {role}', description=message, color=get_embed_color(ctx.guild))
+        embed = discord.Embed(title=f'Раздача роли {role}', description=message, color=get_embed_color(ctx.guild.id))
         self.msg = await ctx.send(embed=embed, components=components)
 
         isend = await self.process_giveaway(ctx, duration, role)
