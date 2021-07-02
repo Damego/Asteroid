@@ -25,10 +25,10 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        if after.channel is not None:
+        if (not before.channel) and after.channel:
             if member in after.channel.members:
                 self.member_voice_time[member.id] = time()
-        elif member not in before.channel.members:
+        elif member not in before.channel.members and (not after.channel):
             try:
                 sit_time = time() - self.member_voice_time[member.id]
                 del self.member_voice_time[member.id]
@@ -38,7 +38,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 # LOG INTO MY DISCORD GUILD
                 print(f'Выдано {member.display_name} {exp} опыта')
                 channel = await self.bot.fetch_channel(859816092008316928)
-                await channel.send(f'Выдано {member.display_name} {exp} опыта')
+                await channel.send(f'**[LEVELS]** Выдано {member.display_name} {exp} опыта')
             except Exception as e:
                 print('ERROR', e)
 
@@ -168,14 +168,10 @@ class Levels(commands.Cog, description='Cистема уровней'):
         server[str(ctx.guild.id)]['roles_by_level'][level] = role.id
         await ctx.message.add_reaction('✅')
 
-    @commands.command(name='remove_level_role', description='Удаляёт уровень для роли', help='[уровень или роль]')
+    @commands.command(name='remove_level_role', description='Удаляёт уровень для роли', help='[уровень]')
     @commands.has_guild_permissions(administrator=True)
-    async def remove_level_role(self, ctx, arg):
+    async def remove_level_role(self, ctx, level):
         levels = server[str(ctx.guild.id)]['roles_by_level']
-        if isinstance(arg, discord.Role):
-            level = levels.get(arg.id)
-        elif isinstance(arg, str):
-            level = arg
         del levels[level]
         await ctx.message.add_reaction('✅')
 

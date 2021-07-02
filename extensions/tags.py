@@ -13,7 +13,7 @@ class Tags(commands.Cog, description='Теги'):
         self.server = get_db()
         self.aliases = ['tags', 'tag']
 
-        self.forbidden_tags = ['add', 'edit', 'list', 'remove', 'help', 'name']
+        self.forbidden_tags = ['add', 'edit', 'list', 'remove', 'name']
 
     @commands.group(name='tag', description='Показывает содержание тега и управляет тегом', help='[тег || команда]', invoke_without_command=True)
     async def tag(self, ctx, tag_name=None):
