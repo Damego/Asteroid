@@ -65,7 +65,7 @@ async def full_clear_guild_db(ctx):
     server[str(ctx.guild.id)] = {
         'configuration':{
             'prefix':'!d',
-            'embed_color': 0xFFFFFE,
+            'embed_color': '0xFFFFFE',
             'extensions':{
                 'Games': True,
                 'HLTV': True,
@@ -89,7 +89,7 @@ async def clear_guild_db(ctx):
     server[str(ctx.guild.id)] = {
         'configuration':{
             'prefix':'!d',
-            'embed_color': 0xFFFFFE,
+            'embed_color': '0xFFFFFE',
             'extensions':{
                 'Games': True,
                 'HLTV': True,
@@ -123,9 +123,17 @@ async def unload(ctx, extension):
 @bot.command(aliases=['r'], name='reload', help='Перезагрузка плагина', hidden=True)
 @commands.is_owner()
 async def reload(ctx, extension):
-    bot.unload_extension(f'extensions.{extension}')
-    bot.load_extension(f'extensions.{extension}')
-    await ctx.send(f'Плагин {extension} перезагружен!')
+    bot.reload_extension(f'extensions.{extension}')
+    await ctx.message.add_reaction('✅')
+
+@bot.command(aliases=['ra'], name='reload_all', help='Перезагрузка всех плагинов', hidden=True)
+@commands.is_owner()
+async def reload_all(ctx):
+    extensions = bot.extensions
+    for extension in extensions:
+        bot.reload_extension(extension)
+        print(f'{extension} was reloaded!')
+    await ctx.message.add_reaction('✅')
 
 @bot.command(name='cmd', description='None', help='None')
 @commands.is_owner()

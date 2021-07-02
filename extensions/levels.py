@@ -25,6 +25,9 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
+        if member.bot:
+            return
+            
         if (not before.channel) and after.channel:
             if member in after.channel.members:
                 self.member_voice_time[member.id] = time()
@@ -40,7 +43,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 channel = await self.bot.fetch_channel(859816092008316928)
                 await channel.send(f'**[LEVELS]** Выдано {member.display_name} {exp} опыта')
             except Exception as e:
-                print('ERROR', e)
+                print('[LEVELS ERROR]', e)
 
     @commands.Cog.listener()
     async def on_message(self, message):
