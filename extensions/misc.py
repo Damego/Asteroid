@@ -113,19 +113,48 @@ class Misc(commands.Cog, description='Остальные команды'):
         embed = discord.Embed(title='🏓 Pong!', description=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс', color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
-    @commands.command(name='send', aliases=['an'], description='Отправляет сообщение в указанный канал', help='[канал] [сообщение]')
+    @commands.group(name='send',
+    description='Отправляет сообщение в указанный канал',
+    help='[канал] [сообщение]',
+    invoke_without_command=True)
     @commands.has_guild_permissions(manage_messages=True)
-    async def send_msg(self, ctx, channel:discord.TextChannel, *, message):
+    async def send_message(self, ctx, channel:discord.TextChannel, *, message):
         await channel.send(message)
 
-    @commands.command(name='delay_send', description='Отправляет отложенное сообщение', help='[канал] [время] [сообщение]')
+    @send_message.command(name='delay',
+    description='Отправляет отложенное сообщение в указанный канал',
+    help='[канал] [время] [сообщение]')
     @commands.has_guild_permissions(manage_messages=True)
-    async def delay_send_msg(self, ctx, channel:discord.TextChannel, duration:DurationConverter, *, message):
+    async def delay_send_message(self, ctx, channel:discord.TextChannel, duration:DurationConverter, *, message):
         amount, time_format = duration
         await sleep(amount * multiplier[time_format])
         await channel.send(message)
 
-    @commands.command(name='serverinfo', aliases=['si', 'server', 'сервер'], description='Показывает информацию о текущем сервере', help='')
+
+    @commands.group(name='announce',
+    description='Отправляет объявление в указанный канал',
+    help='[канал] [сообщение]',
+    invoke_without_command=True)
+    async def announce(self, ctx, channel:discord.TextChannel, *, message):
+        embed = discord.Embed(title='Объявление!', description=message, color=get_embed_color(ctx.guild.id))
+        await channel.send(embed=embed)
+
+
+    @announce.command(name='delay',
+    description='Отправляет объявление сообщение в указанный канал',
+    help='[канал] [время] [сообщение]')
+    async def delay(self, ctx, channel:discord.TextChannel, duration:DurationConverter, *, message):
+        amount, time_format = duration
+        await sleep(amount * multiplier[time_format])
+
+        embed = discord.Embed(title='Объявление!', description=message, color=get_embed_color(ctx.guild.id))
+        await channel.send(embed=embed)
+
+
+    @commands.command(name='serverinfo',
+    aliases=['si', 'server', 'сервер'],
+    description='Показывает информацию о текущем сервере',
+    help='')
     async def serverinfo(self, ctx):
         guild = ctx.guild
         embed = discord.Embed(title=f'Информация о сервере {guild.name}', color=get_embed_color(guild.id))
