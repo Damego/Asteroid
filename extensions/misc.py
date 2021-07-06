@@ -12,24 +12,6 @@ from extensions.bot_settings import DurationConverter, get_embed_color, get_db, 
 
 server = get_db()
 
-def get_stats(message, member):
-    """Get guild members stats from json """
-    ls = {
-        'xp':server[str(message.guild.id)]['users'][str(member.id)]['xp'],
-        'lvl':server[str(message.guild.id)]['users'][str(member.id)]['level']
-        }
-    return ls
-
-def get_emoji_status(message):
-    """Get guild emoji status for stats from json """
-    ls = {
-        'online':server[str(message.guild.id)]['emoji_status']['online'],
-        'dnd':server[str(message.guild.id)]['emoji_status']['dnd'],
-        'idle':server[str(message.guild.id)]['emoji_status']['idle'],
-        'offline':server[str(message.guild.id)]['emoji_status']['offline'],
-        }
-    return ls
-
 
 
 class Misc(commands.Cog, description='Остальные команды'):
@@ -65,13 +47,13 @@ class Misc(commands.Cog, description='Остальные команды'):
 
         embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild.id))
 
-        member_roles = []
-        for role in member.roles:
-            if role.name != "@everyone":
-                member_roles.append(role.mention)
+        member_roles = [
+            role.mention for role in member.roles if role.name != "@everyone"
+        ]
+
         member_roles = member_roles[::-1]
         member_roles = ', '.join(member_roles)
-        
+
 
         member_status = str(member.status)
         status = {

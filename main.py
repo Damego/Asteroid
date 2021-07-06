@@ -165,7 +165,7 @@ async def on_command_error(ctx, error):
         if len(desc) == 0:
             desc = 'NO DESCRIPTION FOR THIS ERROR'
 
-    embed = discord.Embed(description = desc, color=0xff0000)
+    embed = discord.Embed(description = desc, color=0xED4245)
     try:
         await ctx.send(embed=embed)
     except:

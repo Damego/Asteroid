@@ -27,7 +27,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
             posts = get_react_post_id(payload.guild_id)
             if str(payload.message_id) in posts:
                 emoji = payload.emoji.id
-                if payload.emoji.id == None:
+                if payload.emoji.id is None:
                     emoji = payload.emoji
 
                 role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(payload, emoji))
@@ -38,7 +38,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         posts = get_react_post_id(payload.guild_id)
         if str(payload.message_id) in posts:
             emoji = payload.emoji.id
-            if payload.emoji.id == None:
+            if payload.emoji.id is None:
                 emoji = payload.emoji
 
             role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(payload, emoji))

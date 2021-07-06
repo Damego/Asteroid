@@ -23,7 +23,11 @@ class Giveaway(commands.Cog, description='Раздача ролей'):
         await ctx.send('Тут пока пусто. :(')
 
 
-    @giveaway.command(name='create', description='Создаёт раздачу', help='[время] [роль] [сообщение]')
+    @giveaway.command(
+        name='create',
+        description='Создаёт раздачу',
+        help='[время] [роль] [сообщение]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def create(self, ctx:commands.Context, duration:DurationConverter, role:discord.Role, *, message):
         await ctx.message.delete()

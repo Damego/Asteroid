@@ -31,14 +31,14 @@ class Help(commands.Cog, description='Помощь'):
                     extension = cog
                     break
             else:
-                if not extension in self.bot.cogs:
+                if extension not in self.bot.cogs:
                     raise commands.BadArgument(f'Плагин {extension} не найден')
             cog_name = self.bot.cogs[extension].description
             embed = discord.Embed(description=f'```               「📝」{cog_name}               ```',color=0x2f3136)
-            
+
             _commands = self.bot.cogs[extension]
             await self.out_commands(_commands, embed, prefix)
-            
+
         await ctx.send(embed=embed, delete_after=60)
 
 
@@ -51,12 +51,8 @@ class Help(commands.Cog, description='Помощь'):
             if _command.hidden:
                 continue
 
-            if _command.aliases: _aliases = ', '.join(_command.aliases)
-            else: _aliases = 'Нет'
-
-            if _command.usage: _usage = _command.usage
-            else: _usage = 'Всем пользователям'
-
+            _aliases = ', '.join(_command.aliases) if _command.aliases else 'Нет'
+            _usage = _command.usage or 'Всем пользователям'
             command_info = f"""
             **Описание: **{_command.description}
             **Псевдонимы:** {_aliases}

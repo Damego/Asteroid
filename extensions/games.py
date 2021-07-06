@@ -171,7 +171,7 @@ class Games(commands.Cog, description='Игры'):
             return False
 
         def is_tie(player):
-            if not "UNCHOSEN" in str(move_board):
+            if "UNCHOSEN" not in str(move_board):
                 if not is_won(player):
                     return True
                 return False

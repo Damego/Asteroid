@@ -113,7 +113,7 @@ class Moderation(commands.Cog, description='Модерация'):
     async def kick(self, ctx:commands.Context, member:discord.Member, *, reason=None):
         await member.kick(reason=reason)
         await ctx.message.add_reaction('✅')
-        embed = discord.Embed(title=f'Вы были кикнуту с сервера {ctx.guild}!', description=f'Причина: {reason}', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title=f'Вы были кикнуты с сервера {ctx.guild}!', description=f'Причина: {reason}', color=get_embed_color(ctx.guild.id))
         await member.send(embed=embed)
 
 

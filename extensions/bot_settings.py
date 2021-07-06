@@ -54,7 +54,7 @@ class DurationConverter(commands.Converter):
 
 def is_bot_or_guild_owner():
     async def predicate(ctx):
-        return ctx.author.id == ctx.bot.owner_id or ctx.author.id == ctx.guild.owner_id
+        return ctx.author.id in [ctx.bot.owner_id, ctx.guild.owner_id]
     return commands.check(predicate)
 
 
