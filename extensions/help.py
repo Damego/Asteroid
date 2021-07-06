@@ -13,7 +13,7 @@ class Help(commands.Cog, description='Помощь'):
         
 
     @commands.command(description='Показывает это сообщение', help='[Плагин]')
-    async def help(self, ctx, extension=None):
+    async def help(self, ctx:commands.Context, extension=None):
         await ctx.message.delete()
 
         prefix = get_prefix(ctx.guild.id)
@@ -51,10 +51,19 @@ class Help(commands.Cog, description='Помощь'):
             if _command.hidden:
                 continue
 
-            if _command.aliases: aliases = ', '.join(_command.aliases)
-            else: aliases = 'Нет'
+            if _command.aliases: _aliases = ', '.join(_command.aliases)
+            else: _aliases = 'Нет'
 
-            embed.add_field(name=f'`{prefix}{_command} {_command.help}`', value=f'**Описание: **{_command.description}\n **Псевдонимы:** {aliases}', inline=False)
+            if _command.usage: _usage = _command.usage
+            else: _usage = 'Всем пользователям'
+
+            command_info = f"""
+            **Описание: **{_command.description}
+            **Псевдонимы:** {_aliases}
+            **Доступ**: {_usage}
+            """
+
+            embed.add_field(name=f'`{prefix}{_command} {_command.help}`', value=command_info, inline=False)
 
             if isinstance(_command, commands.Group):
                 await self.out_commands(_command, embed, prefix)

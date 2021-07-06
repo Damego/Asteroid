@@ -47,12 +47,25 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
             await member.remove_roles(role)
 
 
-    @commands.group(name='reactionrole', aliases=['rr'], description='', help='[команда]', invoke_without_command=True)
+    @commands.group(
+        name='reactionrole',
+        aliases=['rr'],
+        description='',
+        help='[команда]',
+        usage='Только для Администрации',
+        invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
     async def reactionrole(self, ctx):
         await ctx.send(f'Используйте `{get_prefix(ctx.guild.id)}help ReactionRole` для получения информации')
 
-    @reactionrole.group(name='add', aliases=['+', 'a'], description='', help='[команда]', invoke_without_command=True)
+    @reactionrole.group(
+        name='add',
+        aliases=['+', 'a'],
+        description='',
+        help='[команда]',
+        usage='Только для Администрации',
+        invoke_without_command=True,
+        hidden=True)
     @commands.has_guild_permissions(administrator=True)
     async def add(self, ctx):
         ...
@@ -74,19 +87,34 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
 
         await ctx.message.add_reaction('✅')
 
-    @reactionrole.group(name='remove', aliases=['-', 'r'], description='', help='[команда]', invoke_without_command=True)
+    @reactionrole.group(
+        name='remove',
+        aliases=['-', 'r'],
+        description='',
+        help='[команда]',
+        usage='Только для Администрации',
+        invoke_without_command=True,
+        hidden=True)
     @commands.has_guild_permissions(administrator=True)
     async def remove(self, ctx):
         ...
 
-    @remove.command(name='post', description='Удаляет пост для выдачи роли по реакции', help='[id поста]')
+    @remove.command(
+        name='post',
+        description='Удаляет пост для выдачи роли по реакции',
+        help='[id поста]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def post(ctx, post_id:int):
         del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)]
 
         await ctx.message.add_reaction('✅')
 
-    @remove.command(name='role', description='Удаляет роль по реакции',help='[id поста] [эмодзи]')
+    @remove.command(
+        name='role',
+        description='Удаляет роль по реакции',
+        help='[id поста] [эмодзи]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def role(ctx, post_id, emoji):
         if emoji[0] == '<':

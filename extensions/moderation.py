@@ -40,9 +40,12 @@ class Moderation(commands.Cog, description='Модерация'):
     #            await message.channel.send(content=f'**{message.author.mention}, Ваши сообщения были удалены из-за спама!**', delete_after=10)
 
 
-    @commands.command(description='Даёт мут участнику на время', help='[Участник] [время] [причина]')
+    @commands.command(
+        description='Даёт мут участнику на время',
+        help='[Участник] [время] [причина]',
+        usage='С правом на мут участников')
     @commands.has_guild_permissions(mute_members=True)
-    async def mute(self, ctx, member:discord.Member, duration:DurationConverter, *, reason=None):
+    async def mute(self, ctx:commands.Context, member:discord.Member, duration:DurationConverter, *, reason=None):
         amount, time_format = duration
         
         muted_role = await self.get_muted_role(ctx)
@@ -69,62 +72,90 @@ class Moderation(commands.Cog, description='Модерация'):
         return muted_role
 
 
-    @commands.command(description='Снимает мут с участника', help='[Участник]')
+    @commands.command(
+        description='Снимает мут с участника',
+        help='[Участник]',
+        usage='С правом на мут участников')
     @commands.has_guild_permissions(mute_members=True)
-    async def unmute(self, ctx, member:discord.Member):
+    async def unmute(self, ctx:commands.Context, member:discord.Member):
         muted_role = await self.get_muted_role(ctx)
         await member.remove_roles(muted_role)
         await ctx.message.add_reaction('✅')
 
 
     @commands.has_guild_permissions(ban_members=True)
-    @commands.command(description='Банит участника сервера', help='[Участник] [причина]')
-    async def ban(self, ctx, member:discord.Member, *, reason=None):
+    @commands.command(
+        description='Банит участника сервера',
+        help='[Участник] [причина]',
+        usage='С правом на бан участников')
+    async def ban(self, ctx:commands.Context, member:discord.Member, *, reason=None):
         await member.ban(reason=reason)
         await ctx.message.add_reaction('✅')
         embed = discord.Embed(title=f'{member} был заблокирован!',description=f'Причина: {reason}', color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
 
-    @commands.command(description='Снимает бан у участника', help='[Участник]')
+    @commands.command(
+        description='Снимает бан у участника',
+        help='[Участник]',
+        usage='С правом на бан участников')
     @commands.has_guild_permissions(ban_members=True)
-    async def unban(self, ctx, member:discord.Member):
+    async def unban(self, ctx:commands.Context, member:discord.Member):
         await member.unban()
         await ctx.message.add_reaction('✅')
 
                     
-    @commands.command(description='Кикает участника с сервера', help='[Участник] [причина]')
+    @commands.command(
+        description='Кикает участника с сервера',
+        help='[Участник] [причина]',
+        usage='С правом на кик участников')
     @commands.has_guild_permissions(kick_members=True)
-    async def kick(self, ctx, member:discord.Member, *, reason=None):
+    async def kick(self, ctx:commands.Context, member:discord.Member, *, reason=None):
         await member.kick(reason=reason)
-        embed = discord.Embed(title=f'{member} был кикнут с сервера!',description=f'Причина: {reason}', color=get_embed_color(ctx.guild.id))
-        await ctx.send(embed=embed)
+        await ctx.message.add_reaction('✅')
+        embed = discord.Embed(title=f'Вы были кикнуту с сервера {ctx.guild}!', description=f'Причина: {reason}', color=get_embed_color(ctx.guild.id))
+        await member.send(embed=embed)
 
 
-    @commands.command(aliases=['роль-'], description='Удаляет роль с участника', help='[Участник] [роль]')
+    @commands.command(
+        aliases=['роль-'],
+        description='Удаляет роль с участника',
+        help='[Участник] [роль]',
+        usage='С правом на управление ролями')
     @commands.has_guild_permissions(manage_roles=True)
-    async def remove_role(self, ctx, member: discord.Member, role: discord.Role):
+    async def remove_role(self, ctx:commands.Context, member: discord.Member, role: discord.Role):
         await member.remove_roles(role)
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(aliases=['роль+'], description='Добавляет роль участнику', help='[Участник] [роль]')
+    @commands.command(
+        aliases=['роль+'],
+        description='Добавляет роль участнику',
+        help='[Участник] [роль]',
+        usage='С правом на управление ролями')
     @commands.has_guild_permissions(manage_roles=True)
-    async def add_role(self, ctx, member: discord.Member, role: discord.Role):
+    async def add_role(self, ctx:commands.Context, member: discord.Member, role: discord.Role):
         await member.add_roles(role)
         await ctx.message.add_reaction('✅')
 
 
     @commands.has_guild_permissions(manage_nicknames=True)
-    @commands.command(aliases=['ник'], description='Меняет ник участнику', help='[Участник] [новый ник]')
-    async def nick(self, ctx, member:discord.Member, newnick):
+    @commands.command(
+        aliases=['ник'],
+        description='Меняет ник участнику',
+        help='[Участник] [новый ник]',
+        usage='С правом на управление никами')
+    async def nick(self, ctx:commands.Context, member:discord.Member, newnick):
         await member.edit(nick=newnick)
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(description='Очищает сообщения', help='[Кол-во сообщений]')
+    @commands.command(
+        description='Очищает сообщения',
+        help='[Кол-во сообщений]',
+        usage='С правом на управление сообщениями')
     @commands.has_guild_permissions(manage_messages=True)
-    async def clear(self, ctx, amount:int):
+    async def clear(self, ctx:commands.Context, amount:int):
         await ctx.channel.purge(limit=amount+1)
 
 

@@ -19,13 +19,13 @@ class Giveaway(commands.Cog, description='Раздача ролей'):
 
 
     @commands.group(name='giveaway', aliases=['ga'], description='Выдаёт роль рандомному участнику сервера после установленного времени', help='[команда]', invoke_without_command=True)
-    async def giveaway(self, ctx):
+    async def giveaway(self, ctx:commands.Context):
         await ctx.send('Тут пока пусто. :(')
 
 
     @giveaway.command(name='create', description='Создаёт раздачу', help='[время] [роль] [сообщение]')
     @commands.has_guild_permissions(administrator=True)
-    async def create(self, ctx, duration:DurationConverter, role:discord.Role, *, message):
+    async def create(self, ctx:commands.Context, duration:DurationConverter, role:discord.Role, *, message):
         await ctx.message.delete()
 
         components = [

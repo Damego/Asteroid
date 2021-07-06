@@ -4,6 +4,7 @@ from asyncio import sleep
 
 import discord
 from discord.ext import commands
+from discord_components import *
 import qrcode
 
 from extensions.bot_settings import DurationConverter, get_embed_color, get_db, multiplier
@@ -114,17 +115,19 @@ class Misc(commands.Cog, description='Остальные команды'):
         await ctx.send(embed=embed)
 
     @commands.group(name='send',
-    description='Отправляет сообщение в указанный канал',
-    help='[канал] [сообщение]',
-    invoke_without_command=True)
-    @commands.has_guild_permissions(manage_messages=True)
+        description='Отправляет сообщение в указанный канал',
+        help='[канал] [сообщение]',
+        invoke_without_command=True,
+        usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
     async def send_message(self, ctx, channel:discord.TextChannel, *, message):
         await channel.send(message)
 
     @send_message.command(name='delay',
-    description='Отправляет отложенное сообщение в указанный канал',
-    help='[канал] [время] [сообщение]')
-    @commands.has_guild_permissions(manage_messages=True)
+        description='Отправляет отложенное сообщение в указанный канал',
+        help='[канал] [время] [сообщение]',
+        usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
     async def delay_send_message(self, ctx, channel:discord.TextChannel, duration:DurationConverter, *, message):
         amount, time_format = duration
         await sleep(amount * multiplier[time_format])
@@ -132,17 +135,21 @@ class Misc(commands.Cog, description='Остальные команды'):
 
 
     @commands.group(name='announce',
-    description='Отправляет объявление в указанный канал',
-    help='[канал] [сообщение]',
-    invoke_without_command=True)
+        description='Отправляет объявление в указанный канал',
+        help='[канал] [сообщение]',
+        invoke_without_command=True,
+        usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
     async def announce(self, ctx, channel:discord.TextChannel, *, message):
         embed = discord.Embed(title='Объявление!', description=message, color=get_embed_color(ctx.guild.id))
         await channel.send(embed=embed)
 
 
     @announce.command(name='delay',
-    description='Отправляет объявление сообщение в указанный канал',
-    help='[канал] [время] [сообщение]')
+        description='Отправляет объявление сообщение в указанный канал',
+        help='[канал] [время] [сообщение]',
+        usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
     async def delay(self, ctx, channel:discord.TextChannel, duration:DurationConverter, *, message):
         amount, time_format = duration
         await sleep(amount * multiplier[time_format])

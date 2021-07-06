@@ -74,7 +74,7 @@ class Games(commands.Cog, description='Игры'):
         await self.rps_logic(player_1_interact, player_2_interact)
 
     @commands.command(aliases=['rps'], description='Запускает игру Камень-ножницы-бумага\nПервый ход получает тот, кого пригласили в игру', help='[ник] [кол-во игр]')
-    async def rockpaperscissors(self, ctx, member: discord.Member, total_rounds: int = 1):
+    async def rockpaperscissors(self, ctx:commands.Context, member: discord.Member, total_rounds: int = 1):
         if member == ctx.author:
             await ctx.send('Вы не можете пригласить себя!')
             return
@@ -105,7 +105,7 @@ class Games(commands.Cog, description='Игры'):
         await msg.edit(content='Игра закончилась!', embed=embed, components=[])
 
     @commands.command(aliases=['ttt'], description='Запускает игру Крестики-Нолики \nПервый ход получает тот, кого пригласили в игру', help='[ник]')
-    async def tictactoe(self, ctx, member: discord.Member):
+    async def tictactoe(self, ctx:commands.Context, member: discord.Member):
         if member == ctx.author:
             await ctx.send('Вы не можете пригласить себя!')
             return

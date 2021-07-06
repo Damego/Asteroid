@@ -30,7 +30,11 @@ class Tags(commands.Cog, description='Теги'):
         embed = discord.Embed(title=title, description=description, color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
-    @tag.command(name='add', description='Создаёт новый тег (Админ)', help='[название тега] [заголовок]')
+    @tag.command(
+        name='add',
+        description='Создаёт новый тег',
+        help='[название тега] [заголовок]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def add(self, ctx, tag_name, *, title):
         if tag_name in self.forbidden_tags:
@@ -49,7 +53,11 @@ class Tags(commands.Cog, description='Теги'):
         await ctx.message.add_reaction('✅')
 
 
-    @tag.command(name='edit', description='Добавляет описание к тегу (Админ)', help='[название тега] [описание]')
+    @tag.command(
+        name='edit',
+        description='Добавляет описание к тегу',
+        help='[название тега] [описание]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def edit(self, ctx, tag_name, *, description):
         description = f"""{description}"""
@@ -57,7 +65,12 @@ class Tags(commands.Cog, description='Теги'):
         await ctx.message.add_reaction('✅')
 
 
-    @tag.command(aliases=['-'], name='remove', description='Удаляет тег (Админ)', help='[название тега]')
+    @tag.command(
+        name='remove',
+        aliases=['-'],
+        description='Удаляет тег (Админ)',
+        help='[название тега]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def remove(self, ctx, tag_name):
         del self.server[str(ctx.guild.id)]['tags'][tag_name]
@@ -68,16 +81,22 @@ class Tags(commands.Cog, description='Теги'):
     async def list(self, ctx):
         description = f""""""
         all_tags = self.server[str(ctx.guild.id)]['tags']
+        
         count = 1
         for tag in all_tags:
             description += f'**{count}. {tag}**\n'
             count += 1
+
         embed = discord.Embed(title='Список тегов', color=get_embed_color(ctx.guild.id))
         embed.description = description
         await ctx.send(embed=embed)
 
 
-    @tag.command(name='name', description='Меняет название тега', help='[название тега] [новое название тега]')
+    @tag.command(
+        name='name',
+        description='Меняет название тега',
+        help='[название тега] [новое название тега]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def name(self, ctx, tag_name, new_tag_name):
         if not tag_name in self.server[str(ctx.guild.id)]['tags']:
@@ -98,7 +117,26 @@ class Tags(commands.Cog, description='Теги'):
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(name='btag', description='Открывает меню управления тегом (Админ)', help='[название тега]')
+    @commands.command(
+        name='raw',
+        description='Выдаёт исходник описания без форматирования',
+        help='[название тега]',
+        usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
+    async def raw(self, ctx:commands.Context, tag_name):
+        try:
+            content = self.server[str(ctx.guild.id)]['tags'][tag_name]['description']
+        except KeyError:
+            content = 'Тэг не найден!'
+
+        await ctx.reply(content)
+        
+
+    @commands.command(
+        name='btag',
+        description='Открывает меню управления тегом (Админ)',
+        help='[название тега]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def btag(self, ctx, tag_name):
         if tag_name in self.forbidden_tags:
@@ -189,12 +227,13 @@ class Tags(commands.Cog, description='Теги'):
         }
         await interaction.respond(type=4, content=f'**Сохранено!**')
 
+
     async def get_raw_description(self, ctx, interaction, tag_name):
         try:
             content = self.server[str(ctx.guild.id)]['tags'][tag_name]['description']
         except KeyError:
-            await interaction.respond(type=4, content=f'Сохраните, чтобы получить исходник!')
-            return
+            return await interaction.respond(type=4, content=f'Сохраните, чтобы получить исходник!')
+            
         await interaction.respond(type=4, content=f'```{content}```')
 
 

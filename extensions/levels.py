@@ -1,10 +1,11 @@
 from time import time
 from random import randint
+from typing import Awaitable
 
 import discord
 from discord.ext import commands
 
-from extensions.bot_settings import get_db, get_embed_color, get_prefix
+from extensions.bot_settings import get_db, get_embed_color, get_prefix, is_bot_or_guild_owner
 
 server = get_db()
 
@@ -117,7 +118,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
         current_level = userstats['level']
         new_level = exp ** (1/4)
 
-        if current_level < new_level:
+        if current_level < new_level: # ? while loop
             userstats['level'] += 1
             lvl = userstats['level']
             
@@ -148,51 +149,57 @@ class Levels(commands.Cog, description='Cистема уровней'):
                     await member.send(f'Вы получили `{lvl}-й` уровень', delete_after=15) # ? Remove this?
 
 
-    @commands.command(name='clear_lvl', description='', help='')
+    @commands.command(name='clear_lvl', description='', help='', hidden=True)
     @commands.has_guild_permissions(administrator=True)
-    async def clear_lvl(self, ctx):
+    async def clear_lvl(self, ctx:commands.Context):
         userstats = server[str(ctx.guild.id)]['users'][str(ctx.author.id)]
-        
         userstats['level'] = 0
         userstats['xp'] = 0
         userstats['role'] = ''
 
+        await ctx.message.add_reaction('✅')
 
-    @commands.command(description='Устанавливает опыт участнику', help='[Участник] [опыт]')
+
+    @commands.command(
+        description='Добавляет опыт участнику',
+        help='[Участник] [опыт]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
-    async def set_xp(self, message, member:discord.Member, xp:int):
-        userstats = server[str(message.guild.id)]['users'][str(member.id)]
-        
-        userstats['xp'] = xp
-        exp = userstats['xp']
-        new_level = exp ** (1/4)
-
-        userstats['level'] = round(new_level)
-        lvl = userstats['level']
-        await message.channel.send(f'{member.mention} получил {lvl}-й уровень')
+    async def add_xp(self, ctx:commands.Context, member:discord.Member, xp:int):
+        await self.update_member(member, xp)
 
 
-    @commands.command(description='Устанавливает уровень участнику', help='[Участник] [уровень]')
+    @commands.command(
+        description='Устанавливает уровень участнику',
+        help='[Участник] [уровень]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
-    async def set_lvl(self, ctx, member:discord.Member, lvl:int):
+    async def set_lvl(self, ctx:commands.Context, member:discord.Member, lvl:int):
         userstats = server[str(ctx.guild.id)]['users'][str(member.id)]
-        
         userstats['level'] = lvl
         userstats['xp'] = lvl ** 4
 
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(name='add_level_role', description='Добавляет уровень для роли', help='[уровень] [роль]')
+    @commands.command(
+        name='add_level_role',
+        description='Добавляет уровень для роли',
+        help='[уровень] [роль]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
-    async def add_level_role(self, ctx, level:str, role:discord.Role):
+    async def add_level_role(self, ctx:commands.Context, level:str, role:discord.Role):
         server[str(ctx.guild.id)]['roles_by_level'][level] = role.id
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(name='remove_level_role', description='Удаляёт уровень для роли', help='[уровень]')
+    @commands.command(
+        name='remove_level_role',
+        description='Удаляёт уровень для роли',
+        help='[уровень]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
-    async def remove_level_role(self, ctx, level):
+    async def remove_level_role(self, ctx:commands.Context, level):
         levels = server[str(ctx.guild.id)]['roles_by_level']
         try:
             del levels[level]
@@ -201,14 +208,21 @@ class Levels(commands.Cog, description='Cистема уровней'):
             await ctx.reply('Такого уровня не существует!')
 
 
-    @commands.command(name='update', description='Очищает весь список уровней', help=' ')
+    @commands.command(
+        name='reset_levels',
+        description='Очищает весь список уровней',
+        help='',
+        hidden=True)
     @commands.is_owner()
-    async def update_db(self, ctx):
+    async def reset_levels(self, ctx:commands.Context):
         server[str(ctx.guild.id)]['roles_by_level'] = {}
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(name='show_info', description='Показывает уровневую информацию о участнике сервера', help='[участник]')
+    @commands.command(
+        name='show_info',
+        description='Показывает уровневую информацию об участнике сервера',
+        help='[участник]')
     async def show_info(self, ctx:commands.Context, member:discord.Member):
         userstats = server[str(ctx.guild.id)]['users'][str(member.id)]
         xp = userstats['xp']
@@ -216,19 +230,28 @@ class Levels(commands.Cog, description='Cистема уровней'):
         role_id = userstats['role']
         embed = discord.Embed(color=get_embed_color(ctx.guild.id))
         embed.title=f'Уровневая информация пользователя {member}'
-        embed.description = f'У`{lvl}-й` уровень, `{xp}` опыта. Роль {ctx.guild.get_role(role_id)}'
+        embed.description = f'`{lvl}-й` уровень, `{xp}` опыта. {ctx.guild.get_role(role_id)}'
         await ctx.send(embed=embed)
 
 
-    @commands.group(name='on_join_role', description='Задаёт выдачу стартовой роли новым участникам', help='[роль]', invoke_without_command=True)
-    @commands.has_guild_permissions(administator=True)
+    @commands.group(
+        name='on_join_role',
+        description='Задаёт выдачу стартовой роли новым участникам',
+        help='[роль]',
+        usage='Только для Администрации',
+        invoke_without_command=True)
+    @is_bot_or_guild_owner()
     async def on_join_role(self, ctx:commands.Context, role:discord.Role):
         server[str(ctx.guild.id)]['configuration']['on_join_role'] = role.id
         await ctx.message.add_reaction('✅')
 
 
-    @on_join_role.command(name='remove', description='Задаёт выдачу стартовой роли новым участникам', help='[роль]')
-    @commands.has_guild_permissions(administator=True)
+    @on_join_role.command(
+        name='remove',
+        description='Задаёт выдачу стартовой роли новым участникам',
+        help='[роль]',
+        usage='Только для Владельца сервера')
+    @is_bot_or_guild_owner()
     async def on_join_role_remove(self, ctx:commands.Context):
         try:
             del server[str(ctx.guild.id)]['configuration']['on_join_role']
@@ -237,9 +260,13 @@ class Levels(commands.Cog, description='Cистема уровней'):
             await ctx.reply('Роль не задана!')
         
 
-    @commands.command(name='add_to_all_start_role', description='Выдаёт начальную роль всем тем, кто её не имеет', help='')
-    @commands.is_owner()
-    async def add_start_role(self, ctx):
+    @commands.command(
+        name='add_to_all_start_role',
+        description='Выдаёт начальную роль всем тем, кто её не имеет',
+        help='',
+        hidden=True)
+    @is_bot_or_guild_owner()
+    async def add_start_role(self, ctx:commands.Context):
         try:
             role_id = server[str(ctx.guild.id)]['configuration']['on_join_role']
             role = ctx.guild.get_role(role_id)
@@ -263,14 +290,30 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 await member.add_roles(role)
 
 
-    @commands.command(name='remove_user', description='Удаляет пользователя из базы', help='[участник]')
-    @commands.is_owner()
-    async def remove_user(self, ctx, member:discord.Member):
+    @commands.command(
+        name='remove_user',
+        description='Удаляет пользователя из базы',
+        help='[участник]',
+        hidden=True)
+    @is_bot_or_guild_owner()
+    async def remove_user(self, ctx:commands.Context, member:discord.Member):
         try:
             del server[str(ctx.guild.id)]['users'][str(member.id)]  
         except KeyError:
             print('Member not found!')
 
+
+    @commands.command(name='get_levels', description='Показывает весь список уровней по ролям', help='')
+    async def get_levels(self, ctx:commands.Context):
+        dict_levels = server[str(ctx.guild.id)]['roles_by_level']
+        content = ''
+        
+        for level in dict_levels:
+            role = ctx.guild.get_role(dict_levels[level])
+            content += f'{level} — {role.mention}\n'
+
+        embed = discord.Embed(description=content, color=get_embed_color(ctx.guild.id))
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
