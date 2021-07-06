@@ -1,6 +1,5 @@
 from time import time
 from random import randint
-from typing import Awaitable
 
 import discord
 from discord.ext import commands
@@ -329,7 +328,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
         try:
             start_sit = server[str(ctx.guild.id)]['voice_time'][str(ctx.author.id)]
         except KeyError:
-            await ctx.reply('Вы не сидите в голосовом канале!')
+            return await ctx.reply('Вы не сидите в голосовом канале!')
 
         sit_time = int(time() - start_sit) // 60
         await ctx.reply(f'Вы сидите уже `{sit_time}` минут')
