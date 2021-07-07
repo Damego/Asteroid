@@ -11,7 +11,7 @@ from ._levels import update_member
 
 
 
-class Giveaway(commands.Cog, description='Раздача ролей'):
+class Giveaway(commands.Cog, description='Розыгрыши'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
@@ -20,13 +20,21 @@ class Giveaway(commands.Cog, description='Раздача ролей'):
         self.members = {}
 
 
-    @commands.group(name='giveaway', aliases=['ga'], description='Выдаёт роль рандомному участнику сервера после установленного времени', help='[команда]', invoke_without_command=True)
-    @commands.has_guild_permissions(administrator=True)
+    @commands.group(
+        name='giveaway',
+        aliases=['ga'],
+        description='Выдаёт роль рандомному участнику сервера после установленного времени',
+        help='[команда]',
+        invoke_without_command=True)
     async def giveaway(self, ctx:commands.Context):
         await ctx.send('Тут пока пусто. :(')
 
 
-    @giveaway.command(name='role', description='Выдаёт роль рандомному участнику после установленного времени', help='[время] [роль] [сообщение]')
+    @giveaway.command(
+        name='role',
+        description='Выдаёт роль рандомному участнику после установленного времени',
+        help='[время] [роль] [сообщение]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def role(self, ctx:commands.Context, duration:DurationConverter, role:discord.Role, *, message):
         embed = discord.Embed(title='Розыгрыш роли', description=message, color=get_embed_color(ctx.guild.id))
@@ -34,7 +42,11 @@ class Giveaway(commands.Cog, description='Раздача ролей'):
         await self.process_giveaway(ctx, duration, 'role', role=role)
 
 
-    @giveaway.command(name='xp', description='Выдаёт опыт рандомному участнику после установленного времени', help='[время] [опыт] [сообщение]')
+    @giveaway.command(
+        name='xp',
+        description='Выдаёт опыт рандомному участнику после установленного времени',
+        help='[время] [опыт] [сообщение]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def xp(self, ctx:commands.Context, duration:DurationConverter, exp:int, *, message):
         print(type(self))

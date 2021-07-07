@@ -63,12 +63,22 @@ class Settings(commands.Cog, description='Настройка бота'):
         
 
     @commands.has_guild_permissions(administrator=True)
-    @commands.group(invoke_without_command=True, name='set', description='Команда, позволяющая изменять настройки бота', help='[команда]')
+    @commands.group(
+        invoke_without_command=True,
+        name='set',
+        description='Команда, позволяющая изменять настройки бота',
+        help='[команда]',
+        usage='Только для Администрации')
     async def set_conf(self, ctx:commands.Context):
         await ctx.send('Используйте команды: `set prefix` или `set color`', delete_after=10)
 
     
-    @set_conf.command(name='prefix', aliases=['префикс'], description='Меняет префикс для команд', help='[префикс]')
+    @set_conf.command(
+        name='prefix',
+        aliases=['префикс'],
+        description='Меняет префикс для команд',
+        help='[префикс]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def change_guild_prefix(self, ctx:commands.Context, prefix):
         server[str(ctx.guild.id)]['configuration']['prefix'] = prefix
@@ -76,7 +86,12 @@ class Settings(commands.Cog, description='Настройка бота'):
         embed = discord.Embed(title=f'Префикс для команд изменился на `{prefix}`', color=0x2f3136)
         await ctx.send(embed=embed, delete_after=30)
 
-    @set_conf.command(name='color', aliases=['цвет'], description='Меняет цвет сообщений бота', help='[цвет(HEX)]')
+    @set_conf.command(
+        name='color',
+        aliases=['цвет'],
+        description='Меняет цвет сообщений бота',
+        help='[цвет(HEX)]',
+        usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def change_guild_embed_color(self, ctx:commands.Context, color:str):
         if color.startswith('#') and len(color) == 7:
