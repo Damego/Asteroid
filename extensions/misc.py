@@ -64,8 +64,8 @@ class Misc(commands.Cog, description='Остальные команды'):
         }
 
         embed.add_field(name= "Основная информация:", value=f"""
-            **Дата регистрации в Discord:** {member.created_at.strftime("%#d %B %Y")}
-            **Дата присоединения на сервер:** {member.joined_at.strftime("%#d %B %Y")}
+            **Дата регистрации в Discord:** <t:{int(member.created_at.timestamp())}:F>
+            **Дата присоединения:** <t:{int(member.joined_at.timestamp())}:F>
             **Текущий статус:** {status.get(member_status)}
             **Роли:** {member_roles}
             """, inline=False)
@@ -147,15 +147,17 @@ class Misc(commands.Cog, description='Остальные команды'):
     async def serverinfo(self, ctx):
         guild = ctx.guild
         embed = discord.Embed(title=f'Информация о сервере {guild.name}', color=get_embed_color(guild.id))
-        embed.add_field(name='Дата создания:', value=guild.created_at, inline=False)
+        embed.add_field(name='Дата создания:', value=f'<t:{int(guild.created_at.timestamp())}:F>', inline=False)
         embed.add_field(name='Основатель сервера:', value=guild.owner.mention, inline=False)
-        embed.add_field(name='Количество ролей:', value=len(guild.roles), inline=False)
-        embed.add_field(name='Количество участников:', value=guild.member_count, inline=False)
-        embed.add_field(name='Количество каналов:', value=f"""
-        :hash: Категорий: {len(guild.categories)}
-        :writing_hand: Текстовых каналов: {len(guild.text_channels)}
-        :speaker: Голосовых каналов: {len(guild.voice_channels)}
-        """, inline=False)
+
+        embed.add_field(name='Количество', value=f"""
+                                                :man_standing: **Участников:** {guild.member_count}
+                                                :crown: **Ролей:** {len(guild.roles)}
+                                                
+                                                :hash: **Категорий:** {len(guild.categories)}
+                                                :speech_balloon:** Текстовых каналов:** {len(guild.text_channels)}
+                                                :speaker: **Голосовых каналов:** {len(guild.voice_channels)}
+                                                """)
         embed.set_thumbnail(url=guild.icon_url)
 
         await ctx.send(embed=embed)

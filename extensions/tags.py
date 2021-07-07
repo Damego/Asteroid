@@ -244,11 +244,13 @@ class Tags(commands.Cog, description='Теги'):
 
 
     @commands.Cog.listener()
-    async def on_command_error(ctx, error):
+    async def on_command_error(self, ctx, error):
         if isinstance(error, TagNotFound):
             desc = 'Тег не найден!'
         elif isinstance(error, ForbiddenTag):
             desc = 'Этот тег нельзя использовать!'
+        else:
+            return
 
         embed = discord.Embed(description = desc, color=0xED4245)
         try:

@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from extensions.bot_settings import get_prefix
+from extensions.bot_settings import get_prefix, version
 
 
 
@@ -19,6 +19,10 @@ class Help(commands.Cog, description='Помощь'):
         prefix = get_prefix(ctx.guild.id)
         if extension is None:
             embed = discord.Embed(description='```               「📝」КОМАНДЫ:               ```', color=0x2f3136)
+            embed.add_field(name='Информация о Боте', value=f"""
+                **Префикс на сервере:** `{prefix}`
+                **Текущая версия Бота:** `{version}`
+            """, inline=False)
 
             for cog in self.bot.cogs:
                 if not self.bot.cogs[cog].hidden:

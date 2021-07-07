@@ -6,13 +6,11 @@ from discord.ext import commands
 def get_db():
     from replit import Database, db
     if db is not None:
-        server = db
-    else:
-        from dotenv import load_dotenv
-        load_dotenv()
-        url = getenv('URL')
-        server = Database(url)
-    return server
+        return db
+    from dotenv import load_dotenv
+    load_dotenv()
+    url = getenv('URL')
+    return Database(url)
 
 def get_embed_color(guild_id):
     """Get color for embeds from json """
@@ -20,12 +18,10 @@ def get_embed_color(guild_id):
 
 def get_prefix(guild_id):
     """Get guild prexif from json """
-    prefix = server[str(guild_id)]['configuration']['prefix']
-    return prefix
+    return server[str(guild_id)]['configuration']['prefix']
 
-def get_footer_text() -> str:
-    text = 'Damego Bot v1.0.0 Beta'
-    return text
+
+version = 'v1.0.0-BETA'
 
 server = get_db()
 

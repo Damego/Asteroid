@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 
 from extensions.bot_settings import get_db, get_embed_color, get_prefix, is_bot_or_guild_owner
+from ._levels import update_member
 
 server = get_db()
 
@@ -43,7 +44,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 sit_time = int(time()) - server[str(member.guild.id)]['voice_time'][str(member.id)]
                 del server[str(member.guild.id)]['voice_time'][str(member.id)]
                 exp = (sit_time // 60) * self.koef
-                await self.update_member(member, exp)
+                await update_member(member, exp)
 
                 # LOG INTO MY DISCORD GUILD
                 print(f'Выдано {member.display_name} {exp} опыта')
@@ -66,7 +67,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 await self.add_member(message)
             else:
                 xp = randint(10,25)
-                await self.update_member(message, xp)
+                await update_member(message, xp)
 
 
     async def add_member(self, arg):
@@ -86,76 +87,6 @@ class Levels(commands.Cog, description='Cистема уровней'):
         else:
             userstats['role'] = ''
 
-    async def update_member(self, arg, exp):
-        guild_id = str(arg.guild.id)
-
-        if isinstance(arg, discord.Message):
-            message = arg
-            member = message.author
-            if self.check_timeout(guild_id, member):
-                return
-        elif isinstance(arg, discord.Member):
-            member = arg
-
-        member_stats = server[guild_id]['users'][str(member.id)]
-        member_stats['xp'] += exp
-
-        current_member_level = member_stats['level']
-        new_member_level = member_stats['xp'] ** (1/4)
-
-        guild_levels = server[guild_id]['roles_by_level']
-
-        while current_member_level < new_member_level:
-            member_stats['level'] += 1
-            current_member_level += 1
-
-            new_role = member.guild.get_role(guild_levels.get(str(current_member_level)))
-            if new_role is not None:
-                await self.update_member_role(guild_id, member, new_role)
-            await self.notify_member(arg.guild, member, current_member_level, new_role)
-
-            
-    def check_timeout(self, guild_id, member):
-        guild_id = str(guild_id)
-        member_id = str(member.id)
-
-        if guild_id not in self.last_user_message:
-            self.last_user_message[guild_id] = {}
-
-        if member_id in self.last_user_message[guild_id]:
-            last_msg_time = self.last_user_message[guild_id][member_id]
-            current_time = time()
-            if current_time - last_msg_time < 30:
-                return True
-        else:
-            self.last_user_message[guild_id][member_id] = time()
-        return False
-
-
-    async def update_member_role(self, guild_id, member, new_role):
-        member_stats = server[guild_id]['users'][str(member.id)]
-        old_role = member_stats['role']
-
-        for role in member.roles:
-            if role.id == old_role:
-                await member.remove_roles(role, reason='Удаление старого уровня')
-                break
-        await member.add_roles(new_role, reason='Повышение уровня')
-        member_stats['role'] = new_role.id
-
-
-    async def notify_member(self, guild, member, new_level, new_role=None):
-        system_channel = guild.system_channel
-        if new_role:
-            if system_channel:
-                await system_channel.send(f'{member.mention} получил `{new_level}-й` уровень и повышение до {new_role.mention}', delete_after=15)
-            else:
-                await member.send(f'Вы получили `{new_level}-й` уровень и повышение до {str(new_role)}', delete_after=15)
-        elif system_channel:
-            await system_channel.send(f'{member.mention} получил `{new_level}-й` уровень', delete_after=15)
-        else:
-            await member.send(f'Вы получили `{new_level}-й` уровень', delete_after=15)
-
 
     @commands.command(name='clear_lvl', description='', help='', hidden=True)
     @commands.has_guild_permissions(administrator=True)
@@ -174,7 +105,8 @@ class Levels(commands.Cog, description='Cистема уровней'):
         usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def add_xp(self, ctx:commands.Context, member:discord.Member, xp:int):
-        await self.update_member(member, xp)
+        await update_member(member, xp)
+        await ctx.message.add_reaction('✅')
 
 
     @commands.command(
@@ -183,9 +115,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
         usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def set_lvl(self, ctx:commands.Context, member:discord.Member, lvl:int):
-        userstats = server[str(ctx.guild.id)]['users'][str(member.id)]
-        userstats['level'] = lvl
-        userstats['xp'] = lvl ** 4
+        await update_member(member, xp=lvl**4)
 
         await ctx.message.add_reaction('✅')
 
@@ -269,10 +199,11 @@ class Levels(commands.Cog, description='Cистема уровней'):
         
 
     @commands.command(
-        name='add_to_all_start_role',
+        name='give_everyone_start_role',
+        aliases=['gesr'],
         description='Выдаёт начальную роль всем тем, кто её не имеет',
         help='',
-        hidden=True)
+        usage='Владельцу Бота или Сервера')
     @is_bot_or_guild_owner()
     async def add_start_role(self, ctx:commands.Context):
         try:

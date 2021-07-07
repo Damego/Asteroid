@@ -8,13 +8,11 @@ from lifetime_alive import keep_alive
 def get_db():
     from replit import Database, db
     if db is not None:
-        server = db
-    else:
-        from dotenv import load_dotenv
-        load_dotenv()
-        url = os.getenv('URL')
-        server = Database(url)
-    return server
+        return db
+    from dotenv import load_dotenv
+    load_dotenv()
+    url = os.getenv('URL')
+    return Database(url)
 
 def get_prefix(bot, message):
     """Get guild prexif from json """
@@ -32,7 +30,7 @@ bot = commands.Bot(command_prefix=get_prefix, intents=discord.Intents.all())
 @bot.event
 async def on_ready():
     for filename in os.listdir('./extensions'):
-        if filename.endswith('.py'):
+        if (not filename.startswith('_')) and filename.endswith('.py'):
             bot.load_extension(f'extensions.{filename[:-3]}')
     print(f'Бот {bot.user} готов к работе!')
 
@@ -56,7 +54,8 @@ async def on_guild_join(guild):
         'roles_by_level':{},
         'users': {},
         'reaction_posts':{},
-        'tags':{}
+        'tags':{},
+        'voice_time':{}
     }
 
 @bot.command()
@@ -80,12 +79,13 @@ async def full_clear_guild_db(ctx):
         'roles_by_level':{},
         'users': {},
         'reaction_posts':{},
-        'tags':{}
+        'tags':{},
+        'voice_time':{}
     }
 
 @bot.command()
 @commands.is_owner()
-async def clear_guild_db(ctx):
+async def clear_guild_settings(ctx):
     server[str(ctx.guild.id)] = {
         'configuration':{
             'prefix':'!d',
