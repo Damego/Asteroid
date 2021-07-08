@@ -10,34 +10,6 @@ class Moderation(commands.Cog, description='Модерация'):
         self.bot = bot
         self.hidden = False
         self.aliases = ['moderation', 'moder', 'mod']
-        #self.spam_ls = {}
-
-    # ! Temporaly disabled
-    #@commands.Cog.listener()
-    #async def on_message(self, message):
-    #    if not message.author.bot:
-    #        msg = message.content
-    #        if msg.startswith(get_prefix(message.guild)):
-    #            return
-    #        if message.author.id not in self.spam_ls or msg != self.spam_ls[message.guild.id][message.channel.id][message.author.id]['message_content']:
-    #            print(f'[SPAM_FILTER] {message.author} wrote message: "{message.content}"')
-    #            self.spam_ls[message.guild.id] = {}
-    #            self.spam_ls[message.guild.id][message.channel.id] = {}
-    #            self.spam_ls[message.guild.id][message.channel.id][message.author.id] = {}
-    #            self.spam_ls[message.guild.id][message.channel.id][message.author.id]['message_content'] = msg
-    #            self.spam_ls[message.guild.id][message.channel.id][message.author.id]['count'] = 1
-#
-    #        elif msg == self.spam_ls[message.guild.id][message.channel.id][message.author.id]['message_content']:
-    #            print(f'[SPAM_FILTER] {message.author} wrote same message')
-    #            self.spam_ls[message.guild.id][message.channel.id][message.author.id]['count'] += 1
-#
-    #        if self.spam_ls[message.guild.id][message.channel.id][message.author.id]['count'] > 2:
-    #            count = self.spam_ls[message.guild.id][message.channel.id][message.author.id]['count']
-    #            self.spam_ls[message.guild.id][message.channel.id][message.author.id]['count'] = 0
-#
-    #            print(f'[SPAM_FILTER] Removing messages of {message.author}')
-    #            await message.channel.purge(limit=count)
-    #            await message.channel.send(content=f'**{message.author.mention}, Ваши сообщения были удалены из-за спама!**', delete_after=10)
 
 
     @commands.command(

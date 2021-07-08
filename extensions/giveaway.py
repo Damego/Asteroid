@@ -129,5 +129,4 @@ class Giveaway(commands.Cog, description='Розыгрыши'):
 
 
 def setup(bot):
-    DiscordComponents(bot)
     bot.add_cog(Giveaway(bot))

@@ -1,16 +1,16 @@
 import discord
 from discord.ext import commands
-from discord_components import DiscordComponents, Button, ButtonStyle
+from discord_components import Button, ButtonStyle
 import DiscordUtils
 
-from extensions.bot_settings import get_embed_color, get_db
+from extensions.bot_settings import get_embed_color
 
 
 class NotConnectedToVoice(commands.CommandError):
     pass
 
 
-class NewMusic(commands.Cog, description='Музыка с плеером'):
+class ButtonMusic(commands.Cog, description='Музыка с кнопками'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
@@ -18,32 +18,29 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
 
         self.track_dict = {}
 
-    @commands.Cog.listener() # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE 
+    @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        player = self.music.get_player(guild_id=member.guild.id)
-
         if not member.bot and after.channel is None:
             members = before.channel.members
             if len(members) == 1 and members[0].bot:
-                await self.msg.channel.send('**Бот отключился, из-за отсутствия слушателей!**', delete_after=10)
-                await player.stop()
-                await self.voice_client.disconnect()
-                await self.msg.edit(components=[])
-
-                
+                await self.stop_on_leave(member.guild.id)
+                system_channel = member.guild.system_channel
+                if system_channel:
+                    await system_channel.send('**Бот отключился, из-за отсутствия слушателей!**', delete_after=10)
         elif member.bot and after.channel is None and before.channel:
             members = before.channel.members
-            if len(members) == 0:
-                return
-       
-            try:
-                await player.stop()
-                print('vc b',self.voice_client)
-                await self.voice_client.disconnect()
-                print('vc a',self.voice_client)
+            if len(members) == 0: return
+            await self.stop_on_leave(member.guild.id)
+
+    async def stop_on_leave(self, guild_id):
+        player = self.music.get_player(guild_id=guild_id)
+        try:
+            await player.stop()
+            await self.voice_client.disconnect()
+            if hasattr(self, 'msg'):
                 await self.msg.edit(components=[])
-            except Exception as e:
-                print('nope', e)
+        except Exception:
+            pass
             
 
     async def wait_button_click(self, ctx, msg):
@@ -53,14 +50,15 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
             
             if ('move_members', True) in member.guild_permissions:
                 return True
-            else:
-                channel = member.voice.channel
-                if not channel:
-                    return False
-                members = member.voice.channel.members
-                for member in members:
-                    if member.bot:
-                        return True
+
+            channel = member.voice.channel
+            if not channel:
+                return False
+
+            members = member.voice.channel.members
+            for member in members:
+                if member.bot:
+                    return True
 
         while True:
             interaction = await self.bot.wait_for("button_click")
@@ -143,18 +141,16 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
     async def new_play_music(self, ctx, *, query):
         if not ctx.message.author.voice:
             raise NotConnectedToVoice
-        # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE 
         await ctx.message.delete()
         
         voice_channel = ctx.author.voice.channel
 
-        if not ctx.voice_client:
-            if ctx.voice_client is not None:
-                await ctx.voice_client.move_to(voice_channel)
+        if ctx.voice_client:
+            await ctx.voice_client.move_to(voice_channel)
         try:
             await voice_channel.connect()
         except:
-            ...
+            pass
         self.voice_client = ctx.voice_client
 
         player = self.music.get_player(guild_id=ctx.guild.id)
@@ -183,7 +179,7 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if ctx.voice_client.is_playing():
             await player.pause()
-            try:# ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE # ! REWRITE 
+            try:
                 self.components[0][0] = Button(
                     style=ButtonStyle.green, label='Продолжить', id='resume')
                 await msg.edit(components=self.components)
@@ -216,18 +212,17 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
     async def new_skip_music(self, ctx, msg):
         player = self.music.get_player(guild_id=ctx.guild.id)
         try:
-            old_track, new_track = await player.skip(force=True)
+            new_track = await player.skip(force=True)
             await self.update_msg(ctx, msg, new_track)
-        except TypeError:
+        except Exception:
             await ctx.send('**Плейлист пуст! Добавьте музыку!**', delete_after=15)
 
-    # ERRORS
-    #@new_play_music.error
-    #async def play_music_error(self, ctx, error):
-    #    if isinstance(error, NotConnectedToVoice):
-    #        await ctx.send('Вы не подключены к голосовому чату!')
+    #ERRORS
+    @new_play_music.error
+    async def play_music_error(self, ctx, error):
+        if isinstance(error, NotConnectedToVoice):
+            await ctx.send('Вы не подключены к голосовому чату!')
 
 
 def setup(bot):
-    DiscordComponents(bot)
-    bot.add_cog(NewMusic(bot))
+    bot.add_cog(ButtonMusic(bot))

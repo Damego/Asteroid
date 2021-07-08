@@ -2,6 +2,7 @@ import os
 
 import discord
 from discord.ext import commands
+from discord_components import DiscordComponents
 
 from lifetime_alive import keep_alive
 
@@ -32,6 +33,7 @@ async def on_ready():
     for filename in os.listdir('./extensions'):
         if (not filename.startswith('_')) and filename.endswith('.py'):
             bot.load_extension(f'extensions.{filename[:-3]}')
+    DiscordComponents(bot)
     print(f'Бот {bot.user} готов к работе!')
 
 @bot.event

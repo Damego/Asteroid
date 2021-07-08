@@ -1,12 +1,9 @@
-from random import choice
-
 import discord
-from discord_components import DiscordComponents, Button, ButtonStyle
+from discord_components import Button, ButtonStyle
 from discord.ext import commands
 
-from extensions.bot_settings import get_embed_color, get_db
+from extensions.bot_settings import get_embed_color
 
-server = get_db
 
 
 class Games(commands.Cog, description='Игры'):
@@ -171,11 +168,7 @@ class Games(commands.Cog, description='Игры'):
             return False
 
         def is_tie(player):
-            if "UNCHOSEN" not in str(move_board):
-                if not is_won(player):
-                    return True
-                return False
-            return False
+            return "UNCHOSEN" not in str(move_board) and not is_won(player)
 
         board = []
 
@@ -238,199 +231,6 @@ class Games(commands.Cog, description='Игры'):
         await msg.edit(content=f'{member.display_name} отказался от игры!', components=[])
         return msg, False
 
-    @commands.command(name='game_21', description='', help='', hidden=True)
-    async def game_21(self, ctx):
-        async def is_end(diler_move=False):
-            # ? maybe remove `ctx.send` and take out in separate function?
-            if not diler_move:
-                if sum_user_cards == 21:
-                    await ctx.send('У вас 21! Вы выиграли!')
-                    return True
-                elif sum_user_cards > 21:
-                    await ctx.send('У вас перебор! Вы проиграли')
-                    return True
-
-            if diler_move:
-                if sum_diler_cards == 21:
-                    await ctx.send('у Дилера 21 очко! Вы проиграли!')
-                    return True
-                elif sum_diler_cards > 21:
-                    await ctx.send('У Дилера перебор! Вы выиграли!')
-                    return True
-                elif sum_user_cards == sum_diler_cards:
-                    await ctx.send('Ничья!')
-                    return True
-                elif sum_diler_cards > sum_user_cards:
-                    await ctx.send('Вы проиграли! Сумма ваших карт меньше, чем у Дилера!')
-                    return True
-                elif sum_diler_cards < sum_user_cards:
-                    await ctx.send('Вы выиграли! Сумма ваших карт больше, чем у Дилера!')
-                    return True
-            return False
-
-        async def update_message(diler_move=False, remove_buttons=False):
-            if not diler_move:
-                diler_cards_str = ', '.join(hidden_card_list)
-                sum_diler_cards = hidden_sum_diler_cards
-            if diler_move:
-                diler_cards_str = ', '.join(diler_cards_list)
-                sum_diler_cards = diler_sum
-
-            embed = discord.Embed(title='21 Очко')
-            embed.add_field(
-                name='Карты дилера:', value=f'{diler_cards_str}\nСумма карт: {sum_diler_cards}', inline=False)
-            embed.add_field(
-                name='Ваши карты:', value=f'{user_cards_str}\nСумма карт: {sum_user_cards}', inline=False)
-            if remove_buttons:
-                components = []
-            else: # ? Wat?
-                components = bcomponents
-
-            await msg.edit(content=' ', embed=embed, components=components)
-
-        spades = {'♠6', '♠7', '♠8', '♠9', '♠10', '♠В', '♠Д', '♠К', '♠Т'}
-        clubs = {'♣6', '♣7', '♣8', '♣9', '♣10', '♣В', '♣Д', '♣К', '♣Т'}
-        hearts = {'♥6', '♥7', '♥8', '♥9', '♥10', '♥В', '♥Д', '♥К', '♥Т'}
-        diamonds = {'♦6', '♦7', '♦8', '♦9', '♦10', '♦В', '♦Д', '♦К', '♦Т'}
-        all_cards = list(spades) + list(clubs) + list(hearts) + list(diamonds)
-
-        all_nums = {
-            '6': 6,
-            '7': 7,
-            '8': 8,
-            '9': 9,
-            '10': 10,
-            'В': 2,
-            'Д': 3,
-            'К': 4,
-            'Т': 11,
-        }
-
-        buttons = [[
-            Button(style=ButtonStyle.green, label='Начать игру', id='1'),
-            Button(style=ButtonStyle.red, label='Выйти из игры', id='2'),
-        ]]
-
-        msg = await ctx.send(content='21 Очко (Блэкджек)', components=buttons)
-
-        interaction = await self.bot.wait_for('button_click', check=lambda i: i.user.id == ctx.author.id)
-        await interaction.respond(type=6)
-
-        if interaction.component.id == '2':
-            await msg.delete()
-            return
-
-        bcomponents = [[ # ? bcomponents? What?
-            Button(style=ButtonStyle.blue,
-                    label='Взять карту', id='1'),
-            Button(style=ButtonStyle.blue,
-                    label='Передать ход', id='2'),
-            Button(style=ButtonStyle.red,
-                    label='Выйти из игры', id='3'),
-                ]]
-
-        user_cards_list = []
-        sum_user_cards = 0
-        diler_cards_list = []
-        hidden_card_list = []
-        sum_diler_cards = 0
-        hidden_sum_diler_cards = 0
-        taking_card_loop = 0
-
-        while True:
-            while taking_card_loop != 2: # * Maybe better is `< 2` ?
-                # ! Need refactor code and optimizing!
-                card = choice(all_cards)
-                all_cards.remove(card) 
-                user_cards_list.append(card)
-                sum_user_cards += all_nums[card[1:]]
-
-                card = choice(all_cards)
-                all_cards.remove(card)
-                diler_cards_list.append(card)
-                sum_diler_cards += all_nums[card[1:]]
-                if taking_card_loop < 1:
-                    hidden_sum_diler_cards += all_nums[card[1:]]
-                    hidden_card_list.append(card)
-                    hidden_card_list.append('?')
-
-                taking_card_loop += 1
-
-            user_cards_str = ', '.join(user_cards_list)
-
-            await update_message()
-
-            if all_nums[user_cards_list[0][1:]] == 11 and all_nums[user_cards_list[1][1:]] == 11:
-                # TODO : Why It's now working? Check and fix it!
-                if all_nums[card[1:]] == 11:
-                    bcomponents.append(
-                        Button(style=ButtonStyle.green, label='Мягкий туз', id='4')
-                    )
-                    await msg.edit(components=bcomponents)
-            else:
-                isend = await is_end()
-                if isend:
-                    hidden_card_list = diler_cards_list.copy()
-                    diler_sum = sum_diler_cards
-                    await update_message(remove_buttons=True)
-                    return
-
-            interaction = await self.bot.wait_for('button_click', check=lambda i: i.user.id == ctx.author.id)
-            await interaction.respond(type=6)
-
-            if interaction.component.id == '1':
-                card = choice(all_cards)
-                user_cards_list.append(card)
-                sum_user_cards += all_nums[card[1:]]
-
-                user_cards_str = ', '.join(user_cards_list)
-
-                await update_message()
-
-
-                # ? Maybe add this in separate function?
-                if all_nums[card[1:]] == 11:
-                    bcomponents.append(
-                        Button(style=ButtonStyle.green, label='Мягкий туз', id='4')
-                    )
-                    await msg.edit(components=bcomponents)
-                    
-                else:
-                    isend = await is_end()
-                    if isend:
-                        hidden_card_list = diler_cards_list.copy()
-                        diler_sum = sum_diler_cards
-                        await update_message(remove_buttons=True)
-                        return
-
-            elif interaction.component.id == '2':
-                while True:
-                    if sum_diler_cards < 17:
-                        # ! Separate Func!
-                        card = choice(all_cards)
-                        all_cards.remove(card)
-                        diler_cards_list.append(card)
-                        sum_diler_cards += all_nums[card[1:]]
-                        diler_sum = sum_diler_cards
-                        await update_message(True)
-
-                    elif sum_diler_cards > 16:
-                        isend = await is_end(True)
-                        if isend:
-                            diler_sum = sum_diler_cards
-                            await update_message(True, True) # ? : Maybe take out this method out of the loop?
-                            return
-            elif interaction.component.id == '3':
-                await msg.delete()
-                return
-                
-            elif interaction.component.id == '4':
-                sum_diler_cards -= 10
-                await update_message()
-                bcomponents.pop(3)
-
-
 
 def setup(bot):
-    DiscordComponents(bot)
     bot.add_cog(Games(bot))

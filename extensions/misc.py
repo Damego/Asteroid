@@ -4,7 +4,6 @@ from asyncio import sleep
 
 import discord
 from discord.ext import commands
-from discord_components import *
 import qrcode
 
 from extensions.bot_settings import DurationConverter, get_embed_color, get_db, multiplier

@@ -1,6 +1,6 @@
 from discord.ext import commands
 import discord
-from discord_components import Button, ButtonStyle, DiscordComponents
+from discord_components import Button, ButtonStyle
 
 from extensions.bot_settings import get_embed_color, get_db, get_prefix
 
@@ -261,5 +261,4 @@ class Tags(commands.Cog, description='Теги'):
 
 
 def setup(bot):
-    DiscordComponents(bot)
     bot.add_cog(Tags(bot))
