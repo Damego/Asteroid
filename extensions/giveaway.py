@@ -23,7 +23,7 @@ class Giveaway(commands.Cog, description='Розыгрыши'):
     @commands.group(
         name='giveaway',
         aliases=['ga'],
-        description='Выдаёт роль рандомному участнику сервера после установленного времени',
+        description='Основная команда для розыгрышей',
         help='[команда]',
         invoke_without_command=True)
     async def giveaway(self, ctx:commands.Context):
