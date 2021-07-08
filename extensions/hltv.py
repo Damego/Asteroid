@@ -73,11 +73,11 @@ class HLTV(commands.Cog, description='HLTV'):
                             Команды: {} и {}
                             Событие: {}
                             Формат: {}
-                            """.format(time, match_data['team1'], match_data['team2'], match_data['event'], match_data['format']), inline=False)
+                            """.format(time, match_data['team1'], match_data['team2'], match_data['event'], match_data['format'].replace('bo', 'Best of ')), inline=False)
                     
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(name='hltv', description='Выводит дату ближайщих игр указанной комадны', help='[команда]')
     async def hltv(self, ctx:commands.Context, *, team):
         await self.parse(ctx, team)
 
