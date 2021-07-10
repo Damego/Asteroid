@@ -33,29 +33,45 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
 
     @commands.Cog.listener()
-    async def on_voice_state_update(self, member, before, after):
+    async def on_voice_state_update(self, member:discord.Member, before:discord.VoiceState, after:discord.VoiceState):
         if member.bot:
             return
         voice = self.server[str(member.guild.id)]['voice_time']
-            
-        if (not before.channel) and after.channel:
-            if member in after.channel.members:
-                voice[str(member.id)] = int(time())
-        elif member not in before.channel.members and (not after.channel):
-            try:
-                sit_time = int(time()) - voice[str(member.id)]
-                del voice[str(member.id)]
-                exp = (sit_time // 60) * self.time_factor
-                await update_member(member, exp)
 
-                # LOG INTO MY DISCORD GUILD
-                print(f'Выдано {member.display_name} {exp} опыта')
-                channel = await self.bot.fetch_channel(859816092008316928)
-                await channel.send(f'**[LEVELS]** Выдано {member.display_name} {exp} опыта')
-            except KeyError as key:
-                print('[LEVELS KeyError]', key) 
-            except Exception as e:
-                print('[LEVELS ERROR]', e)
+        if (not before.channel) and after.channel:
+            members = after.channel.members
+
+            if member in members and len(members) > 1:
+                voice[str(member.id)] = int(time())
+
+                if str(members[0].id) not in voice:
+                    voice[str(members[0].id)] = int(time())
+
+        elif member not in before.channel.members and (not after.channel):
+            members = before.channel.members
+            if len(members) < 1:
+                return
+
+            await self.check_time(member, voice)
+
+            if len(members) == 1:
+                await self.check_time(members[0], voice)
+
+    async def check_time(self, member, voice):
+        try:
+            sit_time = int(time()) - voice[str(member.id)]
+            del voice[str(member.id)]
+            exp = (sit_time // 60) * self.time_factor
+            await update_member(member, exp)
+
+            ## LOG INTO MY DISCORD GUILD
+            print(f'Выдано {member.display_name} {exp} опыта')
+            #channel = await self.bot.fetch_channel(859816092008316928)
+            #await channel.send(f'**[LEVELS]** Выдано {member.display_name} {exp} опыта')
+        except KeyError as key:
+            print('[LEVELS KeyError]', key) 
+        except Exception as e:
+            print('[LEVELS ERROR]', e)
 
 
     @commands.Cog.listener()

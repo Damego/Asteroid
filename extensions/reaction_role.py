@@ -24,25 +24,25 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         if not payload.member.bot:
-            posts = self.get_react_post_id(payload.guild_id)
+            posts = get_react_post_id(payload.guild_id)
             if str(payload.message_id) in posts:
                 emoji = payload.emoji.id
                 if payload.emoji.id is None:
                     emoji = payload.emoji
 
-                role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=self.get_emoji_role(payload, emoji))
+                role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(payload, emoji))
                 await payload.member.add_roles(role)
     
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
-        posts = self.get_react_post_id(payload.guild_id)
+        posts = get_react_post_id(payload.guild_id)
         if str(payload.message_id) in posts:
             emoji = payload.emoji.id
             if payload.emoji.id is None:
                 emoji = payload.emoji
 
-            role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=self.get_emoji_role(payload, emoji))
+            role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(payload, emoji))
             guild = self.bot.get_guild(payload.guild_id)
             member = guild.get_member(payload.user_id)
             await member.remove_roles(role)
