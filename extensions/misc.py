@@ -18,7 +18,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         self.hidden = False
         self.aliases = ['misc', 'other']
 
-        self.server = get_db
+        self.server = get_db()
 
     @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке', help='[от] [до]')
     async def random_num(self, ctx, arg1:int, arg2:int):
