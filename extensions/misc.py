@@ -200,10 +200,10 @@ class Misc(commands.Cog, description='Остальные команды'):
 
         await ctx.send('test', components=components)
 
-        interaction:Interaction = await self.bot.wait_for('select_option')
+        
+    @commands.Cog.listener()
+    async def on_select_option(self, interaction:Interaction):
         await interaction.respond(type=4, content=f'Вы выбрали {interaction.component[0].label}')
-
-
 
 def setup(bot):
     bot.add_cog(Misc(bot))
