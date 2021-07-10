@@ -4,12 +4,11 @@ from asyncio import sleep
 
 import discord
 from discord.ext import commands
+from discord_components.interaction import Interaction
 import qrcode
+from discord_components import SelectOption, Select
 
-from extensions.bot_settings import DurationConverter, get_embed_color, get_db, multiplier
-
-
-server = get_db()
+from extensions.bot_settings import DurationConverter, get_embed_color, get_db, get_prefix, multiplier, version
 
 
 
@@ -18,6 +17,8 @@ class Misc(commands.Cog, description='Остальные команды'):
         self.bot = bot
         self.hidden = False
         self.aliases = ['misc', 'other']
+
+        self.server = get_db
 
     @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке', help='[от] [до]')
     async def random_num(self, ctx, arg1:int, arg2:int):
@@ -35,11 +36,16 @@ class Misc(commands.Cog, description='Остальные команды'):
         await ctx.reply(result)
 
 
-    @commands.command(aliases=['инфо'], description='Выводит информацию об участнике канала', help='[ник]')
+    @commands.group(
+        name='info',
+        aliases=['инфо'],
+        description='Выводит информацию об участнике канала',
+        help='[ник]',
+        invoke_without_command=True)
     async def info(self, ctx, member: discord.Member):
         try:
-            user_level = server[str(ctx.guild.id)]['users'][str(member.id)]['level']
-            user_xp = server[str(ctx.guild.id)]['users'][str(member.id)]['xp']
+            user_level = self.server[str(ctx.guild.id)]['users'][str(member.id)]['level']
+            user_xp = self.server[str(ctx.guild.id)]['users'][str(member.id)]['xp']
         except KeyError:
             user_level = 0
             user_xp = 0
@@ -74,6 +80,46 @@ class Misc(commands.Cog, description='Остальные команды'):
 
         embed.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=embed)
+
+
+    @info.command(name='server',
+    aliases=['s', 'сервер'],
+    description='Показывает информацию о текущем сервере',
+    help='')
+    async def server(self, ctx:commands.Context):
+        guild = ctx.guild
+        embed = discord.Embed(title=f'Информация о сервере {guild.name}', color=get_embed_color(guild.id))
+        embed.add_field(name='Дата создания:', value=f'<t:{int(guild.created_at.timestamp())}:F>', inline=False)
+        embed.add_field(name='Основатель сервера:', value=guild.owner.mention, inline=False)
+
+        embed.add_field(name='Количество', value=f"""
+                                                :man_standing: **Участников:** {guild.member_count}
+                                                :crown: **Ролей:** {len(guild.roles)}
+                                                
+                                                :hash: **Категорий:** {len(guild.categories)}
+                                                :speech_balloon:** Текстовых каналов:** {len(guild.text_channels)}
+                                                :speaker: **Голосовых каналов:** {len(guild.voice_channels)}
+                                                """)
+        embed.set_thumbnail(url=guild.icon_url)
+
+        await ctx.send(embed=embed)
+
+    @info.command(name='bot', description='Показывает информацию о Боте', help='')
+    async def bot(self, ctx:commands.Context):
+        prefix = get_prefix(ctx.guild.id)
+        embed = discord.Embed(title='Информация о боте', color=get_embed_color(ctx.guild.id))
+        embed.description = f"""
+                            **Создатель:** Damego#0001
+                            **Текущая версия:** {version}
+                            **Количество серверов:** {len(ctx.bot.guilds)}
+                            **Количество онлайн пользователей:** {len(ctx.bot.users)}
+                            **Количество команд:** {len(ctx.bot.commands)}
+                            **Текущий пинг:** `{int(ctx.bot.latency * 1000)}` мс
+                            **Префикс на сервере:** {prefix}
+                            """
+
+        await ctx.send(embed=embed)
+
 
     @commands.command(name='qr', aliases=['QR', 'код'], description='Создаёт QR-код', help='[текст]')
     async def create_qr(self, ctx, *, text):
@@ -139,28 +185,24 @@ class Misc(commands.Cog, description='Остальные команды'):
         await channel.send(embed=embed)
 
 
-    @commands.command(name='serverinfo',
-    aliases=['si', 'server', 'сервер'],
-    description='Показывает информацию о текущем сервере',
-    help='')
-    async def serverinfo(self, ctx):
-        guild = ctx.guild
-        embed = discord.Embed(title=f'Информация о сервере {guild.name}', color=get_embed_color(guild.id))
-        embed.add_field(name='Дата создания:', value=f'<t:{int(guild.created_at.timestamp())}:F>', inline=False)
-        embed.add_field(name='Основатель сервера:', value=guild.owner.mention, inline=False)
+    @commands.command(name='selects', description='', help='')
+    async def selects(self, ctx):
+        components = [
+            Select(
+                placeholder = 'Выбери платформу',
+                options = [
+                SelectOption(label=':desktop: PC', value='PC'),
+                SelectOption(label=':mobile_phone: Phone', value='Phone'),
+                SelectOption(label=':video_game: Playstation', value='Playstation'),
+                SelectOption(label=':video_game: Xbox', value='Xbox')]
+            )
+        ]
 
-        embed.add_field(name='Количество', value=f"""
-                                                :man_standing: **Участников:** {guild.member_count}
-                                                :crown: **Ролей:** {len(guild.roles)}
-                                                
-                                                :hash: **Категорий:** {len(guild.categories)}
-                                                :speech_balloon:** Текстовых каналов:** {len(guild.text_channels)}
-                                                :speaker: **Голосовых каналов:** {len(guild.voice_channels)}
-                                                """)
-        embed.set_thumbnail(url=guild.icon_url)
+        await ctx.send('test', components=components)
 
-        await ctx.send(embed=embed)
-    
+        interaction:Interaction = await self.bot.wait_for('select_option')
+        await interaction.respond(type=4, content=f'Вы выбрали {interaction.component[0].label}')
+
 
 
 def setup(bot):

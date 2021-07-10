@@ -6,9 +6,8 @@ import requests
 from bs4 import BeautifulSoup
 
 
-from extensions.bot_settings import get_embed_color, get_db
+from extensions.bot_settings import get_embed_color
 
-server = get_db()
 
 class HLTV(commands.Cog, description='HLTV'):
     def __init__(self, bot):

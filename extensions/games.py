@@ -1,3 +1,5 @@
+from asyncio import TimeoutError
+
 import discord
 from discord_components import Button, ButtonStyle
 from discord.ext import commands
@@ -38,9 +40,9 @@ class Games(commands.Cog, description='Игры'):
     def rps_winner(self, ctx, member):
         """Определяет по очкам, кто в итоге победил, и возвращает победителя"""
         if self.count1 > self.count2:
-            return ctx.author.display_name
-        elif self.count1 < self.count2:
             return member
+        elif self.count1 < self.count2:
+            return ctx.author.display_name
         return 'Ничья'
 
     async def rps_run_game(self, ctx, msg, member, round, total_rounds):
@@ -51,7 +53,7 @@ class Games(commands.Cog, description='Игры'):
             return interaction.user == ctx.author
 
         embed = discord.Embed(title='🪨-✂️-🧾')
-        embed.add_field(name=f'**{ctx.author.display_name}** VS **{member.display_name}**',
+        embed.add_field(name=f'**{member.display_name}** VS **{ctx.author.display_name}**',
                         value=f'**Счёт:** {self.count1}:{self.count2} \n**Игра:** {round+1}/{total_rounds}'
                         )
         await msg.edit(
@@ -81,8 +83,6 @@ class Games(commands.Cog, description='Игры'):
         msg, accept = await self.invite_to_game(ctx, member, 'Камень-Ножницы-Бумага')
 
         if not accept:
-            await msg.delete()
-            await msg.edit(content=f'{member} отказался от игры', components=[])
             return
 
         for round in range(total_rounds):
@@ -93,7 +93,7 @@ class Games(commands.Cog, description='Игры'):
         embed = discord.Embed(title='`          ИТОГИ ИГРЫ            `')
         embed.add_field(name=f'**Название игры: Камень-ножницы-бумага**',
                         value=f"""
-                        **Игроки: {ctx.author.display_name} и {member.display_name}**
+                        **Игроки:** {member.display_name} и {ctx.author.display_name}
                         **Количество сыгранных игр:** {total_rounds}
                         **Счёт:** {self.count1}:{self.count2}
                         **Победитель:** {winner}
@@ -219,7 +219,7 @@ class Games(commands.Cog, description='Игры'):
             interaction = await self.bot.wait_for("button_click", check=member_agree, timeout=60)
             await interaction.respond(type=6)
         except TimeoutError:
-            await msg.edit(content=f'От {member.display_name} нет ответа!')
+            await msg.edit(content=f'От {member.display_name} нет ответа!', components=[])
             return msg, False
 
         if interaction.component.id == '1':

@@ -3,7 +3,7 @@ from random import choice
 
 import discord
 from discord.ext import commands
-from discord_components import Button, ButtonStyle, DiscordComponents
+from discord_components import Button, ButtonStyle
 from discord_components.interaction import Interaction
 
 from extensions.bot_settings import get_embed_color, DurationConverter, multiplier

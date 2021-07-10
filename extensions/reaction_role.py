@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 
-
 from extensions.bot_settings import get_db, get_prefix
 
 server = get_db()
@@ -21,27 +20,29 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         self.hidden = False
         self.aliases = ['reactionrole', 'rr', 'react']
 
+
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         if not payload.member.bot:
-            posts = get_react_post_id(payload.guild_id)
+            posts = self.get_react_post_id(payload.guild_id)
             if str(payload.message_id) in posts:
                 emoji = payload.emoji.id
                 if payload.emoji.id is None:
                     emoji = payload.emoji
 
-                role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(payload, emoji))
+                role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=self.get_emoji_role(payload, emoji))
                 await payload.member.add_roles(role)
     
+
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
-        posts = get_react_post_id(payload.guild_id)
+        posts = self.get_react_post_id(payload.guild_id)
         if str(payload.message_id) in posts:
             emoji = payload.emoji.id
             if payload.emoji.id is None:
                 emoji = payload.emoji
 
-            role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(payload, emoji))
+            role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=self.get_emoji_role(payload, emoji))
             guild = self.bot.get_guild(payload.guild_id)
             member = guild.get_member(payload.user_id)
             await member.remove_roles(role)
@@ -58,6 +59,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     async def reactionrole(self, ctx):
         await ctx.send(f'Используйте `{get_prefix(ctx.guild.id)}help ReactionRole` для получения информации')
 
+
     @reactionrole.group(
         name='add',
         aliases=['+', 'a'],
@@ -69,6 +71,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     @commands.has_guild_permissions(administrator=True)
     async def add(self, ctx):
         ...
+
 
     @add.command(name='post', description='Записывает пост для выдачи роли по реакции', help='[id поста]')
     @commands.has_guild_permissions(administrator=True)
@@ -87,6 +90,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
 
         await ctx.message.add_reaction('✅')
 
+
     @reactionrole.group(
         name='remove',
         aliases=['-', 'r'],
@@ -99,6 +103,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     async def remove(self, ctx):
         ...
 
+
     @remove.command(
         name='post',
         description='Удаляет пост для выдачи роли по реакции',
@@ -109,6 +114,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)]
 
         await ctx.message.add_reaction('✅')
+
 
     @remove.command(
         name='role',
@@ -122,6 +128,8 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)][str(emoji)]
 
         await ctx.message.add_reaction('✅')
+
+
 
 def setup(bot):
     bot.add_cog(ReactionRole(bot))

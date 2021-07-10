@@ -1,4 +1,5 @@
 import os
+from traceback import format_exception
 
 import discord
 from discord.ext import commands
@@ -41,7 +42,7 @@ async def on_guild_join(guild):
     server[str(guild.id)] = {
         'configuration':{
             'prefix':'!d',
-            'embed_color': 0xFFFFFE,
+            'embed_color': '0xFFFFFE',
             'extensions':{
                 'Games': True,
                 'HLTV': True,
@@ -50,7 +51,8 @@ async def on_guild_join(guild):
                 'Moderation': True,
                 'ReactionRole': True,
                 'Tags': True,
-                'NewMusic': True,
+                'ButtonMusic': True,
+                'Music': True,
             }
         },
         'roles_by_level':{},
@@ -75,7 +77,8 @@ async def full_clear_guild_db(ctx):
                 'Moderation': True,
                 'ReactionRole': True,
                 'Tags': True,
-                'NewMusic': True,
+                'ButtonMusic': True,
+                'Music': True,
             }
         },
         'roles_by_level':{},
@@ -145,7 +148,8 @@ async def custom_command(ctx, *, cmd):
 
 # ERRORS
 @bot.event
-async def on_command_error(ctx, error):
+async def on_command_error(ctx:commands.Context, error):
+    embed = discord.Embed(color=0xED4245)
     if isinstance(error, commands.NotOwner):
         desc = 'Это команда доступна только владельцу бота!'
     elif isinstance(error, commands.MissingRequiredArgument):
@@ -159,15 +163,30 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.ExtensionAlreadyLoaded):
         desc = 'Плагин уже загружен'
     elif isinstance(error, commands.BotMissingPermissions):
-        desc = f'**Для использования этой команды Боту необходимы следующие права:**\n{", ".join(error.missing_perms)}'
+        desc = f'**У меня недостаточно прав!**\nНеобходимые права: `{", ".join(error.missing_perms)}`'
     elif isinstance(error, commands.MissingPermissions):
-        desc = f'**Для использования этой команды вам необходимы следующие права:**\n{", ".join(error.missing_perms)}'
+        desc = f'**У вас недостаточно прав!**\nНеобходимые права: `{", ".join(error.missing_perms)}`'
+    elif isinstance(error, commands.CommandNotFound):
+        desc = 'Команда не найдена!'
     else:
-        desc = str(error)
-        if len(desc) == 0:
-            desc = 'NO DESCRIPTION FOR THIS ERROR'
+        desc = 'Я уже уведомил своего создателя об этой ошибке'
+        embed.title = '❌ Упс... Произошла непредвиденная ошибка!'
 
-    embed = discord.Embed(description = desc, color=0xED4245)
+        error_description = f"""**Сервер:** {ctx.guild}\n**Канал:** {ctx.channel}\n**Пользователь:** {ctx.author}\n**Команда:** {ctx.message.content}
+**Ошибка:**
+`{error}`
+**Лог ошибки:**
+```python
+{format_exception(type(error), error, error.__traceback__)}
+``` """
+        channel = await ctx.bot.fetch_channel(863001051523055626)
+        try:
+            await channel.send(error_description)
+        except Exception:
+            await channel.send('Произошла ошибка! Чекни логи!')
+            print(error_description)
+
+    embed.description = desc
     try:
         await ctx.send(embed=embed)
     except:

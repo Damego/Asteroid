@@ -63,8 +63,10 @@ class Moderation(commands.Cog, description='Модерация'):
     async def ban(self, ctx:commands.Context, member:discord.Member, *, reason=None):
         await member.ban(reason=reason)
         await ctx.message.add_reaction('✅')
-        embed = discord.Embed(title=f'{member} был заблокирован!',description=f'Причина: {reason}', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title=f'{member} был заблокирован!',description=f'**Причина:** {reason}', color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
+        embed.description += f'\n**Сервер:** {ctx.guild}'
+        await member.send(embed=embed)
 
 
     @commands.command(
@@ -72,8 +74,8 @@ class Moderation(commands.Cog, description='Модерация'):
         help='[Участник]',
         usage='С правом на бан участников')
     @commands.has_guild_permissions(ban_members=True)
-    async def unban(self, ctx:commands.Context, member:discord.Member):
-        await member.unban()
+    async def unban(self, ctx:commands.Context, user:discord.User):
+        await ctx.guild.unban(user)
         await ctx.message.add_reaction('✅')
 
                     
@@ -85,7 +87,7 @@ class Moderation(commands.Cog, description='Модерация'):
     async def kick(self, ctx:commands.Context, member:discord.Member, *, reason=None):
         await member.kick(reason=reason)
         await ctx.message.add_reaction('✅')
-        embed = discord.Embed(title=f'Вы были кикнуты с сервера {ctx.guild}!', description=f'Причина: {reason}', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title=f'Вы были кикнуты с сервера {ctx.guild}!', description=f'**Причина:** {reason}', color=get_embed_color(ctx.guild.id))
         await member.send(embed=embed)
 
 
