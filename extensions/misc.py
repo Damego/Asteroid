@@ -18,7 +18,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         self.hidden = False
         self.aliases = ['misc', 'other']
 
-        self.server = get_db
+        self.server = get_db()
 
     @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке', help='[от] [до]')
     async def random_num(self, ctx, arg1:int, arg2:int):
@@ -42,13 +42,11 @@ class Misc(commands.Cog, description='Остальные команды'):
         description='Выводит информацию об участнике канала',
         help='[ник]',
         invoke_without_command=True)
-    async def info(self, ctx, member: discord.Member):
-        try:
-            user_level = self.server[str(ctx.guild.id)]['users'][str(member.id)]['level']
-            user_xp = self.server[str(ctx.guild.id)]['users'][str(member.id)]['xp']
-        except KeyError:
-            user_level = 0
-            user_xp = 0
+    async def info(self, ctx:commands.Context, member:discord.Member):
+        user_stats = self.server[str(ctx.guild.id)]['users'][str(member.id)]
+        user_level = 0 if 'level' not in user_stats else user_stats['level']
+        user_xp = 0 if 'xp' not in user_stats else user_stats['xp']
+        user_voice_time = 0 if 'voice_time_counter' not in user_stats else user_stats['voice_time_counter']
 
         embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild.id))
 
@@ -75,8 +73,13 @@ class Misc(commands.Cog, description='Остальные команды'):
             **Роли:** {member_roles}
             """, inline=False)
 
-        embed.add_field(name='Уровень:', value=user_level)
-        embed.add_field(name='Опыт:', value=f'{user_xp}/{user_level ** 4}')
+        stats = f"""
+        <:level:863677232239869964> **Уровень:** `{user_level}`
+        <:exp:863672576941490176> **Опыт:** `{user_xp}/{user_level ** 4}`
+        <:voice_time:863674908969926656> **Время в голосом канале:** `{user_voice_time}` мин.
+        """
+
+        embed.add_field(name='Статистика:', value=stats)
 
         embed.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=embed)
@@ -136,10 +139,12 @@ class Misc(commands.Cog, description='Остальные команды'):
         await ctx.send(file = discord.File(f'./qrcodes/{ctx.message.author.id}.png'))
         os.remove(f'./qrcodes/{ctx.message.author.id}.png')
 
+
     @commands.command(description='Показывает пинг бота', help='')
     async def ping(self, ctx):
         embed = discord.Embed(title='🏓 Pong!', description=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс', color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
+
 
     @commands.group(name='send',
         description='Отправляет сообщение в указанный канал',
@@ -184,26 +189,12 @@ class Misc(commands.Cog, description='Остальные команды'):
         embed = discord.Embed(title='Объявление!', description=message, color=get_embed_color(ctx.guild.id))
         await channel.send(embed=embed)
 
-
-    @commands.command(name='selects', description='', help='')
-    async def selects(self, ctx):
-        components = [
-            Select(
-                placeholder = 'Выбери платформу',
-                options = [
-                SelectOption(label=':desktop: PC', value='PC'),
-                SelectOption(label=':mobile_phone: Phone', value='Phone'),
-                SelectOption(label=':video_game: Playstation', value='Playstation'),
-                SelectOption(label=':video_game: Xbox', value='Xbox')]
-            )
-        ]
-
-        await ctx.send('test', components=components)
-
         
     @commands.Cog.listener()
     async def on_select_option(self, interaction:Interaction):
         await interaction.respond(type=4, content=f'Вы выбрали {interaction.component[0].label}')
+
+
 
 def setup(bot):
     bot.add_cog(Misc(bot))

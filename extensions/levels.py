@@ -39,23 +39,9 @@ class Levels(commands.Cog, description='Cистема уровней'):
         voice = self.server[str(member.guild.id)]['voice_time']
 
         if (not before.channel) and after.channel:
-            members = after.channel.members
-
-            if member in members and len(members) > 1:
-                voice[str(member.id)] = int(time())
-
-                if str(members[0].id) not in voice:
-                    voice[str(members[0].id)] = int(time())
-
+            voice[str(member.id)] = int(time())
         elif member not in before.channel.members and (not after.channel):
-            members = before.channel.members
-            if len(members) < 1:
-                return
-
             await self.check_time(member, voice)
-
-            if len(members) == 1:
-                await self.check_time(members[0], voice)
 
     async def check_time(self, member, voice):
         try:
@@ -64,18 +50,25 @@ class Levels(commands.Cog, description='Cистема уровней'):
             exp = (sit_time // 60) * self.time_factor
             await update_member(member, exp)
 
+            member_db = self.server[str(member.guild.id)]['users'][str(member.id)]
+
+            if 'voice_time_count' not in member_db:
+                member_db['voice_time_count'] = 0
+            else:
+                member_db['voice_time_count'] += (sit_time // 60)
+
             ## LOG INTO MY DISCORD GUILD
             print(f'Выдано {member.display_name} {exp} опыта')
-            #channel = await self.bot.fetch_channel(859816092008316928)
-            #await channel.send(f'**[LEVELS]** Выдано {member.display_name} {exp} опыта')
+                #channel = await self.bot.fetch_channel(859816092008316928)
+                #await channel.send(f'**[LEVELS]** Выдано {member.display_name} {exp} опыта')
         except KeyError as key:
-            print('[LEVELS KeyError]', key) 
+            print('[LEVELS KeyError]', key)
         except Exception as e:
             print('[LEVELS ERROR]', e)
 
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message:discord.Message):
         if not message.author.bot:
             if message.content.startswith(get_prefix(message.guild.id)):
                 return
@@ -128,14 +121,13 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
 
     @commands.command(
-        description='Устанавливает уровень участнику',
-        help='[Участник] [уровень]',
+        description='Устанавливает роль в базе участнику сервера',
+        help='[Участник] [роль]',
         usage='Только для Администрации',
         hidden=True)
     @commands.has_guild_permissions(administrator=True)
-    async def set_lvl(self, ctx:commands.Context, member:discord.Member, lvl:int):
-        # ! NEED REWRITE
-        await update_member(member, xp=lvl**4)
+    async def set_level_role(self, ctx:commands.Context, member:discord.Member, role:discord.Role):
+        self.server[str(ctx.guild.id)]['users'][str(member.id)]['role'] = role.id
 
         await ctx.message.add_reaction('✅')
 
@@ -270,6 +262,9 @@ class Levels(commands.Cog, description='Cистема уровней'):
         for level in dict_levels:
             role = ctx.guild.get_role(dict_levels[level])
             content += f'{level} — {role.mention}\n'
+
+        if content == '':
+            content = 'Уровней нет!'
 
         embed = discord.Embed(description=content, color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
