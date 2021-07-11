@@ -59,8 +59,8 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
             ## LOG INTO MY DISCORD GUILD
             print(f'Выдано {member.display_name} {exp} опыта')
-                #channel = await self.bot.fetch_channel(859816092008316928)
-                #await channel.send(f'**[LEVELS]** Выдано {member.display_name} {exp} опыта')
+            channel = await self.bot.fetch_channel(859816092008316928)
+            await channel.send(f'**[LEVELS]** Выдано {member.display_name} {exp} опыта')
         except KeyError as key:
             print('[LEVELS KeyError]', key)
         except Exception as e:
