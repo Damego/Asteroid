@@ -54,8 +54,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
             if 'voice_time_count' not in member_db:
                 member_db['voice_time_count'] = 0
-            else:
-                member_db['voice_time_count'] += (sit_time // 60)
+            member_db['voice_time_count'] += (sit_time // 60)
 
             ## LOG INTO MY DISCORD GUILD
             print(f'Выдано {member.display_name} {exp} опыта')

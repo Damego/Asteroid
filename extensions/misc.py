@@ -46,7 +46,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         user_stats = self.server[str(ctx.guild.id)]['users'][str(member.id)]
         user_level = 0 if 'level' not in user_stats else user_stats['level']
         user_xp = 0 if 'xp' not in user_stats else user_stats['xp']
-        user_voice_time = 0 if 'voice_time_counter' not in user_stats else user_stats['voice_time_counter']
+        user_voice_time = 0 if 'voice_time_count' not in user_stats else user_stats['voice_time_count']
 
         embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild.id))
 
