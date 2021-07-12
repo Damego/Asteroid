@@ -12,7 +12,6 @@ class Games(commands.Cog, description='Игры'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.aliases = ['games']
 
     async def rps_logic(self, player_1_interact, player_2_interact):
         """Проверяет ходы участников и даёт очко тому, кто выиграл"""

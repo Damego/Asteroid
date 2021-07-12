@@ -1,12 +1,10 @@
-import os
+from os import remove
 from random import randint, choice
 from asyncio import sleep
 
 import discord
 from discord.ext import commands
-from discord_components.interaction import Interaction
 import qrcode
-from discord_components import SelectOption, Select
 
 from extensions.bot_settings import DurationConverter, get_embed_color, get_db, get_prefix, multiplier, version
 
@@ -16,7 +14,6 @@ class Misc(commands.Cog, description='Остальные команды'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.aliases = ['misc', 'other']
 
         self.server = get_db()
 
@@ -137,7 +134,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         img = qr.make_image(fill_color="black", back_color="white")
         img.save(f'./qrcodes/{ctx.message.author.id}.png')
         await ctx.send(file = discord.File(f'./qrcodes/{ctx.message.author.id}.png'))
-        os.remove(f'./qrcodes/{ctx.message.author.id}.png')
+        remove(f'./qrcodes/{ctx.message.author.id}.png')
 
 
     @commands.command(description='Показывает пинг бота', help='')
@@ -188,11 +185,6 @@ class Misc(commands.Cog, description='Остальные команды'):
 
         embed = discord.Embed(title='Объявление!', description=message, color=get_embed_color(ctx.guild.id))
         await channel.send(embed=embed)
-
-        
-    @commands.Cog.listener()
-    async def on_select_option(self, interaction:Interaction):
-        await interaction.respond(type=4, content=f'Вы выбрали {interaction.component[0].label}')
 
 
 

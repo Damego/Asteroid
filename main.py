@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 from discord_components import DiscordComponents
 
+from extensions import _errors
 from lifetime_alive import keep_alive
 
 def get_db():
@@ -150,7 +151,11 @@ async def custom_command(ctx, *, cmd):
 @bot.event
 async def on_command_error(ctx:commands.Context, error):
     embed = discord.Embed(color=0xED4245)
-    if isinstance(error, commands.NotOwner):
+    if isinstance(error, _errors.TagNotFound):
+        desc = 'Тег не найден!'
+    elif isinstance(error, _errors.ForbiddenTag):
+        desc = 'Этот тег нельзя использовать!'
+    elif isinstance(error, commands.NotOwner):
         desc = 'Это команда доступна только владельцу бота!'
     elif isinstance(error, commands.MissingRequiredArgument):
         desc=f'**Потерян аргумент**: `{error.param}`'

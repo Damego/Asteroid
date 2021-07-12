@@ -18,7 +18,6 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.aliases = ['reactionrole', 'rr', 'react']
 
 
     @commands.Cog.listener()
@@ -66,8 +65,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         description='',
         help='[команда]',
         usage='Только для Администрации',
-        invoke_without_command=True,
-        hidden=True)
+        invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
     async def add(self, ctx):
         ...
@@ -97,8 +95,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         description='',
         help='[команда]',
         usage='Только для Администрации',
-        invoke_without_command=True,
-        hidden=True)
+        invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
     async def remove(self, ctx):
         ...

@@ -9,7 +9,6 @@ class Moderation(commands.Cog, description='Модерация'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.aliases = ['moderation', 'moder', 'mod']
 
 
     @commands.command(

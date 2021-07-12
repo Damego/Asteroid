@@ -15,7 +15,6 @@ class Giveaway(commands.Cog, description='Розыгрыши'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.aliases = ['giveaways', 'ga']
 
         self.members = {}
 
@@ -55,13 +54,19 @@ class Giveaway(commands.Cog, description='Розыгрыши'):
         await self.process_giveaway(ctx, duration, 'exp', exp=exp)
 
 
-    @giveaway.command(name='thing', description='Выдаёт символическую вещь рандомному участнику после установленного времени', help='[время] ["вещь"] [сообщение]')
+    @giveaway.command(
+        name='thing',
+        description='Выдаёт символическую вещь рандомному участнику после установленного времени',
+        help='[время] ["вещь"] [сообщение]')
     async def thing(self, ctx:commands.Context, duration:DurationConverter, thing:str, *, message):
         embed = discord.Embed(title='Розыгрыш!', description=message, color=get_embed_color(ctx.guild.id))
         await self.create_message(ctx, embed)
         await self.process_giveaway(ctx, duration, 'thing', thing=thing)
 
-    @giveaway.command(name='random', description='Рандомно выбирает 1 участника после установленного времени', help='[время] [сообщение]')
+    @giveaway.command(
+        name='random',
+        description='Рандомно выбирает 1 участника после установленного времени',
+        help='[время] [сообщение]')
     async def random(self, ctx:commands.Context, duration:DurationConverter, *, message):
         embed = discord.Embed(title='Розыгрыш!', description=message, color=get_embed_color(ctx.guild.id))
         await self.create_message(ctx, embed)

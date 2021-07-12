@@ -59,7 +59,6 @@ class Settings(commands.Cog, description='Настройка бота'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.aliases = ['settings']
         
 
     @commands.has_guild_permissions(administrator=True)
@@ -119,15 +118,6 @@ class Settings(commands.Cog, description='Настройка бота'):
 
         embed = discord.Embed(title=version, description=text, color=0x2f3136)
         await ctx.send(embed=embed)
-
-
-    @commands.Cog.listener()
-    async def on_error(self, event, *args, **kwargs):
-        try:
-            channel = await self.bot.fetch_channel(859816092008316928)
-            await channel.send(f'**[ERROR]:** {event}')
-        except Exception as e:
-            print('[ERROR] ', e)
 
 
 

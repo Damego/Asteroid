@@ -3,14 +3,8 @@ import discord
 from discord_components import Button, ButtonStyle
 
 from extensions.bot_settings import get_embed_color, get_db, get_prefix
+from ._errors import TagNotFound, ForbiddenTag
 
-
-
-class TagNotFound(commands.CommandError):
-    pass
-
-class ForbiddenTag(commands.CommandError):
-    pass
 
 
 class Tags(commands.Cog, description='Теги'):
@@ -18,7 +12,6 @@ class Tags(commands.Cog, description='Теги'):
         self.bot = bot
         self.hidden = False
         self.server = get_db()
-        self.aliases = ['tags', 'tag']
 
         self.forbidden_tags = ['add', 'edit', 'list', 'remove', 'name']
 
@@ -36,6 +29,7 @@ class Tags(commands.Cog, description='Теги'):
 
         embed = discord.Embed(title=title, description=description, color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
+
 
     @tag.command(
         name='add',
@@ -75,7 +69,7 @@ class Tags(commands.Cog, description='Теги'):
     @tag.command(
         name='remove',
         aliases=['-'],
-        description='Удаляет тег (Админ)',
+        description='Удаляет тег',
         help='[название тега]',
         usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
@@ -126,7 +120,7 @@ class Tags(commands.Cog, description='Теги'):
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(
+    @tag.command(
         name='raw',
         description='Выдаёт исходник описания без форматирования',
         help='[название тега]',
@@ -241,22 +235,6 @@ class Tags(commands.Cog, description='Теги'):
             return await interaction.respond(type=4, content=f'Сохраните, чтобы получить исходник!')
             
         await interaction.respond(type=4, content=f'```{content}```')
-
-
-    @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, TagNotFound):
-            desc = 'Тег не найден!'
-        elif isinstance(error, ForbiddenTag):
-            desc = 'Этот тег нельзя использовать!'
-        else:
-            return
-
-        embed = discord.Embed(description = desc, color=0xED4245)
-        try:
-            await ctx.send(embed=embed)
-        except:
-            await ctx.send(desc)
 
 
 
