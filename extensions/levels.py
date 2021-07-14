@@ -37,10 +37,42 @@ class Levels(commands.Cog, description='Cистема уровней'):
             return
         voice = self.server[str(member.guild.id)]['voice_time']
 
-        if (not before.channel) and after.channel:
-            voice[str(member.id)] = int(time())
-        elif member not in before.channel.members and (not after.channel):
-            await self.check_time(member, voice)
+        if (not before.channel) and after.channel: # * If member join to channel
+            members = after.channel.members
+            if len(members) == 2:
+                voice[str(member.id)] = int(time())
+
+                first_member = members[0]
+                if str(first_member.id) not in voice:
+                    voice[str(first_member.id)] = int(time())
+            elif len(members) > 2:
+                voice[str(member.id)] = int(time())
+
+        elif member not in before.channel.members and (not after.channel): # * if member left from channel
+            members = before.channel.members
+            if len(members) == 1:
+                await self.check_time(member, voice)
+                first_member = members[0]
+                await self.check_time(first_member, voice)
+            elif len(members) > 1:
+                await self.check_time(member, voice)
+        elif member not in before.channel.members and member in after.channel.members: # * If member moved from one channel to another
+            before_members = before.channel.members
+            after_members = after.channel.members
+
+            if len(before_members) == 0:
+                if len(after_members) == 1:
+                    return
+                elif len(after_members) > 1:
+                    if len(after_members) == 2:
+                        voice[str(after_members[0].id)] = int(time())
+                    voice[str(member.id)] = int(time())
+
+            if len(before_members) == 1:
+                await self.check_time(before_members[0], voice)
+            if len(after_members) == 1:
+                await self.check_time(after_members[0], voice)
+
 
     async def check_time(self, member, voice):
         try:
@@ -75,7 +107,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
             if str(user_id) not in self.server[str(message.guild.id)]['users']:
                 await self.add_member(message)
             else:
-                xp = randint(10,25)
+                xp = randint(25,35)
                 await update_member(message, xp)
 
 
@@ -89,7 +121,9 @@ class Levels(commands.Cog, description='Cистема уровней'):
         userstats = self.server[str(member.guild.id)]['users'][str(member.id)]
 
         userstats['xp'] = 0
-        userstats['level'] = 0
+        userstats['all_xp'] = 0
+        userstats['level'] = 1
+        userstats['voice_time_count'] = 0
         if 'on_join_role' in self.server[str(member.guild.id)]['configuration']:
             userstats['role'] = self.server[str(member.guild.id)]['configuration']['on_join_role']
             await member.add_roles(member.guild.get_role(userstats['role']))
@@ -101,8 +135,9 @@ class Levels(commands.Cog, description='Cистема уровней'):
     @commands.has_guild_permissions(administrator=True)
     async def clear_lvl(self, ctx:commands.Context):
         userstats = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]
-        userstats['level'] = 0
+        userstats['level'] = 1
         userstats['xp'] = 0
+        userstats['all_xp'] = 0
         userstats['role'] = ''
 
         await ctx.message.add_reaction('✅')
@@ -118,36 +153,28 @@ class Levels(commands.Cog, description='Cистема уровней'):
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(
-        description='Устанавливает роль в базе участнику сервера',
-        help='[Участник] [роль]',
-        usage='Только для Администрации',
-        hidden=True)
-    @commands.has_guild_permissions(administrator=True)
-    async def set_level_role(self, ctx:commands.Context, member:discord.Member, role:discord.Role):
-        self.server[str(ctx.guild.id)]['users'][str(member.id)]['role'] = role.id
+    @commands.group(name='level_role', aliases=['lr'], description='Команда для управления Уровнями', help='[команда]', invoke_without_command=True)
+    async def level_role(self, ctx:commands.Context):
+        await ctx.send('Здесь ничего нет :(')
 
-        await ctx.message.add_reaction('✅')
-
-
-    @commands.command(
-        name='add_level_role',
+    @level_role.command(
+        name='add',
         description='Добавляет уровень для роли',
         help='[уровень] [роль]',
         usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
-    async def add_level_role(self, ctx:commands.Context, level:str, role:discord.Role):
+    async def add(self, ctx:commands.Context, level:str, role:discord.Role):
         self.server[str(ctx.guild.id)]['roles_by_level'][level] = role.id
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(
-        name='remove_level_role',
+    @level_role.command(
+        name='remove',
         description='Удаляёт уровень для роли',
         help='[уровень]',
         usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
-    async def remove_level_role(self, ctx:commands.Context, level):
+    async def remove(self, ctx:commands.Context, level):
         levels = self.server[str(ctx.guild.id)]['roles_by_level']
         try:
             del levels[level]
@@ -156,13 +183,29 @@ class Levels(commands.Cog, description='Cистема уровней'):
             await ctx.reply('Такого уровня не существует!')
 
 
-    @commands.command(
-        name='reset_levels',
+    @level_role.command(
+        name='replace',
+        description='Заменяет роль уровня на другой уровень',
+        help='[старый уровень] [новый уровень]',
+        usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
+    async def replace(self, ctx:commands.Context, old, new):
+        roles_by_level = self.server[str(ctx.guild.id)]['roles_by_level']
+        try:
+            role = roles_by_level[old]
+        except KeyError:
+            return await ctx.message.add_reaction('❌')
+        del roles_by_level[old]
+        roles_by_level[new] = role
+        await ctx.message.add_reaction('✅')
+
+    @level_role.command(
+        name='reset',
         description='Очищает весь список уровней',
         help='',
         hidden=True)
-    @commands.is_owner()
-    async def reset_levels(self, ctx:commands.Context):
+    @is_bot_or_guild_owner()
+    async def reset(self, ctx:commands.Context):
         self.server[str(ctx.guild.id)]['roles_by_level'] = {}
         await ctx.message.add_reaction('✅')
 
@@ -206,7 +249,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
             await ctx.message.add_reaction('✅')
         except KeyError:
             await ctx.reply('Роль не задана!')
-        
+
 
     @commands.command(
         name='give_everyone_start_role',
@@ -256,7 +299,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
     async def get_levels(self, ctx:commands.Context):
         dict_levels = self.server[str(ctx.guild.id)]['roles_by_level']
         content = ''
-        
+
         for level in dict_levels:
             role = ctx.guild.get_role(dict_levels[level])
             content += f'{level} — {role.mention}\n'
@@ -267,23 +310,53 @@ class Levels(commands.Cog, description='Cистема уровней'):
         embed = discord.Embed(description=content, color=get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
+
     @commands.command(name='how_much_sit', description='Показывает, сколько времени вы сидите в голосовом канале', help='')
     async def how_much_sit(self, ctx:commands.Context):
         try:
             start_sit = self.server[str(ctx.guild.id)]['voice_time'][str(ctx.author.id)]
         except KeyError:
             return await ctx.reply('Вы не сидите в голосовом канале!')
+        try:
+            all_time = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]['voice_time_count']
+        except KeyError:
+            all_time = 0
 
         duration = int(time() - start_sit) // 60
         duration_hours = duration // 60
         duration_minutes = duration % 60
         if duration_hours == 0:
-            content = f'Вы сидите `{duration_minutes}` мин.'
+            content = f'Вы сидите `{duration_minutes}` мин. Общее время в головом канале: {all_time+duration}'
         else:
-            content = f'Вы сидите `{duration_hours}` час. `{duration_minutes}` мин.'
+            content = f'Вы сидите `{duration_hours}` час. `{duration_minutes}` мин. Общее время в головом канале: {all_time+duration}'
         await ctx.reply(content)
 
+    @commands.command(
+        name='clear_members_stats',
+        description='Удаляет уровневую статистику всех пользователей на сервере',
+        help='',
+        usage='Только для владельца сервера')
+    @is_bot_or_guild_owner()
+    async def clear_members_stats(self, ctx:commands.Context):
+        members = ctx.guild.members
+        if 'on_join_role' in self.server[str(ctx.guild.id)]['configuration']:
+            role = self.server[str(ctx.guild.id)]['configuration']['on_join_role']
+        else:
+            role = ''
+        for member in members:
+            if member.bot:
+                continue
+            self.server[str(ctx.guild.id)]['users'][str(member.id)] = {
+                'level':1,
+                'xp':0,
+                'all_xp':0,
+                'role':role
+            }
+            if role != '':
+                await member.add_roles(ctx.guild.get_role(role))
+        await ctx.message.add_reaction('✅')
 
+            
 
 def setup(bot):
     bot.add_cog(Levels(bot))

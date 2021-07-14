@@ -21,7 +21,7 @@ def get_prefix(guild_id):
     return server[str(guild_id)]['configuration']['prefix']
 
 
-version = 'v1.0.0-BETA'
+version = 'v1.0.0'
 
 server = get_db()
 
@@ -36,6 +36,14 @@ multiplier = {
     's': 1
     }
 
+
+def is_bot_or_guild_owner():
+    async def predicate(ctx):
+        return ctx.author.id in [ctx.bot.owner_id, ctx.guild.owner_id]
+    return commands.check(predicate)
+
+
+
 class DurationConverter(commands.Converter):
     async def convert(self, ctx, argument):
         amount = argument[:-1]
@@ -45,13 +53,6 @@ class DurationConverter(commands.Converter):
             return (int(amount), time_format)
 
         raise commands.BadArgument(message='Неверный формат времени!')
-
-
-
-def is_bot_or_guild_owner():
-    async def predicate(ctx):
-        return ctx.author.id in [ctx.bot.owner_id, ctx.guild.owner_id]
-    return commands.check(predicate)
 
 
 

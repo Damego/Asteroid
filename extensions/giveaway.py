@@ -1,5 +1,6 @@
 from asyncio import sleep
 from random import choice
+from time import time
 
 import discord
 from discord.ext import commands
@@ -36,9 +37,8 @@ class Giveaway(commands.Cog, description='Розыгрыши'):
         usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def role(self, ctx:commands.Context, duration:DurationConverter, role:discord.Role, *, message):
-        embed = discord.Embed(title='Розыгрыш роли', description=message, color=get_embed_color(ctx.guild.id))
-        await self.create_message(ctx, embed)
-        await self.process_giveaway(ctx, duration, 'role', role=role)
+        msg = await self.create_message(ctx, 'Розыгрыш Роли', duration, message)
+        await self.process_giveaway(ctx, duration, msg, 'role', role=role)
 
 
     @giveaway.command(
@@ -48,10 +48,8 @@ class Giveaway(commands.Cog, description='Розыгрыши'):
         usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def xp(self, ctx:commands.Context, duration:DurationConverter, exp:int, *, message):
-        print(type(self))
-        embed = discord.Embed(title='Розыгрыш опыта', description=message, color=get_embed_color(ctx.guild.id))
-        await self.create_message(ctx, embed)
-        await self.process_giveaway(ctx, duration, 'exp', exp=exp)
+        msg = await self.create_message(ctx, 'Розыгрыш Опыта', duration, message)
+        await self.process_giveaway(ctx, duration, msg, 'exp', exp=exp)
 
 
     @giveaway.command(
@@ -59,32 +57,39 @@ class Giveaway(commands.Cog, description='Розыгрыши'):
         description='Выдаёт символическую вещь рандомному участнику после установленного времени',
         help='[время] ["вещь"] [сообщение]')
     async def thing(self, ctx:commands.Context, duration:DurationConverter, thing:str, *, message):
-        embed = discord.Embed(title='Розыгрыш!', description=message, color=get_embed_color(ctx.guild.id))
-        await self.create_message(ctx, embed)
-        await self.process_giveaway(ctx, duration, 'thing', thing=thing)
+        msg = await self.create_message(ctx, 'Розыгрыш', duration, message)
+        await self.process_giveaway(ctx, duration, msg, 'thing', thing=thing)
+
 
     @giveaway.command(
         name='random',
         description='Рандомно выбирает 1 участника после установленного времени',
         help='[время] [сообщение]')
     async def random(self, ctx:commands.Context, duration:DurationConverter, *, message):
-        embed = discord.Embed(title='Розыгрыш!', description=message, color=get_embed_color(ctx.guild.id))
-        await self.create_message(ctx, embed)
-        await self.process_giveaway(ctx, duration, 'other')
+        msg = await self.create_message(ctx, 'Рандомный пользователь', duration, message)
+        await self.process_giveaway(ctx, duration, msg, 'other')
 
-    async def create_message(self, ctx:commands.Context, embed:discord.Embed):
+
+    async def create_message(self, ctx:commands.Context, mode, duration:DurationConverter, message:discord.Message):
+        amount, time_format = duration
+        timestamp = amount * multiplier[time_format]
+        embed = discord.Embed(title=mode)
+        embed.description = f"""
+        Заканчивается через <t:{int(time() + timestamp)}:R>
+        {message}
+        """
         await ctx.message.delete()
         components = [
             Button(style=ButtonStyle.green, label='Принять участие', id='giveaway_accept')
         ]
 
-        self.msg = await ctx.send(embed=embed, components=components)
+        return await ctx.send(embed=embed, components=components)
 
 
-    async def process_giveaway(self, ctx, duration, mode, *, role:discord.Role=None, exp:int=None, thing:str=None):
+    async def process_giveaway(self, ctx, duration, message:discord.Message, mode, *, role:discord.Role=None, exp:int=None, thing:str=None):
         amount, time_format = duration
         guild_id = str(ctx.guild.id)
-        message_id = str(self.msg.id)
+        message_id = str(message.id)
 
         await sleep(amount * multiplier[time_format])
         winner = choice(self.members[guild_id][message_id])
@@ -104,7 +109,7 @@ class Giveaway(commands.Cog, description='Розыгрыши'):
             embed.description =f'Победитель, {member.mention}!'
 
         await ctx.send(embed=embed)
-        await self.msg.delete()
+        await message.delete()
         del self.members[guild_id][message_id]
     
 

@@ -7,6 +7,7 @@ from discord.ext import commands
 import qrcode
 
 from extensions.bot_settings import DurationConverter, get_embed_color, get_db, get_prefix, multiplier, version
+from ._levels import formula_of_experience
 
 
 
@@ -42,7 +43,9 @@ class Misc(commands.Cog, description='Остальные команды'):
     async def info(self, ctx:commands.Context, member:discord.Member):
         user_stats = self.server[str(ctx.guild.id)]['users'][str(member.id)]
         user_level = 0 if 'level' not in user_stats else user_stats['level']
+        user_exp_for_next_level = formula_of_experience(user_level)
         user_xp = 0 if 'xp' not in user_stats else user_stats['xp']
+        user_all_xp = 0 if 'all_xp' not in user_stats else user_stats['all_xp']
         user_voice_time = 0 if 'voice_time_count' not in user_stats else user_stats['voice_time_count']
 
         embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild.id))
@@ -72,7 +75,7 @@ class Misc(commands.Cog, description='Остальные команды'):
 
         stats = f"""
         <:level:863677232239869964> **Уровень:** `{user_level}`
-        <:exp:863672576941490176> **Опыт:** `{user_xp}/{user_level ** 4}`
+        <:exp:863672576941490176> **Опыт:** `{user_xp}/{user_exp_for_next_level}` Всего: `{user_all_xp}`
         <:voice_time:863674908969926656> **Время в голосом канале:** `{user_voice_time}` мин.
         """
 

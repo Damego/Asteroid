@@ -38,6 +38,7 @@ async def on_ready():
     DiscordComponents(bot)
     print(f'Бот {bot.user} готов к работе!')
 
+
 @bot.event
 async def on_guild_join(guild):
     server[str(guild.id)] = {
@@ -62,6 +63,7 @@ async def on_guild_join(guild):
         'tags':{},
         'voice_time':{}
     }
+
 
 @bot.command()
 @commands.is_owner()
@@ -89,6 +91,7 @@ async def full_clear_guild_db(ctx):
         'voice_time':{}
     }
 
+
 @bot.command()
 @commands.is_owner()
 async def clear_guild_settings(ctx):
@@ -109,6 +112,7 @@ async def clear_guild_settings(ctx):
         }
     }
 
+
 @bot.event
 async def on_guild_remove(guild):
     server.pop(str(guild.id))
@@ -120,17 +124,20 @@ async def load(ctx, extension):
     bot.load_extension(f'extensions.{extension}')
     await ctx.send(f'Плагин {extension} загружен!')
 
+
 @bot.command(name='unload', help='Отключение плагина', hidden=True)
 @commands.is_owner()
 async def unload(ctx, extension):
     bot.unload_extension(f'extensions.{extension}')
     await ctx.send(f'Плагин {extension} отключен!')
 
+
 @bot.command(aliases=['r'], name='reload', help='Перезагрузка плагина', hidden=True)
 @commands.is_owner()
 async def reload(ctx, extension):
     bot.reload_extension(f'extensions.{extension}')
     await ctx.message.add_reaction('✅')
+
 
 @bot.command(aliases=['ra'], name='reload_all', help='Перезагрузка всех плагинов', hidden=True)
 @commands.is_owner()
@@ -140,6 +147,7 @@ async def reload_all(ctx):
         bot.reload_extension(extension)
         print(f'{extension} was reloaded!')
     await ctx.message.add_reaction('✅')
+
 
 @bot.command(name='cmd', description='None', help='None')
 @commands.is_owner()
