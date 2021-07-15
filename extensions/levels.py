@@ -183,6 +183,13 @@ class Levels(commands.Cog, description='Cистема уровней'):
             await ctx.reply('Такого уровня не существует!')
 
 
+    @level_role.command(name='set', description='Вручную устанавливает роль пользователю в базе, если автоматически не выставилась', help='[участник] [роль]')
+    @is_bot_or_guild_owner()
+    async def set(self, ctx:commands.Context, member:discord.Member, role:discord.Role):
+        self.server[str(ctx.guild.id)]['users'][str(member.id)]['role'] = role.id
+        await ctx.message.add_reaction('✅')
+
+
     @level_role.command(
         name='replace',
         description='Заменяет роль уровня на другой уровень',
@@ -198,6 +205,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
         del roles_by_level[old]
         roles_by_level[new] = role
         await ctx.message.add_reaction('✅')
+
 
     @level_role.command(
         name='reset',
@@ -353,7 +361,8 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 'level':1,
                 'xp':0,
                 'all_xp':0,
-                'role':role
+                'role':role,
+                'voice_time_count':0
             }
             if role != '':
                 await member.add_roles(ctx.guild.get_role(role))
