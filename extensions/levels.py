@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 from extensions.bot_settings import get_db, get_embed_color, get_prefix, is_bot_or_guild_owner
-from ._levels import update_member
+from ._levels import update_member, formula_of_experience
 
 
 
@@ -298,10 +298,14 @@ class Levels(commands.Cog, description='Cистема уровней'):
     async def get_levels(self, ctx:commands.Context):
         dict_levels = self.server[str(ctx.guild.id)]['roles_by_level']
         content = ''
+        all_xp = 0
 
         for level in dict_levels:
             role = ctx.guild.get_role(dict_levels[level])
-            content += f'{level} — {role.mention}\n'
+            for _level in range(1, int(level)):
+              exp = formula_of_experience(_level)
+              all_xp += exp
+            content += f'{level} — {role.mention} Опыта: {all_xp}\n'
 
         if content == '':
             content = 'Уровней нет!'
