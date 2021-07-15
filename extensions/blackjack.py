@@ -123,6 +123,7 @@ class BlackJack(commands.Cog, description='Блэкджек'):
                             await message.edit(components=[])
                             return
             elif i_value == 'exit_from_game':
+                await message.edit(content='Вы вышли из игры!', components=[])
                 return
 
 
