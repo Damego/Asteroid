@@ -298,9 +298,9 @@ class Levels(commands.Cog, description='Cистема уровней'):
     async def get_levels(self, ctx:commands.Context):
         dict_levels = self.server[str(ctx.guild.id)]['roles_by_level']
         content = ''
-        all_xp = 0
-
+        
         for level in dict_levels:
+            all_xp = 0
             role = ctx.guild.get_role(dict_levels[level])
             for _level in range(1, int(level)):
               exp = formula_of_experience(_level)
