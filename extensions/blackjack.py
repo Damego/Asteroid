@@ -9,7 +9,7 @@ from ._levels import update_member
 
 
 
-class BlackJack(commands.Cog, description=''):
+class BlackJack(commands.Cog, description='Блэкджек'):
     def __init__(self, bot):
         self.bot = bot
         self.all_nums = {
@@ -27,6 +27,7 @@ class BlackJack(commands.Cog, description=''):
             'К': 10,
             'Т': 11,
         }
+        self.hidden = False
 
         self.spades = {'♠2', '♠3', '♠4', '♠5', '♠6', '♠7', '♠8', '♠9', '♠10', '♠В', '♠Д', '♠К', '♠Т'}
         self.clubs = {'♣2', '♣3', '♣4', '♣5', '♣6', '♣7', '♣8', '♣9', '♣10', '♣В', '♣Д', '♣К', '♣Т'}

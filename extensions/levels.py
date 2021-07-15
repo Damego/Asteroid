@@ -202,10 +202,9 @@ class Levels(commands.Cog, description='Cистема уровней'):
     @level_role.command(
         name='reset',
         description='Очищает весь список уровней',
-        help='',
-        hidden=True)
+        help='')
     @is_bot_or_guild_owner()
-    async def reset(self, ctx:commands.Context):
+    async def reset_level_roles(self, ctx:commands.Context):
         self.server[str(ctx.guild.id)]['roles_by_level'] = {}
         await ctx.message.add_reaction('✅')
 

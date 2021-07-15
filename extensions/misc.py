@@ -7,7 +7,7 @@ from discord.ext import commands
 import qrcode
 
 from extensions.bot_settings import DurationConverter, get_embed_color, get_db, get_prefix, multiplier, version
-from ._levels import formula_of_experience
+from extensions._levels import formula_of_experience
 
 
 
