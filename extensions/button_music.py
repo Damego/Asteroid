@@ -1,16 +1,16 @@
 import discord
 from discord.ext import commands
-from discord_components import DiscordComponents, Button, ButtonStyle
+from discord_components import Button, ButtonStyle
 import DiscordUtils
 
-from extensions.bot_settings import get_embed_color, get_db
+from extensions.bot_settings import get_embed_color
 
 
 class NotConnectedToVoice(commands.CommandError):
     pass
 
 
-class NewMusic(commands.Cog, description='Музыка с плеером'):
+class ButtonMusic(commands.Cog, description='Музыка с кнопками'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
@@ -20,24 +20,27 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        player = self.music.get_player(guild_id=member.guild.id)
-        print('after channel', after.channel)
         if not member.bot and after.channel is None:
-            if not [m for m in before.channel.members if not m.bot]:
-                try:
-                    await self.msg.channel.send('**Бот отключился, из-за отсутствия слушателей!**', delete_after=10)
-                    await player.stop()
-                    await self.voice_client.disconnect()
-                    await self.msg.edit(components=[])
-                except:
-                    pass
-                
-        elif member.bot and after.channel is None:
+            members = before.channel.members
+            if len(members) == 1 and members[0].bot:
+                await self.stop_on_leave(member.guild.id)
+                system_channel = member.guild.system_channel
+                if system_channel:
+                    await system_channel.send('**Бот отключился, из-за отсутствия слушателей!**', delete_after=10)
+        elif member.bot and after.channel is None and before.channel:
+            members = before.channel.members
+            if len(members) == 0: return
+            await self.stop_on_leave(member.guild.id)
+
+    async def stop_on_leave(self, guild_id):
+        player = self.music.get_player(guild_id=guild_id)
+        try:
             await player.stop()
-            print('vc b',self.voice_client)
             await self.voice_client.disconnect()
-            print('vc a',self.voice_client)
-            await self.msg.edit(components=[])
+            if hasattr(self, 'msg'):
+                await self.msg.edit(components=[])
+        except Exception:
+            pass
             
 
     async def wait_button_click(self, ctx, msg):
@@ -47,35 +50,36 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
             
             if ('move_members', True) in member.guild_permissions:
                 return True
-            else:
-                try:
-                    members_in_channel = member.voice.channel.members
-                except Exception:
-                    pass
-                for channel_member in members_in_channel:
-                    if channel_member.bot:
-                        return True
+
+            channel = member.voice.channel
+            if not channel:
+                return False
+
+            members = member.voice.channel.members
+            for member in members:
+                if member.bot:
+                    return True
 
         while True:
             interaction = await self.bot.wait_for("button_click")
             is_in_channel = await check(interaction)
             if not is_in_channel:
-                await interaction.interactionpond(type=5, content='Подключитесь к каналу, для управления музыкой')
+                await interaction.respond(type=5, content='Подключитесь к каналу, для управления музыкой')
             else:
-                await interaction.interactionpond(type=6)
-                id = interaction.component.id
+                await interaction.respond(type=6)
+                button_id = interaction.component.id
                 
                 try:
-                    if id == '1':
+                    if button_id == 'pause':
                         await self.new_pause_music(ctx, msg)
-                    elif id == '2':
+                    elif button_id == 'stop':
                         await self.new_stop_music(ctx, msg)
                         return
-                    elif id == '3':
+                    elif button_id == 'skip':
                         await self.new_skip_music(ctx, msg)
-                    elif id == '4':
+                    elif button_id == 'resume':
                         await self.new_resume_music(ctx, msg)
-                    elif id == '5':
+                    elif button_id == 'toggle_loop':
                         await self.new_repeat_music(ctx, msg)
                 except Exception as e:
                     print(e)
@@ -91,7 +95,7 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
             duration = 'Прямая трансляция'
 
         embed = discord.Embed(title='Запуск музыки',
-                              color=get_embed_color(ctx.message))
+                              color=get_embed_color(ctx.guild.id))
         embed.add_field(name='Название:',
                         value=f'[{track.name}]({track.url})', inline=False)
         embed.add_field(name='Продолжительность:',
@@ -100,10 +104,10 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
         embed.set_thumbnail(url=track.thumbnail)
 
         self.components = [[
-            Button(style=ButtonStyle.gray, label='Пауза', id=1),
-            Button(style=ButtonStyle.red, label='Стоп', id=2),
-            Button(style=ButtonStyle.blue, label='Пропустить', id=3),
-            Button(style=ButtonStyle.blue, label='Вкл. повтор', id=5)
+            Button(style=ButtonStyle.gray, label='Пауза', id='pause'),
+            Button(style=ButtonStyle.red, label='Стоп', id='stop'),
+            Button(style=ButtonStyle.blue, label='Пропустить', id='skip'),
+            Button(style=ButtonStyle.blue, label='Вкл. повтор', id='toggle_loop')
         ]]
 
         msg = await ctx.send(embed=embed, components=self.components)
@@ -123,7 +127,7 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
             duration = 'Прямая трансляция'
 
         embed = discord.Embed(title='Запуск музыки',
-                              color=get_embed_color(ctx.message))
+                              color=get_embed_color(ctx.guild.id))
         embed.add_field(name='Название:',
                         value=f'[{track.name}]({track.url})', inline=False)
         embed.add_field(name='Продолжительность:',
@@ -137,45 +141,25 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
     async def new_play_music(self, ctx, *, query):
         if not ctx.message.author.voice:
             raise NotConnectedToVoice
+        await ctx.message.delete()
         
-
         voice_channel = ctx.author.voice.channel
 
-        print(ctx.voice_client)
-        if not ctx.voice_client is None:
-             if not ctx.voice_client.is_playing():
-                print('disconnect')
-                try:
-                    await ctx.voice_client.stop()
-                except Exception as e:
-                    print('discnn', e)
-                    try:
-                        await ctx.voice_client.disconnect()
-                    except Exception as e:
-                        print('in try try', e)
-
-
-        print('after discnn',ctx.voice_client)
+        if ctx.voice_client:
+            await ctx.voice_client.move_to(voice_channel)
         try:
-            print('is conn', ctx.voice_client.is_connected())
-
-            if not ctx.voice_client.is_connected():
-                await voice_channel.connect()
-        except Exception as e:
-            print(e)
-
-
-        if not ctx.voice_client:
             await voice_channel.connect()
-            self.voice_client = ctx.voice_client
-        print(ctx.voice_client)
+        except:
+            pass
+        self.voice_client = ctx.voice_client
 
         player = self.music.get_player(guild_id=ctx.guild.id)
         if player is None:
             player = self.music.create_player(ctx, ffmpeg_error_betterfix=True)
 
         track = await player.queue(query, search=True)
-        await ctx.message.delete()
+
+        
         if not ctx.voice_client.is_playing():
             await player.play()
             msg = await self.send_msg(ctx, track)
@@ -197,13 +181,13 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
             await player.pause()
             try:
                 self.components[0][0] = Button(
-                    style=ButtonStyle.green, label='Продолжить', id=4)
+                    style=ButtonStyle.green, label='Продолжить', id='resume')
                 await msg.edit(components=self.components)
             except Exception as e:
                 print('IN PAUSE', e)
         else:
             embed = discord.Embed(
-                title='Музыка не воспроизводится!', color=get_embed_color(ctx.message))
+                title='Музыка не воспроизводится!', color=get_embed_color(ctx.guild.id))
             await ctx.send(embed=embed, delete_after=10)
 
     async def new_resume_music(self, ctx, msg):
@@ -219,21 +203,21 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
         song = await player.toggle_song_loop()
         if song.is_looping:
             self.components[0][3] = Button(
-                style=ButtonStyle.blue, label='Выкл. повтор', id=5)
+                style=ButtonStyle.blue, label='Выкл. повтор', id='toggle_loop')
         else:
             self.components[0][3] = Button(
-                style=ButtonStyle.blue, label='Вкл. повтор', id=5)
+                style=ButtonStyle.blue, label='Вкл. повтор', id='toggle_loop')
         await msg.edit(components=self.components)
 
     async def new_skip_music(self, ctx, msg):
         player = self.music.get_player(guild_id=ctx.guild.id)
         try:
-            old_track, new_track = await player.skip(force=True)
+            new_track = await player.skip(force=True)
             await self.update_msg(ctx, msg, new_track)
-        except TypeError:
+        except Exception:
             await ctx.send('**Плейлист пуст! Добавьте музыку!**', delete_after=15)
 
-    # ERRORS
+    #ERRORS
     @new_play_music.error
     async def play_music_error(self, ctx, error):
         if isinstance(error, NotConnectedToVoice):
@@ -241,5 +225,4 @@ class NewMusic(commands.Cog, description='Музыка с плеером'):
 
 
 def setup(bot):
-    DiscordComponents(bot)
-    bot.add_cog(NewMusic(bot))
+    bot.add_cog(ButtonMusic(bot))
