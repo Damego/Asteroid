@@ -183,13 +183,6 @@ class Levels(commands.Cog, description='Cистема уровней'):
             await ctx.reply('Такого уровня не существует!')
 
 
-    @level_role.command(name='set', description='Вручную устанавливает роль пользователю в базе, если автоматически не выставилась', help='[участник] [роль]')
-    @is_bot_or_guild_owner()
-    async def set(self, ctx:commands.Context, member:discord.Member, role:discord.Role):
-        self.server[str(ctx.guild.id)]['users'][str(member.id)]['role'] = role.id
-        await ctx.message.add_reaction('✅')
-
-
     @level_role.command(
         name='replace',
         description='Заменяет роль уровня на другой уровень',
@@ -214,6 +207,61 @@ class Levels(commands.Cog, description='Cистема уровней'):
     @is_bot_or_guild_owner()
     async def reset_level_roles(self, ctx:commands.Context):
         self.server[str(ctx.guild.id)]['roles_by_level'] = {}
+        await ctx.message.add_reaction('✅')
+
+
+    @level_role.group(
+        name='set',
+        description='Позволяет изменить статистику участнику сервера',
+        help='[команда]',
+        invoke_without_command=True,
+        usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
+    async def set(self, ctx:commands.Context):
+        await ctx.send('Здесь ничего нет! Используйте команду `help Levels` для получения информации!')
+        
+
+    @set.command(
+        name='role',
+        description='Устанавливает роль участнику сервера в базе данных',
+        help='[участник] [роль]',
+        usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
+    async def role(self, ctx:commands.Context, member:discord.Member, role:discord.Role):
+        self.server[str(ctx.guild.id)]['users'][str(member.id)]['role'] = role.id
+        await ctx.message.add_reaction('✅')
+
+
+    @set.command(
+        name='time',
+        description='Устанавливает время участнику сервера в базе данных',
+        help='[участник] [время (мин)]',
+        usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
+    async def time(self, ctx:commands.Context, member:discord.Member, time:int):
+        self.server[str(ctx.guild.id)]['users'][str(member.id)]['voice_time_count'] = time
+        await ctx.message.add_reaction('✅')
+
+
+    @set.command(
+        name='level',
+        description='Устанавливает уровень участнику сервера в базе данных',
+        help='[участник] [уровень]',
+        usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
+    async def level(self, ctx:commands.Context, member:discord.Member, level:int):
+        self.server[str(ctx.guild.id)]['users'][str(member.id)]['level'] = level
+        await ctx.message.add_reaction('✅')
+
+
+    @set.command(
+        name='xp',
+        description='Устанавливает опыт участнику сервера в базе данных',
+        help='[участник] [кол-во опыта]',
+        usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
+    async def xp(self, ctx:commands.Context, member:discord.Member, xp:int):
+        self.server[str(ctx.guild.id)]['users'][str(member.id)]['xp'] = xp
         await ctx.message.add_reaction('✅')
 
 

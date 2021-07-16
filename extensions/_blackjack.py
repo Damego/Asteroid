@@ -9,7 +9,7 @@ from ._levels import update_member
 
 
 
-class BlackJack(commands.Cog, description='Блэкджек'):
+class BlackJack():
     def __init__(self, bot):
         self.bot = bot
         self.all_nums = {
@@ -27,7 +27,6 @@ class BlackJack(commands.Cog, description='Блэкджек'):
             'К': 10,
             'Т': 11,
         }
-        self.hidden = False
 
         self.spades = {'♠2', '♠3', '♠4', '♠5', '♠6', '♠7', '♠8', '♠9', '♠10', '♠В', '♠Д', '♠К', '♠Т'}
         self.clubs = {'♣2', '♣3', '♣4', '♣5', '♣6', '♣7', '♣8', '♣9', '♣10', '♣В', '♣Д', '♣К', '♣Т'}
@@ -35,26 +34,8 @@ class BlackJack(commands.Cog, description='Блэкджек'):
         self.diamonds = {'♦2', '♦3', '♦4', '♦5', '♦6', '♦7', '♦8', '♦9', '♦10', '♦В', '♦Д', '♦К', '♦Т'}
 
 
-    @commands.group(name='blackjack', description='Запускает игру Блэкджек', help='', invoke_without_command=True)
-    async def blackjack(self, ctx:commands.Context):
-        self.guild_id = ctx.guild.id
-        start_menu_components = [[
-                Button(style=ButtonStyle.green, label='Начать игру', id='start_game'),
-                Button(style=ButtonStyle.red, label='Выйти из игры', id='exit_game'),
-            ]]
-
-        msg = await ctx.send(content='Блэкджек', components=start_menu_components)
-
-        interaction = await self.bot.wait_for('button_click', check=lambda i: i.user.id == ctx.author.id)
-        await interaction.respond(type=6)
-
-        if interaction.component.id == 'exit_game':
-            await msg.delete()
-            return
-        await self.prepare_for_game(ctx, msg)
-
-        
     async def prepare_for_game(self, ctx:commands.Context, message:discord.Message):
+        self.guild_id = ctx.guild.id
         self.sum_user_cards = 0
         self.sum_diler_cards = 0
         self.hidden_sum_diler_cards = 0
@@ -90,6 +71,7 @@ class BlackJack(commands.Cog, description='Блэкджек'):
             return
 
         await self.start_game(ctx, message)
+
 
     async def start_game(self, ctx:commands.Context, message:discord.Message):
         while True:
@@ -127,34 +109,6 @@ class BlackJack(commands.Cog, description='Блэкджек'):
                 return
 
 
-    @blackjack.command(name='rules', description='Выводит правила Блэкджека', help='')
-    async def rules(self, ctx:commands.Context):
-        description = f"""
-        **Правила игры в Блэкджек**
-*Карты:*
-    Всего карт: `52`. от 2 До Туза
-    Номинальные значения карт следующее, от двойки до десятки совпадают с номиналом.
-    Валет, Дама и Король имеют десять очков.
-    Туз на данный момент имеет **только** 11 очков!
-*Ход игры:*
-    Дилер раздает игроку и себе по 2 карты, и при этом открывает свою одну карту, а вторая остаётся закрытой.
-    Игрок может брать себе карту, до тех пор, пока не наступит 21 очко(Блэкджек), или перебор.
-    Игрок может остановиться и передать ход дилеру.
-*Выигрыш или проигрыш:*
-    Если сумма карт Игрока `равна` 21, то это Блэкджек.
-    Если сумма карт Игрока `больше` 21, то это перебор, и проигрыш.
-    Если сумма карт Дилера `равна` 21, то это Блэкджек у Дилера.
-    Если сумма карт Дилера `больше`, чем у Игрока, то побеждает Дилер.
-    Если сумма карт Дилера `меньше`, чем у Игрока, то побеждает Игрок.
-    Если сумма карт Дилера и Игрока `равны`, то это Ничья.
-
-    За выигрыш вам даётся 100 очков опыта, а за Блэкджек, 200 очков
-    
-    """
-        await ctx.send(description)
-
-
- # * METHODS
     def update_embed(self, diler_move:bool):
         if not diler_move:
             diler_cards_str = ', '.join(self.hidden_card_list)
@@ -177,6 +131,7 @@ class BlackJack(commands.Cog, description='Блэкджек'):
         self.user_cards_list.append(card)
         self.sum_user_cards += self.all_nums[card[1:]]
         return card
+
 
     def diler_take_card(self):
         card = choice(self.available_cards)
@@ -215,8 +170,3 @@ class BlackJack(commands.Cog, description='Блэкджек'):
                 await update_member(ctx.author, 100)
                 return True
         return False
-
-
-
-def setup(bot):
-    bot.add_cog(BlackJack(bot))

@@ -27,9 +27,11 @@ class Help(commands.Cog, description='Помощь'):
             _commands = self.bot.cogs[arg]
             await self.out_commands(_commands, embed, prefix)
         else:
-            for command in self.bot.commands:
-                if arg == command.name:
-                    embed = self._get_command_help(command, prefix)
+            for _command in self.bot.commands:
+                if arg == _command.name or arg in _command.aliases:
+                    embed = self._get_command_help(_command, prefix)
+                    if isinstance(_command, commands.Group):
+                        await self.out_commands(_command, embed, prefix)
                     break
             else:
                 raise BadArgument
