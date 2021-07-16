@@ -12,7 +12,7 @@ from ._levels import update_member
 
 
 
-class Giveaway(commands.Cog, description='Розыгрыши'):
+class Giveaways(commands.Cog, description='Розыгрыши'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
@@ -48,7 +48,7 @@ class Giveaway(commands.Cog, description='Розыгрыши'):
         usage='Только для Администрации')
     @commands.has_guild_permissions(administrator=True)
     async def xp(self, ctx:commands.Context, duration:DurationConverter, exp:int, *, message):
-        msg = await self.create_message(ctx, 'Розыгрыш Опыта', duration, message)
+        msg = await self.create_message(ctx, 'Розыгрыш опыта', duration, message)
         await self.process_giveaway(ctx, duration, msg, 'exp', exp=exp)
 
 
@@ -73,17 +73,24 @@ class Giveaway(commands.Cog, description='Розыгрыши'):
     async def create_message(self, ctx:commands.Context, mode, duration:DurationConverter, message:discord.Message):
         amount, time_format = duration
         timestamp = amount * multiplier[time_format]
-        embed = discord.Embed(title=mode)
+
+        if str(ctx.guild.id) not in self.members:
+            self.members[str(ctx.guild.id)] = {}
+        self.members[str(ctx.guild.id)][str(ctx.message.id)] = []
+
+        content = f'**Участников: {len(self.members[str(ctx.guild.id)][str(ctx.message.id)])}**'
+
+        embed = discord.Embed(title=mode, color=get_embed_color(ctx.guild.id))
         embed.description = f"""
-        Заканчивается через <t:{int(time() + timestamp)}:R>
-        {message}
+        **Заканчивается** <t:{int(time() + timestamp)}:R>
+        **Описание:** {message}
         """
         await ctx.message.delete()
         components = [
             Button(style=ButtonStyle.green, label='Принять участие', id='giveaway_accept')
         ]
 
-        return await ctx.send(embed=embed, components=components)
+        return await ctx.send(content=content, embed=embed, components=components)
 
 
     async def process_giveaway(self, ctx, duration, message:discord.Message, mode, *, role:discord.Role=None, exp:int=None, thing:str=None):
@@ -117,26 +124,28 @@ class Giveaway(commands.Cog, description='Розыгрыши'):
     async def on_button_click(self, interaction:Interaction):
         if interaction.component.id != 'giveaway_accept':
             return
-        guild = str(interaction.guild.id)
-        message = str(interaction.message.id)
-        user = interaction.user.id
+        guild_id = str(interaction.guild.id)
+        message_id = str(interaction.message.id)
+        user_id = interaction.user.id
 
-        if guild not in self.members:
-            self.members[guild] = {}
-        if message not in self.members[guild]:
-            self.members[guild][message] = []
+        if guild_id not in self.members:
+            self.members[guild_id] = {}
+        if message_id not in self.members[guild_id]:
+            self.members[guild_id][message_id] = []
 
         try:
             if not interaction.responded:
-                if user in self.members[guild][message]:
+                if user_id in self.members[guild_id][message_id]:
                     await interaction.respond(type=4, content='Вы уже приняли участие в этой раздаче!')
                 else:
                     await interaction.respond(type=4, content='Вы приняли участие!')
-                    self.members[guild][message].append(user)
+                    self.members[guild_id][message_id].append(user_id)
+                    message = interaction.message
+                    await message.edit(content=f'**Участников: {len(self.members[guild_id][message_id])}**')
         except Exception:
             pass
 
 
 
 def setup(bot):
-    bot.add_cog(Giveaway(bot))
+    bot.add_cog(Giveaways(bot))
