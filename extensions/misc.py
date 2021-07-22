@@ -79,6 +79,9 @@ class Misc(commands.Cog, description='Остальные команды'):
         <:voice_time:863674908969926656> **Время в голосом канале:** `{user_voice_time}` мин.
         """
 
+        if 'casino' in user_stats:
+            stats += f'\n <:casino_chips:867817313528971295>  **Фишек:** `{user_stats["casino"]["chips"]}`'
+
         embed.add_field(name='Статистика:', value=stats)
 
         embed.set_thumbnail(url=member.avatar_url)

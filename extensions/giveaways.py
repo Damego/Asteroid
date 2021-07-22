@@ -55,6 +55,7 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
         description='Выдаёт фишки рандомному участнику после установленного времени',
         help='[время] [кол-во фишек] [сообщение]',
         usage='Только для Администрации')
+    @commands.has_guild_permissions(administrator=True)
     async def chips(self, ctx:commands.Context, duration:DurationConverter, chips:int, *, message):
         msg = await self.create_message(ctx, 'Розыгрыш фишек', duration, message)
         await self.process_giveaway(ctx, duration, msg, 'chips', chips=chips)
