@@ -7,7 +7,7 @@ from discord.ext import commands
 from discord_components import Button, ButtonStyle
 from discord_components.interaction import Interaction
 
-from extensions.bot_settings import get_embed_color, DurationConverter, multiplier
+from .bot_settings import get_embed_color, DurationConverter, multiplier
 from ._levels import update_member
 
 
@@ -16,8 +16,6 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-
-        self.members = {}
 
 
     @commands.group(
@@ -52,6 +50,16 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
         await self.process_giveaway(ctx, duration, msg, 'exp', exp=exp)
 
 
+    @commands.command(
+        name='chips',
+        description='Выдаёт фишки рандомному участнику после установленного времени',
+        help='[время] [кол-во фишек] [сообщение]',
+        usage='Только для Администрации')
+    async def chips(self, ctx:commands.Context, duration:DurationConverter, chips:int, *, message):
+        msg = await self.create_message(ctx, 'Розыгрыш фишек', duration, message)
+        await self.process_giveaway(ctx, duration, msg, 'chips', chips=chips)
+
+
     @giveaway.command(
         name='thing',
         description='Выдаёт символическую вещь рандомному участнику после установленного времени',
@@ -74,11 +82,13 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
         amount, time_format = duration
         timestamp = amount * multiplier[time_format]
 
-        if str(ctx.guild.id) not in self.members:
-            self.members[str(ctx.guild.id)] = {}
-        self.members[str(ctx.guild.id)][str(ctx.message.id)] = []
+        if 'giveaways_members' not in self.server[str(ctx.guild.id)]:
+            self.server[str(ctx.guild.id)]['giveaways_members'] = {}
+        self.members = self.server[str(ctx.guild.id)]['giveaways_members']
 
-        content = f'**Участников: {len(self.members[str(ctx.guild.id)][str(ctx.message.id)])}**'
+        self.members[str(ctx.message.id)] = []
+
+        content = f'**Участников: {len(self.members[str(ctx.message.id)])}**'
 
         embed = discord.Embed(title=mode, color=get_embed_color(ctx.guild.id))
         embed.description = f"""
@@ -93,16 +103,16 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
         return await ctx.send(content=content, embed=embed, components=components)
 
 
-    async def process_giveaway(self, ctx, duration, message:discord.Message, mode, *, role:discord.Role=None, exp:int=None, thing:str=None):
+    async def process_giveaway(self, ctx, duration, message:discord.Message, mode, *, role:discord.Role=None, exp:int=None, chips:int=None, thing:str=None):
         amount, time_format = duration
         guild_id = str(ctx.guild.id)
         message_id = str(message.id)
 
         await sleep(amount * multiplier[time_format])
-        winner = choice(self.members[guild_id][message_id])
+        winner = choice(self.members[message_id])
         member = await ctx.guild.fetch_member(winner)
 
-        embed = discord.Embed(title='ИТОГИ РОЗЫГРЫША', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='ИТОГИ РОЗЫГРЫША', color=get_embed_color(guild_id))
 
         if mode == 'role':
             await member.add_roles(role)
@@ -110,6 +120,16 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
         elif mode == 'exp':
             await update_member(member, exp)
             embed.description =f'Победитель, {member.mention}! Вы получаете `{exp}` опыта'
+        elif mode == 'chips':
+            while True:
+                try:
+                    self.server[str(guild_id)]['users'][str(member.id)]['casino']['chips'] += chips
+                    embed.description =f'Победитель, {member.mention}! Вы получаете `{chips}` фишек'
+                except KeyError:
+                    winner = choice(self.members[message_id])
+                    member = await ctx.guild.fetch_member(winner)
+                else:
+                    break
         elif mode == 'thing':
             embed.description =f'Победитель, {member.mention}! Вы получаете {thing}'
         else:
@@ -117,7 +137,7 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
 
         await ctx.send(embed=embed)
         await message.delete()
-        del self.members[guild_id][message_id]
+        del self.members[message_id]
     
 
     @commands.Cog.listener()
@@ -128,20 +148,15 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
         message_id = str(interaction.message.id)
         user_id = interaction.user.id
 
-        if guild_id not in self.members:
-            self.members[guild_id] = {}
-        if message_id not in self.members[guild_id]:
-            self.members[guild_id][message_id] = []
-
         try:
             if not interaction.responded:
-                if user_id in self.members[guild_id][message_id]:
+                if user_id in self.members[message_id]:
                     await interaction.respond(type=4, content='Вы уже приняли участие в этой раздаче!')
                 else:
                     await interaction.respond(type=4, content='Вы приняли участие!')
-                    self.members[guild_id][message_id].append(user_id)
+                    self.members[message_id].append(user_id)
                     message = interaction.message
-                    await message.edit(content=f'**Участников: {len(self.members[guild_id][message_id])}**')
+                    await message.edit(content=f'**Участников: {len(self.members[message_id])}**')
         except Exception:
             pass
 

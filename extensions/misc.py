@@ -108,7 +108,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         await ctx.send(embed=embed)
 
     @info.command(name='bot', description='Показывает информацию о Боте', help='')
-    async def bot(self, ctx:commands.Context):
+    async def _bot(self, ctx:commands.Context):
         prefix = get_prefix(ctx.guild.id)
         embed = discord.Embed(title='Информация о боте', color=get_embed_color(ctx.guild.id))
         embed.description = f"""
