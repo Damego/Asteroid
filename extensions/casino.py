@@ -20,14 +20,27 @@ class Casino(commands.Cog, description='Казино'):
         if 'casino' not in user:
             user['casino'] = {
                 'chips': 1000,
-                'last_free_chips':0,
+                'free_chips_timeout':0,
             }
             await ctx.reply('Вы успешно зарегистрировались в Казино! Вам на счёт зачислено **1000** `фишек`!')
         else:
             await ctx.reply('Вы уже зарегистрированы в Казино')
 
-    
-    @commands.command(
+    @commands.command(name='clear', description='Обнуляет пользователя в Казино', help='[участник]')
+    @commands.has_guild_permissions(administrator=True)
+    async def clear(self, ctx:commands.Context, member:discord.Member):
+        user = self.server[str(ctx.guild.id)]['users'][str(member.id)]
+        if 'casino' not in user:
+            await ctx.reply('Пользователь не зарегистрирован в Казино!')
+            return
+        user['casino'] = {
+            'chips': 1000,
+            'free_chips_timeout':0,
+        }
+        await ctx.message.add_reaction('✅')
+
+
+    @casino.command(
         name='free',
         description='Выдаёт случаное количество фишек в пределах [100, 500]. Возможно использовать 1 раз в 12 часов',
         help='')
@@ -37,13 +50,14 @@ class Casino(commands.Cog, description='Казино'):
         except KeyError:
             await ctx.reply('Вы не зарегистрированы в Казино! Зарегиструйтесь через команду `casino`')
             return
-        last_free_chips = user_casino['last_free_chips']
+        free_chips_timeout = user_casino['free_chips_timeout']
 
-        if int(time()) - last_free_chips < 43200:
+        if int(time()) - free_chips_timeout < 43200:
             await ctx.reply('Вы можете получать фишки только раз в 12 часов!')
         else:
             chips = randint(100, 500)
             user_casino['chips'] += chips
+            user_casino['free_chips_timeout'] = int(time())
             await ctx.reply(f'Вы получили `{chips}` фишек! Сейчас у вас `{user_casino["chips"]}` фишек. Следующая попытка будет доступна через 12 часов.')
 
     
