@@ -262,6 +262,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
     @commands.has_guild_permissions(administrator=True)
     async def xp(self, ctx:commands.Context, member:discord.Member, xp:int):
         self.server[str(ctx.guild.id)]['users'][str(member.id)]['xp'] = xp
+        self.server[str(ctx.guild.id)]['users'][str(member.id)]['all_xp'] = xp
         await ctx.message.add_reaction('✅')
 
 

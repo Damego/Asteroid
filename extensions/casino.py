@@ -26,7 +26,7 @@ class Casino(commands.Cog, description='Казино'):
         else:
             await ctx.reply('Вы уже зарегистрированы в Казино')
 
-    @commands.command(name='clear', description='Обнуляет пользователя в Казино', help='[участник]')
+    @casino.command(name='clear', description='Обнуляет пользователя в Казино', help='[участник]')
     @commands.has_guild_permissions(administrator=True)
     async def clear(self, ctx:commands.Context, member:discord.Member):
         user = self.server[str(ctx.guild.id)]['users'][str(member.id)]
