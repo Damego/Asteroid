@@ -21,7 +21,7 @@ def get_prefix(guild_id):
     return server[str(guild_id)]['configuration']['prefix']
 
 
-version = 'v1.1.2'
+version = 'v1.1.2.1'
 
 server = get_db()
 
@@ -63,7 +63,7 @@ class Settings(commands.Cog, description='Настройка бота'):
 
     @commands.Cog.listener()
     async def on_message(self, message:discord.Message):
-        if '<@828262275206873108>' not in message.content:
+        if '@Asteroid#0954' not in message.content:
             return
 
         prefix = get_prefix(message.guild.id)

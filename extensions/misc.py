@@ -113,21 +113,21 @@ class Misc(commands.Cog, description='Остальные команды'):
         await ctx.send(embed=embed)
 
     @info.command(name='bot', description='Показывает информацию о Боте', help='')
-    async def bot_info(self, ctx:commands.Context):
+    async def info_bot(self, ctx:commands.Context):
         prefix = get_prefix(ctx.guild.id)
         embed = discord.Embed(title='Информация о боте', color=get_embed_color(ctx.guild.id))
 
         components= [
-            Button(style=ButtonStyle.link, label='Пригласить', ulr='https://discord.com/api/oauth2/authorize?client_id=828262275206873108&permissions=0&scope=bot')
+            Button(style=ButtonStyle.URL, label='Пригласить', url='https://discord.com/api/oauth2/authorize?client_id=828262275206873108&permissions=0&scope=bot')
         ]
 
-        users_amount = sum(guild.members for guild in self.bot.guild)
+        users_amount = sum(len(guild.members) for guild in self.bot.guilds)
 
         embed.description = f"""
                             **Создатель:** **Damego#0001**
                             **Текущая версия:** `{version}`
                             **Количество серверов:** `{len(ctx.bot.guilds)}`
-                            **Количество онлайн пользователей:** `{users_amount}`
+                            **Количество пользователей:** `{users_amount}`
                             **Количество команд:** `{len(ctx.bot.commands)}`
                             **Текущий пинг:** `{int(ctx.bot.latency * 1000)}` мс
                             **Префикс на сервере:** `{prefix}`

@@ -143,9 +143,13 @@ async def reload(ctx, extension):
 @commands.is_owner()
 async def reload_all(ctx):
     extensions = bot.extensions
-    for extension in extensions:
-        bot.reload_extension(extension)
-        print(f'{extension} was reloaded!')
+    try:
+        for count, extension in enumerate(extensions, start=1):
+            bot.reload_extension(extension)
+            print(f'{count}/{len(extensions)}. {extension} was reloaded!')
+    except RuntimeError:
+        pass
+
     await ctx.message.add_reaction('✅')
 
 
@@ -182,10 +186,10 @@ async def on_command_error(ctx:commands.Context, error):
     elif isinstance(error, commands.CommandNotFound):
         desc = 'Команда не найдена!'
     else:
-        desc = 'Я уже уведомил своего создателя об этой ошибке'
+        desc = f'Я уже уведомил своего создателя об этой ошибке\nОшибка: {error}'
         embed.title = f"""
         ❌ Упс... Произошла непредвиденная ошибка!
-        Ошибка: {error}"""
+        """
 
         error_description = f"""**Сервер:** {ctx.guild}\n**Канал:** {ctx.channel}\n**Пользователь:** {ctx.author}\n**Команда:** {ctx.message.content}
 **Ошибка:**
