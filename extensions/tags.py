@@ -158,7 +158,11 @@ class Tags(commands.Cog, description='Теги'):
             await self.create_buttons(ctx)
         
         while True:
-            interaction = await self.bot.wait_for('button_click', check=lambda res: res.user.id == ctx.author.id)
+            try:
+                interaction = await self.bot.wait_for('button_click', check=lambda res: res.user.id == ctx.author.id)
+            except Exception:
+                continue
+            
             button_id = interaction.component.id
 
             if button_id == 'edit_tag':

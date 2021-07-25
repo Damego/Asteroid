@@ -153,11 +153,11 @@ class Levels(commands.Cog, description='Cистема уровней'):
         await ctx.message.add_reaction('✅')
 
 
-    @commands.group(name='level_role', aliases=['lr'], description='Команда для управления Уровнями', help='[команда]', invoke_without_command=True)
-    async def level_role(self, ctx:commands.Context):
+    @commands.group(name='levels', aliases=['level', 'lvl'], description='Команда для управления Уровнями', help='[команда]', invoke_without_command=True)
+    async def levels(self, ctx:commands.Context):
         await ctx.send('Здесь ничего нет :(')
 
-    @level_role.command(
+    @levels.command(
         name='add',
         description='Добавляет уровень для роли',
         help='[уровень] [роль]',
@@ -168,7 +168,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
         await ctx.message.add_reaction('✅')
 
 
-    @level_role.command(
+    @levels.command(
         name='remove',
         description='Удаляёт уровень для роли',
         help='[уровень]',
@@ -183,7 +183,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
             await ctx.reply('Такого уровня не существует!')
 
 
-    @level_role.command(
+    @levels.command(
         name='replace',
         description='Заменяет роль уровня на другой уровень',
         help='[старый уровень] [новый уровень]',
@@ -200,17 +200,17 @@ class Levels(commands.Cog, description='Cистема уровней'):
         await ctx.message.add_reaction('✅')
 
 
-    @level_role.command(
+    @levels.command(
         name='reset',
         description='Очищает весь список уровней',
         help='')
     @is_bot_or_guild_owner()
-    async def reset_level_roles(self, ctx:commands.Context):
+    async def reset_levelss(self, ctx:commands.Context):
         self.server[str(ctx.guild.id)]['roles_by_level'] = {}
         await ctx.message.add_reaction('✅')
 
 
-    @level_role.group(
+    @levels.group(
         name='set',
         description='Позволяет изменить статистику участнику сервера',
         help='[команда]',

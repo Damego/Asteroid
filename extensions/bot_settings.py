@@ -21,7 +21,7 @@ def get_prefix(guild_id):
     return server[str(guild_id)]['configuration']['prefix']
 
 
-version = 'v1.1.1.1'
+version = 'v1.1.2'
 
 server = get_db()
 
@@ -60,6 +60,23 @@ class Settings(commands.Cog, description='Настройка бота'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
+
+    @commands.Cog.listener()
+    async def on_message(self, message:discord.Message):
+        if '<@828262275206873108>' not in message.content:
+            return
+
+        prefix = get_prefix(message.guild.id)
+
+        embed = discord.Embed()
+        embed.description = f"""
+        Префикс для `{message.guild}`
+        > `{prefix}`
+        """
+
+        embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
+        
+        await message.channel.reply(embed=embed)
         
 
     @commands.has_guild_permissions(administrator=True)

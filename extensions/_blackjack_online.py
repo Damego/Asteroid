@@ -2,7 +2,7 @@ from random import choice
 
 import discord
 from discord.ext import commands
-from discord_components import *
+from discord_components import Button, ButtonStyle, Interaction, Select, SelectOption
 
 from .bot_settings import get_embed_color, get_db
 
@@ -50,9 +50,14 @@ class BlackJackOnline:
         self.message:discord.Message = await ctx.send(embed=embed, components=components)
 
         while True:
-            interaction:Interaction = await self.bot.wait_for('button_click')
+            try:
+                interaction:Interaction = await self.bot.wait_for('button_click')
+            except Exception:
+                continue
+
             value = interaction.component.id
             user_id = interaction.user.id
+
             if value == 'join':
                 if 'casino' not in self.server[str(self.guild_id)]['users'][str(user_id)]:
                     await interaction.respond(content='Вы не зарегистрированы в Казино! Зарегистрируйтесь через команду `casino`')
@@ -73,7 +78,7 @@ class BlackJackOnline:
                     await interaction.respond(type=6)
                     await self.start_game(ctx)
                 else:
-                    await interaction.respond('Только Создатель лобби может начать игру!')
+                    await interaction.respond(content='Только Создатель лобби может начать игру!')
 
             elif value == 'exit':
                 if user_id == ctx.author.id:
@@ -142,7 +147,10 @@ class BlackJackOnline:
         await self.message.edit(components=components)
 
         while True:
-            interaction:Interaction = await self.bot.wait_for('button_click')
+            try:
+                interaction:Interaction = await self.bot.wait_for('button_click')
+            except Exception:
+                continue
             user_id = interaction.user.id
 
             if str(user_id) not in self.current_players:
@@ -305,17 +313,22 @@ class BlackJackOnline:
             if sum_cards > 21:
                 player_score = f'\n{player["nickname"]} | Проиграл | Перебор карт | {player["bet"] * (-1)} `фишек`'
                 user_casino['chips'] += player["bet"] * (+1)
+                
             elif sum_cards < diler_sum and diler_sum <= 21:
-                player_score = f'\n{player["nickname"]} | Проиграл | Сумма карт меньше, чем у Дилера | {player["bet"] * (+1)} `фишек`'
+                player_score = f'\n{player["nickname"]} | Проиграл | Сумма карт меньше, чем у Дилера | {player["bet"] * (-1)} `фишек`'
                 user_casino['chips'] += player["bet"] * (-1)
+                
             elif sum_cards > diler_sum and sum_cards < 21:
                 player_score = f'\n{player["nickname"]} | Выиграл | Сумма карт больше, чем у Дилера | {player["bet"] * 2} `фишек`'
                 user_casino['chips'] += player["bet"] * 2
+                
             elif sum_cards < diler_sum:
                 player_score = f'\n{player["nickname"]} | Выиграл | У Дилера перебор | {player["bet"] * 2} `фишек`'
                 user_casino['chips'] += player["bet"] * 2
+                
             elif sum_cards == diler_sum:
                 player_score = f'\n{player["nickname"]} | Ничья | Сумма карт равны | {0} `фишек`'
+                
             elif sum_cards == 21 or (sum_cards == 22 and len(player['cards']) == 2):
                 player_score = f'\n{player["nickname"]} | Выиграл | Блэкджек | {player["bet"] * 3} `фишек`'
                 user_casino['chips'] += player["bet"] * 3

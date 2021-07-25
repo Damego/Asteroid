@@ -22,9 +22,9 @@ def get_prefix(bot, message):
     try:
         prefix = server[str(message.guild.id)]['configuration']['prefix']
     except KeyError:
-        prefix = '!d'
+        prefix = 'a!'
 
-    return commands.when_mentioned_or(prefix)(bot, message)
+    return prefix
 
 
 bot = commands.Bot(command_prefix=get_prefix, intents=discord.Intents.all())
@@ -183,7 +183,9 @@ async def on_command_error(ctx:commands.Context, error):
         desc = 'Команда не найдена!'
     else:
         desc = 'Я уже уведомил своего создателя об этой ошибке'
-        embed.title = '❌ Упс... Произошла непредвиденная ошибка!'
+        embed.title = f"""
+        ❌ Упс... Произошла непредвиденная ошибка!
+        Ошибка: {error}"""
 
         error_description = f"""**Сервер:** {ctx.guild}\n**Канал:** {ctx.channel}\n**Пользователь:** {ctx.author}\n**Команда:** {ctx.message.content}
 **Ошибка:**

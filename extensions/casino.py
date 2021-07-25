@@ -51,14 +51,19 @@ class Casino(commands.Cog, description='Казино'):
             await ctx.reply('Вы не зарегистрированы в Казино! Зарегиструйтесь через команду `casino`')
             return
         free_chips_timeout = user_casino['free_chips_timeout']
+        timeout = user_casino['free_chips_timeout'] + 43200
+        
 
         if int(time()) - free_chips_timeout < 43200:
-            await ctx.reply('Вы можете получать фишки только раз в 12 часов!')
+            await ctx.reply('Следующая попытка будет доступна <t:{timeout}:R>.')
         else:
             chips = randint(100, 500)
             user_casino['chips'] += chips
             user_casino['free_chips_timeout'] = int(time())
-            await ctx.reply(f'Вы получили `{chips}` фишек! Сейчас у вас `{user_casino["chips"]}` фишек. Следующая попытка будет доступна через 12 часов.')
+
+            await ctx.reply(f"""
+            Вы получили `{chips}` фишек! Сейчас у вас `{user_casino["chips"]}` фишек.
+            Следующая попытка будет доступна <t:{timeout}:R>.""")
 
     
     @casino.command(name='blackjack', aliases=['bj'], description='Запускает Блэкджек онлайн', help='')
