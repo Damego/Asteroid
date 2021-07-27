@@ -4,10 +4,10 @@ from asyncio import sleep
 
 import discord
 from discord.ext import commands
-from discord_components import Button, ButtonStyle, Interaction
+from discord_components import Button, ButtonStyle
 import qrcode
 
-from .bot_settings import DurationConverter, get_embed_color, get_db, get_prefix, multiplier, version
+from .bot_settings import DurationConverter, get_embed_color, get_db, get_prefix, multiplier, version, is_administrator_or_bot_owner
 from ._levels import formula_of_experience
 from ._hltv import HLTV
 
@@ -18,6 +18,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         self.hidden = False
 
         self.server = get_db()
+
 
     @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке', help='[от] [до]')
     async def random_num(self, ctx, arg1:int, arg2:int):
@@ -44,27 +45,6 @@ class Misc(commands.Cog, description='Остальные команды'):
     async def info(self, ctx:commands.Context, member:discord.Member):
         embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild.id))
 
-        if not member.bot:
-            user_stats = self.server[str(ctx.guild.id)]['users'][str(member.id)]
-            user_level = 0 if 'level' not in user_stats else user_stats['level']
-            user_exp_for_next_level = formula_of_experience(user_level)
-            user_xp = 0 if 'xp' not in user_stats else user_stats['xp']
-            user_all_xp = 0 if 'all_xp' not in user_stats else user_stats['all_xp']
-            user_voice_time = 0 if 'voice_time_count' not in user_stats else user_stats['voice_time_count']
-
-            stats = f"""
-            <:level:863677232239869964> **Уровень:** `{user_level}`
-            <:exp:863672576941490176> **Опыт:** `{user_xp}/{user_exp_for_next_level}` Всего: `{user_all_xp}`
-            <:voice_time:863674908969926656> **Время в голосом канале:** `{user_voice_time}` мин.
-            """
-
-            if 'casino' in user_stats:
-                stats += f'\n <:casino_chips:867817313528971295>  **Фишек:** `{user_stats["casino"]["chips"]}`'
-
-            embed.add_field(name='Статистика:', value=stats)
-
-
-
         member_roles = [
             role.mention for role in member.roles if role.name != "@everyone"
         ][::-1]
@@ -85,6 +65,26 @@ class Misc(commands.Cog, description='Остальные команды'):
             **Текущий статус:** {status.get(member_status)}
             **Роли:** {member_roles}
             """, inline=False)
+
+        if not member.bot:
+            user = self.server[str(ctx.guild.id)]['users'][str(member.id)]
+            user_leveling = self.server[str(ctx.guild.id)]['users'][str(member.id)]['leveling']
+            user_level = 0 if 'level' not in user_leveling else user_leveling['level']
+            user_exp_for_next_level = formula_of_experience(user_level)
+            user_xp = 0 if 'xp' not in user_leveling else user_leveling['xp']
+            user_all_xp = 0 if 'all_xp' not in user_leveling else user_leveling['all_xp']
+            user_voice_time = 0 if 'voice_time_count' not in user else user['voice_time_count']
+
+            stats = f"""
+            <:level:863677232239869964> **Уровень:** `{user_level}`
+            <:exp:863672576941490176> **Опыт:** `{user_xp}/{user_exp_for_next_level}` Всего: `{user_all_xp}`
+            <:voice_time:863674908969926656> **Время в голосом канале:** `{user_voice_time}` мин.
+            """
+
+            if 'casino' in user:
+                stats += f'\n <:casino_chips:867817313528971295>  **Фишек:** `{user["casino"]["chips"]}`'
+
+            embed.add_field(name='Статистика:', value=stats)
 
         embed.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=embed)
@@ -163,7 +163,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         help='[канал] [сообщение]',
         invoke_without_command=True,
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def send_message(self, ctx, channel:discord.TextChannel, *, message):
         await channel.send(message)
 
@@ -171,7 +171,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         description='Отправляет отложенное сообщение в указанный канал',
         help='[канал] [время] [сообщение]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def delay_send_message(self, ctx, channel:discord.TextChannel, duration:DurationConverter, *, message):
         amount, time_format = duration
         await sleep(amount * multiplier[time_format])
@@ -183,7 +183,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         help='[канал] [сообщение]',
         invoke_without_command=True,
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def announce(self, ctx, channel:discord.TextChannel, *, message):
         embed = discord.Embed(title='Объявление!', description=message, color=get_embed_color(ctx.guild.id))
         await channel.send(embed=embed)
@@ -193,7 +193,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         description='Отправляет объявление сообщение в указанный канал',
         help='[канал] [время] [сообщение]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def delay(self, ctx, channel:discord.TextChannel, duration:DurationConverter, *, message):
         amount, time_format = duration
         await sleep(amount * multiplier[time_format])

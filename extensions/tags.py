@@ -2,7 +2,7 @@ from discord.ext import commands
 import discord
 from discord_components import Button, ButtonStyle
 
-from extensions.bot_settings import get_embed_color, get_db, get_prefix
+from .bot_settings import get_embed_color, get_db, get_prefix, is_administrator_or_bot_owner
 from ._errors import TagNotFound, ForbiddenTag
 
 
@@ -36,7 +36,7 @@ class Tags(commands.Cog, description='Теги'):
         description='Создаёт новый тег',
         help='[название тега] [заголовок]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def add(self, ctx, tag_name, *, title):
         if tag_name in self.forbidden_tags:
             raise ForbiddenTag
@@ -59,7 +59,7 @@ class Tags(commands.Cog, description='Теги'):
         description='Добавляет описание к тегу',
         help='[название тега] [описание]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def edit(self, ctx, tag_name, *, description):
         description = f"""{description}"""
         self.server[str(ctx.guild.id)]['tags'][tag_name]['description'] = description
@@ -72,7 +72,7 @@ class Tags(commands.Cog, description='Теги'):
         description='Удаляет тег',
         help='[название тега]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def remove(self, ctx, tag_name):
         if tag_name not in self.server[str(ctx.guild.id)]['tags']:
             raise TagNotFound
@@ -100,7 +100,7 @@ class Tags(commands.Cog, description='Теги'):
         description='Меняет название тега',
         help='[название тега] [новое название тега]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def name(self, ctx, tag_name, new_tag_name):
         if tag_name not in self.server[str(ctx.guild.id)]['tags']:
             raise TagNotFound
@@ -125,7 +125,7 @@ class Tags(commands.Cog, description='Теги'):
         description='Выдаёт исходник описания без форматирования',
         help='[название тега]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def raw(self, ctx:commands.Context, tag_name):
         if tag_name not in self.server[str(ctx.guild.id)]['tags']:
             raise TagNotFound
@@ -139,7 +139,7 @@ class Tags(commands.Cog, description='Теги'):
         description='Открывает меню управления тегом',
         help='[название тега]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def btag(self, ctx, tag_name):
         if tag_name in self.forbidden_tags:
             raise ForbiddenTag

@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from extensions.bot_settings import get_db, get_prefix
+from .bot_settings import get_db, get_prefix, is_administrator_or_bot_owner
 
 server = get_db()
 
@@ -54,7 +54,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         help='[команда]',
         usage='Только для Администрации',
         invoke_without_command=True)
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def reactionrole(self, ctx):
         await ctx.send(f'Используйте `{get_prefix(ctx.guild.id)}help ReactionRole` для получения информации')
 
@@ -66,20 +66,20 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         help='[команда]',
         usage='Только для Администрации',
         invoke_without_command=True)
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def add(self, ctx):
         ...
 
 
     @add.command(name='post', description='Записывает пост для выдачи роли по реакции', help='[id поста]')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def post(ctx, post_id):
         server[str(ctx.guild.id)]['reaction_posts'][post_id] = {}
         await ctx.message.add_reaction('✅')
 
 
     @add.command(name='role', description='Добавляет роль по реакции', help='[id поста] [эмодзи] [роль]')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def role(ctx, post_id, emoji, role:discord.Role):
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>','')
@@ -96,7 +96,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         help='[команда]',
         usage='Только для Администрации',
         invoke_without_command=True)
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def remove(self, ctx):
         ...
 
@@ -106,7 +106,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         description='Удаляет пост для выдачи роли по реакции',
         help='[id поста]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def post(ctx, post_id:int):
         del server[str(ctx.guild.id)]['reaction_posts'][str(post_id)]
 
@@ -118,7 +118,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
         description='Удаляет роль по реакции',
         help='[id поста] [эмодзи]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def role(ctx, post_id, emoji):
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>','')

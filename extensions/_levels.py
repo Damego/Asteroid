@@ -18,9 +18,9 @@ async def update_member(arg, exp):
     elif isinstance(arg, discord.Member):
         member = arg
 
-    member_stats = server[guild_id]['users'][str(member.id)]
+    member_stats = server[guild_id]['users'][str(member.id)]['leveling']
     member_stats['xp'] += exp
-    member_stats['all_xp'] += exp
+    member_stats['xp_amount'] += exp
 
     exp_to_next_level = formula_of_experience(member_stats['level'])
     while member_stats['xp'] > exp_to_next_level:

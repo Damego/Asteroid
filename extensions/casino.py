@@ -4,7 +4,7 @@ from random import randint
 import discord
 from discord.ext import commands
 
-from .bot_settings import get_db
+from .bot_settings import get_db, is_administrator_or_bot_owner
 from ._blackjack_online import BlackJackOnline
 
 
@@ -27,7 +27,7 @@ class Casino(commands.Cog, description='Казино'):
             await ctx.reply('Вы уже зарегистрированы в Казино')
 
     @casino.command(name='clear', description='Обнуляет пользователя в Казино', help='[участник]')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def clear(self, ctx:commands.Context, member:discord.Member):
         user = self.server[str(ctx.guild.id)]['users'][str(member.id)]
         if 'casino' not in user:

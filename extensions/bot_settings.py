@@ -1,7 +1,9 @@
+import asyncio
 from os import getenv
 
 import discord
 from discord.ext import commands
+from discord_components import Select, SelectOption, Interaction
 
 def get_db():
     from replit import Database, db
@@ -21,7 +23,7 @@ def get_prefix(guild_id):
     return server[str(guild_id)]['configuration']['prefix']
 
 
-version = 'v1.1.2.1'
+version = 'v1.1.3'
 
 server = get_db()
 
@@ -37,9 +39,9 @@ multiplier = {
     }
 
 
-def is_bot_or_guild_owner():
-    async def predicate(ctx):
-        return ctx.author.id in [ctx.bot.owner_id, ctx.guild.owner_id]
+def is_administrator_or_bot_owner():
+    async def predicate(ctx:commands.Context):
+        return ctx.author.guild_permissions.administrator or ctx.author.id == ctx.bot.owner_id
     return commands.check(predicate)
 
 
@@ -61,25 +63,32 @@ class Settings(commands.Cog, description='Настройка бота'):
         self.bot = bot
         self.hidden = False
 
+        self.server = get_db()
+
     @commands.Cog.listener()
-    async def on_message(self, message:discord.Message):
-        if '@Asteroid#0954' not in message.content:
+    async def on_member_join(self, member:discord.Member):
+        guild:discord.Guild = member.guild
+        guild_config = self.server[str(guild.id)]['configuration']
+
+        if 'welcomer' not in guild_config:
             return
 
-        prefix = get_prefix(message.guild.id)
+        guild_welcome = guild_config['welcomer']
 
-        embed = discord.Embed()
-        embed.description = f"""
-        Префикс для `{message.guild}`
-        > `{prefix}`
-        """
+        if 'disabled' in guild_welcome['status']:
+            return
 
-        embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
-        
-        await message.channel.reply(embed=embed)
-        
+        channel_id = guild_welcome['channel']
+        welcome_text = guild_welcome['text'].format(member.mention)
 
-    @commands.has_guild_permissions(administrator=True)
+        channel = guild.get_channel(channel_id)
+
+        embed = discord.Embed(description=welcome_text, color=get_embed_color(guild.id))
+        embed.set_author(name=member.display_name, icon_url=member.avatar_url)
+
+        await channel.send(embed=embed)
+
+    @is_administrator_or_bot_owner()
     @commands.group(
         invoke_without_command=True,
         name='set',
@@ -96,7 +105,7 @@ class Settings(commands.Cog, description='Настройка бота'):
         description='Меняет префикс для команд',
         help='[префикс]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def change_guild_prefix(self, ctx:commands.Context, prefix):
         server[str(ctx.guild.id)]['configuration']['prefix'] = prefix
 
@@ -109,7 +118,7 @@ class Settings(commands.Cog, description='Настройка бота'):
         description='Меняет цвет сообщений бота',
         help='[цвет(HEX)]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def change_guild_embed_color(self, ctx:commands.Context, color:str):
         if color.startswith('#') and len(color) == 7:
             color = color.replace('#', '')
@@ -123,10 +132,87 @@ class Settings(commands.Cog, description='Настройка бота'):
         embed = discord.Embed(title=f'Цвет сообщений был изменён!', color=int(newcolor, 16))
         await ctx.send(embed=embed)
 
+    @set_conf.command(name='welcome', description='', help='')
+    @is_administrator_or_bot_owner()
+    async def welcome(self, ctx:commands.Context):
+        embed = discord.Embed(color=get_embed_color(ctx.guild.id))
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+
+        if 'welcomer' not in self.server[str(ctx.guild.id)]['configuration']:
+            status = 'Выкл.'
+            embed.description = 'Описание'
+            embed.set_footer(text='id канала: None')
+        else:
+            welcomer = self.server[str(ctx.guild.id)]['configuration']['welcomer']
+            status = 'Вкл.' if welcomer['status'] == 'enabled' else 'Выкл.'
+
+            embed.description = welcomer['text']
+            embed.set_footer(text=f'id канала: {welcomer["channel"]}')
+
+        self._welcomer_components = [
+            Select(
+                placeholder='Выберите опцию',
+                options=[
+                    SelectOption(label=f'Статус: {status}', value='toggle_status'),
+                    SelectOption(label='Установить канал', value='channel'),
+                    SelectOption(label='Установить описание', value='desc'),
+                    SelectOption(label='Сохранить', value='save'),
+                    SelectOption(label='Выйти', value='exit')
+                ]
+            )
+        ]
+
+        message:discord.Message = await ctx.send(embed=embed, components=self._welcomer_components)
+
+        await self._welcome_configuration(ctx, message, embed, welcomer)
+
+    async def _welcome_configuration(self, ctx:commands.Context, message:discord.Message, embed:discord.Embed, welcomer):
+        while True:
+            try:
+                interaction:Interaction = await self.bot.wait_for(
+                    'select_option',
+                    check=lambda i: i.user.id == ctx.author.id,
+                    timeout=180)
+            except RuntimeError:
+                continue
+            except asyncio.TimeoutError:
+                await message.delete()
+                return
+
+            id = interaction.component[0].value
+            await interaction.respond(type=6)
+
+            if id == 'toggle_status':
+                await self._toggle_status(message, welcomer)
+            elif id == 'channel':
+                channel = await self._edit_welcome('channel', ctx, message, embed)
+            elif id == 'desc':
+                channel = await self._edit_welcome('description', ctx, message, embed)
+            elif id == 'save':
+                await self._save_welcomer(interaction, embed, channel)
+            elif id == 'exit':
+                await message.delete()
+                return
+
+    async def _toggle_status(self, message:discord.Message, welcomer):
+        if 'status' in welcomer:
+            if welcomer['status'] == 'enabled':
+                welcomer['status'] = 'disabled'
+                status = 'Выкл.'
+            else:
+                welcomer['status'] = 'enabled'
+                status = 'Вкл.'
+            self._welcomer_components[0][0].options[0].label = f'Статус: {status}'
+            await message.edit(components=self._welcomer_components)
+        else:
+            await message.channel.send(content='Для включения/выключения сохраните!')
+
+
     @commands.command(name='prefix', description='Показывает текущий префикс на сервере', help=' ')
     async def show_guild_prefix(self, ctx:commands.Context):
         embed = discord.Embed(title=f'Текущий префикс: `{get_prefix(ctx.guild.id)}`', color=0x2f3136)
         await ctx.send(embed=embed)
+
 
     @commands.command(aliases=['cl'], name='changelog', description='Показывает изменения последнего обновления', help='')
     async def changelog(self, ctx:commands.Context):
@@ -136,6 +222,52 @@ class Settings(commands.Cog, description='Настройка бота'):
 
         embed = discord.Embed(title=version, description=text, color=0x2f3136)
         await ctx.send(embed=embed)
+
+
+    async def _edit_welcome(self, mode:str, ctx:commands.Context, menu_message:discord.Message, embed:discord.Embed):
+        if mode == 'description':
+            mode_rus = 'Описание' 
+        else:
+            mode_rus = 'id Канала'
+
+        await ctx.send(content=f'Введите {mode_rus}', delete_after=5)
+    
+        message:discord.Message = await self.bot.wait_for('message', check=lambda m: m.author.id == ctx.author.id)
+        content = message.content
+
+        if mode == 'channel':
+            try:
+                channel = int(content)
+            except Exception:
+                await ctx.send('Введите id канала!', delete_after=5)
+                return
+            else:
+                embed.set_footer(text=f'id канала: {channel}')
+                await menu_message.edit(embed=embed)
+                return channel
+
+        elif mode == 'description':
+            embed.description = content
+            await menu_message.edit(embed=embed)
+
+        
+    async def _save_welcomer(self, interaction:Interaction, embed:discord.Embed=None, channel:int=None):
+        bot_config = self.server[str(interaction.guild.id)]['configuration']
+        if 'welcomer' not in bot_config:
+            if not channel:
+                return await interaction.channel.send(content='Введите канал!')
+            bot_config['welcomer'] = {
+                'status': 'enabled',
+                'text': embed.description,
+                'channel': channel
+            }
+        else:
+            if embed:
+                bot_config['welcomer']['text'] = embed.description
+            if channel:
+                bot_config['welcomer']['channel'] = channel
+
+        await interaction.channel.send(content='Сохранено!')
 
 
 

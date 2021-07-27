@@ -186,7 +186,7 @@ async def on_command_error(ctx:commands.Context, error):
     elif isinstance(error, commands.CommandNotFound):
         desc = 'Команда не найдена!'
     else:
-        desc = f'Я уже уведомил своего создателя об этой ошибке\nОшибка: {error}'
+        desc = f'Я уже уведомил своего создателя об этой ошибке\n*Ошибка:* `{error}`'
         embed.title = f"""
         ❌ Упс... Произошла непредвиденная ошибка!
         """

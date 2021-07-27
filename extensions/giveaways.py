@@ -7,7 +7,7 @@ from discord.ext import commands
 from discord_components import Button, ButtonStyle
 from discord_components.interaction import Interaction
 
-from .bot_settings import get_embed_color, DurationConverter, multiplier
+from .bot_settings import get_embed_color, DurationConverter, multiplier, is_administrator_or_bot_owner
 from ._levels import update_member
 
 
@@ -33,7 +33,7 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
         description='Выдаёт роль рандомному участнику после установленного времени',
         help='[время] [роль] [сообщение]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def role(self, ctx:commands.Context, duration:DurationConverter, role:discord.Role, *, message):
         msg = await self.create_message(ctx, 'Розыгрыш Роли', duration, message)
         await self.process_giveaway(ctx, duration, msg, 'role', role=role)
@@ -44,7 +44,7 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
         description='Выдаёт опыт рандомному участнику после установленного времени',
         help='[время] [опыт] [сообщение]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def xp(self, ctx:commands.Context, duration:DurationConverter, exp:int, *, message):
         msg = await self.create_message(ctx, 'Розыгрыш опыта', duration, message)
         await self.process_giveaway(ctx, duration, msg, 'exp', exp=exp)
@@ -55,7 +55,7 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
         description='Выдаёт фишки рандомному участнику после установленного времени',
         help='[время] [кол-во фишек] [сообщение]',
         usage='Только для Администрации')
-    @commands.has_guild_permissions(administrator=True)
+    @is_administrator_or_bot_owner()
     async def chips(self, ctx:commands.Context, duration:DurationConverter, chips:int, *, message):
         msg = await self.create_message(ctx, 'Розыгрыш фишек', duration, message)
         await self.process_giveaway(ctx, duration, msg, 'chips', chips=chips)
