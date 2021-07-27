@@ -404,20 +404,6 @@ class Levels(commands.Cog, description='Cистема уровней'):
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(name='edit_db', description='COMMAND FOR EDIT DATABASE', help='')
-    @commands.is_owner()
-    async def edit_db(self, ctx:commands.Context):
-        users = self.server[str(ctx.guild.id)]['users']
-        for _user in users:
-            user = users[_user]
-            users['leveling'] = {
-                'level': user['level'],
-                'xp': user['xp'],
-                'xp_amount': user['all_xp'],
-                'role': user['role']
-            }
-
-
 
 def setup(bot):
     bot.add_cog(Levels(bot))

@@ -72,7 +72,7 @@ class Misc(commands.Cog, description='Остальные команды'):
             user_level = 0 if 'level' not in user_leveling else user_leveling['level']
             user_exp_for_next_level = formula_of_experience(user_level)
             user_xp = 0 if 'xp' not in user_leveling else user_leveling['xp']
-            user_all_xp = 0 if 'all_xp' not in user_leveling else user_leveling['all_xp']
+            user_all_xp = 0 if 'xp_amount' not in user_leveling else user_leveling['xp_amount']
             user_voice_time = 0 if 'voice_time_count' not in user else user['voice_time_count']
 
             stats = f"""
