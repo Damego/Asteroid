@@ -9,5 +9,8 @@ class ForbiddenTag(CommandError):
 class UIDNotBinded(CommandError):
     pass
 
-class AccountHidden(CommandError):
+class GenshinDataNotPublic(CommandError):
+    pass
+
+class GenshinAccountNotFound(CommandError):
     pass

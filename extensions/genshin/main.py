@@ -4,11 +4,11 @@ import discord
 from discord.ext import commands
 from discord_components import Button, ButtonStyle, Interaction
 import genshinstats as gs
+from genshinstats.errors import DataNotPublic, AccountNotFound
 from genshinstats.utils import is_game_uid
 
 from ..bot_settings import get_db, get_embed_color
-from .._errors import UIDNotBinded
-from .genshin import *
+from .._errors import UIDNotBinded, GenshinAccountNotFound, GenshinDataNotPublic
 from .rus import *
 
 
@@ -27,6 +27,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         help='')
     async def genshin_impact(self, ctx:commands.Context):
         ...
+
 
     @genshin_impact.command(
     name='bind',
@@ -56,7 +57,12 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             uid = user_db['genshin']['uid']
 
         await to_thread(gs.set_cookie_auto, 'chrome')
-        user_data = gs.get_user_stats(uid)
+        try:
+            user_data = gs.get_user_stats(uid)
+        except DataNotPublic:
+            raise GenshinDataNotPublic
+        except AccountNotFound:
+            raise GenshinAccountNotFound
         user_explorations = user_data['explorations']
         user_stats = user_data['stats']
 
@@ -107,8 +113,13 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             uid = user_db['genshin']['uid']
 
         gs.set_cookie_auto('chrome')
-        characters = gs.get_characters(uid)
-        
+        try:
+            characters = gs.get_characters(uid)
+        except DataNotPublic:
+            raise GenshinDataNotPublic
+        except AccountNotFound:
+            raise GenshinAccountNotFound
+
         embed = discord.Embed(title='Genshin Impact. Персонажи', color=get_embed_color(ctx.guild.id))
 
         for character in characters:
@@ -120,7 +131,6 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             ┕ Оружие: `{character['weapon']['name']}`
             """)
         await ctx.send(embed=embed)
-
 
 
     @genshin_impact.command(
@@ -136,7 +146,12 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             uid = user_db['genshin']['uid']
 
         gs.set_cookie_auto('chrome')
-        characters = gs.get_characters(uid)
+        try:
+            characters = gs.get_characters(uid)
+        except DataNotPublic:
+            raise GenshinDataNotPublic
+        except AccountNotFound:
+            raise GenshinAccountNotFound
         
         embeds = []
 
