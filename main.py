@@ -4,6 +4,7 @@ from traceback import format_exception
 import discord
 from discord.ext import commands
 from discord_components import DiscordComponents
+from genshinstats.errors import DataNotPublic, AccountNotFound
 
 from extensions import _errors
 from lifetime_alive import keep_alive
@@ -173,6 +174,12 @@ async def on_command_error(ctx:commands.Context, error):
         desc = 'Тег не найден!'
     elif isinstance(error, _errors.ForbiddenTag):
         desc = 'Этот тег нельзя использовать!'
+    elif isinstance(error, _errors.UIDNotBinded):
+        desc = 'У вас не привязан UID!'
+    elif isinstance(error, AccountNotFound):
+        desc = 'Аккаунт с таким UID не найден! Похоже вы ввели неверный UID.'
+    elif isinstance(error, DataNotPublic):
+        desc = 'Профиль закрыт! Откройте профиль на [сайте](https://www.hoyolab.com/genshin/accountCenter/gameRecord)'
     elif isinstance(error, commands.NotOwner):
         desc = 'Это команда доступна только владельцу бота!'
     elif isinstance(error, commands.MissingRequiredArgument):
