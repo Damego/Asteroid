@@ -3,7 +3,10 @@
 		"scope": "python",
 		"prefix": "cmd",
 		"body": [
-			"@commands.command(name='$1', description='', help='')",
+			"@commands.command(",
+				"name='$1',",
+				"description='',",
+				"help='')",
 			"async def $1(self, ctx:commands.Context):",
 			"    ..."
 		],

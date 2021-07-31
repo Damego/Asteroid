@@ -1,7 +1,7 @@
 from time import time
 
 import discord
-from .bot_settings import get_db
+from ..bot_settings import get_db
 
 server = get_db()
 last_user_message = {}

@@ -26,15 +26,21 @@ def get_prefix(bot, message):
 
     return prefix
 
+def _load_extensions(bot):
+    for filename in os.listdir('./extensions'):
+        if not filename.startswith('_'):
+            if filename.endswith('.py'):
+                bot.load_extension(f'extensions.{filename[:-3]}')
+            else:
+                bot.load_extension(f'extensions.{filename}')
+
 
 bot = commands.Bot(command_prefix=get_prefix, intents=discord.Intents.all())
 
 # EVENTS
 @bot.event
 async def on_ready():
-    for filename in os.listdir('./extensions'):
-        if (not filename.startswith('_')) and filename.endswith('.py'):
-            bot.load_extension(f'extensions.{filename[:-3]}')
+    _load_extensions(bot)
     DiscordComponents(bot)
     print(f'Бот {bot.user} готов к работе!')
 

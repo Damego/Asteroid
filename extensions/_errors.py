@@ -5,3 +5,9 @@ class TagNotFound(CommandError):
 
 class ForbiddenTag(CommandError):
     pass
+
+class NotRegistered(CommandError):
+    pass
+
+class AccountHidden(CommandError):
+    pass

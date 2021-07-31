@@ -4,7 +4,7 @@ import discord
 from discord_components import Button, ButtonStyle
 from discord.ext import commands
 
-from .bot_settings import get_embed_color
+from ..bot_settings import get_embed_color
 from ._blackjack import BlackJack
 from ._tictactoe import TicTacToe
 from ._rockpaperscissors import RockPaperScissors
@@ -126,7 +126,3 @@ class Games(commands.Cog, description='Игры'):
 
         await msg.edit(content=f'{member.display_name} отказался от игры!', components=[])
         return msg, False
-
-
-def setup(bot):
-    bot.add_cog(Games(bot))

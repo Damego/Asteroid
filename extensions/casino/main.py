@@ -4,7 +4,7 @@ from random import randint
 import discord
 from discord.ext import commands
 
-from .bot_settings import get_db, is_administrator_or_bot_owner
+from ..bot_settings import get_db, is_administrator_or_bot_owner
 from ._blackjack_online import BlackJackOnline
 
 
@@ -48,20 +48,20 @@ class Casino(commands.Cog, description='Казино'):
         try:
             user_casino = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]['casino']
         except KeyError:
-            await ctx.reply('Вы не зарегистрированы в Казино! Зарегиструйтесь через команду `casino`')
-            return
+            return await ctx.reply('Вы не зарегистрированы в Казино! Зарегиструйтесь через команду `casino`')
+            
         free_chips_timeout = user_casino['free_chips_timeout']
         timeout = user_casino['free_chips_timeout'] + 43200
         
-
         if int(time()) - free_chips_timeout < 43200:
-            await ctx.reply('Следующая попытка будет доступна <t:{timeout}:R>.')
-        else:
-            chips = randint(100, 500)
-            user_casino['chips'] += chips
-            user_casino['free_chips_timeout'] = int(time())
+            return await ctx.reply(f'Следующая попытка будет доступна <t:{timeout}:R>.')
 
-            await ctx.reply(f"""
+        chips = randint(100, 500)
+        user_casino['chips'] += chips
+        user_casino['free_chips_timeout'] = int(time())
+        timeout = user_casino['free_chips_timeout'] + 43200
+
+        await ctx.reply(f"""
             Вы получили `{chips}` фишек! Сейчас у вас `{user_casino["chips"]}` фишек.
             Следующая попытка будет доступна <t:{timeout}:R>.""")
 
@@ -90,8 +90,3 @@ class Casino(commands.Cog, description='Казино'):
         Вам на счёт будет выдано 1000 фишек. Вы можете их использовать в играх, делая ставки.
         """
         await ctx.send(content)
-
-
-
-def setup(bot):
-    bot.add_cog(Casino(bot))

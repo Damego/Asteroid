@@ -4,8 +4,8 @@ import discord
 from discord.ext import commands
 from discord_components import Button, ButtonStyle
 
-from .bot_settings import get_embed_color
-from ._levels import update_member
+from ..bot_settings import get_embed_color
+from ..levels._levels import update_member
 
 
 

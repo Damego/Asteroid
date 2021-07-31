@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 from discord_components import Button, ButtonStyle, Interaction, Select, SelectOption
 
-from .bot_settings import get_embed_color, get_db
+from ..bot_settings import get_embed_color, get_db
 
 
 

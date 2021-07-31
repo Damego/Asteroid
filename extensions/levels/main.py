@@ -4,7 +4,7 @@ from random import randint
 import discord
 from discord.ext import commands
 
-from .bot_settings import get_db, get_embed_color, get_prefix, is_administrator_or_bot_owner
+from ..bot_settings import get_db, get_embed_color, get_prefix, is_administrator_or_bot_owner
 from ._levels import update_member, formula_of_experience
 
 
@@ -18,6 +18,13 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
         self.last_user_message = {}
         self.time_factor = 10
+
+
+    def _get_guild_start_role(self, guild_id):
+        if 'on_join_role' in self.server[str(guild_id)]['configuration']:
+            return self.server[str(guild_id)]['configuration']['on_join_role']
+        else:
+            return ''
 
 
     @commands.Cog.listener()
@@ -121,27 +128,42 @@ class Levels(commands.Cog, description='Cистема уровней'):
             'xp_amount':0
         }
         user['voice_time_count'] = 0
-        
-        if 'on_join_role' in self.server[str(member.guild.id)]['configuration']:
-            user['leveling']['role'] = self.server[str(member.guild.id)]['configuration']['on_join_role']
-            await member.add_roles(member.guild.get_role(user['leveling']['role']))
-        else:
-            user['leveling']['role'] = ''
+
+        role = self._get_guild_start_role(member.guild.id)
+        user['leveling']['role'] = role
+        if role != '':
+            await member.add_roles(member.guild.get_role(role))
 
 
-    @commands.command(name='clear_lvl', description='', help='', hidden=True)
-    @is_administrator_or_bot_owner()
-    async def clear_lvl(self, ctx:commands.Context):
-        userstats = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]['leveling']
-        userstats['level'] = 1
-        userstats['xp'] = 0
-        userstats['xp_amount'] = 0
-        userstats['role'] = ''
+    @commands.command(name='reset_my_stats', description='Обнуляет вашу статистику', help='')
+    async def reset_member_statistics(self, ctx:commands.Context):
+        user_stats = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]
+        user_stats['voice_time_count'] = 0
+
+        user_leveling = user_stats['leveling']
+
+        user_leveling['level'] = 1
+        user_leveling['xp'] = 0
+        user_leveling['xp_amount'] = 0
+
+        current_role = ctx.guild.get_role(user_leveling['role'])
+        if current_role:
+            await ctx.author.remove_roles(current_role)
+
+        role = self._get_guild_start_role(ctx.guild.id)
+        user_leveling['role'] = role
+        if role != '':
+            await ctx.author.add_roles(ctx.guild.get_role(role))
 
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(
+    @commands.group(name='levels', aliases=['level', 'lvl'], description='Команда для управления Уровнями', help='[команда]', invoke_without_command=True)
+    async def levels(self, ctx:commands.Context):
+        await ctx.send('Здесь ничего нет :(')
+
+
+    @levels.command(
         description='Добавляет опыт участнику',
         help='[Участник] [опыт]',
         usage='Только для Администрации')
@@ -150,10 +172,6 @@ class Levels(commands.Cog, description='Cистема уровней'):
         await update_member(member, xp)
         await ctx.message.add_reaction('✅')
 
-
-    @commands.group(name='levels', aliases=['level', 'lvl'], description='Команда для управления Уровнями', help='[команда]', invoke_without_command=True)
-    async def levels(self, ctx:commands.Context):
-        await ctx.send('Здесь ничего нет :(')
 
     @levels.command(
         name='add',
@@ -203,9 +221,32 @@ class Levels(commands.Cog, description='Cистема уровней'):
         description='Очищает весь список уровней',
         help='')
     @is_administrator_or_bot_owner()
-    async def reset_levelss(self, ctx:commands.Context):
+    async def reset_levels(self, ctx:commands.Context):
         self.server[str(ctx.guild.id)]['roles_by_level'] = {}
         await ctx.message.add_reaction('✅')
+
+
+    @levels.command(
+        name='list', 
+        description='Показывает список ролей по уровню', 
+        help='')
+    async def list(self, ctx:commands.Context):
+        dict_levels = self.server[str(ctx.guild.id)]['roles_by_level']
+        content = ''
+        
+        for level in dict_levels:
+            xp_amount = 0
+            role = ctx.guild.get_role(dict_levels[level])
+            for _level in range(1, int(level)):
+              exp = formula_of_experience(_level)
+              xp_amount += exp
+            content += f'{level} — {role.mention} Необходимо опыта: {xp_amount}\n'
+
+        if content == '':
+            content = 'Уровней нет!'
+
+        embed = discord.Embed(description=content, color=get_embed_color(ctx.guild.id))
+        await ctx.send(embed=embed)
 
 
     @levels.group(
@@ -336,26 +377,6 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 await member.add_roles(role)
 
 
-    @commands.command(name='get_levels', description='Показывает весь список уровней по ролям', help='')
-    async def get_levels(self, ctx:commands.Context):
-        dict_levels = self.server[str(ctx.guild.id)]['roles_by_level']
-        content = ''
-        
-        for level in dict_levels:
-            xp_amount = 0
-            role = ctx.guild.get_role(dict_levels[level])
-            for _level in range(1, int(level)):
-              exp = formula_of_experience(_level)
-              xp_amount += exp
-            content += f'{level} — {role.mention} Необходимо опыта: {xp_amount}\n'
-
-        if content == '':
-            content = 'Уровней нет!'
-
-        embed = discord.Embed(description=content, color=get_embed_color(ctx.guild.id))
-        await ctx.send(embed=embed)
-
-
     @commands.command(name='voice_time', description='Показывает, сколько времени вы сидите в голосовом канале', help='')
     async def voice_time(self, ctx:commands.Context):
         try:
@@ -402,8 +423,3 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 await member.add_roles(ctx.guild.get_role(role))
 
         await ctx.message.add_reaction('✅')
-
-
-
-def setup(bot):
-    bot.add_cog(Levels(bot))

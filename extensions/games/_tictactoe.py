@@ -1,6 +1,6 @@
 from discord import Embed
 from discord_components import Button, ButtonStyle, Interaction
-from .bot_settings import get_embed_color
+from ..bot_settings import get_embed_color
 
 
 

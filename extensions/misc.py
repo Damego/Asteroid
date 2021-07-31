@@ -8,7 +8,7 @@ from discord_components import Button, ButtonStyle
 import qrcode
 
 from .bot_settings import DurationConverter, get_embed_color, get_db, get_prefix, multiplier, version, is_administrator_or_bot_owner
-from ._levels import formula_of_experience
+from .levels._levels import formula_of_experience
 from ._hltv import HLTV
 
 
@@ -42,12 +42,14 @@ class Misc(commands.Cog, description='Остальные команды'):
         description='Выводит информацию об участнике канала',
         help='[ник]',
         invoke_without_command=True)
-    async def info(self, ctx:commands.Context, member:discord.Member):
-        embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild.id))
+    async def info(self, ctx:commands.Context, member:discord.Member=None):
+        if not member:
+            member = ctx.author
 
-        member_roles = [
-            role.mention for role in member.roles if role.name != "@everyone"
-        ][::-1]
+        embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild.id))
+        embed.set_thumbnail(url=member.avatar_url)
+
+        member_roles = [role.mention for role in member.roles if role.name != "@everyone"][::-1]
 
         member_roles = ', '.join(member_roles)
 
@@ -59,34 +61,40 @@ class Misc(commands.Cog, description='Остальные команды'):
             'offline':'<:s_offline:850792217262030969> Не в сети'
         }
 
-        embed.add_field(name= "Основная информация:", value=f"""
+        embed.add_field(name="Основная информация:", value=f"""
             **Дата регистрации в Discord:** <t:{int(member.created_at.timestamp())}:F>
             **Дата присоединения:** <t:{int(member.joined_at.timestamp())}:F>
             **Текущий статус:** {status.get(member_status)}
             **Роли:** {member_roles}
             """, inline=False)
 
-        if not member.bot:
-            user = self.server[str(ctx.guild.id)]['users'][str(member.id)]
-            user_leveling = self.server[str(ctx.guild.id)]['users'][str(member.id)]['leveling']
-            user_level = 0 if 'level' not in user_leveling else user_leveling['level']
-            user_exp_for_next_level = formula_of_experience(user_level)
-            user_xp = 0 if 'xp' not in user_leveling else user_leveling['xp']
-            user_all_xp = 0 if 'xp_amount' not in user_leveling else user_leveling['xp_amount']
-            user_voice_time = 0 if 'voice_time_count' not in user else user['voice_time_count']
+        if member.bot:
+            await ctx.send(embed=embed)
+            return
 
-            stats = f"""
+        user = self.server[str(ctx.guild.id)]['users'][str(member.id)]
+        user_voice_time = user['voice_time_count']
+        stats = f'<:voice_time:863674908969926656> **Время в голосом канале:** `{user_voice_time}` мин.'
+
+        if 'leveling' in user:
+            user_leveling = self.server[str(ctx.guild.id)]['users'][str(member.id)]['leveling']
+
+            user_level = user_leveling['level']
+            xp_to_next_level = formula_of_experience(user_level)
+            user_xp = user_leveling['xp']
+            user_xp_amount =  user_leveling['xp_amount']
+            
+            stats += f"""
             <:level:863677232239869964> **Уровень:** `{user_level}`
-            <:exp:863672576941490176> **Опыт:** `{user_xp}/{user_exp_for_next_level}` Всего: `{user_all_xp}`
-            <:voice_time:863674908969926656> **Время в голосом канале:** `{user_voice_time}` мин.
+            <:exp:863672576941490176> **Опыт:** `{user_xp}/{xp_to_next_level}` Всего: `{user_xp_amount}`
             """
 
-            if 'casino' in user:
-                stats += f'\n <:casino_chips:867817313528971295>  **Фишек:** `{user["casino"]["chips"]}`'
+        if 'casino' in user:
+            stats += f'\n <:casino_chips:867817313528971295>  **Фишек:** `{user["casino"]["chips"]}`'
 
-            embed.add_field(name='Статистика:', value=stats)
+        embed.add_field(name='Статистика:', value=stats)
 
-        embed.set_thumbnail(url=member.avatar_url)
+        
         await ctx.send(embed=embed)
 
 

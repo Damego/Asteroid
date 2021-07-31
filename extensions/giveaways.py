@@ -8,7 +8,7 @@ from discord_components import Button, ButtonStyle
 from discord_components.interaction import Interaction
 
 from .bot_settings import get_embed_color, DurationConverter, multiplier, is_administrator_or_bot_owner
-from ._levels import update_member
+from .levels._levels import update_member
 
 
 
