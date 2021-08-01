@@ -150,6 +150,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             uid = user_db['genshin']['uid']
 
         gs.set_cookie_auto('chrome')
+        #gs.set_cookie(ltuid=, ltoken='')
         try:
             characters = gs.get_characters(uid)
         except DataNotPublic:

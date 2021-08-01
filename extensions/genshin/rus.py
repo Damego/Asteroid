@@ -70,9 +70,5 @@ rus_artifact_type = {
     'goblet':'<:Icon_Goblet_of_Eonothem:871372154346827776> Кубок',
     'crown':'<:Icon_Circlet_of_Logos:871372154212605962> Корона',
 }
-def transform_abyss_name(old:str):
-    floor, hall = old.split('-')
-    new = f'Этаж {floor} Зал {hall}'
-    return new    floor, hall = old_name.split('-')
     new_name = f'Этаж {floor} Зал {hall}'
     return new_name
