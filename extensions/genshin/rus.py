@@ -6,7 +6,7 @@ rus_characters = {
     'Zhongli':'Чжун Ли',
     'Ganyu':'Гань Юй',
     'Hu Tao':'Ху Тао',
-    'Kazuha':'Кадзуха',
+    'Kaedehara Kazuha':'Кадзуха',
     'Jean':'Джин',
     'Diluc':'Дилюк',
     'Klee':'Кли',
@@ -15,7 +15,7 @@ rus_characters = {
     'Mona':'Мона',
     'Ningguang':'Нин Гуан',
     'Keqing':'Кэ Цин',
-    'Ayaka':'Аяка',
+    'Kamisato Ayaka':'Аяка',
     'Tartaglia':'Тарталья',
     'Diona':'Диона',
     'Albedo':'Альбедо',
@@ -50,7 +50,8 @@ rus_element = {
 rus_region = {
     'Inazuma': 'Инадзума',
     'Liyue':'Ли Юэ',
-    'Mondstadt':'Мондштадт'
+    'Mondstadt':'Мондштадт',
+    'Dragonspine':'Драконий Хребет'
 }
 
 rus_weapon_type = {
@@ -63,13 +64,15 @@ rus_weapon_type = {
 }
 
 rus_artifact_type = {
-    'flower':'Цветок',
-    'feather':'Перо',
-    'hourglass':'Часы',
-    'goblet':'Кубок',
-    'crown':'Корона',
+    'flower':'<:Icon_Flower_of_Life:871372154179059742> Цветок',
+    'feather':'<:Icon_Plume_of_Death:871372154510397470> Перо',
+    'hourglass':'<:Icon_Sands_of_Eon:871372154845933568> Часы',
+    'goblet':'<:Icon_Goblet_of_Eonothem:871372154346827776> Кубок',
+    'crown':'<:Icon_Circlet_of_Logos:871372154212605962> Корона',
 }
 def transform_abyss_name(old:str):
     floor, hall = old.split('-')
     new = f'Этаж {floor} Зал {hall}'
-    return new
+    return new    floor, hall = old_name.split('-')
+    new_name = f'Этаж {floor} Зал {hall}'
+    return new_name

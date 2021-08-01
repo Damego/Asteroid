@@ -1,4 +1,4 @@
-from asyncio import to_thread, TimeoutError
+from asyncio import TimeoutError
 
 import discord
 from discord.ext import commands
@@ -56,7 +56,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
                 raise UIDNotBinded
             uid = user_db['genshin']['uid']
 
-        await to_thread(gs.set_cookie_auto, 'chrome')
+        gs.set_cookie_auto('chrome')
         try:
             user_data = gs.get_user_stats(uid)
         except DataNotPublic:
@@ -67,20 +67,19 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         user_stats = user_data['stats']
 
         embed = discord.Embed(title='Genshin Impact. Статистика мира', color=get_embed_color(ctx.guild.id))
+        embed.set_footer(text=f'id: {uid}')
 
         for region in user_explorations:
-            if region['name'] == 'Dragonspine':
-                continue
-            content = f"""
-            Исследовано: `{region['explored']}%`
-            Уровень репутации: `{region['level']}`
-            """
+            content = f'Исследовано: `{region["explored"]}%`'
+            if region['name'] != 'Dragonspine':
+                content += f'\nУровень репутации: `{region["level"]}`'
+            
             embed.add_field(name=rus_region.get(region['name']), value=content)
 
         user_stats_content = f"""
-        Достижений: `{user_stats['achievements']}`
+        <:achievements:871370992839176242> Достижений: `{user_stats['achievements']}`
         Персонажей: `{user_stats['characters']}`
-        Бездна: `{transform_abyss_name(user_stats['spiral_abyss'])}`
+        <:spiral_abyss:871370970600968233> Витая Бездна: `{transform_abyss_name(user_stats['spiral_abyss'])}`
 
         <:Item_Anemoculus:870989767960059944> Анемокулов: `{user_stats['anemoculi']}`
         <:Item_Geoculus:870989769570676757> Геокулов: `{user_stats['geoculi']}`
@@ -92,8 +91,8 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         Драгоценных: `{user_stats['precious_chests']}`
         Роскошных: `{user_stats['luxurious_chests']}`
 
-        Открыто телепортов: `{user_stats['unlocked_waypoints']}`
-        Открыто подземелий: `{user_stats['unlocked_domains']}`
+        <:teleport:871385272376504341> Открыто телепортов: `{user_stats['unlocked_waypoints']}`
+        <:domains:871370995192193034> Открыто подземелий: `{user_stats['unlocked_domains']}`
         """
 
         embed.add_field(name='Исследование мира', value=user_stats_content, inline=False)
@@ -121,9 +120,14 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             raise GenshinAccountNotFound
 
         embed = discord.Embed(title='Genshin Impact. Персонажи', color=get_embed_color(ctx.guild.id))
+        embed.set_footer(text=f'id: {uid}')
 
         for character in characters:
-            embed.add_field(name=f'{rus_characters.get(character["name"])} {"⭐" * character["rarity"]}',
+            name = rus_characters.get(character["name"])
+            if name is None:
+                name = character['name']
+
+            embed.add_field(name=f'{name} {"⭐" * character["rarity"]}',
             value=f"""
             ┕ Уровень: `{character['level']}`
             ┕ Созвездие: `C{character['constellation']}`
@@ -154,16 +158,18 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             raise GenshinAccountNotFound
         
         embeds = []
+        pages = len(characters)
 
-        for character in characters:
+        for _page, character in enumerate(characters, start=1):
             embed = discord.Embed(title=f'{rus_characters.get(character["name"])} {"⭐" * character["rarity"]}',
             color=get_embed_color(ctx.guild.id))
             embed.set_thumbnail(url=character['icon'])
+            embed.set_footer(text=f'id: {uid}. Страница: {_page}/{pages}')
             embed.description = f"""
-            ┕ Уровень: `{character['level']}`
+            ┕ <:character_exp:871389287978008616> Уровень: `{character['level']}`
             ┕ Созвездие: `C{character['constellation']}`
             ┕ Элемент: {rus_element.get(character['element'])}
-            ┕ Уровень дружбы: `{character['friendship']}`
+            ┕ <:friendship_exp:871389291740291082> Уровень дружбы: `{character['friendship']}`
             
             **Оружие**
             ┕ Название: `{character['weapon']['name']}`
@@ -182,9 +188,9 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
                 ┕ Уровень: `{artifact['level']}`
                 """
             embeds.append(embed)
-        pages = len(characters)
         page = 1
 
+        # Paginator
         components = [[
             Button(style=ButtonStyle.green, label='←', id='back', disabled=True),
             Button(style=ButtonStyle.blue, label=f'1/{pages}', disabled=True),
