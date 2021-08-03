@@ -71,28 +71,30 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
 
         for region in user_explorations:
             content = f'Исследовано: `{region["explored"]}%`'
-            if region['name'] != 'Dragonspine':
+            if region['name'] == 'Dragonspine':
+                content += f'\nУровень Дерева Вечной Мерзлоты: `{region["level"]}`'
+            else:
                 content += f'\nУровень репутации: `{region["level"]}`'
             
             embed.add_field(name=rus_region.get(region['name']), value=content)
 
         user_stats_content = f"""
         <:achievements:871370992839176242> Достижений: `{user_stats['achievements']}`
-        Персонажей: `{user_stats['characters']}`
+        :mage: Персонажей: `{user_stats['characters']}`
         <:spiral_abyss:871370970600968233> Витая Бездна: `{transform_abyss_name(user_stats['spiral_abyss'])}`
 
-        <:Item_Anemoculus:870989767960059944> Анемокулов: `{user_stats['anemoculi']}`
-        <:Item_Geoculus:870989769570676757> Геокулов: `{user_stats['geoculi']}`
-        <:Item_Electroculus:870989768387878912> Электрокулов: `{user_stats['electroculi']}`
+        <:Item_Anemoculus:870989767960059944> Анемокулов: `{user_stats['anemoculi']}/65`
+        <:Item_Geoculus:870989769570676757> Геокулов: `{user_stats['geoculi']}/131`
+        <:Item_Electroculus:870989768387878912> Электрокулов: `{user_stats['electroculi']}/95`
 
         *Открыто сундуков*
-        Обычных: `{user_stats['common_chests']}`
-        Богатых: `{user_stats['exquisite_chests']}`
-        Драгоценных: `{user_stats['precious_chests']}`
-        Роскошных: `{user_stats['luxurious_chests']}`
+        Обычных: `{user_stats['common_chests']}/974`
+        Богатых: `{user_stats['exquisite_chests']}/687`
+        Драгоценных: `{user_stats['precious_chests']}/169`
+        Роскошных: `{user_stats['luxurious_chests']}/55`
 
-        <:teleport:871385272376504341> Открыто телепортов: `{user_stats['unlocked_waypoints']}`
-        <:domains:871370995192193034> Открыто подземелий: `{user_stats['unlocked_domains']}`
+        <:teleport:871385272376504341> Открыто телепортов: `{user_stats['unlocked_waypoints']}/99`
+        <:domains:871370995192193034> Открыто подземелий: `{user_stats['unlocked_domains']}/28`
         """
 
         embed.add_field(name='Исследование мира', value=user_stats_content, inline=False)
@@ -182,9 +184,13 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             **Артефакты**
             """
             for artifact in character['artifacts']:
+                artifact_name = rus_artifact_name.get(artifact['name'])
+                if artifact_name is None:
+                    artifact_name = artifact['name']
+
                 embed.description += f"""
                 ・*{rus_artifact_type[artifact['pos_name']]}*
-                ┕ Название: `{artifact['name']}`
+                ┕ Название: `{artifact_name}`
                 ┕ Редкость: `{"⭐" * artifact['rarity']}`
                 ┕ Уровень: `{artifact['level']}`
                 """
