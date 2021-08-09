@@ -3,6 +3,7 @@ from traceback import format_exception
 
 import discord
 from discord.ext import commands
+from discord.ext.commands.errors import ExtensionNotLoaded, ExtensionAlreadyLoaded
 from discord_components import DiscordComponents
 
 from extensions import _errors
@@ -127,22 +128,42 @@ async def on_guild_remove(guild):
 @bot.command(name='load', help='Загрузка плагина', hidden=True)
 @commands.is_owner()
 async def load(ctx, extension):
-    bot.load_extension(f'extensions.{extension}')
-    await ctx.send(f'Плагин {extension} загружен!')
+    try:
+        bot.load_extension(f'extensions.{extension}')
+    except Exception as e:
+        content = f"""
+        Расширение {extension} не загружено!
+        Ошибка: {e}
+        """
+        await ctx.send(content)
+    else:
+        await ctx.send(f'Плагин {extension} загружен!')
 
 
 @bot.command(name='unload', help='Отключение плагина', hidden=True)
 @commands.is_owner()
 async def unload(ctx, extension):
-    bot.unload_extension(f'extensions.{extension}')
-    await ctx.send(f'Плагин {extension} отключен!')
+    try:
+        bot.unload_extension(f'extensions.{extension}')
+    except ExtensionNotLoaded:
+        await ctx.send(f'Плагин {extension} не загружен')
+    else:
+        await ctx.send(f'Плагин {extension} отключен!')
 
 
 @bot.command(aliases=['r'], name='reload', help='Перезагрузка плагина', hidden=True)
 @commands.is_owner()
 async def reload(ctx, extension):
-    bot.reload_extension(f'extensions.{extension}')
-    await ctx.message.add_reaction('✅')
+    try:
+        bot.reload_extension(f'extensions.{extension}')
+    except Exception as e:
+        content = f"""
+        Расширение {extension} не загружено!
+        Ошибка: {e}
+        """
+        await ctx.send(content)
+    else:
+        await ctx.message.add_reaction('✅')
 
 
 @bot.command(aliases=['ra'], name='reload_all', help='Перезагрузка всех плагинов', hidden=True)
@@ -169,6 +190,7 @@ async def custom_command(ctx, *, cmd):
 @bot.event
 async def on_command_error(ctx:commands.Context, error):
     embed = discord.Embed(color=0xED4245)
+
     if isinstance(error, _errors.TagNotFound):
         desc = 'Тег не найден!'
     elif isinstance(error, _errors.ForbiddenTag):
@@ -187,10 +209,6 @@ async def on_command_error(ctx:commands.Context, error):
         title = f'**Неправильный аргумент!** \n'
         help = f'`{get_prefix(bot, ctx.message)[2]}{ctx.command} {ctx.command.help}`'
         desc = title + help
-    elif isinstance(error, commands.ExtensionNotLoaded):
-        desc = 'Плагин не загружен'
-    elif isinstance(error, commands.ExtensionAlreadyLoaded):
-        desc = 'Плагин уже загружен'
     elif isinstance(error, commands.BotMissingPermissions):
         desc = f'**У меня недостаточно прав!**\nНеобходимые права: `{", ".join(error.missing_perms)}`'
     elif isinstance(error, commands.MissingPermissions):
@@ -198,18 +216,30 @@ async def on_command_error(ctx:commands.Context, error):
     elif isinstance(error, commands.CommandNotFound):
         desc = 'Команда не найдена!'
     else:
-        desc = f'Я уже уведомил своего создателя об этой ошибке\n*Ошибка:* `{error}`'
+        desc = f"""
+Я уже уведомил своего создателя об этой ошибке
+
+*Ошибка:* 
+```python
+{error}
+```
+"""
         embed.title = f"""
         ❌ Упс... Произошла непредвиденная ошибка!
         """
 
-        error_description = f"""**Сервер:** {ctx.guild}\n**Канал:** {ctx.channel}\n**Пользователь:** {ctx.author}\n**Команда:** {ctx.message.content}
-**Ошибка:**
-`{error}`
-**Лог ошибки:**
-```python
-{format_exception(type(error), error, error.__traceback__)}
-``` """
+        error_description = f"""
+        **Сервер:** {ctx.guild}
+        **Канал:** {ctx.channel}
+        **Пользователь:** {ctx.author}
+        **Команда:** {ctx.message.content}
+        **Ошибка:**
+        `{error}`
+        **Лог ошибки:**
+        ```python
+        {format_exception(type(error), error, error.__traceback__)}
+        ``` """
+
         channel = await ctx.bot.fetch_channel(863001051523055626)
         try:
             await channel.send(error_description)
