@@ -6,10 +6,14 @@ import genshinstats as gs
 from genshinstats.errors import DataNotPublic, AccountNotFound
 from genshinstats.utils import is_game_uid
 
-from ..bot_settings import get_db, get_embed_color
+from ..bot_settings import (
+    get_db, get_embed_color,
+    PaginatorStyle,
+    PaginatorCheckButtonID,
+    get_interaction
+    )
 from .._errors import UIDNotBinded, GenshinAccountNotFound, GenshinDataNotPublic
 from .rus import *
-from .._paginator import PaginatorStyle, PaginatorCheckButtonID, get_interaction
 
 
 

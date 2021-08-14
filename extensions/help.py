@@ -3,8 +3,13 @@ from discord.ext import commands
 from discord.ext.commands.errors import BadArgument
 from discord_components import Interaction
 
-from .bot_settings import get_prefix, version
-from ._paginator import PaginatorStyle, PaginatorCheckButtonID, get_interaction
+from .bot_settings import (
+    get_prefix,
+    version,
+    PaginatorStyle,
+    PaginatorCheckButtonID,
+    get_interaction
+    )
 
 
 
