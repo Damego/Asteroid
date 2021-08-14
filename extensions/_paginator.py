@@ -65,7 +65,7 @@ class PaginatorCheckButtonID:
         self.components[0][2].label = f'{page}/{self.pages}'
         return page
 
-    def style2(self, button_id:int, page:int):
+    def _style2(self, button_id:int, page:int):
         first_button = self.components[0][0]
         second_button = self.components[0][1]
         second_last_button = self.components[0][-2]
