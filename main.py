@@ -36,6 +36,23 @@ def _load_extensions(bot):
                 bot.load_extension(f'extensions.{filename}')
 
 
+def _reload_extensions(bot):
+    extensions = bot.extensions
+    content = ''
+    try:
+        for count, extension in enumerate(extensions, start=1):
+            try:
+                bot.reload_extension(extension)
+            except Exception as e:
+                content += f'{count}/{len(extensions)}. {extension} ❌'
+                content += f'*Ошибка:* `{e}`'
+            else:
+                content += f'{count}/{len(extensions)}. {extension} ✅'
+    except RuntimeError:
+        pass
+    return content
+
+
 bot = commands.Bot(command_prefix=get_prefix, intents=discord.Intents.all())
 
 # EVENTS
@@ -168,22 +185,29 @@ async def reload(ctx, extension):
 
 @bot.command(aliases=['ra'], name='reload_all', help='Перезагрузка всех плагинов', hidden=True)
 @commands.is_owner()
-async def reload_all(ctx):
-    extensions = bot.extensions
-    try:
-        for count, extension in enumerate(extensions, start=1):
-            bot.reload_extension(extension)
-            print(f'{count}/{len(extensions)}. {extension} was reloaded!')
-    except RuntimeError:
-        pass
-
-    await ctx.message.add_reaction('✅')
+async def reload_all(ctx:commands.Context):
+    content = _reload_extensions()
+    embed = discord.Embed(title='Перезагрузка расширений', description=content, color=0x2f3136)
+    await ctx.send(embed=embed)
 
 
 @bot.command(name='cmd', description='None', help='None')
 @commands.is_owner()
 async def custom_command(ctx, *, cmd):
     await eval(cmd)
+
+
+@bot.command(name='deploy')
+@commands.is_owner()
+async def git_pull_updates(ctx:commands.Context):
+    embed = discord.Embed(title='Загрузка обновления...', color=0x2f3136)
+    await ctx.send(embed=embed)
+    os.system('git fetch')
+    os.system('git pull')
+
+    content = _reload_extensions()
+    embed = discord.Embed(title='Перезагрузка расширений...', description=content, color=0x2f3136)
+    await ctx.send(embed=embed)
 
 
 # ERRORS
