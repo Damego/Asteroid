@@ -53,7 +53,7 @@ class Misc(commands.Cog, description='Остальные команды'):
 
         member_roles = ', '.join(member_roles)
 
-        member_status = member.status
+        member_status = str(member.status)
         status = {
             'online':'<:s_online:850792217031082051> В сети',
             'dnd':'<:dnd:850792216943525936> Не беспокоить',
