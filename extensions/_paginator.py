@@ -1,4 +1,4 @@
-from asyncio import TimeoutError
+import asyncio
 
 from discord_components import Button, ButtonStyle
 
@@ -9,11 +9,11 @@ async def get_interaction(bot, ctx, message):
             'button_click',
             check=lambda i: i.user.id == ctx.author.id,
             timeout=120)
-    except TimeoutError:
+    except asyncio.TimeoutError:
         await message.edit(components=[])
         return
     except Exception as e:
-        print(e)
+        print('error', e)
 
 
 class PaginatorStyle:
