@@ -95,7 +95,8 @@ class Misc(commands.Cog, description='Остальные команды'):
         if user_casino:
             stats += f'\n <:casino_chips:867817313528971295>  **Фишек:** `{user_casino["chips"]}`'
 
-        embed.add_field(name='Статистика:', value=stats)
+        if stats:
+            embed.add_field(name='Статистика:', value=stats)
 
         await ctx.send(embed=embed)
 
