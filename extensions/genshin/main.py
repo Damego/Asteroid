@@ -1,3 +1,4 @@
+from traceback import print_tb
 import discord
 from discord.ext import commands
 from discord_components import Interaction
@@ -178,7 +179,8 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             » Тип: `{character['weapon']['type']}`
             » Уровень: `{character['weapon']['level']}`
             » Уровень восхождения: `{character['weapon']['ascension']}`
-            
+            » Уровень возвышения: `{character['weapon']['refinement']}`
+
             """
 
             if character['artifacts']:
@@ -192,9 +194,8 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
                     """
 
             embeds.append(embed)
+
         page = 1
-
-
         components = PaginatorStyle.style2(pages)
         
         message:discord.Message = await ctx.send(embed=embeds[0], components=components)
@@ -202,9 +203,11 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             interaction:Interaction = await get_interaction(self.bot, ctx, message)
             if interaction is None:
                 return
-            
+
             button_id = interaction.component.id
-            page = PaginatorCheckButtonID.style2(button_id, page, pages, components)
+            paginator = PaginatorCheckButtonID(components, pages)
+            page = paginator._style1(button_id, page)
+            #page = PaginatorCheckButtonID.style2(button_id, page, pages, components)
             embed = embeds[page-1]
 
             try:

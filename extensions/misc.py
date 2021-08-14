@@ -1,5 +1,5 @@
 from os import remove
-from random import randint, choice
+from random import randint
 from asyncio import sleep
 
 import discord
@@ -22,24 +22,24 @@ class Misc(commands.Cog, description='Остальные команды'):
 
     @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке', help='[от] [до]')
     async def random_num(self, ctx, arg1:int, arg2:int):
-        num = randint(arg1,arg2)
-        await ctx.reply(f'Рандомное число: {num}')
+        random_number = randint(arg1, arg2)
+        await ctx.reply(f'Рандомное число: {random_number}')
 
     @commands.command(name='coin', aliases=['орел', 'решка','монетка'], description='Кидает монетку, может выпасть орёл или решка', help=' ')
     async def coinflip(self, ctx):
-        ls = ['Орёл', 'Решка']
-        result = choice(ls)
-        if result == 'Орёл':
-            result = 'Вам выпал Орёл! <:eagle_coin:855061929827106818>'
+        result = randint(0,1)
+        if result:
+            content = 'Вам выпал Орёл! <:eagle_coin:855061929827106818>'
         else:
-            result = 'Вам выпала Решка! <:tail_coin:855060316609970216>'
-        await ctx.reply(result)
+            content = 'Вам выпала Решка! <:tail_coin:855060316609970216>'
+
+        await ctx.reply(content)
 
 
     @commands.group(
         name='info',
         aliases=['инфо'],
-        description='Выводит информацию об участнике канала',
+        description='Выводит информацию об участнике сервера',
         help='[ник]',
         invoke_without_command=True)
     async def info(self, ctx:commands.Context, member:discord.Member=None):
@@ -53,7 +53,7 @@ class Misc(commands.Cog, description='Остальные команды'):
 
         member_roles = ', '.join(member_roles)
 
-        member_status = str(member.status)
+        member_status = member.status
         status = {
             'online':'<:s_online:850792217031082051> В сети',
             'dnd':'<:dnd:850792216943525936> Не беспокоить',
@@ -69,16 +69,19 @@ class Misc(commands.Cog, description='Остальные команды'):
             """, inline=False)
 
         if member.bot:
-            await ctx.send(embed=embed)
-            return
+            return await ctx.send(embed=embed)
+
+        stats = ''
 
         user = self.server[str(ctx.guild.id)]['users'][str(member.id)]
-        user_voice_time = user['voice_time_count']
-        stats = f'<:voice_time:863674908969926656> **Время в голосом канале:** `{user_voice_time}` мин.'
+        user_voice_time = user.get('voice_time_count')
+        user_leveling = user.get('leveling')
+        user_casino = user.get('casino')
 
-        if 'leveling' in user:
-            user_leveling = self.server[str(ctx.guild.id)]['users'][str(member.id)]['leveling']
+        if user_voice_time is not None:
+            stats += f'<:voice_time:863674908969926656> **Время в голосом канале:** `{user_voice_time}` мин.'
 
+        if user_leveling:
             user_level = user_leveling['level']
             xp_to_next_level = formula_of_experience(user_level)
             user_xp = user_leveling['xp']
@@ -89,12 +92,11 @@ class Misc(commands.Cog, description='Остальные команды'):
             <:exp:863672576941490176> **Опыт:** `{user_xp}/{xp_to_next_level}` Всего: `{user_xp_amount}`
             """
 
-        if 'casino' in user:
-            stats += f'\n <:casino_chips:867817313528971295>  **Фишек:** `{user["casino"]["chips"]}`'
+        if user_casino:
+            stats += f'\n <:casino_chips:867817313528971295>  **Фишек:** `{user_casino["chips"]}`'
 
         embed.add_field(name='Статистика:', value=stats)
 
-        
         await ctx.send(embed=embed)
 
 

@@ -33,6 +33,38 @@ class PaginatorStyle:
 
 
 class PaginatorCheckButtonID:
+    def __init__(self, components:list, pages:int) -> None:
+        self.components = components
+        self.pages = pages
+
+
+    def _style1(self, button_id:int, page:int):
+        if button_id == 'back':
+            if page == self.pages:
+                self.components[0][-1].disabled = False
+            page -= 1
+            if page == 1:
+                self.components[0][0].disabled = True
+                self.components[0][1].disabled = True
+            elif page == 2:
+                self.components[0][0].disabled = False
+        elif button_id == 'next':
+            if page == 1:
+                self.components[0][0].disabled = False
+                self.components[0][1].disabled = False
+            page += 1
+            if page == self.pages:
+                self.components[0][-1].disabled = True
+            elif page == self.pages-1:
+                self.components[0][-1].disabled = False
+        elif button_id == 'home':
+            page = 1
+            self.components[0][0].disabled = True
+            self.components[0][1].disabled = True
+
+        self.components[0][2].label = f'{page}/{self.pages}'
+        return page
+
     @staticmethod
     def style1(button_id:str, page:int, pages:int, components):
         if button_id == 'back':

@@ -64,7 +64,8 @@ class Help(commands.Cog, description='Помощь'):
                     return
 
                 button_id = interaction.component.id
-                page = PaginatorCheckButtonID.style1(button_id, page, pages, components)
+                paginator = PaginatorCheckButtonID(components, pages)
+                page = paginator._style1(button_id, page)
 
                 try:
                     await interaction.respond(type=7, embed=embeds[page-1], components=components)
