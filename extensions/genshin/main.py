@@ -51,12 +51,9 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
     help='(UID)')
     async def statistics(self, ctx:commands.Context, uid:int=None):
         if uid is None:
-            user_db = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]
-            if 'genshin' not in user_db:
-                raise UIDNotBinded
-            uid = user_db['genshin']['uid']
+            uid = self._get_UID(ctx.guild.id, ctx.author.id)
 
-        gs.set_cookie_auto('chrome')
+        gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
         try:
             user_data = gs.get_user_stats(uid)
         except DataNotPublic:
@@ -64,7 +61,6 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         except AccountNotFound:
             raise GenshinAccountNotFound
         user_explorations = user_data['explorations']
-        print(user_explorations)
         user_stats = user_data['stats']
 
         embed = discord.Embed(title='Genshin Impact. Статистика мира', color=get_embed_color(ctx.guild.id))
@@ -112,12 +108,9 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
     help='(UID)')
     async def characters(self, ctx:commands.Context, uid:int=None):
         if uid is None:
-            user_db = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]
-            if 'genshin' not in user_db:
-                raise UIDNotBinded
-            uid = user_db['genshin']['uid']
+            uid = self._get_UID(ctx.guild.id, ctx.author.id)
 
-        gs.set_cookie_auto('chrome')
+        gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
         try:
             characters = gs.get_characters(uid, lang='ru-ru')
         except DataNotPublic:
@@ -148,7 +141,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         if uid is None:
             uid = self._get_UID(ctx.guild.id, ctx.author.id)
             
-        gs.set_cookie_auto('chrome')
+        gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
 
         try:
             characters = gs.get_characters(uid, lang='ru-ru')
@@ -216,7 +209,8 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
                 print('can\'t respond')
 
     def _get_UID(self, guild_id:int, author_id:int):
-        user_db = self.server[str(guild_id)]['users'][str(author_id)]
-        if 'genshin' not in user_db:
-            raise UIDNotBinded
-        return user_db['genshin']['uid']
+            user_db = self.server[str(guild_id)]['users'][str(author_id)]
+            user_genshin = user_db.get('genshin')
+            if not user_genshin:
+                raise UIDNotBinded
+            return user_genshin['uid']
