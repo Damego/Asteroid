@@ -127,7 +127,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             raise GenshinAccountNotFound
 
         embed = discord.Embed(title='Genshin Impact. Персонажи', color=get_embed_color(ctx.guild.id))
-        embed.set_footer(text=f'id: {uid}')
+        embed.set_footer(text=f'UID: {uid}')
 
         for character in characters:
             embed.add_field(name=f'{character["name"]} {"⭐" * character["rarity"]}',
@@ -165,7 +165,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             embed = discord.Embed(title=f'{character["name"]} {"⭐" * character["rarity"]}',
             color=get_embed_color(ctx.guild.id))
             embed.set_thumbnail(url=character['icon'])
-            embed.set_footer(text=f'id: {uid}. Страница: {_page}/{pages}')
+            embed.set_footer(text=f'UID: {uid}. Страница: {_page}/{pages}')
 
             embed.description = f"""
             **Информация**
