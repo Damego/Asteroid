@@ -27,7 +27,7 @@ def get_prefix(bot, message):
 
     return prefix
 
-def _load_extensions(bot):
+def _load_extensions():
     for filename in os.listdir('./extensions'):
         if not filename.startswith('_'):
             if filename.endswith('.py'):
@@ -36,18 +36,19 @@ def _load_extensions(bot):
                 bot.load_extension(f'extensions.{filename}')
 
 
-def _reload_extensions(bot):
+def _reload_extensions():
     extensions = bot.extensions
+    extensions_amount = len(extensions)
     content = ''
     try:
         for count, extension in enumerate(extensions, start=1):
             try:
                 bot.reload_extension(extension)
             except Exception as e:
-                content += f'{count}/{len(extensions)}. {extension} ❌'
-                content += f'*Ошибка:* `{e}`'
+                content += f'\n`{count}/{extensions_amount}. {extension} `❌'
+                content += f'\n*Ошибка:* `{e}`'
             else:
-                content += f'{count}/{len(extensions)}. {extension} ✅'
+                content += f'\n`{count}/{extensions_amount}. {extension} `✅'
     except RuntimeError:
         pass
     return content
@@ -58,7 +59,7 @@ bot = commands.Bot(command_prefix=get_prefix, intents=discord.Intents.all())
 # EVENTS
 @bot.event
 async def on_ready():
-    _load_extensions(bot)
+    _load_extensions()
     DiscordComponents(bot)
     print(f'Бот {bot.user} готов к работе!')
 
