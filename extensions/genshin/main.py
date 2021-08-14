@@ -1,4 +1,3 @@
-from traceback import print_tb
 import discord
 from discord.ext import commands
 from discord_components import Interaction
@@ -37,15 +36,17 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
     @genshin_impact.command(
     name='bind',
     description='Привязывает UID',
-    help='[UID]')
-    async def bind_uid(self, ctx:commands.Context, uid:int):
-        if is_game_uid(uid):
-            user_db = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]
-            user_db['genshin'] = {
-                'uid':uid
-            }
-            return await ctx.reply('Вы привязали UID')
-        return await ctx.reply('Неверный UID')
+    help='[hoyolab_uid]')
+    async def bind_uid(self, ctx:commands.Context, hoyolab_uid:int):
+        gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
+
+        uid = gs.get_uid_from_hoyolab_uid(hoyolab_uid)
+        user_db = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]
+        user_db['genshin'] = {
+            'hoyolab_uid':hoyolab_uid,
+            'uid':uid
+        }
+        return await ctx.reply('Вы привязали UID')
 
 
     @genshin_impact.command(
@@ -55,9 +56,9 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
     help='(UID)')
     async def statistics(self, ctx:commands.Context, uid:int=None):
         if uid is None:
-            uid = self._get_UID(ctx.guild.id, ctx.author.id)
+            uid = self._get_UID('', ctx.guild.id, ctx.author.id)
 
-        gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
+        self._get_cookie()
         try:
             user_data = gs.get_user_stats(uid)
         except DataNotPublic:
@@ -68,7 +69,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         user_stats = user_data['stats']
 
         embed = discord.Embed(title='Genshin Impact. Статистика мира', color=get_embed_color(ctx.guild.id))
-        embed.set_footer(text=f'id: {uid}')
+        embed.set_footer(text=f'UID: {uid}')
 
         for region in user_explorations:
             if region["explored"] == 0.0:
@@ -82,26 +83,29 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             
             embed.add_field(name=rus_region.get(region['name']), value=content)
 
-        user_stats_content = f"""
-        <:achievements:871370992839176242> Достижений: `{user_stats['achievements']}`
-        :mage: Персонажей: `{user_stats['characters']}`
-        <:spiral_abyss:871370970600968233> Витая Бездна: `{transform_abyss_name(user_stats['spiral_abyss'])}`
-
+        oculus_content = f"""
         <:Item_Anemoculus:870989767960059944> Анемокулов: `{user_stats['anemoculi']}/65`
         <:Item_Geoculus:870989769570676757> Геокулов: `{user_stats['geoculi']}/131`
         <:Item_Electroculus:870989768387878912> Электрокулов: `{user_stats['electroculi']}/95`
+        """
 
-        *Открыто сундуков*
+        embed.add_field(name='Собрано окулов', value=oculus_content, inline=False)
+
+        chests_opened = f"""
         Обычных: `{user_stats['common_chests']}/974`
         Богатых: `{user_stats['exquisite_chests']}/687`
         Драгоценных: `{user_stats['precious_chests']}/169`
         Роскошных: `{user_stats['luxurious_chests']}/55`
+        """
 
-        <:teleport:871385272376504341> Открыто телепортов: `{user_stats['unlocked_waypoints']}/99`
+        embed.add_field(name='Открыто сундуков', value=chests_opened, inline=False)
+
+        misc_content = f"""
+        <:teleport:871385272376504341> Открыто телепортов: `{user_stats['unlocked_waypoints']}/112`
         <:domains:871370995192193034> Открыто подземелий: `{user_stats['unlocked_domains']}/28`
         """
 
-        embed.add_field(name='Исследование мира', value=user_stats_content, inline=False)
+        embed.add_field(name='Разное', value=misc_content, inline=False)
         await ctx.send(embed=embed)
 
 
@@ -112,9 +116,9 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
     help='(UID)')
     async def characters(self, ctx:commands.Context, uid:int=None):
         if uid is None:
-            uid = self._get_UID(ctx.guild.id, ctx.author.id)
+            uid = self._get_UID('', ctx.guild.id, ctx.author.id)
 
-        gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
+        self._get_cookie()
         try:
             characters = gs.get_characters(uid, lang='ru-ru')
         except DataNotPublic:
@@ -143,7 +147,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
     help='(UID)')
     async def chars(self, ctx:commands.Context, uid:int=None):
         if uid is None:
-            uid = self._get_UID(ctx.guild.id, ctx.author.id)
+            uid = self._get_UID('', ctx.guild.id, ctx.author.id)
             
         gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
 
@@ -212,9 +216,47 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             except Exception:
                 print('can\'t respond')
 
-    def _get_UID(self, guild_id:int, author_id:int):
+    @genshin_impact.command(
+    name='info',
+    description='Показывает информацию об аккаунте Genshin Impact',
+    help='(Hoyolab UID)')
+    async def info(self, ctx:commands.Context, hoyolab_uid:int=None):
+        if hoyolab_uid is None:
+            hoyolab_uid = self._get_UID('hoyolab', ctx.guild.id, ctx.author.id)
+
+        self._get_cookie()
+        card = gs.get_record_card(hoyolab_uid)
+        user_data = gs.get_user_stats(int(card['game_role_id']))
+        user_stats = user_data['stats']
+
+        content = f"""
+        **Ник в игре: {card['nickname']}**
+
+        <:adventure_exp:876142502736965672> Ранг Приключений: `{card['level']}`
+        <:achievements:871370992839176242> Достижений: `{user_stats['achievements']}`
+        :mage: Персонажей: `{user_stats['characters']}`
+        <:spiral_abyss:871370970600968233> Витая Бездна: `{transform_abyss_name(user_stats['spiral_abyss'])}`
+        """
+
+        embed = discord.Embed(title='Информация об игроке', description=content, color=get_embed_color(ctx.guild.id))
+        embed.set_footer(text=f'Hoyolab UID: {hoyolab_uid}')
+        await ctx.send(embed=embed)
+
+
+    def _get_cookie(self):
+        gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
+
+    def _get_UID(self, uid_type:str, guild_id:int, author_id:int):
             user_db = self.server[str(guild_id)]['users'][str(author_id)]
             user_genshin = user_db.get('genshin')
             if not user_genshin:
                 raise UIDNotBinded
-            return user_genshin['uid']
+
+            if uid_type == 'hoyolab':
+                uid = user_genshin.get('hoyolab_uid')
+            else:
+                uid = user_genshin.get('uid')
+
+            if uid is None:
+                raise UIDNotBinded
+            return uid
