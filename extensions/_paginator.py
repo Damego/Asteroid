@@ -65,6 +65,53 @@ class PaginatorCheckButtonID:
         self.components[0][2].label = f'{page}/{self.pages}'
         return page
 
+    def style2(self, button_id:int, page:int):
+        first_button = self.components[0][0]
+        second_button = self.components[0][1]
+        second_last_button = self.components[0][-2]
+        last_button = self.components[0][-1]
+        pages_button = self.components[0][2]
+        if button_id == 'back':
+            if page == self.pages:
+                second_last_button.disabled = False
+                last_button.disabled = False
+            page -= 1
+            if page == 1:
+                first_button.disabled = True
+                second_button.disabled = True
+            elif page == 2:
+                first_button.disabled = False
+                second_button.disabled = False
+
+        elif button_id == 'first':
+            page = 1
+            first_button.disabled = True
+            second_button.disabled = True
+            second_last_button.disabled = False
+            last_button.disabled = False
+
+        elif button_id == 'last':
+            page = self.pages
+            first_button.disabled = False
+            second_button.disabled = False
+            second_last_button.disabled = True
+            last_button.disabled = True
+
+        elif button_id == 'next':
+            if page == 1:
+                first_button.disabled = False
+                second_button.disabled = False
+            page += 1
+            if page == self.pages:
+                second_last_button.disabled = True
+                last_button.disabled = True
+            elif page == self.pages-1:
+                second_last_button.disabled = False
+                last_button.disabled = False
+        pages_button.label = f'{page}/{self.pages}'
+
+        return page
+
     @staticmethod
     def style1(button_id:str, page:int, pages:int, components):
         if button_id == 'back':

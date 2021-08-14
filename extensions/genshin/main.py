@@ -199,7 +199,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
 
             button_id = interaction.component.id
             paginator = PaginatorCheckButtonID(components, pages)
-            page = paginator._style1(button_id, page)
+            page = paginator._style2(button_id, page)
             #page = PaginatorCheckButtonID.style2(button_id, page, pages, components)
             embed = embeds[page-1]
 
