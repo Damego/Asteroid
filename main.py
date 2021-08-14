@@ -204,6 +204,7 @@ async def git_pull_updates(ctx:commands.Context):
     embed = discord.Embed(title='Загрузка обновления...', color=0x2f3136)
     await ctx.send(embed=embed)
     os.system('git fetch')
+    os.system('git stash')
     os.system('git pull')
 
     content = _reload_extensions()
