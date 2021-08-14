@@ -1,4 +1,6 @@
-from discord_components import Button, ButtonStyle, Select, SelectOption
+from asyncio import TimeoutError
+
+from discord_components import Button, ButtonStyle
 
 
 async def get_interaction(bot, ctx, message):
@@ -62,7 +64,7 @@ class PaginatorCheckButtonID:
             self.components[0][0].disabled = True
             self.components[0][1].disabled = True
 
-        self.components[0][2].label = f'{page}/{self.pages}'
+        self.components[0][1].label = f'{page}/{self.pages}'
         return page
 
     def _style2(self, button_id:int, page:int):
