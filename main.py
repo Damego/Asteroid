@@ -254,6 +254,10 @@ async def on_command_error(ctx:commands.Context, error):
         ❌ Упс... Произошла непредвиденная ошибка!
         """
 
+        error_traceback = ''.join(
+            format_exception(type(error), error, error.__traceback__)
+        )
+
         error_description = f"""
         **Сервер:** {ctx.guild}
         **Канал:** {ctx.channel}
@@ -263,7 +267,7 @@ async def on_command_error(ctx:commands.Context, error):
         `{error}`
         **Лог ошибки:**
         ```python
-        {format_exception(type(error), error, error.__traceback__)}
+        {error_traceback}
         ``` """
 
         channel = await ctx.bot.fetch_channel(863001051523055626)
