@@ -81,6 +81,8 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             if region['name'] == 'Dragonspine':
                 content += f'\nУровень Дерева Вечной Мерзлоты: `{region["level"]}`'
             else:
+                if region['name'] == 'Inazuma':
+                    content += f'\nУровень Священной Сакуры: `{region["offerings"][0]["level"]}`'
                 content += f'\nУровень репутации: `{region["level"]}`'
             
             embed.add_field(name=rus_region.get(region['name']), value=content)
