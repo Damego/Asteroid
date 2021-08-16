@@ -71,6 +71,8 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         embed = discord.Embed(title='Genshin Impact. Статистика мира', color=get_embed_color(ctx.guild.id))
         embed.set_footer(text=f'UID: {uid}')
 
+        await ctx.send(user_explorations)
+
         for region in user_explorations:
             if region["explored"] == 0.0:
                 continue
