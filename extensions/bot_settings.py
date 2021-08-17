@@ -23,7 +23,7 @@ def get_prefix(guild_id):
     return server[str(guild_id)]['configuration']['prefix']
 
 
-version = 'v1.2-beta'
+version = 'v1.2'
 
 server = get_db()
 
