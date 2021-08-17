@@ -1,11 +1,12 @@
 import asyncio
-from os import getenv
+from os import getenv, environ
+import redis
 
 import discord
 from discord.ext import commands
 from discord_components import Select, SelectOption, Interaction, Button, ButtonStyle
 
-def get_db():
+def get_db1():
     from replit import Database, db
     if db is not None:
         return db
@@ -13,6 +14,9 @@ def get_db():
     load_dotenv()
     url = getenv('REPLIT_DB_URL')
     return Database(url)
+
+def get_db():
+    return redis.from_url(environ.get("REDIS_URL"))
 
 def get_embed_color(guild_id):
     """Get color for embeds from json"""
