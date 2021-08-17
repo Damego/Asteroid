@@ -121,16 +121,17 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
         self.server[str(member.guild.id)]['users'][str(member.id)] = {}
         user = self.server[str(member.guild.id)]['users'][str(member.id)]
+        user['voice_time_count'] = 0
+
+        role = self._get_guild_start_role(member.guild.id)
 
         user['leveling'] = {
             'level':1,
             'xp':0,
-            'xp_amount':0
+            'xp_amount':0,
+            'role':role
         }
-        user['voice_time_count'] = 0
-
-        role = self._get_guild_start_role(member.guild.id)
-        user['leveling']['role'] = role
+                
         if role != '':
             await member.add_roles(member.guild.get_role(role))
 
