@@ -7,7 +7,7 @@ from discord.ext.commands.errors import ExtensionNotLoaded, ExtensionAlreadyLoad
 from discord_components import DiscordComponents
 
 from extensions import _errors
-from lifetime_alive import keep_alive
+#from lifetime_alive import keep_alive
 
 def get_db():
     from replit import Database, db
@@ -287,6 +287,6 @@ async def on_command_error(ctx:commands.Context, error):
 
 if __name__ == '__main__':
     server = get_db()
-    keep_alive()
+    #keep_alive()
     bot.run(os.environ['TOKEN'])
 
