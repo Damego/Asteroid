@@ -217,6 +217,13 @@ class Misc(commands.Cog, description='Остальные команды'):
     async def hltv(self, ctx:commands.Context, *, team):
         await HLTV.parse_mathes(ctx, team)
 
+    @commands.command(name='test_deploy', description='', help='')
+    async def test_deploy(self, ctx:commands.Context, *, team):
+        embed = discord.Embed(title='test', description='test')
+        embed.add_field(name='test', value=f'{ctx.author}')
+
+        await ctx.send(embed=embed)
+
 
 
 def setup(bot):
