@@ -1,0 +1,10 @@
+qrcode
+discord
+requests
+beautifulsoup4
+python-dotenv
+discord_components
+youtube-dl
+PyNaCl
+genshinstats
+git+https://github.com/Damego/DiscordUtils.git#egg=DiscordUtils
