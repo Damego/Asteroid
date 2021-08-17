@@ -20,11 +20,11 @@ def get_db():
 
 def get_embed_color(guild_id):
     """Get color for embeds from json"""
-    return int(server[str(guild_id)]['configuration']['embed_color'], 16)
+    return int(server[str(guild_id)]['configuration']['embed_color'].decode('UTF-8'), 16)
 
 def get_prefix(guild_id):
     """Get guild prexif from json """
-    return server[str(guild_id)]['configuration']['prefix']
+    return server[str(guild_id)]['configuration']['prefix'].decode('UTF-8')
 
 
 version = 'v1.2'

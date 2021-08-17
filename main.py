@@ -26,7 +26,7 @@ def get_db():
 def get_prefix(bot, message):
     """Get guild prexif from json """
     try:
-        prefix = server[str(message.guild.id)]['configuration']['prefix']
+        prefix = server[str(message.guild.id)]['configuration']['prefix'].decode('UTF-8')
     except KeyError:
         prefix = 'a!'
 

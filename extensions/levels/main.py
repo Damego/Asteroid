@@ -1,5 +1,6 @@
 from time import time
 from random import randint
+import json
 
 import discord
 from discord.ext import commands
@@ -125,12 +126,12 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
         role = self._get_guild_start_role(member.guild.id)
 
-        user['leveling'] = {
+        user['leveling'] = json.dumps({
             'level':1,
             'xp':0,
             'xp_amount':0,
             'role':role
-        }
+        })
                 
         if role != '':
             await member.add_roles(member.guild.get_role(role))
