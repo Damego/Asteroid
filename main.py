@@ -15,7 +15,7 @@ def get_db():
         return db
     from dotenv import load_dotenv
     load_dotenv()
-    url = os.getenv('URL')
+    url = os.getenv('REPLIT_DB_URL')
     return Database(url)
 
 def get_prefix(bot, message):

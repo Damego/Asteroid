@@ -11,7 +11,7 @@ def get_db():
         return db
     from dotenv import load_dotenv
     load_dotenv()
-    url = getenv('URL')
+    url = getenv('REPLIT_DB_URL')
     return Database(url)
 
 def get_embed_color(guild_id):
