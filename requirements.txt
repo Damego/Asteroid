@@ -9,3 +9,4 @@ PyNaCl
 genshinstats
 git+https://github.com/Damego/DiscordUtils.git#egg=DiscordUtils
 replit
+redis
