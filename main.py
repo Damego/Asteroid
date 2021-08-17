@@ -1,6 +1,7 @@
 import os
 from traceback import format_exception
 import redis
+import json
 
 import discord
 from discord.ext import commands
@@ -70,7 +71,7 @@ async def on_ready():
 
 @bot.event
 async def on_guild_join(guild):
-    server[str(guild.id)] = {
+    data = {
         'configuration':{
             'prefix':'!d',
             'embed_color': '0xFFFFFE',
@@ -92,6 +93,35 @@ async def on_guild_join(guild):
         'tags':{},
         'voice_time':{}
     }
+    server[str(guild.id)] = json.dumps(data)
+
+    #configuration = {
+    #        'prefix':'!d',
+    #        'embed_color': '0xFFFFFE',
+    #        'extensions':{
+    #            'Games': True,
+    #            'HLTV': True,
+    #            'Levels': True,
+    #            'Misc': True,
+    #            'Moderation': True,
+    #            'ReactionRole': True,
+    #            'Tags': True,
+    #            'ButtonMusic': True,
+    #            'Music': True,
+    #        }
+    #}
+#
+    #server.hset(str(guild.id), 'configuration', json.dumps(configuration))
+#
+    #other = {
+    #    'roles_by_level':{},
+    #    'users': {},
+    #    'reaction_posts':{},
+    #    'tags':{},
+    #    'voice_time':{}
+    #}
+#
+    #server.hmset((str(guild.id), json.dumps(other)))
 
 
 @bot.command()
