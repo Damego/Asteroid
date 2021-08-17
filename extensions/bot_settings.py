@@ -391,6 +391,15 @@ class Settings(commands.Cog, description='Настройка бота'):
         await interaction.channel.send(content='Сохранено!', delete_after=10)
 
 
+    @commands.command(
+    name='print_db',
+    description='',
+    help='')
+    @commands.is_owner()
+    async def print_db(self, ctx:commands.Context):
+        print(self.server[str(ctx.guild.id)])
+
+
 
 def setup(bot):
     bot.add_cog(Settings(bot))
