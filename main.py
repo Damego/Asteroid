@@ -144,7 +144,7 @@ async def clear_guild_settings(ctx):
 
 @bot.event
 async def on_guild_remove(guild):
-    server.pop(str(guild.id))
+    del server[str(guild.id)]
 
 # COMMANDS
 @bot.command(name='load', help='Загрузка плагина', hidden=True)
