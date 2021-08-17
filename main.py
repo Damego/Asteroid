@@ -1,5 +1,6 @@
 import os
 from traceback import format_exception
+import redis
 
 import discord
 from discord.ext import commands
@@ -17,6 +18,9 @@ def get_db():
     load_dotenv()
     url = os.getenv('REPLIT_DB_URL')
     return Database(url)
+
+def get_db():
+    return redis.from_url(os.environ.get("REDIS_URL"))
 
 def get_prefix(bot, message):
     """Get guild prexif from json """
