@@ -6,7 +6,7 @@ import json
 import discord
 from discord.ext import commands
 
-from ..bot_settings import get_db, get_embed_color, get_guild_configuration, get_guild_user, get_guild_users, get_prefix, is_administrator_or_bot_owner
+from ..bot_settings import get_embed_color, get_guild_configuration, get_guild_user, get_guild_users, get_prefix, is_administrator_or_bot_owner
 from ._levels import update_member, formula_of_experience
 
 
@@ -15,8 +15,6 @@ class Levels(commands.Cog, description='Cистема уровней'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-
-        self.server = get_db()
 
         self.last_user_message = {}
         self.time_factor = 10
