@@ -52,8 +52,9 @@ class Levels(commands.Cog, description='Cистема уровней'):
         if member.bot:
             return
         
-        voice = get_guild_voice_time(member.guild.id)
+        
         collection = get_collection(member.guild.id)
+        voice = get_guild_voice_time(collection)
 
         if (not before.channel) and after.channel: # * If member join to channel
             members = after.channel.members
@@ -121,7 +122,9 @@ class Levels(commands.Cog, description='Cистема уровней'):
             return
         user_id = message.author.id
 
-        user = get_guild_user(message.guild.id, user_id)
+        collection = get_collection(message.guild.id)
+
+        user = get_guild_user(collection, user_id)
 
         if user is None:
             await self.add_member(message)

@@ -1,7 +1,7 @@
 from time import time
 
 import discord
-from ..bot_settings import get_collection, get_guild_level_roles, get_guild_user, get_guild_configuration
+from ..bot_settings import get_collection, get_guild_level_roles, get_guild_user
 
 last_user_message = {}
 
