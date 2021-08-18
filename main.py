@@ -27,7 +27,7 @@ def get_prefix(bot, message):
     """Get guild prexif from json """
     try:
         collection = get_collection(message.guild.id)
-        prefix = collection.find_one({'_id':'configuration'})['configuration']['prefix']
+        prefix = collection.find_one({'_id':'configuration'})['prefix']
     except Exception as e:
         print('CANT GET PREFIX! ERROR:', e)
         prefix = 'a!'

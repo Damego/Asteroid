@@ -46,7 +46,7 @@ def get_prefix(guild_id):
 def get_embed_color(guild_id):
     """Get color for embeds from json"""
     collection = get_collection(guild_id)
-    color = collection.find_one({'_id':'configuration'})['configuration']['embed_color']
+    color = collection.find_one({'_id':'configuration'})['embed_color']
     return int(color, 16)
 
 
@@ -245,7 +245,7 @@ class Settings(commands.Cog, description='Настройка бота'):
     @is_administrator_or_bot_owner()
     async def change_guild_prefix(self, ctx:commands.Context, prefix):
         collection = get_collection(ctx.guild.id)
-        collection.replace_one({'_id':'configuration'}, {'prefix':prefix})
+        collection.update_one({'_id':'configuration'}, {'$set':{'prefix':prefix}})
 
         embed = discord.Embed(title=f'Префикс для команд изменился на `{prefix}`', color=0x2f3136)
         await ctx.send(embed=embed, delete_after=30)
