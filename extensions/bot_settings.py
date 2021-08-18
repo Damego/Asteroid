@@ -202,8 +202,6 @@ class Settings(commands.Cog, description='Настройка бота'):
         self.bot = bot
         self.hidden = False
 
-        self.server = get_db()
-
     @commands.Cog.listener()
     async def on_member_join(self, member:discord.Member):
         guild:discord.Guild = member.guild
