@@ -17,11 +17,12 @@ async def update_member(arg, exp):
     elif isinstance(arg, discord.Member):
         member = arg
 
-    member_stats = get_guild_user(member.guild.id, member.id)['leveling']
+    collection = get_collection(member.guild.id)
+
+    member_stats = get_guild_user(collection, member.id)['leveling']
     xp = member_stats['xp'] + exp
     xp_amount = member_stats['xp_amount'] + exp
 
-    collection = get_collection(member.guild.id)
     collection.update_one(
         {'_id':'users'},
         {'$set':{f'{str(member.id)}.leveling.xp':xp}})
