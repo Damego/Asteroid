@@ -1,7 +1,6 @@
 import os
 from traceback import format_exception
-import redis
-import json
+from pymongo import MongoClient
 
 import discord
 from discord.ext import commands
@@ -9,9 +8,8 @@ from discord.ext.commands.errors import ExtensionNotLoaded, ExtensionAlreadyLoad
 from discord_components import DiscordComponents
 
 from extensions import _errors
-#from lifetime_alive import keep_alive
 
-def get_db():
+def get_db1():
     from replit import Database, db
     if db is not None:
         return db
@@ -20,14 +18,18 @@ def get_db():
     url = os.getenv('REPLIT_DB_URL')
     return Database(url)
 
-def get_db():
-    return redis.from_url(os.environ.get("REDIS_URL"))
+def get_collection(guild_id):
+    cluster = MongoClient(os.getenv('MONGODB_URL'))
+    guilds = cluster['guilds']
+    return guilds[str(guild_id)]
 
 def get_prefix(bot, message):
     """Get guild prexif from json """
     try:
-        prefix = server[str.encode(str(message.guild.id))][str.encode('configuration')][str.encode('prefix')].decode('UTF-8')
-    except KeyError:
+        collection = get_collection(message.guild.id)
+        prefix = collection.find_one({'_id':'configuration'})['configuration']['prefix']
+    except Exception as e:
+        print('CANT GET PREFIX! ERROR:', e)
         prefix = 'a!'
 
     return prefix
@@ -71,78 +73,22 @@ async def on_ready():
 
 @bot.event
 async def on_guild_join(guild):
-    data = {
-        'configuration':{
-            'prefix':'!d',
-            'embed_color': '0xFFFFFE',
-            'extensions':{
-                'Games': True,
-                'HLTV': True,
-                'Levels': True,
-                'Misc': True,
-                'Moderation': True,
-                'ReactionRole': True,
-                'Tags': True,
-                'ButtonMusic': True,
-                'Music': True,
-            }
-        },
-        'roles_by_level':{},
-        'users': {},
-        'reaction_posts':{},
-        'tags':{},
-        'voice_time':{}
+    collection = get_collection(guild.id)
+    configuration = {
+            'prefix':'a!',
+            'embed_color': '0xFFFFFE'
     }
-    server[str(guild.id)] = json.dumps(data)
 
-    #configuration = {
-    #        'prefix':'!d',
-    #        'embed_color': '0xFFFFFE',
-    #        'extensions':{
-    #            'Games': True,
-    #            'HLTV': True,
-    #            'Levels': True,
-    #            'Misc': True,
-    #            'Moderation': True,
-    #            'ReactionRole': True,
-    #            'Tags': True,
-    #            'ButtonMusic': True,
-    #            'Music': True,
-    #        }
-    #}
-#
-    #server.hset(str(guild.id), 'configuration', json.dumps(configuration))
-#
-    #other = {
-    #    'roles_by_level':{},
-    #    'users': {},
-    #    'reaction_posts':{},
-    #    'tags':{},
-    #    'voice_time':{}
-    #}
-#
-    #server.hmset((str(guild.id), json.dumps(other)))
+    collection.update_one(
+        {'_id':'configuration'},
+        {'$set':configuration},
+        upsert=True)
 
 
 @bot.command()
 @commands.is_owner()
 async def full_clear_guild_db(ctx):
     server[str(ctx.guild.id)] = {
-        'configuration':{
-            'prefix':'!d',
-            'embed_color': '0xFFFFFE',
-            'extensions':{
-                'Games': True,
-                'HLTV': True,
-                'Levels': True,
-                'Misc': True,
-                'Moderation': True,
-                'ReactionRole': True,
-                'Tags': True,
-                'ButtonMusic': True,
-                'Music': True,
-            }
-        },
         'roles_by_level':{},
         'users': {},
         'reaction_posts':{},
@@ -151,30 +97,10 @@ async def full_clear_guild_db(ctx):
     }
 
 
-@bot.command()
-@commands.is_owner()
-async def clear_guild_settings(ctx):
-    server[str(ctx.guild.id)] = {
-        'configuration':{
-            'prefix':'!d',
-            'embed_color': '0xFFFFFE',
-            'extensions':{
-                'Games': True,
-                'HLTV': True,
-                'Levels': True,
-                'Misc': True,
-                'Moderation': True,
-                'ReactionRole': True,
-                'Tags': True,
-                'NewMusic': True,
-            }
-        }
-    }
-
-
 @bot.event
 async def on_guild_remove(guild):
-    del server[str(guild.id)]
+    collection = get_collection(guild.id)
+    collection.drop()
 
 # COMMANDS
 @bot.command(name='load', help='Загрузка плагина', hidden=True)
@@ -320,7 +246,5 @@ async def on_command_error(ctx:commands.Context, error):
 
 
 if __name__ == '__main__':
-    server = get_db()
-    #keep_alive()
     bot.run(os.environ['TOKEN'])
 
