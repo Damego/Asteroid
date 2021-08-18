@@ -1,9 +1,8 @@
 from time import time
 
 import discord
-from ..bot_settings import get_db
+from ..bot_settings import get_collection, get_guild_level_roles, get_guild_user, get_guild_configuration
 
-server = get_db()
 last_user_message = {}
 
 async def update_member(arg, exp):
@@ -18,7 +17,7 @@ async def update_member(arg, exp):
     elif isinstance(arg, discord.Member):
         member = arg
 
-    member_stats = server[guild_id]['users'][str(member.id)]['leveling']
+    member_stats = get_guild_user(member.guild.id, member.id)['leveling']
     member_stats['xp'] += exp
     member_stats['xp_amount'] += exp
 
@@ -28,7 +27,7 @@ async def update_member(arg, exp):
         member_stats['xp'] -= exp_to_next_level
         exp_to_next_level = formula_of_experience(member_stats['level'])
 
-        guild_levels = server[guild_id]['roles_by_level']
+        guild_levels = get_guild_level_roles(member.guild.id)
         new_role = member.guild.get_role(guild_levels.get(str(member_stats['level'])))
 
         if new_role is not None:
@@ -58,7 +57,7 @@ def check_timeout(guild_id, member):
 
 
 async def update_member_role(guild_id, member, new_role):
-    member_stats = server[guild_id]['users'][str(member.id)]
+    member_stats = get_guild_user(guild_id, member.id)['leveling']
     old_role = member_stats['role']
 
     for role in member.roles:
@@ -66,7 +65,8 @@ async def update_member_role(guild_id, member, new_role):
             await member.remove_roles(role, reason='Удаление старого уровня')
             break
     await member.add_roles(new_role, reason='Повышение уровня')
-    member_stats['role'] = new_role.id
+    collection = get_collection(guild_id)
+    collection.update_one({'_id':'users'}, {'$set':{f'{str(member.id)}.leveling.role':new_role.id}})
 
 
 async def notify_member(guild, member, new_level, new_role=None):

@@ -1,3 +1,4 @@
+from main import get_collection
 from time import time
 from random import randint
 import json
@@ -5,7 +6,7 @@ import json
 import discord
 from discord.ext import commands
 
-from ..bot_settings import get_db, get_embed_color, get_prefix, is_administrator_or_bot_owner
+from ..bot_settings import get_db, get_embed_color, get_guild_configuration, get_guild_user, get_guild_users, get_prefix, is_administrator_or_bot_owner
 from ._levels import update_member, formula_of_experience
 
 
@@ -22,8 +23,9 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
 
     def _get_guild_start_role(self, guild_id):
-        if 'on_join_role' in self.server[str(guild_id)]['configuration']:
-            return self.server[str(guild_id)]['configuration']['on_join_role']
+        guild_conf = get_guild_configuration(guild_id)
+        if 'on_join_role' in guild_conf:
+            return guild_conf.get('on_join_role')
         else:
             return ''
 
@@ -35,8 +37,8 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        if str(member.id) in self.server[str(member.guild.id)]['users']:
-            del self.server[str(member.guild.id)]['users'][str(member.id)]
+        collection = get_collection(member.guild.id)
+        collection.update_one({'_id':'users'}, {'$unset':str(member.id)})
 
 
     @commands.Cog.listener()
@@ -107,7 +109,9 @@ class Levels(commands.Cog, description='Cистема уровней'):
             return
         user_id = message.author.id
 
-        if str(user_id) not in self.server[str(message.guild.id)]['users']:
+        user = get_guild_user(message.guild.id, user_id)
+
+        if user is None:
             await self.add_member(message)
         else:
             xp = randint(25,35)
@@ -120,19 +124,26 @@ class Levels(commands.Cog, description='Cистема уровней'):
         elif isinstance(arg, discord.Member):
             member = arg
 
-        self.server[str(member.guild.id)]['users'][str(member.id)] = {}
-        user = self.server[str(member.guild.id)]['users'][str(member.id)]
-        user['voice_time_count'] = 0
-
         role = self._get_guild_start_role(member.guild.id)
 
-        user['leveling'] = json.dumps({
-            'level':1,
-            'xp':0,
-            'xp_amount':0,
-            'role':role
-        })
-                
+        user_dict = {
+            'voice_time_count':0,
+            'leveling': {
+                'level':1,
+                'xp':0,
+                'xp_amount':0,
+                'role':role
+            }
+        }
+
+
+        collection = get_collection(member.guild.id)
+        collection.update_one(
+            {'_id':'users'},
+            {'$set':{str(member.id):user_dict}},
+            upsert=True
+        )
+
         if role != '':
             await member.add_roles(member.guild.get_role(role))
 

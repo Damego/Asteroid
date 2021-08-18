@@ -28,9 +28,13 @@ def get_guild_users(guild_id):
     collection = get_collection(guild_id)
     return collection.find_one({'_id':'users'})
 
+def get_guild_user(guild_id, user_id):
+    collection = get_collection(guild_id)
+    return collection.find_one({'_id':'users'}).get(str(user_id))
+
 def get_guild_level_roles(guild_id):
     collection = get_collection(guild_id)
-    return collection.find_one({'_id':'level_roles'})
+    return collection.find_one({'_id':'roles_by_level'})
 
 def get_prefix(guild_id):
     """Get guild prexif from json """

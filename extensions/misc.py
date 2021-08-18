@@ -7,9 +7,16 @@ from discord.ext import commands
 from discord_components import Button, ButtonStyle
 import qrcode
 
-from .bot_settings import DurationConverter, get_embed_color, get_db, get_prefix, multiplier, version, is_administrator_or_bot_owner
-from .levels._levels import formula_of_experience
-from ._hltv import HLTV
+from .bot_settings import (
+    DurationConverter,
+    get_embed_color,
+    get_prefix,
+    multiplier,
+    version,
+    is_administrator_or_bot_owner,
+    get_guild_user)
+#from .levels._levels import formula_of_experience
+#from ._hltv import HLTV
 
 
 class Misc(commands.Cog, description='Остальные команды'):
@@ -17,7 +24,6 @@ class Misc(commands.Cog, description='Остальные команды'):
         self.bot = bot
         self.hidden = False
 
-        self.server = get_db()
 
 
     @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке', help='[от] [до]')
@@ -73,7 +79,7 @@ class Misc(commands.Cog, description='Остальные команды'):
 
         stats = ''
 
-        user = self.server[str(ctx.guild.id)]['users'][str(member.id)]
+        user = get_guild_user(ctx.guild.id, member.id)
         user_voice_time = user.get('voice_time_count')
         user_leveling = user.get('leveling')
         user_casino = user.get('casino')
