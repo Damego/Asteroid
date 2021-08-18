@@ -18,13 +18,34 @@ async def update_member(arg, exp):
         member = arg
 
     member_stats = get_guild_user(member.guild.id, member.id)['leveling']
-    member_stats['xp'] += exp
-    member_stats['xp_amount'] += exp
+    xp = member_stats['xp'] + exp
+    xp_amount = member_stats['xp_amount'] + exp
+
+    collection = get_collection(member.guild.id)
+    collection.update_many(
+        {'_id':'users'},
+        {'$inc':{
+                {f'{str(member.id)}.leveling.xp':xp},
+                {f'{str(member.id)}.leveling.xp_amount':xp_amount}
+            }
+        }
+    )
 
     exp_to_next_level = formula_of_experience(member_stats['level'])
     while member_stats['xp'] > exp_to_next_level:
-        member_stats['level'] += 1
-        member_stats['xp'] -= exp_to_next_level
+        level = member_stats['level'] + 1
+        xp -= exp_to_next_level
+        collection.update_many(
+        {'_id':'users'},
+        {'$inc':{
+                {f'{str(member.id)}.leveling.level':level},
+                {f'{str(member.id)}.leveling.xp':xp}
+                }
+            }
+        )
+
+        member_stats = get_guild_user(member.guild.id, member.id)['leveling']
+
         exp_to_next_level = formula_of_experience(member_stats['level'])
 
         guild_levels = get_guild_level_roles(member.guild.id)
