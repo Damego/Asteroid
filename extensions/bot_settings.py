@@ -1,6 +1,9 @@
 import asyncio
 from os import getenv
+from time import time
+
 from pymongo import MongoClient
+from pymongo.collection import Collection
 import discord
 from discord.ext import commands
 from discord_components import Select, SelectOption, Interaction, Button, ButtonStyle
@@ -24,17 +27,37 @@ def get_guild_configuration(guild_id):
     collection = get_collection(guild_id)
     return collection.find_one({'_id':'configuration'})
 
-def get_guild_users(guild_id):
-    collection = get_collection(guild_id)
+def get_guild_users(collection:Collection):
     return collection.find_one({'_id':'users'})
 
-def get_guild_user(guild_id, user_id):
-    collection = get_collection(guild_id)
+def get_guild_user(collection:Collection, user_id):
     return collection.find_one({'_id':'users'}).get(str(user_id))
 
-def get_guild_level_roles(guild_id):
-    collection = get_collection(guild_id)
+def get_guild_level_roles(collection:Collection):
     return collection.find_one({'_id':'roles_by_level'})
+
+def get_guild_voice_time(collection:Collection):
+    return collection.find_one({'_id':'voice_time'})
+
+def get_guild_reaction_posts(collection:Collection):
+    return collection.find_one({'_id':'reaction_posts'})
+
+def get_guild_tags(collection:Collection):
+    return collection.find_one({'_id':'tags'})
+
+def set_user_voice_time(collection:Collection, member_id):
+    collection.update_one(
+        {'_id':'voice_time'},
+        {'$set':{str(member_id):int(time())}}
+    )
+
+def update_user_voice_time_count(collection:Collection, member_id, _time):
+    current_voice_time = collection.find_one({'_id':'users'})[str(member_id)].get('voice_time_count')
+
+    collection.update_one(
+        {'_id':'users'},
+        {'$set':{f'{str(member_id)}.voice_time_count':current_voice_time + _time}}
+    )
 
 def get_prefix(guild_id):
     """Get guild prexif from json """

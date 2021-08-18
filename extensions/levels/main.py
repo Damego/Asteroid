@@ -1,12 +1,20 @@
-from main import get_collection
 from time import time
 from random import randint
-import json
 
 import discord
 from discord.ext import commands
 
-from ..bot_settings import get_embed_color, get_guild_configuration, get_guild_user, get_guild_users, get_prefix, is_administrator_or_bot_owner
+from ..bot_settings import (
+    get_collection,
+    get_embed_color,
+    get_guild_configuration,
+    get_guild_user,
+    get_guild_voice_time,
+    get_prefix,
+    is_administrator_or_bot_owner,
+    set_user_voice_time,
+    update_user_voice_time_count
+)
 from ._levels import update_member, formula_of_experience
 
 
@@ -43,18 +51,22 @@ class Levels(commands.Cog, description='Cистема уровней'):
     async def on_voice_state_update(self, member:discord.Member, before:discord.VoiceState, after:discord.VoiceState):
         if member.bot:
             return
-        voice = self.server[str(member.guild.id)]['voice_time']
+        
+        voice = get_guild_voice_time(member.guild.id)
+        collection = get_collection(member.guild.id)
 
         if (not before.channel) and after.channel: # * If member join to channel
             members = after.channel.members
             if len(members) == 2:
                 voice[str(member.id)] = int(time())
+                
+                set_user_voice_time(collection, member.id)
 
                 first_member = members[0]
                 if str(first_member.id) not in voice:
-                    voice[str(first_member.id)] = int(time())
+                    set_user_voice_time(collection, first_member.id)
             elif len(members) > 2:
-                voice[str(member.id)] = int(time())
+                set_user_voice_time(collection, member.id)
 
         elif member not in before.channel.members and (not after.channel): # * if member left from channel
             members = before.channel.members
@@ -73,8 +85,8 @@ class Levels(commands.Cog, description='Cистема уровней'):
                     return
                 elif len(after_members) > 1:
                     if len(after_members) == 2:
-                        voice[str(after_members[0].id)] = int(time())
-                    voice[str(member.id)] = int(time())
+                        set_user_voice_time(collection, after_members[0].id)
+                    set_user_voice_time(collection, member.id)
 
             if len(before_members) == 1:
                 await self.check_time(before_members[0], voice)
@@ -89,11 +101,13 @@ class Levels(commands.Cog, description='Cистема уровней'):
             exp = (sit_time // 60) * self.time_factor
             await update_member(member, exp)
 
-            member_db = self.server[str(member.guild.id)]['users'][str(member.id)]
+            collection = get_collection(member.guild.id)
+            member_db = get_guild_user(collection, member.guild.id)
 
-            if 'voice_time_count' not in member_db:
-                member_db['voice_time_count'] = 0
-            member_db['voice_time_count'] += (sit_time // 60)
+
+            if member_db.get('voice_time_count') is None:
+                update_user_voice_time_count(collection, member.id, 0)
+            update_user_voice_time_count(collection, member.id, (sit_time // 60))
         except Exception as e:
             print('[LEVELS ERROR]', e)
 
