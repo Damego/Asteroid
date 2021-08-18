@@ -10,4 +10,4 @@ genshinstats
 git+https://github.com/Damego/DiscordUtils.git#egg=DiscordUtils
 replit
 pymongo
-pymongo[srv]
+dnspython
