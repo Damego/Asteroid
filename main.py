@@ -84,6 +84,26 @@ async def on_guild_join(guild):
         {'$set':configuration},
         upsert=True)
 
+    collection.update_one(
+        {'_id':'reaction_posts'},
+        {'$set':{}},
+        upsert=True)
+
+    collection.update_one(
+        {'_id':'tags'},
+        {'$set':{}},
+        upsert=True)
+
+    collection.update_one(
+        {'_id':'voice_time'},
+        {'$set':{}},
+        upsert=True)
+
+    collection.update_one(
+        {'_id':'users'},
+        {'$set':{}},
+        upsert=True)
+
 
 @bot.command()
 @commands.is_owner()
