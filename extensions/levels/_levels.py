@@ -22,27 +22,25 @@ async def update_member(arg, exp):
     xp_amount = member_stats['xp_amount'] + exp
 
     collection = get_collection(member.guild.id)
-    collection.update_many(
+    collection.update_one(
         {'_id':'users'},
-        {'$inc':{
-                {f'{str(member.id)}.leveling.xp':xp},
-                {f'{str(member.id)}.leveling.xp_amount':xp_amount}
-            }
-        }
-    )
+        {'$set':{{f'{str(member.id)}.leveling.xp':xp}}})
+
+    collection.update_one(
+        {'_id':'users'},
+        {'$set':{{f'{str(member.id)}.leveling.xp_amount':xp_amount}}})
 
     exp_to_next_level = formula_of_experience(member_stats['level'])
     while member_stats['xp'] > exp_to_next_level:
         level = member_stats['level'] + 1
         xp -= exp_to_next_level
-        collection.update_many(
+        collection.update_one(
         {'_id':'users'},
-        {'$inc':{
-                {f'{str(member.id)}.leveling.level':level},
-                {f'{str(member.id)}.leveling.xp':xp}
-                }
-            }
-        )
+        {'$set':{{f'{str(member.id)}.leveling.level':level}}})
+
+        collection.update_one(
+        {'_id':'users'},
+        {'$set':{{f'{str(member.id)}.leveling.xp':xp}}})
 
         member_stats = get_guild_user(member.guild.id, member.id)['leveling']
 
