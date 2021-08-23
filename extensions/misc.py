@@ -14,7 +14,7 @@ from .bot_settings import (
     is_administrator_or_bot_owner,
     )
 from .levels._levels import formula_of_experience
-#from ._hltv import HLTV
+from ._hltv import HLTV
 
 
 class Misc(commands.Cog, description='Остальные команды'):

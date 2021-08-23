@@ -468,19 +468,12 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
             guild_users_collection.update_one(
                 {'_id':str(member.id)},
-                {'$set':{'leveling.level':1}})
-
-            guild_users_collection.update_one(
-                {'_id':str(member.id)},
-                {'$set':{'leveling.xp':0}})
-
-            guild_users_collection.update_one(
-                {'_id':str(member.id)},
-                {'$set':{'leveling.xp_amount':0}})
-
-            guild_users_collection.update_one(
-                {'_id':str(member.id)},
-                {'$set':{'leveling.role':role}})
+                {'$set':{
+                    'leveling.level':1,
+                    'leveling.xp':0,
+                    'leveling.xp_amount':0,
+                    'leveling.role':role
+                    }})
 
             if role:
                 await member.add_roles(ctx.guild.get_role(role))
