@@ -1,12 +1,10 @@
 from datetime import datetime, timedelta
 
 import discord
-from discord.ext import commands
 import requests
 from bs4 import BeautifulSoup
 
 
-from extensions.bot_settings import get_embed_color
 
 
 class HLTV():
@@ -43,7 +41,7 @@ class HLTV():
 
 
     async def parse_mathes(self, ctx, team):
-        embed = discord.Embed(title='Расписание игр по CS:GO', description=f'Ближайшие игры команды {team}', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Расписание игр по CS:GO', description=f'Ближайшие игры команды {team}', color=self.bot.get_embed_color(ctx.guild.id))
 
         html = self._get_html()
         if html.status_code != 200:

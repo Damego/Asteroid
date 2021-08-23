@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import DiscordUtils
 
-from extensions.bot_settings import get_embed_color
 
 
 class NotConnectedToVoice(commands.CommandError):
@@ -28,7 +27,7 @@ class Music(commands.Cog, description='Музыка без плеера'):
             duration = 'Прямая трансляция'
 
         embed = discord.Embed(title='Запуск музыки',
-                            color=get_embed_color(ctx.guild.id))
+                            color=self.bot.get_embed_color(ctx.guild.id))
         embed.add_field(name='Название:',
                         value=f'[{track.name}]({track.url})', inline=False)
         embed.add_field(name='Продолжительность:',

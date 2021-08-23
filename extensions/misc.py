@@ -4,18 +4,16 @@ from asyncio import sleep
 
 import discord
 from discord.ext import commands
-from discord_components import Button, ButtonStyle
+from discord_components import Button, ButtonStyle, Select, SelectOption
 import qrcode
 
 from .bot_settings import (
     DurationConverter,
-    get_embed_color,
-    get_prefix,
     multiplier,
     version,
     is_administrator_or_bot_owner,
-    get_guild_user)
-#from .levels._levels import formula_of_experience
+    )
+from .levels._levels import formula_of_experience
 #from ._hltv import HLTV
 
 
@@ -52,7 +50,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         if not member:
             member = ctx.author
 
-        embed = discord.Embed(title=f'Информация о пользователе {member}', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title=f'Информация о пользователе {member}', color=self.bot.get_embed_color(ctx.guild.id))
         embed.set_thumbnail(url=member.avatar_url)
 
         member_roles = [role.mention for role in member.roles if role.name != "@everyone"][::-1]
@@ -79,7 +77,9 @@ class Misc(commands.Cog, description='Остальные команды'):
 
         stats = ''
 
-        user = get_guild_user(ctx.guild.id, member.id)
+        guild_users_collection = self.bot.get_guild_users_collection(ctx.guild.id)
+        user = guild_users_collection.find_one({'_id':str(member.id)})
+
         user_voice_time = user.get('voice_time_count')
         user_leveling = user.get('leveling')
         user_casino = user.get('casino')
@@ -113,7 +113,7 @@ class Misc(commands.Cog, description='Остальные команды'):
     help='')
     async def server_info(self, ctx:commands.Context):
         guild = ctx.guild
-        embed = discord.Embed(title=f'Информация о сервере {guild.name}', color=get_embed_color(guild.id))
+        embed = discord.Embed(title=f'Информация о сервере {guild.name}', color=self.bot.get_embed_color(guild.id))
         embed.add_field(name='Дата создания:', value=f'<t:{int(guild.created_at.timestamp())}:F>', inline=False)
         embed.add_field(name='Основатель сервера:', value=guild.owner.mention, inline=False)
 
@@ -131,8 +131,8 @@ class Misc(commands.Cog, description='Остальные команды'):
 
     @info.command(name='bot', description='Показывает информацию о Боте', help='')
     async def info_bot(self, ctx:commands.Context):
-        prefix = get_prefix(ctx.guild.id)
-        embed = discord.Embed(title='Информация о боте', color=get_embed_color(ctx.guild.id))
+        prefix = self.bot.get_guild_prefix(ctx.guild.id)
+        embed = discord.Embed(title='Информация о боте', color=self.bot.self.bot.get_embed_color(ctx.guild.id))
 
         components= [
             Button(style=ButtonStyle.URL, label='Пригласить', url='https://discord.com/api/oauth2/authorize?client_id=828262275206873108&permissions=0&scope=bot')
@@ -171,7 +171,7 @@ class Misc(commands.Cog, description='Остальные команды'):
 
     @commands.command(description='Показывает пинг бота', help='')
     async def ping(self, ctx):
-        embed = discord.Embed(title='🏓 Pong!', description=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='🏓 Pong!', description=f'Задержка бота `{int(ctx.bot.latency * 1000)}` мс', color=self.bot.get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
 
@@ -202,7 +202,7 @@ class Misc(commands.Cog, description='Остальные команды'):
         usage='Только для Администрации')
     @is_administrator_or_bot_owner()
     async def announce(self, ctx, channel:discord.TextChannel, *, message):
-        embed = discord.Embed(title='Объявление!', description=message, color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Объявление!', description=message, color=self.bot.get_embed_color(ctx.guild.id))
         await channel.send(embed=embed)
 
 
@@ -215,21 +215,13 @@ class Misc(commands.Cog, description='Остальные команды'):
         amount, time_format = duration
         await sleep(amount * multiplier[time_format])
 
-        embed = discord.Embed(title='Объявление!', description=message, color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Объявление!', description=message, color=self.bot.get_embed_color(ctx.guild.id))
         await channel.send(embed=embed)
 
 
     @commands.command(name='hltv', description='Выводит дату ближайщих игр указанной комадны', help='[команда]')
     async def hltv(self, ctx:commands.Context, *, team):
         await HLTV.parse_mathes(ctx, team)
-
-    @commands.command(name='test_deploy', description='', help='')
-    async def test_deploy(self, ctx:commands.Context, *, team):
-        embed = discord.Embed(title='test', description='test')
-        embed.add_field(name='test', value=f'{ctx.author}')
-
-        await ctx.send(embed=embed)
-
 
 
 def setup(bot):

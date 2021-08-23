@@ -3,24 +3,18 @@ from random import randint
 
 import discord
 from discord.ext import commands
+from pymongo.collection import Collection
 
+from mongobot import MongoComponentsBot
 from ..bot_settings import (
-    get_collection,
-    get_embed_color,
-    get_guild_configuration,
-    get_guild_user,
-    get_guild_voice_time,
-    get_prefix,
     is_administrator_or_bot_owner,
-    set_user_voice_time,
-    update_user_voice_time_count
 )
 from ._levels import update_member, formula_of_experience
 
 
 
 class Levels(commands.Cog, description='Cистема уровней'):
-    def __init__(self, bot):
+    def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
 
@@ -29,9 +23,11 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
 
     def _get_guild_start_role(self, guild_id):
-        guild_conf = get_guild_configuration(guild_id)
-        if 'on_join_role' in guild_conf:
-            return guild_conf.get('on_join_role')
+        guild_configuration_collection = self.bot.get_guild_configuration_collection(guild_id)
+        guild_configuration = guild_configuration_collection.find_one({'_id':'configuration'})
+
+        if 'on_join_role' in guild_configuration:
+            return guild_configuration.get('on_join_role')
         else:
             return ''
 
@@ -43,8 +39,8 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        collection = get_collection(member.guild.id)
-        collection.update_one({'_id':'users'}, {'$unset':str(member.id)})
+        collection = self.bot.get_guild_users_collection(member.guild.id)
+        collection.delete_one({'_id':str(member.id)})
 
 
     @commands.Cog.listener()
@@ -52,31 +48,39 @@ class Levels(commands.Cog, description='Cистема уровней'):
         if member.bot:
             return
         
-        
-        collection = get_collection(member.guild.id)
-        voice = get_guild_voice_time(collection)
+        voice_collection = self.bot.get_guild_voice_time_collection(member.guild.id)
 
         if (not before.channel) and after.channel: # * If member join to channel
             members = after.channel.members
             if len(members) == 2:
-                voice[str(member.id)] = int(time())
-                
-                set_user_voice_time(collection, member.id)
+                voice_collection.update_one(
+                    {'_id':str(member.id)},
+                    {'$set':{'voice_time':time()}},
+                    upsert=True
+                )
 
                 first_member = members[0]
-                if str(first_member.id) not in voice:
-                    set_user_voice_time(collection, first_member.id)
+                if voice_collection.find_one({'_id':str(first_member.id)}) is None:
+                    voice_collection.update_one(
+                    {'_id':str(first_member.id)},
+                    {'$set':{'voice_time':time()}},
+                    upsert=True
+                )
             elif len(members) > 2:
-                set_user_voice_time(collection, member.id)
+                voice_collection.update_one(
+                    {'_id':str(member.id)},
+                    {'$set':{'voice_time':time()}},
+                    upsert=True
+                )
 
         elif member not in before.channel.members and (not after.channel): # * if member left from channel
             members = before.channel.members
             if len(members) == 1:
-                await self.check_time(member, voice)
+                await self.check_time(member, voice_collection)
                 first_member = members[0]
-                await self.check_time(first_member, voice)
+                await self.check_time(first_member, voice_collection)
             elif len(members) > 1:
-                await self.check_time(member, voice)
+                await self.check_time(member, voice_collection)
         elif member not in before.channel.members and member in after.channel.members: # * If member moved from one channel to another
             before_members = before.channel.members
             after_members = after.channel.members
@@ -86,29 +90,44 @@ class Levels(commands.Cog, description='Cистема уровней'):
                     return
                 elif len(after_members) > 1:
                     if len(after_members) == 2:
-                        set_user_voice_time(collection, after_members[0].id)
-                    set_user_voice_time(collection, member.id)
+                        voice_collection.update_one(
+                            {'_id':str(after_members[0].id)},
+                            {'$set':{'voice_time':time()}},
+                            upsert=True
+                        )
+                    voice_collection.update_one(
+                        {'_id':str(member.id)},
+                        {'$set':{'voice_time':time()}},
+                        upsert=True
+                    )
 
             if len(before_members) == 1:
-                await self.check_time(before_members[0], voice)
+                await self.check_time(before_members[0], voice_collection)
             if len(after_members) == 1:
-                await self.check_time(after_members[0], voice)
+                await self.check_time(after_members[0], voice_collection)
 
 
-    async def check_time(self, member, voice):
+    async def check_time(self, member, voice_collection: Collection):
         try:
-            sit_time = int(time()) - voice[str(member.id)]
-            del voice[str(member.id)]
+            voice_user = voice_collection.find_one({'_id':str(member.id)})
+            sit_time = int(time()) - voice_user['voice_time']
+            voice_collection.delete_one({'_id':str(member.id)})
             exp = (sit_time // 60) * self.time_factor
             await update_member(member, exp)
 
-            collection = get_collection(member.guild.id)
-            member_db = get_guild_user(collection, member.guild.id)
-
+            collection = self.bot.get_guild_users_collection(member.guild.id)
+            member_db = collection.find_one({'_id':str(member.id)})
 
             if member_db.get('voice_time_count') is None:
-                update_user_voice_time_count(collection, member.id, 0)
-            update_user_voice_time_count(collection, member.id, (sit_time // 60))
+                collection.update_one(
+                    {'_id':str(member.id)},
+                    {'$set':{'voice_time_count':0}},
+                    upsert=True
+                )
+            collection.update_one(
+                {'_id':str(member.id)},
+                {'$inc':{'voice_time_count':(sit_time // 60)}}
+                )
         except Exception as e:
             print('[LEVELS ERROR]', e)
 
@@ -117,31 +136,28 @@ class Levels(commands.Cog, description='Cистема уровней'):
     async def on_message(self, message:discord.Message):
         if message.author.bot:
             return
-
-        if message.content.startswith(get_prefix(message.guild.id)):
+        if message.content.startswith(self.bot.get_guild_prefix(message.guild.id)):
             return
+
         user_id = message.author.id
 
-        collection = get_collection(message.guild.id)
-
-        user = get_guild_user(collection, user_id)
+        users_collection = self.bot.get_guild_users_collection(message.guild.id)
+        user = users_collection.find_one({'_id':str(user_id)})
 
         if user is None:
-            await self.add_member(message)
+            await self.add_member(message.author)
         else:
             xp = randint(25,35)
-            await update_member(message, xp)
+            await update_member(self.bot, message, xp)
 
 
-    async def add_member(self, arg):
-        if isinstance(arg, discord.Message):
-            member = arg.author
-        elif isinstance(arg, discord.Member):
-            member = arg
-
+    async def add_member(self, member):
         role = self._get_guild_start_role(member.guild.id)
 
-        user_dict = {
+        collection = self.bot.get_guild_users_collection(member.guild.id)
+        collection.update_one(
+            {'_id':str(member.id)},
+            {'$set':{
             'voice_time_count':0,
             'leveling': {
                 'level':1,
@@ -149,13 +165,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 'xp_amount':0,
                 'role':role
             }
-        }
-
-
-        collection = get_collection(member.guild.id)
-        collection.update_one(
-            {'_id':'users'},
-            {'$set':{str(member.id):user_dict}},
+        }},
             upsert=True
         )
 
@@ -165,23 +175,31 @@ class Levels(commands.Cog, description='Cистема уровней'):
 
     @commands.command(name='reset_my_stats', description='Обнуляет вашу статистику', help='')
     async def reset_member_statistics(self, ctx:commands.Context):
-        user_stats = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]
-        user_stats['voice_time_count'] = 0
+        user_id = str(ctx.author.id)
+        users = self.bot.get_guild_users_collection(ctx.guild.id)
+        user_db = users.find_one({'_id':user_id})
 
-        user_leveling = user_stats['leveling']
-
-        user_leveling['level'] = 1
-        user_leveling['xp'] = 0
-        user_leveling['xp_amount'] = 0
-
-        current_role = ctx.guild.get_role(user_leveling['role'])
+        current_role = ctx.guild.get_role(user_db['leveling']['role'])
         if current_role:
             await ctx.author.remove_roles(current_role)
+        role_id = self._get_guild_start_role(ctx.guild.id)
 
-        role = self._get_guild_start_role(ctx.guild.id)
-        user_leveling['role'] = role
-        if role != '':
-            await ctx.author.add_roles(ctx.guild.get_role(role))
+        users.update_one(
+            {'_id':user_id},
+            {'$set':{
+                'voice_time_count':0,
+                'leveling': {
+                    'level':1,
+                    'xp':0,
+                    'xp_amount':0,
+                    'role':role_id
+                    }
+                }
+            },
+        upsert=True)
+    
+        if role_id:
+            await ctx.author.add_roles(ctx.guild.get_role(role_id))
 
         await ctx.message.add_reaction('✅')
 
@@ -208,7 +226,11 @@ class Levels(commands.Cog, description='Cистема уровней'):
         usage='Только для Администрации')
     @is_administrator_or_bot_owner()
     async def add(self, ctx:commands.Context, level:str, role:discord.Role):
-        self.server[str(ctx.guild.id)]['roles_by_level'][level] = role.id
+        collection = self.bot.get_guild_level_roles_collection(ctx.guild.id)
+        collection.update_one(
+            {'_id':level},
+            {'$set':{'role_id':role.id}},
+            upsert=True)
         await ctx.message.add_reaction('✅')
 
 
@@ -218,12 +240,12 @@ class Levels(commands.Cog, description='Cистема уровней'):
         help='[уровень]',
         usage='Только для Администрации')
     @is_administrator_or_bot_owner()
-    async def remove(self, ctx:commands.Context, level):
-        levels = self.server[str(ctx.guild.id)]['roles_by_level']
+    async def remove(self, ctx:commands.Context, level:str):
+        level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild.id)
         try:
-            del levels[level]
+            level_roles_collection.delete_one({'_id':level})
             await ctx.message.add_reaction('✅')
-        except KeyError:
+        except Exception:
             await ctx.reply('Такого уровня не существует!')
 
 
@@ -233,14 +255,13 @@ class Levels(commands.Cog, description='Cистема уровней'):
         help='[старый уровень] [новый уровень]',
         usage='Только для Администрации')
     @is_administrator_or_bot_owner()
-    async def replace(self, ctx:commands.Context, old, new):
-        roles_by_level = self.server[str(ctx.guild.id)]['roles_by_level']
-        try:
-            role = roles_by_level[old]
-        except KeyError:
-            return await ctx.message.add_reaction('❌')
-        del roles_by_level[old]
-        roles_by_level[new] = role
+    async def replace(self, ctx:commands.Context, old_level, new_level):
+        level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild.id)
+        role = level_roles_collection.find_one_and_delete({'_id':old_level})['role_id']
+        level_roles_collection.update_one(
+            {'_id':new_level},
+            {'$set':{'role_id':role}},
+            upsert=True)
         await ctx.message.add_reaction('✅')
 
 
@@ -250,30 +271,33 @@ class Levels(commands.Cog, description='Cистема уровней'):
         help='')
     @is_administrator_or_bot_owner()
     async def reset_levels(self, ctx:commands.Context):
-        self.server[str(ctx.guild.id)]['roles_by_level'] = {}
+        level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild.id)
+        level_roles_collection.drop_indexes()
         await ctx.message.add_reaction('✅')
 
 
     @levels.command(
-        name='list', 
-        description='Показывает список ролей по уровню', 
+        name='list',
+        description='Показывает список ролей по уровню',
         help='')
     async def list(self, ctx:commands.Context):
-        dict_levels = self.server[str(ctx.guild.id)]['roles_by_level']
+        collection = self.bot.get_guild_level_roles_collection(str(ctx.guild.id))
+        dict_levels = collection.find()
+
         content = ''
         
         for level in dict_levels:
             xp_amount = 0
-            role = ctx.guild.get_role(dict_levels[level])
-            for _level in range(1, int(level)):
+            role = ctx.guild.get_role(dict_levels['role_id'])
+            for _level in range(1, int(dict_levels['_id'])):
               exp = formula_of_experience(_level)
               xp_amount += exp
             content += f'{level} — {role.mention} Необходимо опыта: {xp_amount}\n'
 
         if content == '':
-            content = 'Уровней нет!'
+            content = 'Ролей по уровням нет!'
 
-        embed = discord.Embed(description=content, color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(description=content, color=self.bot.get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
 
@@ -295,7 +319,13 @@ class Levels(commands.Cog, description='Cистема уровней'):
         usage='Только для Администрации')
     @is_administrator_or_bot_owner()
     async def role(self, ctx:commands.Context, member:discord.Member, role:discord.Role):
-        self.server[str(ctx.guild.id)]['users'][str(member.id)]['leveling']['role'] = role.id
+        collection = self.bot.get_guild_users_collection(ctx.guild.id)
+        collection.update_one(
+            {'_id':str(member.id)},
+            {'$set':{
+                'leveling.role':role.id
+            }}
+        )
         await ctx.message.add_reaction('✅')
 
 
@@ -306,7 +336,13 @@ class Levels(commands.Cog, description='Cистема уровней'):
         usage='Только для Администрации')
     @is_administrator_or_bot_owner()
     async def time(self, ctx:commands.Context, member:discord.Member, time:int):
-        self.server[str(ctx.guild.id)]['users'][str(member.id)]['voice_time_count'] = time
+        collection = self.bot.get_guild_users_collection(ctx.guild.id)
+        collection.update_one(
+            {'_id':str(member.id)},
+            {'$set':{
+                'voice_time_count':time
+            }}
+        )
         await ctx.message.add_reaction('✅')
 
 
@@ -317,19 +353,13 @@ class Levels(commands.Cog, description='Cистема уровней'):
         usage='Только для Администрации')
     @is_administrator_or_bot_owner()
     async def level(self, ctx:commands.Context, member:discord.Member, level:int):
-        self.server[str(ctx.guild.id)]['users'][str(member.id)]['leveling']['level'] = level
-        await ctx.message.add_reaction('✅')
-
-
-    @set.command(
-        name='xp',
-        description='Устанавливает опыт участнику сервера в базе данных',
-        help='[участник] [кол-во опыта]',
-        usage='Только для Администрации')
-    @is_administrator_or_bot_owner()
-    async def xp(self, ctx:commands.Context, member:discord.Member, xp:int):
-        self.server[str(ctx.guild.id)]['users'][str(member.id)]['leveling']['xp'] = xp
-        self.server[str(ctx.guild.id)]['users'][str(member.id)]['leveling']['xp_amount'] = xp
+        collection = self.bot.get_guild_users_collection(ctx.guild.id)
+        collection.update_one(
+            {'_id':str(member.id)},
+            {'$set':{
+                'leveling.level':level
+            }}
+        )
         await ctx.message.add_reaction('✅')
 
 
@@ -338,11 +368,12 @@ class Levels(commands.Cog, description='Cистема уровней'):
         description='Показывает уровневую информацию об участнике сервера',
         help='[участник]')
     async def show_info(self, ctx:commands.Context, member:discord.Member):
-        userstats = self.server[str(ctx.guild.id)]['users'][str(member.id)]['leveling']
+        collection = self.bot.get_guild_users_collection(ctx.guild.id)
+        userstats = collection.find_one({'_id':str(member.id)})['leveling']
         xp = userstats['xp']
         lvl = userstats['level']
         role_id = userstats['role']
-        embed = discord.Embed(color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(color=self.bot.get_embed_color(ctx.guild.id))
         embed.title=f'Уровневая информация пользователя {member}'
         embed.description = f'`{lvl}-й` уровень, `{xp}` опыта. {ctx.guild.get_role(role_id)}'
         await ctx.send(embed=embed)
@@ -356,22 +387,27 @@ class Levels(commands.Cog, description='Cистема уровней'):
         invoke_without_command=True)
     @is_administrator_or_bot_owner()
     async def on_join_role(self, ctx:commands.Context, role:discord.Role):
-        self.server[str(ctx.guild.id)]['configuration']['on_join_role'] = role.id
+        collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
+        collection.update_one(
+            {'_id':'configuration'},
+            {'$set':{'on_join_role':role.id}},
+            upsert=True)
         await ctx.message.add_reaction('✅')
 
 
     @on_join_role.command(
         name='remove',
-        description='Задаёт выдачу стартовой роли новым участникам',
+        description='Удаляет выдачу стартовой роли новым участникам',
         help='[роль]',
         usage='Администрация')
     @is_administrator_or_bot_owner()
     async def on_join_role_remove(self, ctx:commands.Context):
-        try:
-            del self.server[str(ctx.guild.id)]['configuration']['on_join_role']
-            await ctx.message.add_reaction('✅')
-        except KeyError:
-            await ctx.reply('Роль не задана!')
+        collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
+        collection.update_one(
+            {'_id':'configuration'},
+            {'$unset':'on_join_role'},
+        )
+        await ctx.message.add_reaction('✅')
 
 
     @commands.command(
@@ -382,48 +418,33 @@ class Levels(commands.Cog, description='Cистема уровней'):
         usage='Администрация')
     @is_administrator_or_bot_owner()
     async def add_start_role(self, ctx:commands.Context):
+        guild_configuration_collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
         try:
-            role_id = self.server[str(ctx.guild.id)]['configuration']['on_join_role']
+            role_id = guild_configuration_collection.find_one({'_id':'configuration'})['on_join_role']
             role = ctx.guild.get_role(role_id)
         except Exception as e:
             print('adr', e)
             return
+
+        guild_users_collection = self.bot.get_guild_users_collection(ctx.guild.id)
 
         members = ctx.guild.members
         for member in members:
             if member.bot:
                 continue
 
-            try:
-                current_role = self.server[str(ctx.guild.id)]['users'][str(member.id)]['role']
-            except KeyError:
+            current_role = guild_users_collection.find_one({'_id':str(member.id)})['leveling']['role']
+            if current_role is None:
                 await self.add_member(member)
                 continue
             
             if current_role == '':
-                self.server[str(ctx.guild.id)]['users'][str(member.id)]['role'] = role_id
+                guild_users_collection.update_one(
+                    {'_id':str(member.id)},
+                    {'$set':{'leveling.role':role_id}}
+                )
                 await member.add_roles(role)
 
-
-    @commands.command(name='voice_time', description='Показывает, сколько времени вы сидите в голосовом канале', help='')
-    async def voice_time(self, ctx:commands.Context):
-        try:
-            start_sit = self.server[str(ctx.guild.id)]['voice_time'][str(ctx.author.id)]
-        except KeyError:
-            return await ctx.reply('Вы не сидите в голосовом канале!')
-        try:
-            all_time = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]['voice_time_count']
-        except KeyError:
-            all_time = 0
-
-        duration = int(time() - start_sit) // 60
-        duration_hours = duration // 60
-        duration_minutes = duration % 60
-        if duration_hours == 0:
-            content = f'Вы сидите `{duration_minutes}` мин. Общее время в головом канале: {all_time+duration}'
-        else:
-            content = f'Вы сидите `{duration_hours}` час. `{duration_minutes}` мин. Общее время в головом канале: {all_time+duration}'
-        await ctx.reply(content)
 
     @commands.command(
         name='clear_members_stats',
@@ -433,21 +454,35 @@ class Levels(commands.Cog, description='Cистема уровней'):
     @is_administrator_or_bot_owner()
     async def clear_members_stats(self, ctx:commands.Context):
         members = ctx.guild.members
-        if 'on_join_role' in self.server[str(ctx.guild.id)]['configuration']:
-            role = self.server[str(ctx.guild.id)]['configuration']['on_join_role']
-        else:
+        guild_configuration_collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
+        guild_users_collection = self.bot.get_guild_users_collection(ctx.guild.id)
+
+        configuration = guild_configuration_collection.find_one({'_id':'configuration'})
+        role = configuration.get('on_join_role')
+        if role is None:
             role = ''
 
         for member in members:
             if member.bot:
                 continue
-            self.server[str(ctx.guild.id)]['users'][str(member.id)]['leveling'] = {
-                'level':1,
-                'xp':0,
-                'xp_amount':0,
-                'role':role,
-            }
-            if role != '':
+
+            guild_users_collection.update_one(
+                {'_id':str(member.id)},
+                {'$set':{'leveling.level':1}})
+
+            guild_users_collection.update_one(
+                {'_id':str(member.id)},
+                {'$set':{'leveling.xp':0}})
+
+            guild_users_collection.update_one(
+                {'_id':str(member.id)},
+                {'$set':{'leveling.xp_amount':0}})
+
+            guild_users_collection.update_one(
+                {'_id':str(member.id)},
+                {'$set':{'leveling.role':role}})
+
+            if role:
                 await member.add_roles(ctx.guild.get_role(role))
 
         await ctx.message.add_reaction('✅')

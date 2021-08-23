@@ -1,80 +1,14 @@
 import asyncio
-from os import getenv
-from time import time
 
-from pymongo import MongoClient
-from pymongo.collection import Collection
 import discord
 from discord.ext import commands
-from discord_components import Select, SelectOption, Interaction, Button, ButtonStyle
-
-def get_db1():
-    from replit import Database, db
-    if db is not None:
-        return db
-    from dotenv import load_dotenv
-    load_dotenv()
-    url = getenv('REPLIT_DB_URL')
-    return Database(url)
-
-def get_collection(guild_id):
-    cluster = MongoClient(getenv('MONGODB_URL'))
-    guilds = cluster['guilds']
-    return guilds[str(guild_id)]
-
-
-def get_guild_configuration(guild_id):
-    collection = get_collection(guild_id)
-    return collection.find_one({'_id':'configuration'})
-
-def get_guild_users(collection:Collection):
-    return collection.find_one({'_id':'users'})
-
-def get_guild_user(collection:Collection, user_id):
-    return collection.find_one({'_id':'users'}).get(str(user_id))
-
-def get_guild_level_roles(collection:Collection):
-    return collection.find_one({'_id':'roles_by_level'})
-
-def get_guild_voice_time(collection:Collection):
-    return collection.find_one({'_id':'voice_time'})
-
-def get_guild_reaction_posts(collection:Collection):
-    return collection.find_one({'_id':'reaction_posts'})
-
-def get_guild_tags(collection:Collection):
-    return collection.find_one({'_id':'tags'})
-
-def set_user_voice_time(collection:Collection, member_id):
-    collection.update_one(
-        {'_id':'voice_time'},
-        {'$set':{str(member_id):int(time())}}
-    )
-
-def update_user_voice_time_count(collection:Collection, member_id, _time):
-    current_voice_time = collection.find_one({'_id':'users'})[str(member_id)].get('voice_time_count')
-
-    collection.update_one(
-        {'_id':'users'},
-        {'$set':{f'{str(member_id)}.voice_time_count':current_voice_time + _time}}
-    )
-
-def get_prefix(guild_id):
-    """Get guild prexif from json """
-    try:
-        collection = get_collection(guild_id)
-        prefix = collection.find_one({'_id':'configuration'})['prefix']
-    except Exception as e:
-        print('CANT GET PREFIX! ERROR:', e)
-        prefix = 'a!'
-
-    return prefix
-
-def get_embed_color(guild_id):
-    """Get color for embeds from json"""
-    collection = get_collection(guild_id)
-    color = collection.find_one({'_id':'configuration'})['embed_color']
-    return int(color, 16)
+from discord_components import (
+    Select,
+    SelectOption,
+    Interaction,
+    Button,
+    ButtonStyle
+)
 
 
 version = 'v1.2-heroku-beta'
@@ -232,12 +166,12 @@ class Settings(commands.Cog, description='Настройка бота'):
     @commands.Cog.listener()
     async def on_member_join(self, member:discord.Member):
         guild:discord.Guild = member.guild
-        guild_config = get_guild_configuration(member.guild.id)
-
-        if 'welcomer' not in guild_config:
+        guild_configuration_collection = self.bot.get_guild_configuration_collection(member.guild.id)
+        guild_configuration = guild_configuration_collection.find()
+        if 'welcomer' not in guild_configuration:
             return
 
-        guild_welcome = guild_config['welcomer']
+        guild_welcome = guild_configuration['welcomer']
 
         if 'disabled' in guild_welcome['status']:
             return
@@ -247,7 +181,7 @@ class Settings(commands.Cog, description='Настройка бота'):
 
         channel = guild.get_channel(channel_id)
 
-        embed = discord.Embed(description=welcome_text, color=get_embed_color(guild.id))
+        embed = discord.Embed(description=welcome_text, color=self.bot.get_embed_color(guild.id))
         embed.set_author(name=member.display_name, icon_url=member.avatar_url)
 
         await channel.send(embed=embed)
@@ -271,7 +205,7 @@ class Settings(commands.Cog, description='Настройка бота'):
         usage='Только для Администрации')
     @is_administrator_or_bot_owner()
     async def change_guild_prefix(self, ctx:commands.Context, prefix):
-        collection = get_collection(ctx.guild.id)
+        collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
         collection.update_one({'_id':'configuration'}, {'$set':{'prefix':prefix}})
 
         embed = discord.Embed(title=f'Префикс для команд изменился на `{prefix}`', color=0x2f3136)
@@ -293,7 +227,7 @@ class Settings(commands.Cog, description='Настройка бота'):
             
         newcolor = '0x' + color
 
-        collection = get_collection(ctx.guild.id)
+        collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
         collection.update_one({'_id':'configuration'}, {'$set':{'embed_color':newcolor}})
 
         embed = discord.Embed(title=f'Цвет сообщений был изменён!', color=int(newcolor, 16))
@@ -302,7 +236,7 @@ class Settings(commands.Cog, description='Настройка бота'):
     @set_conf.command(name='welcome', description='Устанавливает приветственное сообщение', help='')
     @is_administrator_or_bot_owner()
     async def welcome(self, ctx:commands.Context):
-        embed = discord.Embed(color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(color=self.bot.get_embed_color(ctx.guild.id))
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
 
         collection = get_collection(ctx.guild.id)
@@ -383,7 +317,7 @@ class Settings(commands.Cog, description='Настройка бота'):
 
     @commands.command(name='prefix', description='Показывает текущий префикс на сервере', help=' ')
     async def show_guild_prefix(self, ctx:commands.Context):
-        embed = discord.Embed(title=f'Текущий префикс: `{get_prefix(ctx.guild.id)}`', color=0x2f3136)
+        embed = discord.Embed(title=f'Текущий префикс: `{self.bot.get_guild_prefix(ctx.guild.id)}`', color=0x2f3136)
         await ctx.send(embed=embed)
 
 

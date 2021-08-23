@@ -4,7 +4,7 @@ from random import randint
 import discord
 from discord.ext import commands
 
-from ..bot_settings import get_db, is_administrator_or_bot_owner
+from ..bot_settings import is_administrator_or_bot_owner
 from ._blackjack_online import BlackJackOnline
 
 
@@ -12,7 +12,6 @@ class Casino(commands.Cog, description='Казино'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.server = get_db()
 
     @commands.group(name='casino', description='Регистрирует вас в Казино', help='', invoke_without_command=True)
     async def casino(self, ctx:commands.Context):

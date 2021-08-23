@@ -3,15 +3,12 @@ from random import choice
 import discord
 from discord.ext import commands
 from discord_components import Button, ButtonStyle, Interaction, Select, SelectOption
-
-from ..bot_settings import get_embed_color, get_db
-
+from mongobot import MongoComponentsBot
 
 
 class BlackJackOnline:
-    def __init__(self, bot):
+    def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
-        self.server = get_db()
 
         self.all_nums = {
             '2': 2,
@@ -39,7 +36,7 @@ class BlackJackOnline:
         self.players = [ctx.author.id]
         self.guild_id = ctx.guild.id
 
-        embed = discord.Embed(title=f'Блэкджек. {1}/{7}', color=get_embed_color(self.guild_id))
+        embed = discord.Embed(title=f'Блэкджек. {1}/{7}', color=self.bot.get_embed_color(self.guild_id))
         embed.description = f'**Участники:**\n{ctx.author.display_name} (Создатель)'
         components = [[
             Button(style=ButtonStyle.green, label='Присоединиться', id='join'),
@@ -59,7 +56,9 @@ class BlackJackOnline:
             user_id = interaction.user.id
 
             if value == 'join':
-                if 'casino' not in self.server[str(self.guild_id)]['users'][str(user_id)]:
+                collection = self.bot.get_guild_users_collection(self.guild_id)
+                user = collection.find_one({'_id':str(user_id)})
+                if user is None:
                     await interaction.respond(content='Вы не зарегистрированы в Казино! Зарегистрируйтесь через команду `casino`')
                     continue
 
@@ -169,7 +168,8 @@ class BlackJackOnline:
             if value == 'take_card':
                 self.player_take_card(user_id)
             elif value == 'double':
-                user_chips = self.server[str(self.guild_id)]['users'][str(user_id)]['casino']['chips']
+                collection = self.bot.get_guild_users_collection(self.guild_id)
+                user_chips = collection.find_one({'_id':str(user_id)})['casino']['chips']
                 if user_chips < user_stats['bet'] * 2:
                     await interaction.respond(content='Недостаточно фишек!')
                 else:
@@ -210,7 +210,7 @@ class BlackJackOnline:
             cards = ', '.join(self.hidden_card_list)
             sum_cards = self.hidden_sum_diler_cards
 
-        embed = discord.Embed(title='Блэкджек', color=get_embed_color(self.guild_id))
+        embed = discord.Embed(title='Блэкджек', color=self.bot.get_embed_color(self.guild_id))
         embed.description = f'Участники:'
         embed.add_field(name='Дилер', value=f"""
         \u200b
@@ -233,7 +233,7 @@ class BlackJackOnline:
 
 
     async def update_bet_menu(self):
-        embed = discord.Embed(title='Блэкджек. Введите ставку!', color=get_embed_color(self.guild_id))
+        embed = discord.Embed(title='Блэкджек. Введите ставку!', color=self.bot.get_embed_color(self.guild_id))
         embed.description = '**Участники** | **Ставка**'
 
         for _player in self.current_players:
@@ -267,7 +267,8 @@ class BlackJackOnline:
             bet = interaction.component[0].value
             bet = int(bet)
 
-            user_chips = self.server[str(self.guild_id)]['users'][str(user_id)]['casino']['chips']
+            collection = self.bot.get_guild_users_collection(self.guild_id)
+            user_chips = collection.find_one({'_id':str(user_id)})['casino']['chips']
             if user_chips < bet:
                 await interaction.respond(content='Недостаточно фишек!')
                 continue
@@ -302,38 +303,46 @@ class BlackJackOnline:
 
 
     async def out_score(self, ctx:commands.Context):
-        embed = discord.Embed(title='Блэкджек. Итоги игры', color=get_embed_color(self.guild_id))
+        embed = discord.Embed(title='Блэкджек. Итоги игры', color=self.bot.get_embed_color(self.guild_id))
         embed.description = f'**Игрок** | **Статус** | **Причина** | **Выигрыш**'
+        collection = self.bot.get_guild_users_collection(self.guild_id)
         diler_sum = self.sum_diler_cards
         for _player in self.current_players:
             player = self.current_players[_player]
-            user_casino = self.server[str(self.guild_id)]['users'][str(_player)]['casino']
             sum_cards = player['sum_cards']
 
             if sum_cards > 21:
                 player_score = f'\n{player["nickname"]} | Проиграл | Перебор карт | {player["bet"] * (-1)} `фишек`'
-                user_casino['chips'] += player["bet"] * (+1)
+                
+                score = player["bet"] * (-1)
                 
             elif sum_cards < diler_sum and diler_sum <= 21:
                 player_score = f'\n{player["nickname"]} | Проиграл | Сумма карт меньше, чем у Дилера | {player["bet"] * (-1)} `фишек`'
-                user_casino['chips'] += player["bet"] * (-1)
+                score = player["bet"] * (-1)
                 
             elif sum_cards > diler_sum and sum_cards < 21:
                 player_score = f'\n{player["nickname"]} | Выиграл | Сумма карт больше, чем у Дилера | {player["bet"] * 2} `фишек`'
-                user_casino['chips'] += player["bet"] * 2
+                score = player["bet"] * 2
                 
             elif sum_cards < diler_sum:
                 player_score = f'\n{player["nickname"]} | Выиграл | У Дилера перебор | {player["bet"] * 2} `фишек`'
-                user_casino['chips'] += player["bet"] * 2
+                score = player["bet"] * 2
                 
             elif sum_cards == diler_sum:
                 player_score = f'\n{player["nickname"]} | Ничья | Сумма карт равны | {0} `фишек`'
+                score = 0
                 
             elif sum_cards == 21 or (sum_cards == 22 and len(player['cards']) == 2):
                 player_score = f'\n{player["nickname"]} | Выиграл | Блэкджек | {player["bet"] * 3} `фишек`'
-                user_casino['chips'] += player["bet"] * 3
+                score = player["bet"] * 3
             else:
-                player_score = f'Неизвестное условие!'
+                player_score = 'Неизвестное условие!'
+                score = 0
+
+            collection.update_one(
+                    {'_id':str(_player)},
+                    {'$inc':{'casino.chips':score}}
+                )
             embed.description += player_score
 
         await self.message.edit(components=[])

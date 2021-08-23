@@ -3,8 +3,6 @@ from discord.ext import commands
 from discord_components import Button, ButtonStyle
 import DiscordUtils
 
-from extensions.bot_settings import get_embed_color
-
 
 class NotConnectedToVoice(commands.CommandError):
     pass
@@ -95,7 +93,7 @@ class ButtonMusic(commands.Cog, description='Музыка с кнопками'):
             duration = 'Прямая трансляция'
 
         embed = discord.Embed(title='Запуск музыки',
-                              color=get_embed_color(ctx.guild.id))
+                              color=self.bot.get_embed_color(ctx.guild.id))
         embed.add_field(name='Название:',
                         value=f'[{track.name}]({track.url})', inline=False)
         embed.add_field(name='Продолжительность:',
@@ -127,7 +125,7 @@ class ButtonMusic(commands.Cog, description='Музыка с кнопками'):
             duration = 'Прямая трансляция'
 
         embed = discord.Embed(title='Запуск музыки',
-                              color=get_embed_color(ctx.guild.id))
+                              color=self.bot.get_embed_color(ctx.guild.id))
         embed.add_field(name='Название:',
                         value=f'[{track.name}]({track.url})', inline=False)
         embed.add_field(name='Продолжительность:',
@@ -187,7 +185,7 @@ class ButtonMusic(commands.Cog, description='Музыка с кнопками'):
                 print('IN PAUSE', e)
         else:
             embed = discord.Embed(
-                title='Музыка не воспроизводится!', color=get_embed_color(ctx.guild.id))
+                title='Музыка не воспроизводится!', color=self.bot.get_embed_color(ctx.guild.id))
             await ctx.send(embed=embed, delete_after=10)
 
     async def new_resume_music(self, ctx, msg):

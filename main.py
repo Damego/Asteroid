@@ -1,35 +1,21 @@
 import os
 from traceback import format_exception
-from pymongo import MongoClient
 
 import discord
 from discord.ext import commands
 from discord.ext.commands.errors import ExtensionNotLoaded, ExtensionAlreadyLoaded
-from discord_components import DiscordComponents
 
 from extensions import _errors
+from mongobot import MongoComponentsBot
 
-def get_db1():
-    from replit import Database, db
-    if db is not None:
-        return db
-    from dotenv import load_dotenv
-    load_dotenv()
-    url = os.getenv('REPLIT_DB_URL')
-    return Database(url)
 
-def get_collection(guild_id):
-    cluster = MongoClient(os.getenv('MONGODB_URL'))
-    guilds = cluster['guilds']
-    return guilds[str(guild_id)]
 
 def get_prefix(bot, message):
-    """Get guild prexif from json """
     try:
-        collection = get_collection(message.guild.id)
+        collection = bot.get_guild_configuration_collection(message.guild.id)
         prefix = collection.find_one({'_id':'configuration'})['prefix']
     except Exception as e:
-        print('CANT GET PREFIX! ERROR:', e)
+        print('cant GET PREFIX! ERROR:', e)
         prefix = 'a!'
 
     return prefix
@@ -61,66 +47,45 @@ def _reload_extensions():
     return content
 
 
-bot = commands.Bot(command_prefix=get_prefix, intents=discord.Intents.all())
+
+bot = MongoComponentsBot(command_prefix=get_prefix, intents=discord.Intents.all())
 
 # EVENTS
 @bot.event
 async def on_ready():
     _load_extensions()
-    DiscordComponents(bot)
     print(f'Бот {bot.user} готов к работе!')
 
 
 @bot.event
 async def on_guild_join(guild):
-    collection = get_collection(guild.id)
+    collection = bot.get_guild_main_collection(guild.id)
     configuration = {
             'prefix':'a!',
             'embed_color': '0xFFFFFE'
     }
 
-    collection.update_one(
+    collection['configuration'].update_many(
         {'_id':'configuration'},
         {'$set':configuration},
         upsert=True)
 
-    collection.update_one(
-        {'_id':'reaction_posts'},
-        {'$set':{}},
-        upsert=True)
-
-    collection.update_one(
-        {'_id':'tags'},
-        {'$set':{}},
-        upsert=True)
-
-    collection.update_one(
-        {'_id':'voice_time'},
-        {'$set':{}},
-        upsert=True)
-
-    collection.update_one(
-        {'_id':'users'},
-        {'$set':{}},
-        upsert=True)
-
-
-@bot.command()
-@commands.is_owner()
-async def full_clear_guild_db(ctx):
-    server[str(ctx.guild.id)] = {
-        'roles_by_level':{},
-        'users': {},
-        'reaction_posts':{},
-        'tags':{},
-        'voice_time':{}
-    }
-
 
 @bot.event
 async def on_guild_remove(guild):
-    collection = get_collection(guild.id)
-    collection.drop()
+    guild_id = guild.id
+    collections = [
+        bot.get_guild_main_collection(guild_id),
+        bot.get_guild_configuration_collection(guild_id),
+        bot.get_guild_level_roles_collection(guild_id),
+        bot.get_guild_reaction_roles_collection(guild_id),
+        bot.get_guild_tags_collection(guild_id),
+        bot.get_guild_users_collection(guild_id),
+        bot.get_guild_voice_time_collection(guild_id),
+    ]
+
+    for collection in collections:
+        collection.drop()
 
 # COMMANDS
 @bot.command(name='load', help='Загрузка плагина', hidden=True)
