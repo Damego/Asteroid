@@ -6,21 +6,20 @@ from genshinstats.errors import DataNotPublic, AccountNotFound
 from genshinstats.utils import is_game_uid
 
 from ..bot_settings import (
-    get_db, get_embed_color,
     PaginatorStyle,
     PaginatorCheckButtonID,
     get_interaction
     )
 from .._errors import UIDNotBinded, GenshinAccountNotFound, GenshinDataNotPublic
 from .rus import *
+from mongobot import MongoComponentsBot
 
 
 
 class GenshinImpact(commands.Cog, description='Genshin Impact'):
-    def __init__(self, bot):
+    def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
-        self.server = get_db()
 
 
     @commands.group(
@@ -39,13 +38,16 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
     help='[hoyolab_uid]')
     async def bind_uid(self, ctx:commands.Context, hoyolab_uid:int):
         gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
-
         uid = gs.get_uid_from_hoyolab_uid(hoyolab_uid)
-        user_db = self.server[str(ctx.guild.id)]['users'][str(ctx.author.id)]
-        user_db['genshin'] = {
-            'hoyolab_uid':hoyolab_uid,
-            'uid':uid
-        }
+
+        collection  = self.bot.get_guild_users_collection(ctx.guild.id)
+        collection.update_one(
+            {'_id':str(ctx.author.id)},
+            {'$set':{
+                'genshin.hoyolab_uid':hoyolab_uid,
+                'genshin.uid':uid
+            }}
+        )
         return await ctx.reply('Вы привязали UID')
 
 
@@ -68,7 +70,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         user_explorations = user_data['explorations']
         user_stats = user_data['stats']
 
-        embed = discord.Embed(title='Genshin Impact. Статистика мира', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Genshin Impact. Статистика мира', color=self.bot.get_embed_color(ctx.guild.id))
         embed.set_footer(text=f'UID: {uid}')
 
         for region in user_explorations:
@@ -128,7 +130,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         except AccountNotFound:
             raise GenshinAccountNotFound
 
-        embed = discord.Embed(title='Genshin Impact. Персонажи', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Genshin Impact. Персонажи', color=self.bot.get_embed_color(ctx.guild.id))
         embed.set_footer(text=f'UID: {uid}')
 
         for character in characters:
@@ -165,7 +167,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
 
         for _page, character in enumerate(characters, start=1):
             embed = discord.Embed(title=f'{character["name"]} {"⭐" * character["rarity"]}',
-            color=get_embed_color(ctx.guild.id))
+            color=self.bot.get_embed_color(ctx.guild.id))
             embed.set_thumbnail(url=character['icon'])
             embed.set_footer(text=f'UID: {uid}. Страница: {_page}/{pages}')
 
@@ -240,7 +242,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         <:spiral_abyss:871370970600968233> Витая Бездна: `{transform_abyss_name(user_stats['spiral_abyss'])}`
         """
 
-        embed = discord.Embed(title='Информация об игроке', description=content, color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Информация об игроке', description=content, color=self.bot.get_embed_color(ctx.guild.id))
         embed.set_footer(text=f'Hoyolab UID: {hoyolab_uid}')
         await ctx.send(embed=embed)
 
@@ -249,16 +251,16 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
 
     def _get_UID(self, uid_type:str, guild_id:int, author_id:int):
-            user_db = self.server[str(guild_id)]['users'][str(author_id)]
-            user_genshin = user_db.get('genshin')
-            if not user_genshin:
-                raise UIDNotBinded
+        collection = self.bot.get_guild_users_collection(guild_id)
+        user_genshin = collection.find_one({'_id':str(author_id)}).get('genshin')
+        if user_genshin is None:
+            raise UIDNotBinded
 
-            if uid_type == 'hoyolab':
-                uid = user_genshin.get('hoyolab_uid')
-            else:
-                uid = user_genshin.get('uid')
+        if uid_type == 'hoyolab':
+            uid = user_genshin.get('hoyolab_uid')
+        else:
+            uid = user_genshin.get('uid')
 
-            if uid is None:
-                raise UIDNotBinded
-            return uid
+        if uid is None:
+            raise UIDNotBinded
+        return uid

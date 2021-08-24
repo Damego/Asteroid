@@ -4,25 +4,18 @@ from traceback import format_exception
 import discord
 from discord.ext import commands
 from discord.ext.commands.errors import ExtensionNotLoaded, ExtensionAlreadyLoaded
-from discord_components import DiscordComponents
 
 from extensions import _errors
-from lifetime_alive import keep_alive
+from mongobot import MongoComponentsBot
 
-def get_db():
-    from replit import Database, db
-    if db is not None:
-        return db
-    from dotenv import load_dotenv
-    load_dotenv()
-    url = os.getenv('URL')
-    return Database(url)
+
 
 def get_prefix(bot, message):
-    """Get guild prexif from json """
     try:
-        prefix = server[str(message.guild.id)]['configuration']['prefix']
-    except KeyError:
+        collection = bot.get_guild_configuration_collection(message.guild.id)
+        prefix = collection.find_one({'_id':'configuration'})['prefix']
+    except Exception as e:
+        print('cant GET PREFIX! ERROR:', e)
         prefix = 'a!'
 
     return prefix
@@ -54,93 +47,45 @@ def _reload_extensions():
     return content
 
 
-bot = commands.Bot(command_prefix=get_prefix, intents=discord.Intents.all())
+
+bot = MongoComponentsBot(command_prefix=get_prefix, intents=discord.Intents.all())
 
 # EVENTS
 @bot.event
 async def on_ready():
     _load_extensions()
-    DiscordComponents(bot)
     print(f'Бот {bot.user} готов к работе!')
 
 
 @bot.event
 async def on_guild_join(guild):
-    server[str(guild.id)] = {
-        'configuration':{
-            'prefix':'!d',
-            'embed_color': '0xFFFFFE',
-            'extensions':{
-                'Games': True,
-                'HLTV': True,
-                'Levels': True,
-                'Misc': True,
-                'Moderation': True,
-                'ReactionRole': True,
-                'Tags': True,
-                'ButtonMusic': True,
-                'Music': True,
-            }
-        },
-        'roles_by_level':{},
-        'users': {},
-        'reaction_posts':{},
-        'tags':{},
-        'voice_time':{}
+    collection = bot.get_guild_main_collection(guild.id)
+    configuration = {
+            'prefix':'a!',
+            'embed_color': '0xFFFFFE'
     }
 
-
-@bot.command()
-@commands.is_owner()
-async def full_clear_guild_db(ctx):
-    server[str(ctx.guild.id)] = {
-        'configuration':{
-            'prefix':'!d',
-            'embed_color': '0xFFFFFE',
-            'extensions':{
-                'Games': True,
-                'HLTV': True,
-                'Levels': True,
-                'Misc': True,
-                'Moderation': True,
-                'ReactionRole': True,
-                'Tags': True,
-                'ButtonMusic': True,
-                'Music': True,
-            }
-        },
-        'roles_by_level':{},
-        'users': {},
-        'reaction_posts':{},
-        'tags':{},
-        'voice_time':{}
-    }
-
-
-@bot.command()
-@commands.is_owner()
-async def clear_guild_settings(ctx):
-    server[str(ctx.guild.id)] = {
-        'configuration':{
-            'prefix':'!d',
-            'embed_color': '0xFFFFFE',
-            'extensions':{
-                'Games': True,
-                'HLTV': True,
-                'Levels': True,
-                'Misc': True,
-                'Moderation': True,
-                'ReactionRole': True,
-                'Tags': True,
-                'NewMusic': True,
-            }
-        }
-    }
+    collection['configuration'].update_many(
+        {'_id':'configuration'},
+        {'$set':configuration},
+        upsert=True)
 
 
 @bot.event
 async def on_guild_remove(guild):
-    server.pop(str(guild.id))
+    guild_id = guild.id
+    collections = [
+        bot.get_guild_main_collection(guild_id),
+        bot.get_guild_configuration_collection(guild_id),
+        bot.get_guild_level_roles_collection(guild_id),
+        bot.get_guild_reaction_roles_collection(guild_id),
+        bot.get_guild_tags_collection(guild_id),
+        bot.get_guild_users_collection(guild_id),
+        bot.get_guild_voice_time_collection(guild_id),
+    ]
+
+    for collection in collections:
+        collection.drop()
 
 # COMMANDS
 @bot.command(name='load', help='Загрузка плагина', hidden=True)
@@ -286,7 +231,5 @@ async def on_command_error(ctx:commands.Context, error):
 
 
 if __name__ == '__main__':
-    server = get_db()
-    keep_alive()
     bot.run(os.environ['TOKEN'])
 

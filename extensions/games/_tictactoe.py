@@ -1,6 +1,6 @@
 from discord import Embed
 from discord_components import Button, ButtonStyle, Interaction
-from ..bot_settings import get_embed_color
+
 
 
 
@@ -101,7 +101,7 @@ class TicTacToe:
 
     async def pick_a_winner(self, winner='Ничья'):
         embed = Embed(
-            title='`          ИТОГИ ИГРЫ            `', color=get_embed_color(self.ctx.guild.id))
+            title='`          ИТОГИ ИГРЫ            `', color=self.bot.get_embed_color(self.ctx.guild.id))
         embed.add_field(name=f'**Название: Крестики-Нолики**',
                         value=f"""
                         **Игроки: {self.member.display_name} и {self.ctx.author.display_name}**

@@ -3,7 +3,7 @@ from random import randint
 from discord import Embed
 from discord_components import Button, ButtonStyle, Interaction
 
-from ..bot_settings import get_embed_color
+
 
 
 class RockPaperScissors:
@@ -43,7 +43,7 @@ class RockPaperScissors:
         def player_2(interaction):
             return interaction.user == self.ctx.author
 
-        embed = Embed(title='🪨-✂️-🧾', color=get_embed_color(self.ctx.guild.id))
+        embed = Embed(title='🪨-✂️-🧾', color=self.bot.get_embed_color(self.ctx.guild.id))
         embed.add_field(name=f'**{self.member.display_name}** VS **{self.ctx.author.display_name}**',
                         value=f'**Счёт:** {self.count1}:{self.count2} \n**Игра:** {round+1}/{self.total_rounds}'
                         )

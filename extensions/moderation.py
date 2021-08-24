@@ -2,7 +2,7 @@ from asyncio.tasks import sleep
 import discord
 from discord.ext import commands
 
-from extensions.bot_settings import DurationConverter, get_embed_color, multiplier
+from extensions.bot_settings import DurationConverter, multiplier
 
 
 class Moderation(commands.Cog, description='Модерация'):
@@ -21,7 +21,7 @@ class Moderation(commands.Cog, description='Модерация'):
         
         muted_role = await self.get_muted_role(ctx)
         await member.add_roles(muted_role, reason=reason)
-        embed = discord.Embed(title=f'{member} был отправлен в мут!', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title=f'{member} был отправлен в мут!', color=self.bot.get_embed_color(ctx.guild.id))
         _description = f"""**Время**: {amount} {time_format}\n"""
 
         if reason is not None:
@@ -62,7 +62,7 @@ class Moderation(commands.Cog, description='Модерация'):
     async def ban(self, ctx:commands.Context, member:discord.Member, *, reason=None):
         await member.ban(reason=reason)
         await ctx.message.add_reaction('✅')
-        embed = discord.Embed(title=f'{member} был заблокирован!',description=f'**Причина:** {reason}', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title=f'{member} был заблокирован!',description=f'**Причина:** {reason}', color=self.bot.get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
         embed.description += f'\n**Сервер:** {ctx.guild}'
         await member.send(embed=embed)
@@ -86,7 +86,7 @@ class Moderation(commands.Cog, description='Модерация'):
     async def kick(self, ctx:commands.Context, member:discord.Member, *, reason=None):
         await member.kick(reason=reason)
         await ctx.message.add_reaction('✅')
-        embed = discord.Embed(title=f'Вы были кикнуты с сервера {ctx.guild}!', description=f'**Причина:** {reason}', color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title=f'Вы были кикнуты с сервера {ctx.guild}!', description=f'**Причина:** {reason}', color=self.bot.get_embed_color(ctx.guild.id))
         await member.send(embed=embed)
 
 

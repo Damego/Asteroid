@@ -1,12 +1,12 @@
 from time import time
 
 import discord
-from ..bot_settings import get_db
 
-server = get_db()
+from mongobot import *
+
 last_user_message = {}
 
-async def update_member(arg, exp):
+async def update_member(bot, arg, exp):
     """Method for giving exp for guild member"""
     guild_id = str(arg.guild.id)
 
@@ -18,22 +18,46 @@ async def update_member(arg, exp):
     elif isinstance(arg, discord.Member):
         member = arg
 
-    member_stats = server[guild_id]['users'][str(member.id)]['leveling']
-    member_stats['xp'] += exp
-    member_stats['xp_amount'] += exp
+    guild_users_collection = bot.get_guild_users_collection(member.guild.id)
+    member_stats = guild_users_collection.find_one({'_id':str(member.id)})['leveling']
+
+    xp = member_stats['xp'] + exp
+    xp_amount = member_stats['xp_amount'] + exp
+    level = member_stats['level']
+
+    guild_users_collection.update_one(
+        {'_id':str(member.id)},
+        {'$set':{'leveling.xp':xp}})
+
+    guild_users_collection.update_one(
+        {'_id':str(member.id)},
+        {'$set':{'leveling.xp_amount':xp_amount}})
 
     exp_to_next_level = formula_of_experience(member_stats['level'])
-    while member_stats['xp'] > exp_to_next_level:
-        member_stats['level'] += 1
-        member_stats['xp'] -= exp_to_next_level
-        exp_to_next_level = formula_of_experience(member_stats['level'])
+    while xp > exp_to_next_level:
+        level +=  1
+        xp -= exp_to_next_level
 
-        guild_levels = server[guild_id]['roles_by_level']
-        new_role = member.guild.get_role(guild_levels.get(str(member_stats['level'])))
+        guild_users_collection.update_one(
+        {'_id':str(member.id)},
+        {'$set':{'leveling.level':level}})
 
-        if new_role is not None:
-            await update_member_role(guild_id, member, new_role)
-            await notify_member(arg.guild, member, member_stats['level'], new_role)
+        guild_users_collection.update_one(
+        {'_id':str(member.id)},
+        {'$set':{'leveling.xp':xp}})
+
+
+        exp_to_next_level = formula_of_experience(level)
+
+        guild_level_roles_collection = bot.get_guild_level_roles_collection(member.guild.id)
+        role_id = guild_level_roles_collection.find_one({'_id':(str(level))})
+        
+
+        if role_id is not None:
+            new_role = member.guild.get_role(role_id)
+            if new_role is not None:
+                await update_member_role(guild_id, member, new_role)
+                await notify_member(arg.guild, member, member_stats['level'], new_role)
 
 
 def formula_of_experience(level:int):
@@ -58,7 +82,8 @@ def check_timeout(guild_id, member):
 
 
 async def update_member_role(guild_id, member, new_role):
-    member_stats = server[guild_id]['users'][str(member.id)]
+    guild_users_collection = get_guild_users_collection(guild_id)
+    member_stats = guild_users_collection.find_one({'_id':str(member.id)})['leveling']
     old_role = member_stats['role']
 
     for role in member.roles:
@@ -66,7 +91,10 @@ async def update_member_role(guild_id, member, new_role):
             await member.remove_roles(role, reason='Удаление старого уровня')
             break
     await member.add_roles(new_role, reason='Повышение уровня')
-    member_stats['role'] = new_role.id
+    guild_users_collection.update_one(
+        {'_id':str(member.id)},
+        {'$set':{'leveling.role':new_role.id}}
+        )
 
 
 async def notify_member(guild, member, new_level, new_role=None):

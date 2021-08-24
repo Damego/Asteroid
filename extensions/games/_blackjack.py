@@ -4,7 +4,6 @@ import discord
 from discord.ext import commands
 from discord_components import Button, ButtonStyle
 
-from ..bot_settings import get_embed_color
 from ..levels._levels import update_member
 
 
@@ -119,7 +118,7 @@ class BlackJack():
             sum_diler_cards = self.sum_diler_cards
 
         user_cards_str = ', '.join(self.user_cards_list)
-        embed = discord.Embed(title='Блэкджек', color=get_embed_color(self.guild_id))
+        embed = discord.Embed(title='Блэкджек', color=self.bot.get_embed_color(self.guild_id))
         embed.add_field(name='Карты дилера:', value=f'```{diler_cards_str}```\n**Сумма карт:** `{sum_diler_cards}`')
         embed.add_field(name='Ваши карты:', value=f'```{user_cards_str}```\n**Сумма карт:** `{self.sum_user_cards}`')
         return embed

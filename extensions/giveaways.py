@@ -6,14 +6,20 @@ import discord
 from discord.ext import commands
 from discord_components import Button, ButtonStyle
 from discord_components.interaction import Interaction
+from pymongo.collection import ReturnDocument
 
-from .bot_settings import get_embed_color, DurationConverter, multiplier, is_administrator_or_bot_owner
+from .bot_settings import (
+    DurationConverter,
+    multiplier,
+    is_administrator_or_bot_owner
+    )
 from .levels._levels import update_member
+from mongobot import MongoComponentsBot
 
 
 
 class Giveaways(commands.Cog, description='Розыгрыши'):
-    def __init__(self, bot):
+    def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
 
@@ -83,52 +89,71 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
         amount, time_format = duration
         timestamp = amount * multiplier[time_format]
 
-        if 'giveaways_members' not in self.server[str(ctx.guild.id)]:
-            self.server[str(ctx.guild.id)]['giveaways_members'] = {}
-        self.members = self.server[str(ctx.guild.id)]['giveaways_members']
+        content = f'**Участников: 0**'
 
-        self.members[str(ctx.message.id)] = []
-
-        content = f'**Участников: {len(self.members[str(ctx.message.id)])}**'
-
-        embed = discord.Embed(title=mode, color=get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title=mode, color=self.bot.get_embed_color(ctx.guild.id))
         embed.description = f"""
         **Заканчивается** <t:{int(time() + timestamp)}:R>
         **Описание:** {message}
         """
         await ctx.message.delete()
         components = [
-            Button(style=ButtonStyle.green, label='Принять участие', id='giveaway_accept')
+            self.bot.add_callback(
+                Button(style=ButtonStyle.green, label='Принять участие'),
+                self.user_register
+            )
+            
         ]
 
-        return await ctx.send(content=content, embed=embed, components=components)
+        message:discord.Message = await ctx.send(content=content, embed=embed, components=components)
+        collection = self.bot.get_guild_giveaways_collection(ctx.guild.id)
+        collection.update_one(
+            {'_id':str(message.id)},
+            {'$set':{
+                'users':[]
+            }},
+            upsert=True
+            )
+        return message
 
 
     async def process_giveaway(self, ctx, duration, message:discord.Message, mode, *, role:discord.Role=None, exp:int=None, chips:int=None, thing:str=None):
         amount, time_format = duration
+        await sleep(amount * multiplier[time_format])
+
         guild_id = str(ctx.guild.id)
         message_id = str(message.id)
+        giveaways_collection = self.bot.get_guild_giveaways_collection(guild_id)
+        users = giveaways_collection.find_one({'_id':message_id})['users']
 
-        await sleep(amount * multiplier[time_format])
-        winner = choice(self.members[message_id])
-        member = await ctx.guild.fetch_member(winner)
+        winner = choice(users)
+        member = ctx.guild.get_member(winner)
+        if member is None:
+            member = await ctx.guild.fetch_member(winner)
 
-        embed = discord.Embed(title='ИТОГИ РОЗЫГРЫША', color=get_embed_color(guild_id))
+        embed = discord.Embed(title='Итоги розыгрыша', color=self.bot.get_embed_color(guild_id))
 
         if mode == 'role':
             await member.add_roles(role)
             embed.description = f'Победитель, {member.mention}! Вы получаете роль: `{role}`'
         elif mode == 'exp':
             await update_member(member, exp)
-            embed.description =f'Победитель, {member.mention}! Вы получаете `{exp}` опыта'
+            embed.description = f'Победитель, {member.mention}! Вы получаете `{exp}` опыта'
         elif mode == 'chips':
             while True:
                 try:
-                    self.server[str(guild_id)]['users'][str(member.id)]['casino']['chips'] += chips
-                    embed.description =f'Победитель, {member.mention}! Вы получаете `{chips}` фишек'
+                    users_collection = self.bot.get_guild_users_collection(guild_id)
+                    user_casino = users_collection.find_one({'_id':str(member.id)})['casino']
+                    users_collection.update_one(
+                        {'_id':str(member.id)},
+                        {'$inc':{'casino.chips':chips}}
+                    )
+                    embed.description = f'Победитель, {member.mention}! Вы получаете `{chips}` фишек'
                 except KeyError:
-                    winner = choice(self.members[message_id])
-                    member = await ctx.guild.fetch_member(winner)
+                    winner = choice(users)
+                    member = ctx.guild.get_member(winner)
+                    if member is None:
+                        member = await ctx.guild.fetch_member(winner)
                 else:
                     break
         elif mode == 'thing':
@@ -137,30 +162,43 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
             embed.description =f'Победитель, {member.mention}!'
 
         await ctx.send(embed=embed)
+        giveaways_collection.delete_one({'_id':message_id})
         await message.delete()
-        del self.members[message_id]
-    
 
-    @commands.Cog.listener()
-    async def on_button_click(self, interaction:Interaction):
-        if interaction.component.id != 'giveaway_accept':
-            return
+    
+    async def user_register(self, interaction:Interaction):
         guild_id = str(interaction.guild.id)
         message_id = str(interaction.message.id)
-        user_id = interaction.user.id
+        user_id = str(interaction.user.id)
 
-        try:
-            if not interaction.responded:
-                if user_id in self.members[message_id]:
-                    await interaction.respond(type=4, content='Вы уже приняли участие в этой раздаче!')
-                else:
-                    await interaction.respond(type=4, content='Вы приняли участие!')
-                    self.members[message_id].append(user_id)
-                    message = interaction.message
-                    await message.edit(content=f'**Участников: {len(self.members[message_id])}**')
-        except Exception:
-            pass
+        collection = self.bot.get_guild_giveaways_collection(guild_id)
 
+        users_dict = collection.find_one({'_id':message_id})
+        users_list = users_dict['users']
+
+        if user_id in users_list:
+            return await interaction.send(content='Вы уже приняли участие!')
+
+        users = collection.find_one_and_update(
+            {'_id':message_id},
+            {'$push':{
+                'users':user_id
+            }},
+            upsert=True,
+            return_document=ReturnDocument.AFTER
+        )
+        users = users['users']
+        print('after', users)
+        await interaction.send(content='Вы приняли участие!')
+        await interaction.message.edit(content=f'**Участников: {len(users)}**')
+        return
+
+
+    @commands.command()
+    async def test10(self, ctx):
+        async def callback(interaction):
+            interaction.respond()
+    
 
 
 def setup(bot):

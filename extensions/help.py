@@ -4,17 +4,17 @@ from discord.ext.commands.errors import BadArgument
 from discord_components import Interaction
 
 from .bot_settings import (
-    get_prefix,
-    version,
     PaginatorStyle,
     PaginatorCheckButtonID,
-    get_interaction
+    get_interaction,
+    version
     )
+from mongobot import MongoComponentsBot
 
 
 
 class Help(commands.Cog, description='Помощь'):
-    def __init__(self, bot):
+    def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.bot.remove_command('help')
         self.hidden = True
@@ -24,13 +24,12 @@ class Help(commands.Cog, description='Помощь'):
     async def help(self, ctx:commands.Context, arg=None):
         await ctx.message.delete()
 
-        prefix = get_prefix(ctx.guild.id)
+        prefix = self.bot.get_guild_prefix(ctx.guild.id)
         components = []
 
         if arg is None:
             pages = 1
-            embeds = []
-            embeds.append(self._get_main_menu(prefix))
+            embeds = [self._get_main_menu(prefix)]
 
             for _cog in self.bot.cogs:
                 cog = self.bot.cogs[_cog]
