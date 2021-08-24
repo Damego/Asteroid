@@ -221,7 +221,8 @@ class Misc(commands.Cog, description='Остальные команды'):
 
     @commands.command(name='hltv', description='Выводит дату ближайщих игр указанной комадны', help='[команда]')
     async def hltv(self, ctx:commands.Context, *, team):
-        await HLTV.parse_mathes(ctx, team)
+        hltv = HLTV(self.bot)
+        await hltv.parse_mathes(ctx, team)
 
 
 def setup(bot):

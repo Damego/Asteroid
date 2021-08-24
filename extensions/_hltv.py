@@ -8,6 +8,9 @@ from bs4 import BeautifulSoup
 
 
 class HLTV():
+    def __init__(self, bot) -> None:
+        self.bot = bot
+
     def _get_html(self):
         url = 'https://www.hltv.org/matches'
         headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36', 'accept': '*/*'}
