@@ -4,7 +4,6 @@ import discord
 from discord_components import Button, ButtonStyle
 from discord.ext import commands
 
-from ..bot_settings import get_embed_color
 from ._blackjack import BlackJack
 from ._tictactoe import TicTacToe
 from ._rockpaperscissors import RockPaperScissors
@@ -107,7 +106,7 @@ class Games(commands.Cog, description='Игры'):
                 ]])
         if member.bot:
             embed = discord.Embed(
-                title=game_name, description=f'{ctx.author.display_name} VS {member.display_name}', color=get_embed_color(ctx.guild.id))
+                title=game_name, description=f'{ctx.author.display_name} VS {member.display_name}', color=self.bot.get_embed_color(ctx.guild.id))
             await msg.edit(context=' ', embed=embed)
             return msg, True
             
@@ -120,7 +119,7 @@ class Games(commands.Cog, description='Игры'):
 
         if interaction.component.id == '1':
             embed = discord.Embed(
-                title=game_name, description=f'{ctx.author.display_name} VS {member.display_name}', color=get_embed_color(ctx.guild.id))
+                title=game_name, description=f'{ctx.author.display_name} VS {member.display_name}', color=self.bot.get_embed_color(ctx.guild.id))
             await msg.edit(context=' ', embed=embed)
             return msg, True
 
