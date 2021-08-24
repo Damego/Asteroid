@@ -82,13 +82,13 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
                 content += f'\nУровень Дерева Вечной Мерзлоты: `{region["level"]}`'
             else:
                 if region['name'] == 'Inazuma':
-                    content += f'\nУровень Священной Сакуры: `{region["offerings"][0]["level"]}`'
+                    content += f'\nУровень Благосклонности сакуры: `{region["offerings"][0]["level"]}`'
                 content += f'\nУровень репутации: `{region["level"]}`'
             
             embed.add_field(name=rus_region.get(region['name']), value=content)
 
         oculus_content = f"""
-        <:Item_Anemoculus:870989767960059944> Анемокулов: `{user_stats['anemoculi']}/65`
+        <:Item_Anemoculus:870989767960059944> Анемокулов: `{user_stats['anemoculi']}/66`
         <:Item_Geoculus:870989769570676757> Геокулов: `{user_stats['geoculi']}/131`
         <:Item_Electroculus:870989768387878912> Электрокулов: `{user_stats['electroculi']}/95`
         """
@@ -96,10 +96,10 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         embed.add_field(name='Собрано окулов', value=oculus_content, inline=False)
 
         chests_opened = f"""
-        Обычных: `{user_stats['common_chests']}/974`
-        Богатых: `{user_stats['exquisite_chests']}/687`
-        Драгоценных: `{user_stats['precious_chests']}/169`
-        Роскошных: `{user_stats['luxurious_chests']}/55`
+        Обычных: `{user_stats['common_chests']}`
+        Богатых: `{user_stats['exquisite_chests']}`
+        Драгоценных: `{user_stats['precious_chests']}`
+        Роскошных: `{user_stats['luxurious_chests']}`
         """
 
         embed.add_field(name='Открыто сундуков', value=chests_opened, inline=False)
@@ -184,7 +184,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             » Тип: `{character['weapon']['type']}`
             » Уровень: `{character['weapon']['level']}`
             » Уровень восхождения: `{character['weapon']['ascension']}`
-            » Уровень возвышения: `{character['weapon']['refinement']}`
+            » Уровень пробуждения: `{character['weapon']['refinement']}`
 
             """
 
