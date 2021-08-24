@@ -194,12 +194,6 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
         return
 
 
-    @commands.command()
-    async def test10(self, ctx):
-        async def callback(interaction):
-            interaction.respond()
-    
-
 
 def setup(bot):
     bot.add_cog(Giveaways(bot))
