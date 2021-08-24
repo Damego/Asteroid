@@ -62,7 +62,7 @@ class TicTacToe:
         move_id = interaction.component.id
         pos1, pos2 = move_id.split(' ')
         self.board[int(pos1)][int(pos2)] = Button(
-            style=style, emoji=self.bot.get_emoji(emoji_id), id='0', disabled=True)
+            style=style, emoji=self.bot.get_emoji(emoji_id), disabled=True)
 
         await self.message.edit(components=self.board)
         self.move_board[int(pos1)][int(pos2)] = player
