@@ -295,7 +295,7 @@ class Settings(commands.Cog, description='Настройка бота'):
             elif id == 'desc':
                 await self._edit_welcome_description(ctx, message, embed)
             elif id == 'save':
-                await self._save_welcomer(interaction, embed, channel, collection)
+                await self._save_welcomer(interaction, collection, embed, channel)
             elif id == 'exit':
                 return await message.delete()
 
