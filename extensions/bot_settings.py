@@ -9,6 +9,8 @@ from discord_components import (
     Button,
     ButtonStyle
 )
+from pymongo.collection import Collection
+from mongobot import MongoComponentsBot
 
 
 version = 'v1.2-heroku-beta'
@@ -159,7 +161,7 @@ class PaginatorCheckButtonID:
 
 
 class Settings(commands.Cog, description='Настройка бота'):
-    def __init__(self, bot):
+    def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
 
@@ -228,7 +230,7 @@ class Settings(commands.Cog, description='Настройка бота'):
         newcolor = '0x' + color
 
         collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
-        collection.update_one({'_id':'configuration'}, {'$set':{'embed_color':newcolor}})
+        collection.update_one({'_id':'configuration'}, {'$set':{'embed_color':newcolor}}, upsert=True)
 
         embed = discord.Embed(title=f'Цвет сообщений был изменён!', color=int(newcolor, 16))
         await ctx.send(embed=embed)
@@ -239,7 +241,7 @@ class Settings(commands.Cog, description='Настройка бота'):
         embed = discord.Embed(color=self.bot.get_embed_color(ctx.guild.id))
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
 
-        collection = get_collection(ctx.guild.id)
+        collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
         welcomer = collection.find_one({'_id':'configuration'}, 'welcomer')
 
         if welcomer is None:
@@ -247,13 +249,12 @@ class Settings(commands.Cog, description='Настройка бота'):
             embed.description = 'Описание'
             embed.set_footer(text='ID канала: None')
         else:
-            welcomer = self.server[str(ctx.guild.id)]['configuration']['welcomer']
             status = 'Вкл.' if welcomer['status'] == 'enabled' else 'Выкл.'
 
             embed.description = welcomer['text']
             embed.set_footer(text=f'ID канала: {welcomer["channel"]}')
 
-        self._welcomer_components = [
+        welcomer_components = [
             Select(
                 placeholder='Выберите опцию',
                 options=[
@@ -266,11 +267,11 @@ class Settings(commands.Cog, description='Настройка бота'):
             )
         ]
 
-        message:discord.Message = await ctx.send(embed=embed, components=self._welcomer_components)
+        message:discord.Message = await ctx.send(embed=embed, components=welcomer_components)
 
-        await self._welcome_configuration(ctx, message, embed, welcomer)
+        await self._welcome_configuration(ctx, message, embed, welcomer_components, collection)
 
-    async def _welcome_configuration(self, ctx:commands.Context, message:discord.Message, embed:discord.Embed, welcomer):
+    async def _welcome_configuration(self, ctx:commands.Context, message:discord.Message, embed:discord.Embed, components, collection):
         while True:
             try:
                 interaction:Interaction = await self.bot.wait_for(
@@ -280,37 +281,36 @@ class Settings(commands.Cog, description='Настройка бота'):
             except RuntimeError:
                 continue
             except asyncio.TimeoutError:
-                await message.delete()
-                return
+                return await message.delete()
 
-            id = interaction.component[0].value
+            id = interaction.values[0]
             await interaction.respond(type=6)
 
             channel = None
 
             if id == 'toggle_status':
-                await self._toggle_status(message, welcomer)
+                await self._toggle_status(message, components, collection)
             elif id == 'channel':
                 channel = await self._set_welcome_channel(ctx, message, embed)
             elif id == 'desc':
                 await self._edit_welcome_description(ctx, message, embed)
             elif id == 'save':
-                await self._save_welcomer(interaction, embed, channel)
+                await self._save_welcomer(interaction, embed, channel, collection)
             elif id == 'exit':
-                await message.delete()
-                return
+                return await message.delete()
 
-    async def _toggle_status(self, message:discord.Message):
-        welcomer = self.server[str(message.guild.id)]['configuration']['welcomer']
-        if 'status' in welcomer:
-            if welcomer['status'] == 'enabled':
-                welcomer['status'] = 'disabled'
+
+    async def _toggle_status(self, message:discord.Message, components, collection:Collection):
+        status = collection.find_one({'_id':'configuration'})['welcomer'].get('status')
+        if status is not None:
+            if status == 'enabled':
+                collection.update_one({'_id':'configuration'}, {'$set':{'welcomer.status':'disabled'}}, upsert=True)
                 status = 'Выкл.'
             else:
-                welcomer['status'] = 'enabled'
+                collection.update_one({'_id':'configuration'}, {'$set':{'welcomer.status':'enabled'}}, upsert=True)
                 status = 'Вкл.'
-            self._welcomer_components[0][0].options[0].label = f'Статус: {status}'
-            await message.edit(components=self._welcomer_components)
+            components[0][0].options[0].label = f'Статус: {status}'
+            await message.edit(components=components)
         else:
             await message.channel.send(content='Для включения/выключения сохраните!')
 
@@ -359,24 +359,38 @@ class Settings(commands.Cog, description='Настройка бота'):
         await message.delete()
         await menu_message.edit(embed=embed)
 
-        
-    async def _save_welcomer(self, interaction:Interaction, embed:discord.Embed=None, channel:int=None):
-        bot_config = self.server[str(interaction.guild.id)]['configuration']
-        if 'welcomer' not in bot_config:
-            if not channel:
+
+    async def _save_welcomer(self, interaction:Interaction, collection:Collection, embed:discord.Embed=None, channel:int=None):
+        if channel is None:
+            channel = collection.find_one({'_id':'configuration'}).get('welcomer').get('channel')
+            if channel is None:
                 return await interaction.channel.send(content='Вы не ввели ID канала!', delete_after=5)
 
-            bot_config['welcomer'] = {
+            welcomer = {
                 'status': 'enabled',
                 'text': embed.description,
                 'channel': channel
                 }
 
+            collection.update_one(
+                {'_id':'configuration'},
+                {'$set':{'configuration.welcomer':welcomer}},
+                upsert=True
+            )
+
         else:
-            if embed:
-                bot_config['welcomer']['text'] = embed.description
-            if channel:
-                bot_config['welcomer']['channel'] = channel
+            if embed is not None:
+                collection.update_one(
+                {'_id':'configuration'},
+                {'$set':{'configuration.welcomer.text':embed.description}},
+                upsert=True
+            )
+            if channel is not None:
+                collection.update_one(
+                {'_id':'configuration'},
+                {'$set':{'configuration.welcomer.channel':channel}},
+                upsert=True
+            )
 
         await interaction.channel.send(content='Сохранено!', delete_after=10)
 
