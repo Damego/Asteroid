@@ -13,7 +13,7 @@ from pymongo.collection import Collection
 from mongobot import MongoComponentsBot
 
 
-version = 'v1.2-heroku-beta'
+version = 'v1.2'
 
 multiplier = {
     'д': 86400,
