@@ -57,8 +57,8 @@ async def on_ready():
     _load_extensions()
     channel = bot.get_channel(859816092008316928)
     if channel is None:
-        channel = bot.fetch_channel(859816092008316928)
-    channel.send(f'{bot.user} успешно загружен!')
+        channel = await bot.fetch_channel(859816092008316928)
+    await channel.send(f'{bot.user} успешно загружен!')
 
     print(f'{bot.user} успешно загружен!')
 
