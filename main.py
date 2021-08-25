@@ -13,10 +13,10 @@ from mongobot import MongoComponentsBot
 def get_prefix(bot, message):
     try:
         collection = bot.get_guild_configuration_collection(message.guild.id)
-        prefix = collection.find_one({'_id':'configuration'})['prefix']
+        prefix.append(collection.find_one({'_id':'configuration'})['prefix'])
     except Exception as e:
         print('cant GET PREFIX! ERROR:', e)
-        prefix = 'a!'
+        
 
     return prefix
 
