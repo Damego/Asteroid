@@ -22,8 +22,6 @@ class Help(commands.Cog, description='Помощь'):
 
     @commands.command(description='Показывает помощь по командам', help='[плагин или команда]')
     async def help(self, ctx:commands.Context, arg=None):
-        await ctx.message.delete()
-
         prefix = self.bot.get_guild_prefix(ctx.guild.id)
         components = []
 
