@@ -11,6 +11,7 @@ from mongobot import MongoComponentsBot
 
 
 def get_prefix(bot, message):
+    prefix = ['a!']
     try:
         collection = bot.get_guild_configuration_collection(message.guild.id)
         prefix.append(collection.find_one({'_id':'configuration'})['prefix'])
