@@ -55,7 +55,12 @@ bot = MongoComponentsBot(command_prefix=get_prefix, intents=discord.Intents.all(
 @bot.event
 async def on_ready():
     _load_extensions()
-    print(f'Бот {bot.user} готов к работе!')
+    channel = bot.get_channel(859816092008316928)
+    if channel is None:
+        channel = bot.fetch_channel(859816092008316928)
+    channel.send(f'{bot.user} успешно загружен!')
+
+    print(f'{bot.user} успешно загружен!')
 
 
 @bot.event
