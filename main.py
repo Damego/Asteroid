@@ -17,9 +17,9 @@ def get_prefix(bot, message):
         prefix.append(collection.find_one({'_id':'configuration'})['prefix'])
     except Exception as e:
         print('cant GET PREFIX! ERROR:', e)
-        
 
     return prefix
+
 
 def _load_extensions():
     for filename in os.listdir('./extensions'):
@@ -47,9 +47,11 @@ def _reload_extensions():
         pass
     return content
 
+intents=discord.Intents.default()
+intents.members = True
 
+bot = MongoComponentsBot(command_prefix=get_prefix, intents=intents)
 
-bot = MongoComponentsBot(command_prefix=get_prefix, intents=discord.Intents.all())
 
 # EVENTS
 @bot.event
