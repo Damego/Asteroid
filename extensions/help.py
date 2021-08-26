@@ -42,7 +42,7 @@ class Help(commands.Cog, description='Помощь'):
 
             components = [
                 Select(
-                    placeholder='Select category',
+                    placeholder='Выберите категорию',
                     options=select_options
                 )
             ]
