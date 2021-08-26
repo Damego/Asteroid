@@ -186,7 +186,7 @@ async def on_command_error(ctx:commands.Context, error):
         desc=f'**Потерян аргумент**: `{error.param}`'
     elif isinstance(error, commands.BadArgument):
         title = f'**Неправильный аргумент!** \n'
-        help = f'`{get_prefix(bot, ctx.message)[2]}{ctx.command} {ctx.command.help}`'
+        help = f'`{ctx.prefix}{ctx.command} {ctx.command.help}`'
         desc = title + help
     elif isinstance(error, commands.BotMissingPermissions):
         desc = f'**У меня недостаточно прав!**\nНеобходимые права: `{", ".join(error.missing_perms)}`'
@@ -223,7 +223,9 @@ async def on_command_error(ctx:commands.Context, error):
         {error_traceback}
         ``` """
 
-        channel = await ctx.bot.fetch_channel(863001051523055626)
+        channel = await ctx.bot.get_channel(863001051523055626)
+        if channel is None:
+            channel = await ctx.bot.fetch_channel(863001051523055626)
         try:
             await channel.send(error_description)
         except Exception:
