@@ -13,10 +13,11 @@ def get_emoji_role(collection, payload, emoji):
     return emoji_role[str(emoji)]
 
 
-class ReactionRole(commands.Cog, description='Роль по реакции'):
+class ReactionRole(commands.Cog, description='Роли по реакции'):
     def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
+        self.emoji = '✨'
 
 
     @commands.Cog.listener()
@@ -60,7 +61,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     @commands.group(
         name='reactionrole',
         aliases=['rr'],
-        description='',
+        description='Основная команда для установления/изменения ролей по реакции',
         help='[команда]',
         usage='Только для Администрации',
         invoke_without_command=True)
@@ -72,7 +73,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     @reactionrole.group(
         name='add',
         aliases=['+', 'a'],
-        description='',
+        description='Добавляет пост/роль',
         help='[команда]',
         usage='Только для Администрации',
         invoke_without_command=True)
@@ -108,7 +109,7 @@ class ReactionRole(commands.Cog, description='Роль по реакции'):
     @reactionrole.group(
         name='remove',
         aliases=['-', 'r'],
-        description='',
+        description='Удаляет пост/роль',
         help='[команда]',
         usage='Только для Администрации',
         invoke_without_command=True)

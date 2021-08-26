@@ -17,6 +17,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
     def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
+        self.emoji = 863677232239869964
 
         self.last_user_message = {}
         self.time_factor = 10

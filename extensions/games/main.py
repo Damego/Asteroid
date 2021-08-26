@@ -14,6 +14,7 @@ class Games(commands.Cog, description='Игры'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
+        self.emoji = '🎮'
 
 
     @commands.command(aliases=['rps'], description='Запускает игру Камень-ножницы-бумага\nПервый ход получает тот, кого пригласили в игру', help='[ник] [кол-во игр]')

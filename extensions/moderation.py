@@ -9,6 +9,7 @@ class Moderation(commands.Cog, description='Модерация'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
+        self.emoji = '🛡️'
 
 
     @commands.command(

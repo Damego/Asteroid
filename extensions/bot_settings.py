@@ -164,6 +164,7 @@ class Settings(commands.Cog, description='Настройка бота'):
     def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
+        self.emoji = '🔧'
 
     @commands.Cog.listener()
     async def on_member_join(self, member:discord.Member):

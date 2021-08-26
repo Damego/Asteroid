@@ -15,11 +15,11 @@ from .rus import *
 from mongobot import MongoComponentsBot
 
 
-
 class GenshinImpact(commands.Cog, description='Genshin Impact'):
     def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
+        self.emoji = 863429526632923136
 
 
     @commands.group(
@@ -170,40 +170,13 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             color=self.bot.get_embed_color(ctx.guild.id))
             embed.set_thumbnail(url=character['icon'])
             embed.set_footer(text=f'UID: {uid}. Страница: {_page}/{pages}')
-
-            embed.description = f"""
-            **Информация**
-            » <:character_exp:871389287978008616> Уровень: `{character['level']}`
-            » Созвездие: `C{character['constellation']}`
-            » Элемент: {rus_element.get(character['element'])}
-            » <:friendship_exp:871389291740291082> Уровень дружбы: `{character['friendship']}`
-            
-            **Оружие**
-            » Название: `{character['weapon']['name']}`
-            » Редкость: `{"⭐" * character['weapon']["rarity"]}`
-            » Тип: `{character['weapon']['type']}`
-            » Уровень: `{character['weapon']['level']}`
-            » Уровень восхождения: `{character['weapon']['ascension']}`
-            » Уровень пробуждения: `{character['weapon']['refinement']}`
-
-            """
-
-            if character['artifacts']:
-                embed.description += '**Артефакты**'
-                for artifact in character['artifacts']:
-                    embed.description += f"""
-                    ・*{rus_artifact_type[artifact['pos_name']]}*
-                    » Название: `{artifact['name']}`
-                    » Редкость: `{"⭐" * artifact['rarity']}`
-                    » Уровень: `{artifact['level']}`
-                    """
-
+            embed = self.get_character_info(embed, character)
             embeds.append(embed)
 
         page = 1
         components = PaginatorStyle.style2(pages)
         
-        message:discord.Message = await ctx.send(embed=embeds[0], components=components)
+        message = await ctx.send(embed=embeds[0], components=components)
         while True:
             interaction:Interaction = await get_interaction(self.bot, ctx, message)
             if interaction is None:
@@ -212,7 +185,6 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             button_id = interaction.component.id
             paginator = PaginatorCheckButtonID(components, pages)
             page = paginator._style2(button_id, page)
-            #page = PaginatorCheckButtonID.style2(button_id, page, pages, components)
             embed = embeds[page-1]
 
             try:
@@ -264,3 +236,33 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         if uid is None:
             raise UIDNotBinded
         return uid
+
+    def get_character_info(self, embed:discord.Embed, character):
+        embed.description = f"""
+            **Информация**
+            » <:character_exp:871389287978008616> Уровень: `{character['level']}`
+            » Созвездие: `C{character['constellation']}`
+            » Элемент: {rus_element.get(character['element'])}
+            » <:friendship_exp:871389291740291082> Уровень дружбы: `{character['friendship']}`
+            
+            **Оружие**
+            » Название: `{character['weapon']['name']}`
+            » Редкость: `{"⭐" * character['weapon']["rarity"]}`
+            » Тип: `{character['weapon']['type']}`
+            » Уровень: `{character['weapon']['level']}`
+            » Уровень восхождения: `{character['weapon']['ascension']}`
+            » Уровень пробуждения: `{character['weapon']['refinement']}`
+
+            """
+
+        if character['artifacts']:
+            embed.description += '**Артефакты**'
+            for artifact in character['artifacts']:
+                embed.description += f"""
+                ・*{rus_artifact_type[artifact['pos_name']]}*
+                » Название: `{artifact['name']}`
+                » Редкость: `{"⭐" * artifact['rarity']}`
+                » Уровень: `{artifact['level']}`
+                """
+
+        return embed

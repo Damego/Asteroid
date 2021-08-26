@@ -12,6 +12,7 @@ class Casino(commands.Cog, description='Казино'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
+        self.emoji = '🎲'
 
     @commands.group(name='casino', description='Регистрирует вас в Казино', help='', invoke_without_command=True)
     async def casino(self, ctx:commands.Context):

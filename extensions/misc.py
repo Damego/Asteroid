@@ -21,7 +21,7 @@ class Misc(commands.Cog, description='Остальные команды'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-
+        self.emoji = '💡'
 
 
     @commands.command(aliases=['рандом'], name='random', description='Выдаёт рандомное число в заданном промежутке', help='[от] [до]')

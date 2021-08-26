@@ -8,10 +8,12 @@ class NotConnectedToVoice(commands.CommandError):
     pass
 
 
-class Music(commands.Cog, description='Музыка без плеера'):
+class Music(commands.Cog, description='Музыка'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
+        self.emoji = '🎵'
+
         self.music = DiscordUtils.Music()
 
         self.track_dict = {}

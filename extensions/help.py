@@ -1,14 +1,9 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.errors import BadArgument
-from discord_components import Interaction
+from discord_components import Interaction, Select, SelectOption
 
-from .bot_settings import (
-    PaginatorStyle,
-    PaginatorCheckButtonID,
-    get_interaction,
-    version
-    )
+from .bot_settings import version
 from mongobot import MongoComponentsBot
 
 
@@ -22,12 +17,12 @@ class Help(commands.Cog, description='Помощь'):
 
     @commands.command(description='Показывает помощь по командам', help='[плагин или команда]')
     async def help(self, ctx:commands.Context, arg=None):
-        prefix = self.bot.get_guild_prefix(ctx.guild.id)
+        prefix = ctx.prefix
         components = []
 
         if arg is None:
-            pages = 1
             embeds = [self._get_main_menu(prefix)]
+            select_options = [SelectOption(label='Главная страница', value='main_page', emoji='🌐')]
 
             for _cog in self.bot.cogs:
                 cog = self.bot.cogs[_cog]
@@ -35,10 +30,21 @@ class Help(commands.Cog, description='Помощь'):
                     continue
                 embed = discord.Embed(title=f'{_cog} | {cog.description}', color=0x2f3136)
                 embeds.append(self.out_commands(cog, embed, prefix))
-                pages += 1
 
-            page = 1
-            components = PaginatorStyle.style1(pages)
+                emoji = cog.emoji
+                if isinstance(emoji, int):
+                    emoji = self.bot.get_emoji(emoji)
+
+                select_options.append(
+                    SelectOption(label=f'{_cog} | {cog.description}', value=_cog, emoji=emoji)
+                )
+
+            components = [
+                Select(
+                    placeholder='Select category',
+                    options=select_options
+                )
+            ]
 
         elif arg in self.bot.cogs:
             cog_name = arg
@@ -58,21 +64,20 @@ class Help(commands.Cog, description='Помощь'):
                 raise BadArgument
 
         if components:
-            message = await ctx.send(embed=embeds[0], components=components)
+            await ctx.send(embed=embeds[0], components=components)
 
             while True:
-                interaction:Interaction = await get_interaction(self.bot, ctx, message)
-                if interaction is None:
-                    return
+                interaction:Interaction = await self.bot.wait_for('select_option')
 
-                button_id = interaction.component.id
-                paginator = PaginatorCheckButtonID(components, pages)
-                page = paginator._style1(button_id, page)
-
-                try:
-                    await interaction.respond(type=7, embed=embeds[page-1], components=components)
-                except Exception:
+                value = interaction.values[0]
+                if value == 'main_page':
+                    await interaction.respond(type=7, embed=embeds[0])
                     continue
+                
+                for embed in embeds:
+                    if embed.title.startswith(value):
+                        await interaction.respond(type=7, embed=embed)
+                        break
         else:
             await ctx.send(embed=embed, delete_after=60)
 

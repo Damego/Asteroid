@@ -13,6 +13,7 @@ class Tags(commands.Cog, description='Теги'):
     def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
+        self.emoji = '🏷️'
 
         self.forbidden_tags = ['add', 'edit', 'list', 'remove', 'rename']
 

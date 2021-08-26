@@ -22,6 +22,7 @@ class Giveaways(commands.Cog, description='Розыгрыши'):
     def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
+        self.emoji = '🎉'
 
 
     @commands.group(
