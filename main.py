@@ -223,7 +223,7 @@ async def on_command_error(ctx:commands.Context, error):
         {error_traceback}
         ``` """
 
-        channel = await ctx.bot.get_channel(863001051523055626)
+        channel = ctx.bot.get_channel(863001051523055626)
         if channel is None:
             channel = await ctx.bot.fetch_channel(863001051523055626)
         try:
