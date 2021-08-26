@@ -289,11 +289,11 @@ class Levels(commands.Cog, description='Cистема уровней'):
         
         for level in dict_levels:
             xp_amount = 0
-            role = ctx.guild.get_role(dict_levels['role_id'])
-            for _level in range(1, int(dict_levels['_id'])):
+            role = ctx.guild.get_role(level['role_id'])
+            for _level in range(1, int(level['_id'])):
               exp = formula_of_experience(_level)
               xp_amount += exp
-            content += f'{level} — {role.mention} Необходимо опыта: {xp_amount}\n'
+            content += f'{level["_id"]} — {role.mention} Необходимо опыта: {xp_amount}\n'
 
         if content == '':
             content = 'Ролей по уровням нет!'
