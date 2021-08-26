@@ -200,15 +200,17 @@ class Music(commands.Cog, description='Музыка без плеера'):
         await message.edit(embed=embed)
 
 
-    async def _stop_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message):
+    async def _stop_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message=None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if ctx.voice_client.is_playing():
             await player.stop()
             await ctx.voice_client.disconnect()
         if from_button:
             await message.edit(components=[])
+        else:
+            await ctx.message.add_reaction('✅')
 
-    async def _pause_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message, components):
+    async def _pause_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message=None, components:list=None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if ctx.voice_client.is_playing():
             await player.pause()
@@ -220,10 +222,12 @@ class Music(commands.Cog, description='Музыка без плеера'):
                 except Exception as e:
                     print('IN PAUSE', e)
             else:
-                embed = discord.Embed(title='Музыка не воспроизводится!', color=self.bot.get_embed_color(ctx.guild.id))
-                await ctx.send(embed=embed, delete_after=10)
+                await ctx.message.add_reaction('✅')
+        else:
+            embed = discord.Embed(title='Музыка не воспроизводится!', color=self.bot.get_embed_color(ctx.guild.id))
+            await ctx.send(embed=embed, delete_after=10)
 
-    async def _resume_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message, components):
+    async def _resume_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message=None, components:list=None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if not ctx.voice_client.is_playing():
             await player.resume()
@@ -231,8 +235,10 @@ class Music(commands.Cog, description='Музыка без плеера'):
                 self.components[0][0] = Button(
                     style=ButtonStyle.gray, label='Пауза', id=1)
                 await message.edit(components=components)
+            else:
+                await ctx.message.add_reaction('✅')
 
-    async def _repeat_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message, components):
+    async def _repeat_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message=None, components:list=None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         song = await player.toggle_song_loop()
 
@@ -248,14 +254,13 @@ class Music(commands.Cog, description='Музыка без плеера'):
         await message.edit(components=components)
 
 
-    async def _skip_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message):
+    async def _skip_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message=None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         try:
             new_track = await player.skip(force=True)
             if not from_button:
                 return await ctx.message.add_reaction('✅')
             await self._update_message(ctx, message, new_track)
-                
         except Exception:
             await ctx.send('**Плейлист пуст! Добавьте музыку!**', delete_after=15)
 
