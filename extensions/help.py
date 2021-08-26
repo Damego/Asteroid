@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord.ext import commands
 from discord.ext.commands.errors import BadArgument
@@ -64,20 +65,33 @@ class Help(commands.Cog, description='Помощь'):
                 raise BadArgument
 
         if components:
-            await ctx.send(embed=embeds[0], components=components)
+            message = await ctx.send(embed=embeds[0], components=components)
 
             while True:
-                interaction:Interaction = await self.bot.wait_for('select_option')
+                try:
+                    interaction:Interaction = await self.bot.wait_for('select_option', timeout=120)
+                except asyncio.TimeoutError:
+                    return await message.edit(components=[])
+                except Exception:
+                    continue
 
                 value = interaction.values[0]
                 if value == 'main_page':
-                    await interaction.respond(type=7, embed=embeds[0])
-                    continue
+                    try:
+                        await interaction.respond(type=7, embed=embeds[0])
+                    except Exception:
+                        pass
+                    finally:
+                        continue
                 
                 for embed in embeds:
                     if embed.title.startswith(value):
-                        await interaction.respond(type=7, embed=embed)
-                        break
+                        try:
+                            await interaction.respond(type=7, embed=embed)
+                        except Exception:
+                            continue
+                        finally:
+                            break
         else:
             await ctx.send(embed=embed, delete_after=60)
 
