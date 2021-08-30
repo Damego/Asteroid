@@ -37,6 +37,9 @@ class MongoComponentsBot(ComponentsBot):
     def get_guild_giveaways_collection(self, guild_id:int):
         return self.get_guild_main_collection(guild_id)['giveaways']
 
+    def get_guild_select_role_collection(self, guild_id:int):
+        return self.get_guild_main_collection(guild_id)['select_role']
+
     def get_embed_color(self, guild_id):
         collection = self.get_guild_configuration_collection(guild_id)
         color = collection.find_one({'_id':'configuration'})['embed_color']

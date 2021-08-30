@@ -114,7 +114,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
             sit_time = int(time()) - voice_user['voice_time']
             voice_collection.delete_one({'_id':str(member.id)})
             exp = (sit_time // 60) * self.time_factor
-            await update_member(member, exp)
+            await update_member(self.bot, member, exp)
 
             collection = self.bot.get_guild_users_collection(member.guild.id)
             member_db = collection.find_one({'_id':str(member.id)})
@@ -216,7 +216,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
         usage='Только для Администрации')
     @is_administrator_or_bot_owner()
     async def add_xp(self, ctx:commands.Context, member:discord.Member, xp:int):
-        await update_member(member, xp)
+        await update_member(self.bot, member, xp)
         await ctx.message.add_reaction('✅')
 
 

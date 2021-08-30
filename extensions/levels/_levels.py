@@ -6,17 +6,17 @@ from mongobot import *
 
 last_user_message = {}
 
-async def update_member(bot, arg, exp):
+async def update_member(bot, member_or_message, exp):
     """Method for giving exp for guild member"""
-    guild_id = str(arg.guild.id)
+    guild_id = str(member_or_message.guild.id)
 
-    if isinstance(arg, discord.Message):
-        message = arg
+    if isinstance(member_or_message, discord.Message):
+        message = member_or_message
         member = message.author
         if check_timeout(guild_id, member):
             return
-    elif isinstance(arg, discord.Member):
-        member = arg
+    elif isinstance(member_or_message, discord.Member):
+        member = member_or_message
 
     guild_users_collection = bot.get_guild_users_collection(member.guild.id)
     member_stats = guild_users_collection.find_one({'_id':str(member.id)})['leveling']
