@@ -131,6 +131,7 @@ class Levels(commands.Cog, description='Cистема уровней'):
                 )
         except Exception as e:
             print('[LEVELS ERROR]', e)
+            print(e.__traceback__)
 
 
     @commands.Cog.listener()
