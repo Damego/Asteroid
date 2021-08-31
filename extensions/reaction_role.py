@@ -151,6 +151,7 @@ class ReactionRole(commands.Cog, description='Роли по реакции'):
 
 
 
+
 def setup(bot):
     bot.add_cog(ReactionRole(bot))
 

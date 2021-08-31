@@ -80,25 +80,32 @@ class Misc(commands.Cog, description='Остальные команды'):
         guild_users_collection = self.bot.get_guild_users_collection(ctx.guild.id)
         user = guild_users_collection.find_one({'_id':str(member.id)})
 
-        user_voice_time = user.get('voice_time_count')
+        user_voice_time = int(user.get('voice_time_count'))
         user_leveling = user.get('leveling')
         user_casino = user.get('casino')
 
         if user_voice_time is not None:
             stats += f'<:voice_time:863674908969926656> **Время в голосом канале:** `{user_voice_time}` мин.'
 
-        if user_leveling:
+        if user_leveling is not None:
             user_level = user_leveling['level']
+
+            user_xp, user_xp_amount =  map(
+                int,
+                [
+                    user_leveling['xp'],
+                    user_leveling['xp_amount']
+                ]
+            )
+
             xp_to_next_level = formula_of_experience(user_level)
-            user_xp = user_leveling['xp']
-            user_xp_amount =  user_leveling['xp_amount']
             
             stats += f"""
             <:level:863677232239869964> **Уровень:** `{user_level}`
             <:exp:863672576941490176> **Опыт:** `{user_xp}/{xp_to_next_level}` Всего: `{user_xp_amount}`
             """
 
-        if user_casino:
+        if user_casino is not None:
             stats += f'\n <:casino_chips:867817313528971295>  **Фишек:** `{user_casino["chips"]}`'
 
         if stats:
