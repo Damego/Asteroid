@@ -90,7 +90,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         oculus_content = f"""
         <:Item_Anemoculus:870989767960059944> Анемокулов: `{user_stats['anemoculi']}/66`
         <:Item_Geoculus:870989769570676757> Геокулов: `{user_stats['geoculi']}/131`
-        <:Item_Electroculus:870989768387878912> Электрокулов: `{user_stats['electroculi']}/95`
+        <:Item_Electroculus:870989768387878912> Электрокулов: `{user_stats['electroculi']}/151`
         """
 
         embed.add_field(name='Собрано окулов', value=oculus_content, inline=False)
@@ -105,8 +105,8 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         embed.add_field(name='Открыто сундуков', value=chests_opened, inline=False)
 
         misc_content = f"""
-        <:teleport:871385272376504341> Открыто телепортов: `{user_stats['unlocked_waypoints']}/112`
-        <:domains:871370995192193034> Открыто подземелий: `{user_stats['unlocked_domains']}/28`
+        <:teleport:871385272376504341> Открыто телепортов: `{user_stats['unlocked_waypoints']}/128`
+        <:domains:871370995192193034> Открыто подземелий: `{user_stats['unlocked_domains']}/29`
         """
 
         embed.add_field(name='Разное', value=misc_content, inline=False)
@@ -153,8 +153,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         if uid is None:
             uid = self._get_UID('', ctx.guild.id, ctx.author.id)
             
-        gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
-
+        self._get_cookie()
         try:
             characters = gs.get_characters(uid, lang='ru-ru')
         except DataNotPublic:
