@@ -1,11 +1,14 @@
-from os import remove
+import json
+from os import remove, environ
 from random import randint
 from asyncio import sleep
 
 import discord
 from discord.ext import commands
 from discord_components import Button, ButtonStyle, Select, SelectOption
+from discord_components.interaction import Interaction
 import qrcode
+import requests
 
 from .bot_settings import (
     DurationConverter,
@@ -235,6 +238,54 @@ class Misc(commands.Cog, description='Остальные команды'):
         hltv = HLTV(self.bot)
         await hltv.parse_mathes(ctx, team)
 
+    @commands.command(
+    name='activity',
+    description='Позволяет вместе смотреть ютюб и играть в игры',
+    help='')
+    async def start_activity(self, ctx:commands.Context):
+        if not ctx.author.voice:
+            return await ctx.send('Подключитель к голосовому каналу!')
+
+        channel_id = ctx.author.voice.channel.id
+        await ctx.send('Выберите категорию',
+            components=[
+                [
+                    Button(style=ButtonStyle.red, label='YouTube', id='755600276941176913'),
+                    Button(style=ButtonStyle.blue, label='Betrayal.io', id='773336526917861400'),
+                    Button(style=ButtonStyle.blue, label='Fishington.io', id='814288819477020702'),
+                    Button(style=ButtonStyle.gray, label='Poker Night', id='755827207812677713'),
+                    Button(style=ButtonStyle.green, label='Chess', id='832012774040141894'),
+                ]
+            ]
+        )
+
+        interaction:Interaction = await self.bot.wait_for(
+            'button_click',
+            check=lambda inter: inter.user.id == ctx.author.id)
+
+        data = self._get_data(int(interaction.custom_id))
+        headers = {
+            'Authorization': f'Bot {environ.get("TOKEN")}',
+            'Content-Type': 'application/json'
+        }
+
+        responce = requests.post(f'https://discord.com/api/v8/channels/{channel_id}/invites', data=json.dumps(data), headers=headers)
+        code = json.loads(responce.content).get('code')
+
+        await interaction.respond(type=6)
+        await interaction.message.delete()
+        await ctx.send(f'https://discord.com/invite/{code}')
+
+
+    def _get_data(self, application_id: int):
+        return {
+            'max_age': 86400,
+            'max_uses': 0,
+            'target_application_id': application_id,
+            'target_type': 2,
+            'temporary': False,
+            'validate': None
+        }
 
 def setup(bot):
     bot.add_cog(Misc(bot))
