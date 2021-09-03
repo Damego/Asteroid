@@ -53,7 +53,7 @@ async def update_member(bot, member_or_message, exp):
         exp_to_next_level = formula_of_experience(level)
 
         guild_level_roles_collection = bot.get_guild_level_roles_collection(guild_id)
-        role_id = guild_level_roles_collection.find_one({'_id':(str(level))})
+        role_id = guild_level_roles_collection.find_one({'_id':(str(level))}).get('role_id')
         if role_id is None:
             continue
 
