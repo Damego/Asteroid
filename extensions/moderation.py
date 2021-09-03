@@ -123,7 +123,7 @@ class Moderation(commands.Cog, description='Модерация'):
         old_nick = member.display_name
         embed = discord.Embed(color=self.bot.get_embed_color(ctx.guild.id))
         await member.edit(nick=new_nick)
-        embed.description = f'Участнику {old_nick}, был сменён ник на {new_nick}'
+        embed.description = f'Участнику `{old_nick}`, был сменён ник на `{new_nick}`'
         await ctx.send(embed=embed)
 
 
