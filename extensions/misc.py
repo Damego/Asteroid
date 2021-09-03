@@ -124,14 +124,15 @@ class Misc(commands.Cog, description='Остальные команды'):
         embed.add_field(name='Дата создания:', value=f'<t:{int(guild.created_at.timestamp())}:F>', inline=False)
         embed.add_field(name='Основатель сервера:', value=guild.owner.mention, inline=False)
 
-        embed.add_field(name='Количество', value=f"""
-                                                :man_standing: **Участников:** {guild.member_count}
-                                                :crown: **Ролей:** {len(guild.roles)}
-                                                
-                                                :hash: **Категорий:** {len(guild.categories)}
-                                                :speech_balloon:** Текстовых каналов:** {len(guild.text_channels)}
-                                                :speaker: **Голосовых каналов:** {len(guild.voice_channels)}
-                                                """)
+        embed.add_field(name='Количество',
+            value=f"""
+                :man_standing: **Участников:** {guild.member_count}
+                :crown: **Ролей:** {len(guild.roles)}
+                
+                :hash: **Категорий:** {len(guild.categories)}
+                :speech_balloon:** Текстовых каналов:** {len(guild.text_channels)}
+                :speaker: **Голосовых каналов:** {len(guild.voice_channels)}
+                """)
         embed.set_thumbnail(url=guild.icon_url)
 
         await ctx.send(embed=embed)
@@ -140,10 +141,6 @@ class Misc(commands.Cog, description='Остальные команды'):
     async def info_bot(self, ctx:commands.Context):
         prefix = self.bot.get_guild_prefix(ctx.guild.id)
         embed = discord.Embed(title='Информация о боте', color=self.bot.get_embed_color(ctx.guild.id))
-
-        components= [
-            Button(style=ButtonStyle.URL, label='Пригласить', url='https://discord.com/api/oauth2/authorize?client_id=828262275206873108&permissions=0&scope=bot')
-        ]
 
         users_amount = sum(len(guild.members) for guild in self.bot.guilds)
 
@@ -157,7 +154,14 @@ class Misc(commands.Cog, description='Остальные команды'):
                             **Префикс на сервере:** `{prefix}`
                             """
 
-        await ctx.send(embed=embed, components=components)
+        await ctx.send(embed=embed, components=[
+            Button(
+                style=ButtonStyle.URL,
+                label='Пригласить',
+                url='https://discord.com/api/oauth2/authorize?client_id=828262275206873108&permissions=0&scope=bot'
+                )
+            ]
+        )
 
 
     @commands.command(name='qr', aliases=['QR', 'код'], description='Создаёт QR-код', help='[текст]')
