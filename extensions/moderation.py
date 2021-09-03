@@ -119,9 +119,12 @@ class Moderation(commands.Cog, description='Модерация'):
         description='Меняет ник участнику',
         help='[Участник] [новый ник]',
         usage='С правом на управление никами')
-    async def nick(self, ctx:commands.Context, member:discord.Member, newnick):
-        await member.edit(nick=newnick)
-        await ctx.message.add_reaction('✅')
+    async def nick(self, ctx:commands.Context, member:discord.Member, new_nick):
+        old_nick = member.display_name
+        embed = discord.Embed(color=self.bot.get_embed_color(ctx.guild.id))
+        await member.edit(nick=new_nick)
+        embed.description = f'Участнику {old_nick}, был сменён ник на {new_nick}'
+        await ctx.send(embed=embed)
 
 
     @commands.command(
