@@ -139,7 +139,7 @@ class Misc(commands.Cog, description='Остальные команды'):
     @info.command(name='bot', description='Показывает информацию о Боте', help='')
     async def info_bot(self, ctx:commands.Context):
         prefix = self.bot.get_guild_prefix(ctx.guild.id)
-        embed = discord.Embed(title='Информация о боте', color=self.bot.self.bot.get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Информация о боте', color=self.bot.get_embed_color(ctx.guild.id))
 
         components= [
             Button(style=ButtonStyle.URL, label='Пригласить', url='https://discord.com/api/oauth2/authorize?client_id=828262275206873108&permissions=0&scope=bot')
