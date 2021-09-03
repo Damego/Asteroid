@@ -131,6 +131,7 @@ class Moderation(commands.Cog, description='Модерация'):
     @commands.has_guild_permissions(manage_messages=True)
     async def clear(self, ctx:commands.Context, amount:int):
         await ctx.channel.purge(limit=amount+1)
+        await ctx.send(f'Успешно удалено {amount} сообщений!', delete_after=10)
 
 
 
