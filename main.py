@@ -189,11 +189,13 @@ async def on_command_error(ctx:commands.Context, error):
         help = f'`{ctx.prefix}{ctx.command} {ctx.command.help}`'
         desc = title + help
     elif isinstance(error, commands.BotMissingPermissions):
-        desc = f'**У меня недостаточно прав!**\nНеобходимые права: `{", ".join(error.missing_perms)}`'
+        desc = f'**У бота недостаточно прав!**\nНеобходимые права: `{", ".join(error.missing_perms)}`'
     elif isinstance(error, commands.MissingPermissions):
         desc = f'**У вас недостаточно прав!**\nНеобходимые права: `{", ".join(error.missing_perms)}`'
     elif isinstance(error, commands.CommandNotFound):
         desc = 'Команда не найдена!'
+    elif isinstance(error, discord.Forbidden):
+        desc = 'У бота недостаточно прав!'
     else:
         desc = f"""
 Я уже уведомил своего создателя об этой ошибке
