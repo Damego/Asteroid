@@ -134,7 +134,7 @@ class Help(commands.Cog, description='Help'):
 
     def _get_command_help(self, command:commands.Command, prefix):
         _command = command
-        _aliases = ', '.join(_command.aliases) if _command.aliases else 'Нет'
+        _aliases = ', '.join(_command.aliases) if _command.aliases else 'No'
         _usage = _command.usage or 'Everyone'
 
         embed:discord.Embed = discord.Embed(title=f'Command: {_command.name}', color=0x2f3136)

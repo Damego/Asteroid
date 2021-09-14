@@ -253,9 +253,10 @@ class Tags(commands.Cog, description='Tags'):
         if message is None:
             embed = discord.Embed(title='Tag title', description='Tag description', color=self.bot.get_embed_color(ctx.guild.id))
             message:discord.Message = await ctx.send(embed=embed, components=components)
+            return embed, message
         else:
             await message.edit(components=components)
-        return embed, message
+        
 
 
     async def edit_tag(self, ctx, interaction, component, message:discord.Message, embed:discord.Embed):
