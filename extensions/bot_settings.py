@@ -13,7 +13,7 @@ from pymongo.collection import Collection
 from mongobot import MongoComponentsBot
 
 
-version = 'v1.2'
+version = 'Special version for discord_components'
 
 multiplier = {
     'д': 86400,
