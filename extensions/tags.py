@@ -241,7 +241,6 @@ class Tags(commands.Cog, description='Tags'):
         await interaction.respond(type=4, content=f'Input {label}')
         msg = await self.bot.wait_for('message', check=lambda msg: msg.author.id == ctx.author.id)
         content = msg.content
-        await msg.delete()
 
         if component == 'title':
             embed.title = content
