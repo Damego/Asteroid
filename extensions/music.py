@@ -143,7 +143,7 @@ class Music(commands.Cog, description='Music'):
                     print(e)
 
 
-    async def _send_message(self, ctx, track, *, from_nplay:bool=False):
+    async def _send_message(self, ctx, track, from_nplay:bool=False):
         duration = track.duration
         if duration != 0.0:
             duration_hours = duration // 3600
