@@ -25,7 +25,8 @@ class Tags(commands.Cog, description='Tags'):
         invoke_without_command=True)
     async def tag(self, ctx: Context, tag_name=None):
         if tag_name is None:
-            return await ctx.reply(f'Use {ctx.prefix}tag [tag || subcommand]')
+            return await ctx.reply(f'Use `{ctx.prefix}tag [tag || subcommand]`')
+        tag_name = tag_name.lower()
 
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
@@ -50,6 +51,7 @@ class Tags(commands.Cog, description='Tags'):
         help='[tag name] [title]',
         usage='Everyone can use Tags on this server')
     async def add(self, ctx, tag_name, *, title):
+        tag_name = tag_name.lower()
         if tag_name in self.forbidden_tags:
             raise ForbiddenTag
 
@@ -76,6 +78,7 @@ class Tags(commands.Cog, description='Tags'):
         help='[tag name] [description]',
         usage='Everyone can use Tags on this server')
     async def edit(self, ctx, tag_name, *, description):
+        tag_name = tag_name.lower()
         description = f"""{description}"""
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
@@ -100,6 +103,7 @@ class Tags(commands.Cog, description='Tags'):
         help='[tag name]',
         usage='Everyone can use Tags on this server')
     async def remove(self, ctx, tag_name):
+        tag_name = tag_name.lower()
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
         if tag is None:
@@ -137,6 +141,8 @@ class Tags(commands.Cog, description='Tags'):
         help='[tag name] [new tag name]',
         usage='Everyone can use Tags on this server')
     async def rename(self, ctx, tag_name, new_tag_name):
+        tag_name = tag_name.lower()
+        new_tag_name = new_tag_name.lower()
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
         if tag is None:
@@ -171,6 +177,7 @@ class Tags(commands.Cog, description='Tags'):
         help='[tag name]',
         usage='Everyone can use Tags on this server')
     async def raw(self, ctx:commands.Context, tag_name):
+        tag_name = tag_name.lower()
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
         if tag is None:
@@ -186,6 +193,7 @@ class Tags(commands.Cog, description='Tags'):
         help='[tag name]',
         usage='Everyone can use Tags on this server')
     async def btag(self, ctx:commands.Context, tag_name):
+        tag_name = tag_name.lower()
         if tag_name in self.forbidden_tags:
             raise ForbiddenTag
 
