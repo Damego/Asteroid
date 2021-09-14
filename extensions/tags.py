@@ -105,13 +105,15 @@ class Tags(commands.Cog, description='Tags'):
 
     @tag.command(name='list', description='Shows list of tags', help='')
     async def list(self, ctx):
-        description = f""""""
+        description = ''
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tags_cursor = collection.find({})
         
         for count, tag in enumerate(tags_cursor, start=1):
             description += f'**{count}. {tag["_id"]}**\n'
             count += 1
+        if description == '':
+            description = 'No tags in this server!'
 
         embed = discord.Embed(title='Tag list', color=self.bot.get_embed_color(ctx.guild.id))
         embed.description = description
