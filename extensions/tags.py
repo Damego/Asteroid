@@ -200,7 +200,7 @@ class Tags(commands.Cog, description='Tags'):
             except Exception:
                 continue
             
-            button_id = interaction.component.id
+            button_id = interaction.custom_id
 
             if button_id == 'edit_tag':
                 await self.init_btag(ctx, message)
