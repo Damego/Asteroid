@@ -16,7 +16,7 @@ class Tags(commands.Cog, description='Tags'):
         self.hidden = False
         self.emoji = '🏷️'
 
-        self.forbidden_tags = ['add', 'edit', 'list', 'remove', 'rename']
+        self.forbidden_tags = ['add', 'edit', 'list', 'remove', 'rename', 'create', 'new']
 
     @commands.group(
         name='tag',
@@ -45,6 +45,7 @@ class Tags(commands.Cog, description='Tags'):
 
     @tag.command(
         name='add',
+        aliases=['create', 'new'],
         description='Create new tag',
         help='[tag name] [title]',
         usage='Everyone can use Tags on this server')
