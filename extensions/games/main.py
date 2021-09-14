@@ -4,26 +4,27 @@ import discord
 from discord_components import Button, ButtonStyle
 from discord.ext import commands
 
-from ._blackjack import BlackJack
 from ._tictactoe import TicTacToe
 from ._rockpaperscissors import RockPaperScissors
 
 
 
-class Games(commands.Cog, description='Игры'):
+class Games(commands.Cog, description='Games'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
         self.emoji = '🎮'
 
 
-    @commands.command(aliases=['rps'], description='Запускает игру Камень-ножницы-бумага\nПервый ход получает тот, кого пригласили в игру', help='[ник] [кол-во игр]')
-    async def rockpaperscissors(self, ctx:commands.Context, member: discord.Member, total_rounds: int = 1):
+    @commands.command(aliases=['rps'], description='Start game Rock Paper Scissors', help='(User) (total games)')
+    async def rockpaperscissors(self, ctx: commands.Context, member: discord.Member=None, total_rounds: int=3):
+        if member is None:
+            member = ctx.bot.user
         if member == ctx.author:
-            await ctx.send('Вы не можете пригласить себя!')
+            await ctx.send('You cannot invite yourself!')
             return
 
-        msg, accept = await self.invite_to_game(ctx, member, 'Камень-Ножницы-Бумага')
+        msg, accept = await self.invite_to_game(ctx, member, 'Rock Paper Scissors')
 
         if not accept:
             return
@@ -32,15 +33,15 @@ class Games(commands.Cog, description='Игры'):
         await game.start_game()
 
 
-    @commands.command(aliases=['ttt'], description='Запускает игру Крестики-Нолики \nПервый ход получает тот, кого пригласили в игру', help='[ник]')
+    @commands.command(aliases=['ttt'], description='Start game Tic Tac Toe', help='[User]')
     async def tictactoe(self, ctx:commands.Context, member: discord.Member):
         if member == ctx.author:
-            await ctx.send('Вы не можете пригласить себя!')
+            await ctx.send('You cannot invite yourself!')
             return
         if member.bot:
-            await ctx.send('Вы не можете пригласить бота!')
+            await ctx.send('You cannot invite bot!')
             return
-        msg, accept = await self.invite_to_game(ctx, member, 'Крестики-Нолики')
+        msg, accept = await self.invite_to_game(ctx, member, 'Tic Tac Toe')
         if not accept:
             return
 
@@ -48,50 +49,23 @@ class Games(commands.Cog, description='Игры'):
         await game.start_game()
 
 
-    @commands.group(name='blackjack', description='Запускает игру Блэкджек', help='', invoke_without_command=True)
-    async def blackjack(self, ctx:commands.Context):
-        start_menu_components = [[
-                Button(style=ButtonStyle.green, label='Начать игру', id='start_game'),
-                Button(style=ButtonStyle.red, label='Выйти из игры', id='exit_game'),
-            ]]
-
-        msg = await ctx.send(content='Блэкджек', components=start_menu_components)
-
-        interaction = await self.bot.wait_for('button_click', check=lambda i: i.user.id == ctx.author.id)
-        await interaction.respond(type=6)
-
-        if interaction.component.id == 'exit_game':
-            await msg.delete()
-            return
-        blackjack = BlackJack(self.bot)
-        await blackjack.prepare_for_game(ctx, msg)
-
-
-    @blackjack.command(name='rules', description='Выводит правила Блэкджека', help='')
-    async def rules(self, ctx:commands.Context):
-        description = f"""
-        **Правила игры в Блэкджек**
-*Карты:*
-    Всего карт: `52`. от 2 До Туза
-    Номинальные значения карт следующее, от двойки до десятки совпадают с номиналом.
-    Валет, Дама и Король имеют десять очков.
-    Туз на данный момент имеет **только** 11 очков!
-*Ход игры:*
-    Дилер раздает игроку и себе по 2 карты, и при этом открывает свою одну карту, а вторая остаётся закрытой.
-    Игрок может брать себе карту, до тех пор, пока не наступит 21 очко(Блэкджек), или перебор.
-    Игрок может остановиться и передать ход дилеру.
-*Выигрыш или проигрыш:*
-    Если сумма карт Игрока `равна` 21, то это Блэкджек.
-    Если сумма карт Игрока `больше` 21, то это перебор, и проигрыш.
-    Если сумма карт Дилера `равна` 21, то это Блэкджек у Дилера.
-    Если сумма карт Дилера `больше`, чем у Игрока, то побеждает Дилер.
-    Если сумма карт Дилера `меньше`, чем у Игрока, то побеждает Игрок.
-    Если сумма карт Дилера и Игрока `равны`, то это Ничья.
-
-    За выигрыш вам даётся 100 очков опыта, а за Блэкджек, 200 очков
-    
-    """
-        await ctx.send(description)
+#    @commands.group(name='blackjack', description='Start game BlackJack', help='', invoke_without_command=True)
+#    async def blackjack(self, ctx:commands.Context):
+#        start_menu_components = [[
+#                Button(style=ButtonStyle.green, label='Start game', id='start_game'),
+#                Button(style=ButtonStyle.red, label='Exit', id='exit_game'),
+#            ]]
+#
+#        msg = await ctx.send(content='BlackJack', components=start_menu_components)
+#
+#        interaction = await self.bot.wait_for('button_click', check=lambda i: i.user.id == ctx.author.id)
+#        await interaction.respond(type=6)
+#
+#        if interaction.component.id == 'exit_game':
+#            await msg.delete()
+#            return
+#        blackjack = BlackJack(self.bot)
+#        await blackjack.prepare_for_game(ctx, msg)
 
 
     async def invite_to_game(self, ctx, member, game_name):
@@ -99,11 +73,11 @@ class Games(commands.Cog, description='Игры'):
             return interaction.user.id == member.id and interaction.channel.id == ctx.channel.id and interaction.message.id == msg.id
 
         msg = await ctx.send(
-            content=f"{member.mention}! {ctx.author.name} приглашает тебя в игру {game_name}",
+            content=f"{member.mention}! {ctx.author.name} invites you in {game_name}",
             components=[
                 [
-                    Button(style=ButtonStyle.green, label='Согласиться', id=1),
-                    Button(style=ButtonStyle.red, label='Отказаться', id=2)
+                    Button(style=ButtonStyle.green, label='Agree', id=1),
+                    Button(style=ButtonStyle.red, label='Decline', id=2)
                 ]])
         if member.bot:
             embed = discord.Embed(
@@ -115,7 +89,7 @@ class Games(commands.Cog, description='Игры'):
             interaction = await self.bot.wait_for("button_click", check=member_agree, timeout=60)
             await interaction.respond(type=6)
         except TimeoutError:
-            await msg.edit(content=f'От {member.display_name} нет ответа!', components=[])
+            await msg.edit(content=f'No response from {member.display_name}!', components=[])
             return msg, False
 
         if interaction.component.id == '1':
@@ -124,5 +98,5 @@ class Games(commands.Cog, description='Игры'):
             await msg.edit(context=' ', embed=embed)
             return msg, True
 
-        await msg.edit(content=f'{member.display_name} отказался от игры!', components=[])
+        await msg.edit(content=f'{member.display_name} declined invite!', components=[])
         return msg, False

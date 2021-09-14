@@ -15,7 +15,7 @@ from .rus import *
 from mongobot import MongoComponentsBot
 
 
-class GenshinImpact(commands.Cog, description='Genshin Impact'):
+class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
     def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
@@ -25,8 +25,8 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
     @commands.group(
         name='genshin_impact',
         aliases=['genshin', 'gi', 'gs', 'g'],
-        description='Открывает доступ к вашей статистике игры Genshin Impact',
-        help='[команда]',
+        description='Main command for getting Genshin Impact Stats',
+        help='[subcommand]',
         invoke_without_command=True)
     async def genshin_impact(self, ctx:commands.Context):
         ...
@@ -34,10 +34,10 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
 
     @genshin_impact.command(
     name='bind',
-    description='Привязывает UID',
-    help='[hoyolab_uid]')
+    description='Bind UID',
+    help='[Hoyolab UID]')
     async def bind_uid(self, ctx:commands.Context, hoyolab_uid:int):
-        gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
+        self._get_cookie()
         uid = gs.get_uid_from_hoyolab_uid(hoyolab_uid)
 
         collection  = self.bot.get_guild_users_collection(ctx.guild.id)
@@ -48,13 +48,13 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
                 'genshin.uid':uid
             }}
         )
-        return await ctx.reply('Вы привязали UID')
+        return await ctx.reply('You binded UID')
 
 
     @genshin_impact.command(
     name='statistics',
     aliases=['stats'],
-    description='Показывает игровую статистику',
+    description='Show\'s game stats',
     help='(UID)')
     async def statistics(self, ctx:commands.Context, uid:int=None):
         if uid is None:
@@ -70,43 +70,43 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         user_explorations = user_data['explorations']
         user_stats = user_data['stats']
 
-        embed = discord.Embed(title='Genshin Impact. Статистика мира', color=self.bot.get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Genshin Impact. World exploration', color=self.bot.get_embed_color(ctx.guild.id))
         embed.set_footer(text=f'UID: {uid}')
 
         for region in user_explorations:
             if region["explored"] == 0.0:
                 continue
 
-            content = f'Исследовано: `{region["explored"]}%`'
+            content = f'Explored: `{region["explored"]}%`'
             if region['name'] == 'Dragonspine':
-                content += f'\nУровень Дерева Вечной Мерзлоты: `{region["level"]}`'
+                content += f'\nLevel of Frostbearing Tree: `{region["level"]}`'
             else:
                 if region['name'] == 'Inazuma':
-                    content += f'\nУровень Благосклонности сакуры: `{region["offerings"][0]["level"]}`'
-                content += f'\nУровень репутации: `{region["level"]}`'
+                    content += f'\nLevel of Sacred Sakura\'s Favor: `{region["offerings"][0]["level"]}`'
+                content += f'\nReputation level: `{region["level"]}`'
             
-            embed.add_field(name=rus_region.get(region['name']), value=content)
+            embed.add_field(name=region['name'], value=content)
 
         oculus_content = f"""
-        <:Item_Anemoculus:870989767960059944> Анемокулов: `{user_stats['anemoculi']}/66`
-        <:Item_Geoculus:870989769570676757> Геокулов: `{user_stats['geoculi']}/131`
-        <:Item_Electroculus:870989768387878912> Электрокулов: `{user_stats['electroculi']}/151`
+        <:Item_Anemoculus:870989767960059944> Anemoculus: `{user_stats['anemoculi']}/66`
+        <:Item_Geoculus:870989769570676757> Geoculus: `{user_stats['geoculi']}/131`
+        <:Item_Electroculus:870989768387878912> Electroculus: `{user_stats['electroculi']}/151`
         """
 
-        embed.add_field(name='Собрано окулов', value=oculus_content, inline=False)
+        embed.add_field(name='Collected oculus', value=oculus_content, inline=False)
 
         chests_opened = f"""
-        Обычных: `{user_stats['common_chests']}`
-        Богатых: `{user_stats['exquisite_chests']}`
-        Драгоценных: `{user_stats['precious_chests']}`
-        Роскошных: `{user_stats['luxurious_chests']}`
+        Common: `{user_stats['common_chests']}`
+        Exquisite: `{user_stats['exquisite_chests']}`
+        Precious: `{user_stats['precious_chests']}`
+        Luxurious: `{user_stats['luxurious_chests']}`
         """
 
-        embed.add_field(name='Открыто сундуков', value=chests_opened, inline=False)
+        embed.add_field(name='Chest\'s opened', value=chests_opened, inline=False)
 
         misc_content = f"""
-        <:teleport:871385272376504341> Открыто телепортов: `{user_stats['unlocked_waypoints']}/128`
-        <:domains:871370995192193034> Открыто подземелий: `{user_stats['unlocked_domains']}/29`
+        <:teleport:871385272376504341> Unlocked waypoints teleports: `{user_stats['unlocked_waypoints']}/128`
+        <:domains:871370995192193034> Ulocked domains: `{user_stats['unlocked_domains']}/29`
         """
 
         embed.add_field(name='Разное', value=misc_content, inline=False)
@@ -116,7 +116,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
     @genshin_impact.command(
     name='characters_list',
     aliases=['chars_list', 'chars_ls', 'cl'],
-    description='Показывает список персонажей',
+    description='Show\'s characters\'s list',
     help='(UID)')
     async def characters(self, ctx:commands.Context, uid:int=None):
         if uid is None:
@@ -124,22 +124,22 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
 
         self._get_cookie()
         try:
-            characters = gs.get_characters(uid, lang='ru-ru')
+            characters = gs.get_characters(uid)
         except DataNotPublic:
             raise GenshinDataNotPublic
         except AccountNotFound:
             raise GenshinAccountNotFound
 
-        embed = discord.Embed(title='Genshin Impact. Персонажи', color=self.bot.get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Genshin Impact. Characters', color=self.bot.get_embed_color(ctx.guild.id))
         embed.set_footer(text=f'UID: {uid}')
 
         for character in characters:
             embed.add_field(name=f'{character["name"]} {"⭐" * character["rarity"]}',
             value=f"""
-            ┕ Уровень: `{character['level']}`
-            ┕ Созвездие: `C{character['constellation']}`
-            ┕ Элемент: {rus_element.get(character['element'])}
-            ┕ Оружие: `{character['weapon']['name']} {"⭐" * character['weapon']['rarity']}`
+            ┕ Levl: `{character['level']}`
+            ┕ Constellation: `C{character['constellation']}`
+            ┕ Vision: {en_element.get(character['element'])}
+            ┕ Weapom: `{character['weapon']['name']} {"⭐" * character['weapon']['rarity']}`
             """)
         await ctx.send(embed=embed)
 
@@ -147,7 +147,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
     @genshin_impact.command(
     name='characters',
     aliases=['chars'],
-    description='Показывает полную информацию о персонажах',
+    description='Shows full statistics about every character',
     help='(UID)')
     async def chars(self, ctx:commands.Context, uid:int=None):
         if uid is None:
@@ -155,7 +155,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             
         self._get_cookie()
         try:
-            characters = gs.get_characters(uid, lang='ru-ru')
+            characters = gs.get_characters(uid)
         except DataNotPublic:
             raise GenshinDataNotPublic
         except AccountNotFound:
@@ -168,7 +168,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
             embed = discord.Embed(title=f'{character["name"]} {"⭐" * character["rarity"]}',
             color=self.bot.get_embed_color(ctx.guild.id))
             embed.set_thumbnail(url=character['icon'])
-            embed.set_footer(text=f'UID: {uid}. Страница: {_page}/{pages}')
+            embed.set_footer(text=f'UID: {uid}. Page: {_page}/{pages}')
             embed = self.get_character_info(embed, character)
             embeds.append(embed)
 
@@ -193,7 +193,7 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
 
     @genshin_impact.command(
     name='info',
-    description='Показывает информацию об аккаунте Genshin Impact',
+    description='Show account information',
     help='(Hoyolab UID)')
     async def info(self, ctx:commands.Context, hoyolab_uid:int=None):
         if hoyolab_uid is None:
@@ -205,15 +205,15 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
         user_stats = user_data['stats']
 
         content = f"""
-        **Ник в игре: {card['nickname']}**
+        **Nickname: {card['nickname']}**
 
-        <:adventure_exp:876142502736965672> Ранг Приключений: `{card['level']}`
-        <:achievements:871370992839176242> Достижений: `{user_stats['achievements']}`
-        :mage: Персонажей: `{user_stats['characters']}`
-        <:spiral_abyss:871370970600968233> Витая Бездна: `{transform_abyss_name(user_stats['spiral_abyss'])}`
+        <:adventure_exp:876142502736965672> Rank of Adventure: `{card['level']}`
+        <:achievements:871370992839176242> Achievements: `{user_stats['achievements']}`
+        :mage: Characters: `{user_stats['characters']}`
+        <:spiral_abyss:871370970600968233> Spiral Abyss: `{user_stats['spiral_abyss']}`
         """
 
-        embed = discord.Embed(title='Информация об игроке', description=content, color=self.bot.get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Information about player', description=content, color=self.bot.get_embed_color(ctx.guild.id))
         embed.set_footer(text=f'Hoyolab UID: {hoyolab_uid}')
         await ctx.send(embed=embed)
 
@@ -238,30 +238,30 @@ class GenshinImpact(commands.Cog, description='Genshin Impact'):
 
     def get_character_info(self, embed:discord.Embed, character):
         embed.description = f"""
-            **Информация**
-            » <:character_exp:871389287978008616> Уровень: `{character['level']}`
-            » Созвездие: `C{character['constellation']}`
-            » Элемент: {rus_element.get(character['element'])}
-            » <:friendship_exp:871389291740291082> Уровень дружбы: `{character['friendship']}`
+            **Information**
+            » <:character_exp:871389287978008616> Level: `{character['level']}`
+            » Constellation: `C{character['constellation']}`
+            » Vision: {en_element.get(character['element'])}
+            » <:friendship_exp:871389291740291082> Friendship level: `{character['friendship']}`
             
-            **Оружие**
-            » Название: `{character['weapon']['name']}`
-            » Редкость: `{"⭐" * character['weapon']["rarity"]}`
-            » Тип: `{character['weapon']['type']}`
-            » Уровень: `{character['weapon']['level']}`
-            » Уровень восхождения: `{character['weapon']['ascension']}`
-            » Уровень пробуждения: `{character['weapon']['refinement']}`
+            **Weapon**
+            » Name: `{character['weapon']['name']}`
+            » Rarity: `{"⭐" * character['weapon']["rarity"]}`
+            » Type: `{character['weapon']['type']}`
+            » Level: `{character['weapon']['level']}`
+            » Level of ascension: `{character['weapon']['ascension']}`
+            » Level of refinement: `{character['weapon']['refinement']}`
 
             """
 
         if character['artifacts']:
-            embed.description += '**Артефакты**'
+            embed.description += '**Artifacts**'
             for artifact in character['artifacts']:
                 embed.description += f"""
-                ・*{rus_artifact_type[artifact['pos_name']]}*
-                » Название: `{artifact['name']}`
-                » Редкость: `{"⭐" * artifact['rarity']}`
-                » Уровень: `{artifact['level']}`
+                ・*{en_artifact_type[artifact['pos_name']]}*
+                » Name: `{artifact['name']}`
+                » Rarity: `{"⭐" * artifact['rarity']}`
+                » Level: `{artifact['level']}`
                 """
 
         return embed

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import discord
 import requests
@@ -44,11 +44,11 @@ class HLTV():
 
 
     async def parse_mathes(self, ctx, team):
-        embed = discord.Embed(title='Расписание игр по CS:GO', description=f'Ближайшие игры команды {team}', color=self.bot.get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Game schedule for CS:GO', description=f'Upcoming games for {team}', color=self.bot.get_embed_color(ctx.guild.id))
 
         html = self._get_html()
         if html.status_code != 200:
-            return await ctx.send('Невозможно получить доступ к сайту!')
+            return await ctx.send('Can\'t get access for site')
             
         all_days = self._get_matches(html.text)
 
@@ -65,13 +65,12 @@ class HLTV():
                             embed.add_field(name='\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_', value=f'**{date}**')
                             date_was_printed = True
                     if match_data is not None:
-                        time = (datetime.strptime(match_data['time'], '%H:%M') + timedelta(hours=3)).strftime('%H:%M')
                         embed.add_field(name='==================', value="""
-                        Время: {}
-                        Команды: {} и {}
-                        Событие: {}
-                        Формат: {}
-                        """.format(time, match_data['team1'], match_data['team2'], match_data['event'], match_data['format'].replace('bo', 'Best of ')), inline=False)
+                        Time: {}
+                        Teams: {} vs. {}
+                        Event: {}
+                        Format: {}
+                        """.format(match_data['time'], match_data['team1'], match_data['team2'], match_data['event'], match_data['format'].replace('bo', 'Best of ')), inline=False)
                 
         await ctx.send(embed=embed)
 

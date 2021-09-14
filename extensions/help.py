@@ -9,21 +9,21 @@ from mongobot import MongoComponentsBot
 
 
 
-class Help(commands.Cog, description='Помощь'):
+class Help(commands.Cog, description='Help'):
     def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.bot.remove_command('help')
         self.hidden = True
         
 
-    @commands.command(description='Показывает помощь по командам', help='[плагин или команда]')
+    @commands.command(description='Show this message', help='(plugin or command)')
     async def help(self, ctx:commands.Context, arg=None):
         prefix = ctx.prefix
         components = []
 
         if arg is None:
             embeds = [self._get_main_menu(prefix)]
-            select_options = [SelectOption(label='Главная страница', value='main_page', emoji='🌐')]
+            select_options = [SelectOption(label='Main page', value='main_page', emoji='🌐')]
 
             for _cog in self.bot.cogs:
                 cog = self.bot.cogs[_cog]
@@ -42,7 +42,7 @@ class Help(commands.Cog, description='Помощь'):
 
             components = [
                 Select(
-                    placeholder='Выберите категорию',
+                    placeholder='Choose category',
                     options=select_options
                 )
             ]
@@ -108,7 +108,7 @@ class Help(commands.Cog, description='Помощь'):
             if _command.hidden:
                 continue
 
-            embed.add_field(name=f'`{prefix}{_command} {_command.help}`', value=f'*Описание:* {_command.description}', inline=False)
+            embed.add_field(name=f'`{prefix}{_command} {_command.help}`', value=f'*Description:* {_command.description}', inline=False)
 
             if isinstance(_command, commands.Group):
                 self.out_commands(_command, embed, prefix)
@@ -117,11 +117,9 @@ class Help(commands.Cog, description='Помощь'):
 
 
     def _get_main_menu(self, prefix):
-        embed = discord.Embed(title='Команды Asteroid Bot', color=0x2f3136)
-        embed.add_field(name='Информация', value=f"""
-            **Текущая версия Бота:** `{version}`
-            **Префикс на сервере:** `{prefix}`
-            *Подсказка:* `{prefix}help [Плагин или команда]` для показа подробностей. 
+        embed = discord.Embed(title='Commands Asteroid Bot', color=0x2f3136)
+        embed.add_field(name='Information', value=f"""
+            *Hint:* `{prefix}help [plugin or command]` for more information.
             """, inline=False)
 
         content = ''
@@ -130,21 +128,21 @@ class Help(commands.Cog, description='Помощь'):
             if not cog.hidden:
                 content += f'**» {_cog}** | {cog.description}\n'
 
-        embed.add_field(name='Плагины', value=content)
+        embed.add_field(name='Plugins', value=content)
         return embed
 
 
     def _get_command_help(self, command:commands.Command, prefix):
         _command = command
         _aliases = ', '.join(_command.aliases) if _command.aliases else 'Нет'
-        _usage = _command.usage or 'Всем пользователям'
+        _usage = _command.usage or 'Everyone'
 
-        embed:discord.Embed = discord.Embed(title=f'Команда: {_command.name}', color=0x2f3136)
+        embed:discord.Embed = discord.Embed(title=f'Command: {_command.name}', color=0x2f3136)
         embed.description = f"""
-        **Использование:** `{prefix}{_command.name} {_command.help}`
-        **Описание:** {_command.description}
-        **Псевдонимы:** {_aliases}
-        **Доступ к команде:** {_usage}
+        **Usage:** `{prefix}{_command.name} {_command.help}`
+        **Description:** {_command.description}
+        **Aliases:** {_aliases}
+        **Access to the command:** {_usage}
         """
 
         return embed

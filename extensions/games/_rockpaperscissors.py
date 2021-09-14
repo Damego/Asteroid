@@ -18,37 +18,36 @@ class RockPaperScissors:
     async def start_game(self):
         self.count1 = 0
         self.count2 = 0
+        self.players = [self.ctx.author.id, self.member.id]
 
         for round in range(self.total_rounds):
             await self.rps_run_game(round)
 
         winner = self.rps_winner()
 
-        embed = Embed(title='`          ИТОГИ ИГРЫ            `')
-        embed.add_field(name=f'**Название игры: Камень-ножницы-бумага**',
+        embed = Embed(title='`          Results            `',
+            color=self.bot.get_embed_color(self.ctx.guild.id))
+        embed.add_field(name=f'**Name: Rock Paper Scissors**',
                         value=f"""
-                        **Игроки:** {self.member.display_name} и {self.ctx.author.display_name}
-                        **Количество сыгранных игр:** {self.total_rounds}
-                        **Счёт:** {self.count1}:{self.count2}
-                        **Победитель:** {winner}
+                        **Players:** {self.member.display_name} vs. {self.ctx.author.display_name}
+                        **Played games:** {self.total_rounds}
+                        **Score:** {self.count1}:{self.count2}
+                        **Winner:** {winner}
                         """
                         )
-        await self.message.edit(content='Игра закончилась!', embed=embed, components=[])
+        await self.message.edit(content='Game ended!', embed=embed, components=[])
 
 
     async def rps_run_game(self, round):
-        def player_1(interaction):
-            return interaction.user == self.member
-
-        def player_2(interaction):
-            return interaction.user == self.ctx.author
+        def check(interaction):
+            return interaction.author.id in self.players
 
         embed = Embed(title='🪨-✂️-🧾', color=self.bot.get_embed_color(self.ctx.guild.id))
-        embed.add_field(name=f'**{self.member.display_name}** VS **{self.ctx.author.display_name}**',
-                        value=f'**Счёт:** {self.count1}:{self.count2} \n**Игра:** {round+1}/{self.total_rounds}'
+        embed.add_field(name=f'**{self.member.display_name}** vs. **{self.ctx.author.display_name}**',
+                        value=f'**Score:** {self.count1}:{self.count2} \n**Game:** {round+1}/{self.total_rounds}'
                         )
         await self.message.edit(
-            content='Идёт игра...',
+            content=' ',
             embed=embed,
             components=[
                 [
@@ -56,22 +55,30 @@ class RockPaperScissors:
                     Button(style=ButtonStyle.gray, id=2, emoji='🧾'),
                     Button(style=ButtonStyle.gray, id=3, emoji='✂️')
                 ]])
-                
+
+        players_choice = {}
         if self.member.bot:
-            player_1_choice = str(randint(1, 3))
-        else:
-            player_1_interact = await self.bot.wait_for("button_click", check=player_1)
-            await player_1_interact.respond(type=6)
-            player_1_choice = player_1_interact.component.id
-        player_2_interact = await self.bot.wait_for("button_click", check=player_2)
-        await player_2_interact.respond(type=6)
+            players_choice[self.member.id] = str(randint(1, 3))
+        
+        while True:
+            interaction = await self.bot.wait_for('button_click', check=check)
+                
+            if interaction.author.id in players_choice:
+                await interaction.send('You already moved!')
+            else:
+                await interaction.respond(type=6)
+                players_choice[interaction.author.id] = interaction.custom_id
 
-        await self.rps_logic(player_1_choice, player_2_interact.component.id)
+            if len(players_choice) == 2:
+                break
+
+        await self.rps_add_point(players_choice)
 
 
+    async def rps_add_point(self, players_choice):
+        player_1_choice = players_choice[self.member.id]
+        player_2_choice = players_choice[self.ctx.author.id]
 
-    async def rps_logic(self, player_1_choice, player_2_choice):
-        """Проверяет ходы участников и даёт очко тому, кто выиграл"""
         if player_1_choice == player_2_choice:
             return
         elif player_1_choice == '1':
@@ -95,10 +102,9 @@ class RockPaperScissors:
 
 
     def rps_winner(self):
-        """Определяет по очкам, кто в итоге победил, и возвращает победителя"""
         if self.count1 > self.count2:
             return self.member
         elif self.count1 < self.count2:
             return self.ctx.author.display_name
-        return 'Ничья'
+        return 'Draw'
 

@@ -8,7 +8,7 @@ class NotConnectedToVoice(commands.CommandError):
     pass
 
 
-class Music(commands.Cog, description='Музыка'):
+class Music(commands.Cog, description='Music'):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
@@ -25,46 +25,43 @@ class Music(commands.Cog, description='Музыка'):
             members = before.channel.members
             if len(members) == 1 and members[0].bot:
                 await self.stop_on_leave(member.guild.id)
-                system_channel = member.guild.system_channel
-                if system_channel:
-                    await system_channel.send('**Бот отключился, из-за отсутствия слушателей!**', delete_after=10)
         elif member.bot and after.channel is None and before.channel:
             members = before.channel.members
             if len(members) == 0: return
             await self.stop_on_leave(member.guild.id)
 
 
-    @commands.command(name='play', description='Запускает музыку', help='[ссылка || название видео]')
+    @commands.command(name='play', description='Start playing music', help='[url || video name]')
     async def play_music(self, ctx, *, query):
         await self._play_music(ctx, False, query)
 
 
-    @commands.command(name='nplay', description='Запускает музыку', help='[ссылка || название видео]')
+    @commands.command(name='nplay', description='Start playing music with button', help='[url || video name]')
     async def button_play_music(self, ctx, *, query):
         await self._play_music(ctx, True, query)
 
 
-    @commands.command(name='stop', description='Останавливает произведение музыку', help=' ')
+    @commands.command(name='stop', description='Stop playing music', help=' ')
     async def stop_music(self, ctx:commands.Context):
         await self._stop_music(ctx)
 
 
-    @commands.command(name='pause', aliases=['fp'], description='Ставит музыку на паузу', help=' ')
+    @commands.command(name='pause', aliases=['fp'], description='Pause playing music', help=' ')
     async def pause_music(self, ctx:commands.Context):
         await self._pause_music(ctx)
 
 
-    @commands.command(name='resume', aliases=['fr'], description='Снимает паузу с музыки', help=' ')
+    @commands.command(name='resume', aliases=['fr'], description='Resume playing music', help=' ')
     async def resume_music(self, ctx:commands.Context):
         await self._resume_music(ctx)
 
 
-    @commands.command(name='repeat', description='Включает/Выключает повтор музыки', help=' ')
+    @commands.command(name='repeat', description='Toggle music repeat', help=' ')
     async def repeat_music(self, ctx:commands.Context):
         await self._repeat_music(ctx)
 
 
-    @commands.command(name='skip', aliases=['fs'], description='Пропускает музыку', help=' ')
+    @commands.command(name='skip', aliases=['fs'], description='Skip music', help=' ')
     async def skip_music(self, ctx:commands.Context):
         await self._skip_music(ctx)
 
@@ -104,7 +101,7 @@ class Music(commands.Cog, description='Музыка'):
             else:
                 await self._send_message(ctx, track)
         else:
-            await ctx.send(f"`{track.name}` был добавлен в очередь")
+            await ctx.send(f"`{track.name}` was added in queue")
             self.track_dict[track.name] = {'track': track, 'requester_msg': ctx.author}
 
 
@@ -127,7 +124,7 @@ class Music(commands.Cog, description='Музыка'):
             interaction = await self.bot.wait_for("button_click")
             is_in_channel = await check(interaction)
             if not is_in_channel:
-                await interaction.respond(type=5, content='Подключитесь к каналу, для управления музыкой')
+                await interaction.respond(type=5, content='Connect to voice channel with a bot')
             else:
                 await interaction.respond(type=6)
                 button_id = interaction.component.id
@@ -155,23 +152,23 @@ class Music(commands.Cog, description='Музыка'):
             duration_seconds = duration % 60
             duration = f'{duration_hours:02}:{duration_minutes:02}:{duration_seconds:02}'
         else:
-            duration = 'Прямая трансляция'
+            duration = 'Live'
 
-        embed = discord.Embed(title='Запуск музыки',
+        embed = discord.Embed(title='Start playing',
                             color=self.bot.get_embed_color(ctx.guild.id))
-        embed.add_field(name='Название:',
+        embed.add_field(name='Name:',
                         value=f'[{track.name}]({track.url})', inline=False)
-        embed.add_field(name='Продолжительность:',
+        embed.add_field(name='Duration:',
                         value=duration, inline=False)
-        embed.set_footer(text=f'Добавлено: {ctx.message.author}', icon_url=ctx.message.author.avatar_url)
+        embed.set_footer(text=f'Added: {ctx.message.author}', icon_url=ctx.message.author.avatar_url)
         embed.set_thumbnail(url=track.thumbnail)
 
         if from_nplay:
             components = [[
-                Button(style=ButtonStyle.gray, label='Пауза', id='pause'),
-                Button(style=ButtonStyle.red, label='Стоп', id='stop'),
-                Button(style=ButtonStyle.blue, label='Пропустить', id='skip'),
-                Button(style=ButtonStyle.blue, label='Вкл. повтор', id='toggle_loop')
+                Button(style=ButtonStyle.gray, label='Pause', id='pause'),
+                Button(style=ButtonStyle.red, label='Stop', id='stop'),
+                Button(style=ButtonStyle.blue, label='Skip', id='skip'),
+                Button(style=ButtonStyle.blue, label='Enable repeat', id='toggle_loop')
             ]]
 
             message:discord.Message = await ctx.send(embed=embed, components=self.components)
@@ -190,13 +187,13 @@ class Music(commands.Cog, description='Музыка'):
         else:
             duration = 'Прямая трансляция'
 
-        embed = discord.Embed(title='Запуск музыки',
+        embed = discord.Embed(title='Start playing',
                               color=self.bot.get_embed_color(ctx.guild.id))
-        embed.add_field(name='Название:',
+        embed.add_field(name='Name:',
                         value=f'[{track.name}]({track.url})', inline=False)
-        embed.add_field(name='Продолжительность:',
+        embed.add_field(name='Duration:',
                         value=duration, inline=False)
-        embed.set_footer(text=f'Добавлено: {music_requester}', icon_url=music_requester_avatar)
+        embed.set_footer(text=f'Added: {music_requester}', icon_url=music_requester_avatar)
         embed.set_thumbnail(url=track.thumbnail)
 
         await message.edit(embed=embed)
@@ -219,14 +216,14 @@ class Music(commands.Cog, description='Музыка'):
             if from_button:
                 try:
                     components[0][0] = Button(
-                        style=ButtonStyle.green, label='Продолжить', id='resume')
+                        style=ButtonStyle.green, label='Resume', id='resume')
                     await message.edit(components=components)
                 except Exception as e:
                     print('IN PAUSE', e)
             else:
                 await ctx.message.add_reaction('✅')
         else:
-            embed = discord.Embed(title='Музыка не воспроизводится!', color=self.bot.get_embed_color(ctx.guild.id))
+            embed = discord.Embed(title='Music not playing!', color=self.bot.get_embed_color(ctx.guild.id))
             await ctx.send(embed=embed, delete_after=10)
 
     async def _resume_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message=None, components:list=None):
@@ -249,10 +246,10 @@ class Music(commands.Cog, description='Музыка'):
 
         if song.is_looping:
             components[0][3] = Button(
-                style=ButtonStyle.blue, label='Выкл. повтор', id='toggle_loop')
+                style=ButtonStyle.blue, label='Disable repeat', id='toggle_loop')
         else:
             components[0][3] = Button(
-                style=ButtonStyle.blue, label='Вкл. повтор', id='toggle_loop')
+                style=ButtonStyle.blue, label='Enable repeat', id='toggle_loop')
         await message.edit(components=components)
 
 
@@ -264,7 +261,7 @@ class Music(commands.Cog, description='Музыка'):
                 return await ctx.message.add_reaction('✅')
             await self._update_message(ctx, message, new_track)
         except Exception:
-            await ctx.send('**Плейлист пуст! Добавьте музыку!**', delete_after=15)
+            await ctx.send('**Playlist is empty!**', delete_after=15)
 
 
 

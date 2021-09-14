@@ -1,4 +1,5 @@
 from discord.ext import commands
+from discord.ext.commands import Context
 import discord
 from discord_components import Button, ButtonStyle, Interaction
 from pymongo.collection import Collection
@@ -9,7 +10,7 @@ from mongobot import MongoComponentsBot
 
 
 
-class Tags(commands.Cog, description='Теги'):
+class Tags(commands.Cog, description='Tags'):
     def __init__(self, bot:MongoComponentsBot):
         self.bot = bot
         self.hidden = False
@@ -17,11 +18,14 @@ class Tags(commands.Cog, description='Теги'):
 
         self.forbidden_tags = ['add', 'edit', 'list', 'remove', 'rename']
 
-    @commands.group(name='tag', description='Показывает содержание тега и управляет тегом', help='[тег || команда]', invoke_without_command=True)
-    async def tag(self, ctx, tag_name=None):
-        prefix = self.bot.get_guild_prefix(ctx.guild.id)
+    @commands.group(
+        name='tag',
+        description='Open tag',
+        help='[tag || subcommand]',
+        invoke_without_command=True)
+    async def tag(self, ctx: Context, tag_name=None):
         if tag_name is None:
-            return await ctx.reply(f'Упс... А тут ничего нет! Используйте `{prefix}help Tags` для получения информации')
+            return await ctx.reply(f'Use {ctx.prefix}tag [tag || subcommand]')
 
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
@@ -38,9 +42,9 @@ class Tags(commands.Cog, description='Теги'):
 
     @tag.command(
         name='add',
-        description='Создаёт новый тег',
-        help='[название тега] [заголовок]',
-        usage='Только для Администрации')
+        description='Create new tag',
+        help='[tag name] [title]',
+        usage='Only for Admins')
     @is_administrator_or_bot_owner()
     async def add(self, ctx, tag_name, *, title):
         if tag_name in self.forbidden_tags:
@@ -50,7 +54,7 @@ class Tags(commands.Cog, description='Теги'):
         tag = collection.find_one({'_id':tag_name})
 
         if tag is not None:
-            return await ctx.reply('Такой тег уже существует!')
+            return await ctx.reply('Tag already exists!')
 
         collection.update_one(
             {'_id':tag_name},
@@ -64,9 +68,9 @@ class Tags(commands.Cog, description='Теги'):
 
     @tag.command(
         name='edit',
-        description='Добавляет описание к тегу',
-        help='[название тега] [описание]',
-        usage='Только для Администрации')
+        description='Adds description for tag',
+        help='[tag name] [description]',
+        usage='Only for Admins')
     @is_administrator_or_bot_owner()
     async def edit(self, ctx, tag_name, *, description):
         description = f"""{description}"""
@@ -85,9 +89,9 @@ class Tags(commands.Cog, description='Теги'):
     @tag.command(
         name='remove',
         aliases=['-'],
-        description='Удаляет тег',
-        help='[название тега]',
-        usage='Только для Администрации')
+        description='Delete tag',
+        help='[tag name]',
+        usage='Only for Admins')
     @is_administrator_or_bot_owner()
     async def remove(self, ctx, tag_name):
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
@@ -99,7 +103,7 @@ class Tags(commands.Cog, description='Теги'):
         await ctx.message.add_reaction('✅')
 
 
-    @tag.command(name='list', description='Показывает список всех тегов', help='')
+    @tag.command(name='list', description='Shows list of tags', help='')
     async def list(self, ctx):
         description = f""""""
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
@@ -109,16 +113,16 @@ class Tags(commands.Cog, description='Теги'):
             description += f'**{count}. {tag["_id"]}**\n'
             count += 1
 
-        embed = discord.Embed(title='Список тегов', color=self.bot.get_embed_color(ctx.guild.id))
+        embed = discord.Embed(title='Tag list', color=self.bot.get_embed_color(ctx.guild.id))
         embed.description = description
         await ctx.send(embed=embed)
 
 
     @tag.command(
         name='rename',
-        description='Меняет название тега',
-        help='[название тега] [новое название тега]',
-        usage='Только для Администрации')
+        description='Change tag name',
+        help='[tag name] [new tag name]',
+        usage='Only for Admins')
     @is_administrator_or_bot_owner()
     async def rename(self, ctx, tag_name, new_tag_name):
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
@@ -147,9 +151,9 @@ class Tags(commands.Cog, description='Теги'):
 
     @tag.command(
         name='raw',
-        description='Выдаёт исходник описания без форматирования',
-        help='[название тега]',
-        usage='Только для Администрации')
+        description='Show raw tag description',
+        help='[tag name]',
+        usage='Only for Admins')
     @is_administrator_or_bot_owner()
     async def raw(self, ctx:commands.Context, tag_name):
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
@@ -163,9 +167,9 @@ class Tags(commands.Cog, description='Теги'):
 
     @commands.command(
         name='btag',
-        description='Открывает меню управления тегом',
-        help='[название тега]',
-        usage='Только для Администрации')
+        description='Open control tag menu',
+        help='[tag name]',
+        usage='Only for Admins')
     @is_administrator_or_bot_owner()
     async def btag(self, ctx:commands.Context, tag_name):
         if tag_name in self.forbidden_tags:
@@ -179,9 +183,9 @@ class Tags(commands.Cog, description='Теги'):
             embed.title = tag['title']
             embed.description = tag['description']
             components = [[
-                Button(style=ButtonStyle.green, label='Редактировать', id='edit_tag'),
-                Button(style=ButtonStyle.red, label='Удалить', id='remove_tag'),
-                Button(style=ButtonStyle.red, label='Выйти', id='exit')
+                Button(style=ButtonStyle.green, label='Edit', id='edit_tag'),
+                Button(style=ButtonStyle.red, label='Delete', id='remove_tag'),
+                Button(style=ButtonStyle.red, label='Exit', id='exit')
             ]]
             message:discord.Message = await ctx.send(embed=embed, components=components)
         else:
@@ -217,15 +221,15 @@ class Tags(commands.Cog, description='Теги'):
 
     async def init_btag(self, ctx, *, message:discord.Message=None):
         components = [[
-            Button(style=ButtonStyle.blue, label='Заголовок', id='set_title'),
-            Button(style=ButtonStyle.blue, label='Описание', id='set_description'),
-            Button(style=ButtonStyle.gray, label='Получить исходник', id='get_raw'),
-            Button(style=ButtonStyle.green, label='Сохранить', id='save_tag'),
-            Button(style=ButtonStyle.red, label='Выйти', id='exit')
+            Button(style=ButtonStyle.blue, label='Title', id='set_title'),
+            Button(style=ButtonStyle.blue, label='Description', id='set_description'),
+            Button(style=ButtonStyle.gray, label='Get raw', id='get_raw'),
+            Button(style=ButtonStyle.green, label='Save', id='save_tag'),
+            Button(style=ButtonStyle.red, label='Exit', id='exit')
         ]]
 
         if message is None:
-            embed = discord.Embed(title='Заголовок', description='Описание', color=self.bot.get_embed_color(ctx.guild.id))
+            embed = discord.Embed(title='Tag title', description='Tag description', color=self.bot.get_embed_color(ctx.guild.id))
             message:discord.Message = await ctx.send(embed=embed, components=components)
         else:
             await message.edit(components=components)
@@ -233,8 +237,8 @@ class Tags(commands.Cog, description='Теги'):
 
 
     async def edit_tag(self, ctx, interaction, component, message:discord.Message, embed:discord.Embed):
-        label = '`Заголовок`' if component == 'title' else '`Описание`'
-        await interaction.respond(type=4, content=f'Введите {label}')
+        label = '`Tag title`' if component == 'title' else '`Tag description`'
+        await interaction.respond(type=4, content=f'Input {label}')
         msg = await self.bot.wait_for('message', check=lambda msg: msg.author.id == ctx.author.id)
         content = msg.content
         await msg.delete()
@@ -258,7 +262,7 @@ class Tags(commands.Cog, description='Теги'):
             upsert=True
         )
 
-        await interaction.respond(type=4, content=f'**Сохранено!**')
+        await interaction.respond(type=4, content=f'**Saved!**')
 
 
     async def get_raw_description(self, interaction, tag_name, collection:Collection):
@@ -266,7 +270,7 @@ class Tags(commands.Cog, description='Теги'):
         if tag is not None:
             tag_description = tag.get('description')
             return await interaction.respond(content=f'```{tag_description}```')
-        return await interaction.respond(content='Сохраните, чтобы получить исходник!')
+        return await interaction.respond(content='Save tag before!')
             
         
 

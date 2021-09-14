@@ -14,7 +14,7 @@ class TicTacToe:
     async def start_game(self):
         self.board, self.move_board = self.create_boards()
 
-        await self.message.edit(content='Крестики-Нолики', components=self.board)
+        await self.message.edit(content='Tic Tac Toe', components=self.board)
 
         player_1_move = True
         while True:
@@ -99,13 +99,13 @@ class TicTacToe:
         return "UNCHOSEN" not in str(self.move_board) and not self.is_won(player)
 
 
-    async def pick_a_winner(self, winner='Ничья'):
+    async def pick_a_winner(self, winner='Draw'):
         embed = Embed(
-            title='`          ИТОГИ ИГРЫ            `', color=self.bot.get_embed_color(self.ctx.guild.id))
-        embed.add_field(name=f'**Название: Крестики-Нолики**',
+            title='`          Results            `', color=self.bot.get_embed_color(self.ctx.guild.id))
+        embed.add_field(name=f'**Name: Tic Tac Toe**',
                         value=f"""
-                        **Игроки: {self.member.display_name} и {self.ctx.author.display_name}**
-                        **Победитель:** {winner}
+                        **Players: {self.member.display_name} and {self.ctx.author.display_name}**
+                        **Winner:** {winner}
                         """)
         for row in self.board:
             for button in row:

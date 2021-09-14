@@ -3,7 +3,7 @@ from traceback import format_exception
 
 import discord
 from discord.ext import commands
-from discord.ext.commands.errors import ExtensionNotLoaded, ExtensionAlreadyLoaded
+from discord.ext.commands.errors import ExtensionNotLoaded
 
 from extensions import _errors
 from mongobot import MongoComponentsBot
@@ -11,14 +11,14 @@ from mongobot import MongoComponentsBot
 
 
 def get_prefix(bot, message):
-    prefix = ['a!']
-    try:
-        collection = bot.get_guild_configuration_collection(message.guild.id)
-        prefix.append(collection.find_one({'_id':'configuration'})['prefix'])
-    except Exception as e:
-        print('cant GET PREFIX! ERROR:', e)
+    prefixes = ['a!']
+    collection = bot.get_guild_configuration_collection(message.guild.id)
+    prefix = collection.find_one({'_id':'configuration'})['prefix']
 
-    return prefix
+    if prefix != prefixes[0]:
+        prefixes.append(prefix)
+
+    return prefixes
 
 
 def _load_extensions():
@@ -40,7 +40,7 @@ def _reload_extensions():
                 bot.reload_extension(extension)
             except Exception as e:
                 content += f'\n`{count}/{extensions_amount}. {extension} `❌'
-                content += f'\n*Ошибка:* `{e}`'
+                content += f'\n*Error:* `{e}`'
             else:
                 content += f'\n`{count}/{extensions_amount}. {extension} `✅'
     except RuntimeError:
@@ -60,9 +60,9 @@ async def on_ready():
     channel = bot.get_channel(859816092008316928)
     if channel is None:
         channel = await bot.fetch_channel(859816092008316928)
-    await channel.send(f'{bot.user} успешно загружен!')
+    await channel.send(f'{bot.user} loaded!')
 
-    print(f'{bot.user} успешно загружен!')
+    print(f'{bot.user} loaded!')
 
 
 @bot.event
@@ -96,73 +96,54 @@ async def on_guild_remove(guild):
         collection.drop()
 
 # COMMANDS
-@bot.command(name='load', help='Загрузка плагина', hidden=True)
+@bot.command(name='load', help='Load an Extension', hidden=True)
 @commands.is_owner()
 async def load(ctx, extension):
     try:
         bot.load_extension(f'extensions.{extension}')
     except Exception as e:
         content = f"""
-        Расширение {extension} не загружено!
-        Ошибка: {e}
+        Extension {extension} not loaded!
+        Error: {e}
         """
         await ctx.send(content)
     else:
-        await ctx.send(f'Плагин {extension} загружен!')
+        await ctx.send(f'Extension {extension} not loaded!')
 
 
-@bot.command(name='unload', help='Отключение плагина', hidden=True)
+@bot.command(name='unload', help='Unload Extension', hidden=True)
 @commands.is_owner()
 async def unload(ctx, extension):
     try:
         bot.unload_extension(f'extensions.{extension}')
     except ExtensionNotLoaded:
-        await ctx.send(f'Плагин {extension} не загружен')
+        await ctx.send(f'Extension {extension} not loaded!')
     else:
-        await ctx.send(f'Плагин {extension} отключен!')
+        await ctx.send(f'Extension {extension} unloaded!')
 
 
-@bot.command(aliases=['r'], name='reload', help='Перезагрузка плагина', hidden=True)
+@bot.command(aliases=['r'], name='reload', help='Reload Extension', hidden=True)
 @commands.is_owner()
 async def reload(ctx, extension):
     try:
         bot.reload_extension(f'extensions.{extension}')
     except Exception as e:
         content = f"""
-        Расширение {extension} не загружено!
-        Ошибка: {e}
+        Extension {extension} not loaded!
+        Error: {e}
         """
         await ctx.send(content)
     else:
         await ctx.message.add_reaction('✅')
 
 
-@bot.command(aliases=['ra'], name='reload_all', help='Перезагрузка всех плагинов', hidden=True)
+@bot.command(aliases=['ra'], name='reload_all', help='Reloading all Extensions', hidden=True)
 @commands.is_owner()
 async def reload_all(ctx:commands.Context):
     content = _reload_extensions()
-    embed = discord.Embed(title='Перезагрузка расширений', description=content, color=0x2f3136)
+    embed = discord.Embed(title='Reloading Extensions', description=content, color=0x2f3136)
     await ctx.send(embed=embed)
 
-
-@bot.command(name='cmd', description='None', help='None')
-@commands.is_owner()
-async def custom_command(ctx, *, cmd):
-    await eval(cmd)
-
-
-@bot.command(name='deploy')
-@commands.is_owner()
-async def git_pull_updates(ctx:commands.Context):
-    embed = discord.Embed(title='Загрузка обновления...', color=0x2f3136)
-    await ctx.send(embed=embed)
-    os.system('git fetch')
-    os.system('git stash')
-    os.system('git pull')
-
-    content = _reload_extensions()
-    embed = discord.Embed(title='Перезагрузка расширений...', description=content, color=0x2f3136)
-    await ctx.send(embed=embed)
 
 
 # ERRORS
@@ -171,42 +152,42 @@ async def on_command_error(ctx:commands.Context, error):
     embed = discord.Embed(color=0xED4245)
 
     if isinstance(error, _errors.TagNotFound):
-        desc = 'Тег не найден!'
+        desc = 'Tag not found!'
     elif isinstance(error, _errors.ForbiddenTag):
-        desc = 'Этот тег нельзя использовать!'
+        desc = 'This tag cannot be used!'
     elif isinstance(error, _errors.UIDNotBinded):
-        desc = 'У вас не привязан UID!'
+        desc = 'You didn\'t tie UID!'
     elif isinstance(error, _errors.GenshinAccountNotFound):
-        desc = 'Аккаунт с таким UID не найден! Похоже вы ввели неверный UID.'
+        desc = 'Account with this UID not found!'
     elif isinstance(error, _errors.GenshinDataNotPublic):
-        desc = 'Профиль закрыт! Откройте профиль на [сайте](https://www.hoyolab.com/genshin/accountCenter/gameRecord)'
+        desc = 'Profile is private! Open profile on [site](https://www.hoyolab.com/genshin/accountCenter/gameRecord)'
     elif isinstance(error, commands.NotOwner):
-        desc = 'Это команда доступна только владельцу бота!'
+        desc = 'Only owner can use this command!'
     elif isinstance(error, commands.MissingRequiredArgument):
-        desc=f'**Потерян аргумент**: `{error.param}`'
+        desc=f'**Missing argument**: `{error.param}`'
     elif isinstance(error, commands.BadArgument):
-        title = f'**Неправильный аргумент!** \n'
+        title = f'**Bad argument!** \n'
         help = f'`{ctx.prefix}{ctx.command} {ctx.command.help}`'
         desc = title + help
     elif isinstance(error, commands.BotMissingPermissions):
-        desc = f'**У бота недостаточно прав!**\nНеобходимые права: `{", ".join(error.missing_perms)}`'
+        desc = f'**Bot not have permission for this!**\nRequired permissions: `{", ".join(error.missing_perms)}`'
     elif isinstance(error, commands.MissingPermissions):
-        desc = f'**У вас недостаточно прав!**\nНеобходимые права: `{", ".join(error.missing_perms)}`'
+        desc = f'**You not have permission for this!**\nRequired permissions: `{", ".join(error.missing_perms)}`'
     elif isinstance(error, commands.CommandNotFound):
-        desc = 'Команда не найдена!'
+        desc = 'Command not found!'
     elif isinstance(error, discord.Forbidden):
-        desc = 'У бота недостаточно прав!'
+        desc = '**Bot not have permission for this!**'
     else:
         desc = f"""
-Я уже уведомил своего создателя об этой ошибке
+This bug was sent to owner
 
-*Ошибка:* 
+*Error:* 
 ```python
 {error}
 ```
 """
         embed.title = f"""
-        ❌ Упс... Произошла непредвиденная ошибка!
+        ❌ Oops... An unexpected error occurred!
         """
 
         error_traceback = ''.join(
@@ -214,13 +195,13 @@ async def on_command_error(ctx:commands.Context, error):
         )
 
         error_description = f"""
-        **Сервер:** {ctx.guild}
-        **Канал:** {ctx.channel}
-        **Пользователь:** {ctx.author}
-        **Команда:** {ctx.message.content}
-        **Ошибка:**
+        **Guild:** {ctx.guild}
+        **Channel:** {ctx.channel}
+        **User:** {ctx.author}
+        **Command:** {ctx.message.content}
+        **Error:**
         `{error}`
-        **Лог ошибки:**
+        **Traceback:**
         ```python
         {error_traceback}
         ``` """
