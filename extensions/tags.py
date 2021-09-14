@@ -212,9 +212,10 @@ class Tags(commands.Cog, description='Tags'):
             try:
                 interaction:Interaction = await self.bot.wait_for(
                     'button_click',
-                    check=lambda res: res.user.id == ctx.author.id and ctx.message.id == res.message.id
+                    check=lambda res: res.user.id == ctx.author.id and message.id == res.message.id
                     )
-            except Exception:
+            except Exception as e:
+                print('TAG ERROR:', e)
                 continue
             
             button_id = interaction.custom_id
@@ -233,7 +234,7 @@ class Tags(commands.Cog, description='Tags'):
             elif button_id == 'save_tag':
                 await self.save_tag(interaction, tag_name, embed, collection)
             elif button_id == 'get_raw':
-                await self.get_raw_description(ctx, interaction, embed)
+                await self.get_raw_description(interaction, embed)
 
             if not interaction.responded:
                 await interaction.respond(type=6)
