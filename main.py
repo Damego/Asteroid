@@ -149,6 +149,7 @@ async def reload_all(ctx:commands.Context):
 # ERRORS
 @bot.event
 async def on_command_error(ctx:commands.Context, error):
+    print(type(error))
     embed = discord.Embed(color=0xED4245)
 
     if isinstance(error, _errors.TagNotFound):
@@ -175,8 +176,8 @@ async def on_command_error(ctx:commands.Context, error):
         desc = f'**You not have permission for this!**\nRequired permissions: `{", ".join(error.missing_perms)}`'
     elif isinstance(error, commands.CommandNotFound):
         desc = 'Command not found!'
-    elif isinstance(error, discord.errors.Forbidden):
-        desc = '**Bot not have permission for this!**'
+    elif isinstance(error, discord.errors.HTTPException):
+        desc = '**Bot don\'t have permission for this!**'
     else:
         desc = f"""
 This bug was sent to owner
