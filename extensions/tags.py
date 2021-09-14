@@ -193,7 +193,10 @@ class Tags(commands.Cog, description='Tags'):
         
         while True:
             try:
-                interaction:Interaction = await self.bot.wait_for('button_click', check=lambda res: res.user.id == ctx.author.id)
+                interaction:Interaction = await self.bot.wait_for(
+                    'button_click',
+                    check=lambda res: res.user.id == ctx.author.id and ctx.message.id == res.message.id
+                    )
             except Exception:
                 continue
             
@@ -219,7 +222,7 @@ class Tags(commands.Cog, description='Tags'):
                 await interaction.respond(type=6)
 
 
-    async def init_btag(self, ctx, *, message:discord.Message=None):
+    async def init_btag(self, ctx, message:discord.Message=None):
         components = [[
             Button(style=ButtonStyle.blue, label='Title', id='set_title'),
             Button(style=ButtonStyle.blue, label='Description', id='set_description'),
