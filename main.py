@@ -56,9 +56,9 @@ bot = MongoComponentsBot(command_prefix=get_prefix, intents=intents)
 @bot.event
 async def on_ready():
     _load_extensions()
-    channel = bot.get_channel(859816092008316928)
+    channel = bot.get_channel(850349762623569980)
     if channel is None:
-        channel = await bot.fetch_channel(859816092008316928)
+        channel = await bot.fetch_channel(850349762623569980)
     await channel.send(f'{bot.user} loaded!')
 
     print(f'{bot.user} loaded!')
