@@ -178,6 +178,7 @@ async def on_command_error(ctx:commands.Context, error):
         desc = 'Command not found!'
     elif isinstance(error, commands.CommandInvokeError):
         desc = 'Bot don\'t have permission for this!'
+        embed.set_footer(text=error)
     elif isinstance(error, commands.CheckFailure):
         desc = 'You can\'t use this command!'
     else:
