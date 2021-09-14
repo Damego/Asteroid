@@ -63,21 +63,6 @@ class Misc(commands.Cog, description='Misc commands'):
             **Roles:** {member_roles}
             """, inline=False)
 
-        if member.bot:
-            return await ctx.send(embed=embed)
-
-        stats = ''
-
-        guild_users_collection = self.bot.get_guild_users_collection(ctx.guild.id)
-        user = guild_users_collection.find_one({'_id':str(member.id)})
-
-        user_voice_time = int(user.get('voice_time_count'))
-
-        if user_voice_time is not None:
-            stats += f'<:voice_time:863674908969926656> **Time in voice channel:** `{user_voice_time}` мин.'
-        if stats:
-            embed.add_field(name='Statistics:', value=stats)
-
         await ctx.send(embed=embed)
 
 
@@ -108,7 +93,7 @@ class Misc(commands.Cog, description='Misc commands'):
         embed = discord.Embed(title='Information about Asteroid Bot', color=self.bot.get_embed_color(ctx.guild.id))
 
         users_amount = sum(len(guild.members) for guild in self.bot.guilds)
-        bot_owner = ctx.bot.fetch_user(ctx.bot.owner_id)
+        bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
 
         embed.description = f"""
                             **Owner:** **{bot_owner.mention}**
@@ -230,6 +215,21 @@ class Misc(commands.Cog, description='Misc commands'):
         await interaction.respond(type=6)
         await interaction.message.delete()
         await ctx.send(f'https://discord.com/invite/{code}')
+
+
+    @commands.command(
+    name='roles',
+    description='Show guild roles',
+    help='')
+    async def roles(self, ctx:commands.Context):
+        roles = ctx.guild.roles[::-1]
+        content = ''.join(f'{role.mention}\n' for role in roles)
+        embed = discord.Embed(
+            title='Guild Roles',
+            description=content,
+            color=self.bot.get_embed_color(ctx.guild.id)
+        )
+        await ctx.send(embed=embed)
 
 
     def _get_data(self, application_id: int):
