@@ -82,7 +82,7 @@ class Tags(commands.Cog, description='Tags'):
             raise TagNotFound
 
         author_id = tag['author_id']
-        if ctx.author.id != author_id or ctx.author.id == 143773579320754177:
+        if ctx.author.id not in [author_id, 143773579320754177]:
             raise NotTagOwner
 
         collection.update_one(
@@ -105,7 +105,7 @@ class Tags(commands.Cog, description='Tags'):
             raise TagNotFound
         
         author_id = tag['author_id']
-        if ctx.author.id != author_id or ctx.author.id == 143773579320754177:
+        if ctx.author.id not in [author_id, 143773579320754177]:
             raise NotTagOwner
 
         collection.delete_one({'_id':tag_name})
@@ -142,9 +142,8 @@ class Tags(commands.Cog, description='Tags'):
             raise TagNotFound
 
         author_id = tag['author_id']
-        if ctx.author.id != author_id or ctx.author.id == 143773579320754177:
+        if ctx.author.id not in [author_id, 143773579320754177]:
             raise NotTagOwner
-
 
         if new_tag_name in self.forbidden_tags:
             raise ForbiddenTag
@@ -194,7 +193,7 @@ class Tags(commands.Cog, description='Tags'):
 
         if tag is not None:
             author_id = tag['author_id']
-            if ctx.author.id != author_id or ctx.author.id == 143773579320754177:
+            if ctx.author.id not in [author_id, 143773579320754177]:
                 raise NotTagOwner
 
             embed = discord.Embed(color=self.bot.get_embed_color(ctx.guild.id))
