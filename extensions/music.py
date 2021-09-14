@@ -80,7 +80,6 @@ class Music(commands.Cog, description='Music'):
 
 
     async def _play_music(self, ctx:commands.Context, from_nplay:bool, query:str):
-        await ctx.message.delete()
         if not ctx.message.author.voice:
             raise NotConnectedToVoice
 
