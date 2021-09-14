@@ -177,7 +177,9 @@ async def on_command_error(ctx:commands.Context, error):
     elif isinstance(error, commands.CommandNotFound):
         desc = 'Command not found!'
     elif isinstance(error, commands.CommandInvokeError):
-        desc = '**Bot don\'t have permission for this!**'
+        desc = 'Bot don\'t have permission for this!'
+    elif isinstance(error, commands.CheckFailure):
+        desc = 'You can\'t use this command!'
     else:
         desc = f"""
 This bug was sent to owner

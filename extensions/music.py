@@ -123,7 +123,7 @@ class Music(commands.Cog, description='Music'):
             interaction = await self.bot.wait_for("button_click")
             is_in_channel = await check(interaction)
             if not is_in_channel:
-                await interaction.respond(type=5, content='Connect to voice channel with a bot')
+                await interaction.send(content='Connect to voice channel with a bot')
             else:
                 await interaction.respond(type=6)
                 button_id = interaction.component.id

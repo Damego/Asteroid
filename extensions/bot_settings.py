@@ -29,7 +29,7 @@ multiplier = {
 
 def is_administrator_or_bot_owner():
     async def predicate(ctx:commands.Context):
-        return ctx.author.guild_permissions.administrator or ctx.author.id == ctx.bot.owner_id
+        return ctx.author.id == 143773579320754177 or ctx.author.guild_permissions.administrator
     return commands.check(predicate)
 
 
@@ -42,7 +42,7 @@ class DurationConverter(commands.Converter):
         if amount.isdigit() and time_format in ['д', 'ч', 'м', 'с', 'd', 'h', 'm', 's']:
             return (int(amount), time_format)
 
-        raise commands.BadArgument(message='Неверный формат времени!')
+        raise commands.BadArgument(message='Wrong time format!')
 
 
 
@@ -50,7 +50,7 @@ async def get_interaction(bot, ctx, message):
     try:
         return await bot.wait_for(
             'button_click',
-            check=lambda i: i.user.id == ctx.author.id,
+            check=lambda i: i.user.id == ctx.author.id and i.message.id == ctx.message.id,
             timeout=120)
     except asyncio.TimeoutError:
         await message.edit(components=[])
