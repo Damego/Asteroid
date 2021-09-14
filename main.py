@@ -3,7 +3,6 @@ from traceback import format_exception
 
 import discord
 from discord.ext import commands
-from discord.ext.commands.errors import ExtensionNotLoaded
 
 from extensions import _errors
 from mongobot import MongoComponentsBot
@@ -116,7 +115,7 @@ async def load(ctx, extension):
 async def unload(ctx, extension):
     try:
         bot.unload_extension(f'extensions.{extension}')
-    except ExtensionNotLoaded:
+    except Exception:
         await ctx.send(f'Extension {extension} not loaded!')
     else:
         await ctx.send(f'Extension {extension} unloaded!')
@@ -149,13 +148,14 @@ async def reload_all(ctx:commands.Context):
 # ERRORS
 @bot.event
 async def on_command_error(ctx:commands.Context, error):
-    print(type(error))
     embed = discord.Embed(color=0xED4245)
 
     if isinstance(error, _errors.TagNotFound):
         desc = 'Tag not found!'
     elif isinstance(error, _errors.ForbiddenTag):
         desc = 'This tag cannot be used!'
+    elif isinstance(error, _errors.NotTagOwner):
+        desc = 'You not owner of this tag!'
     elif isinstance(error, _errors.UIDNotBinded):
         desc = 'You didn\'t tie UID!'
     elif isinstance(error, _errors.GenshinAccountNotFound):
@@ -181,6 +181,7 @@ async def on_command_error(ctx:commands.Context, error):
         embed.set_footer(text=error)
     elif isinstance(error, commands.CheckFailure):
         desc = 'You can\'t use this command!'
+        
     else:
         desc = f"""
 This bug was sent to owner

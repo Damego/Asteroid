@@ -5,7 +5,7 @@ from discord_components import Button, ButtonStyle, Interaction
 from pymongo.collection import Collection
 
 from .bot_settings import is_administrator_or_bot_owner
-from ._errors import TagNotFound, ForbiddenTag
+from ._errors import TagNotFound, ForbiddenTag, NotTagOwner
 from mongobot import MongoComponentsBot
 
 
@@ -35,8 +35,11 @@ class Tags(commands.Cog, description='Tags'):
 
         title = tag['title']
         description = tag['description']
+        author_id = tag['author_id']
+        author = ctx.guild.get_member(author_id)
 
         embed = discord.Embed(title=title, description=description, color=self.bot.get_embed_color(ctx.guild.id))
+        embed.set_footer(text=f'Author of tag: {author}')
         await ctx.send(embed=embed)
 
 
@@ -44,8 +47,7 @@ class Tags(commands.Cog, description='Tags'):
         name='add',
         description='Create new tag',
         help='[tag name] [title]',
-        usage='Only for Admins')
-    @is_administrator_or_bot_owner()
+        usage='Everyone can use Tags on this server')
     async def add(self, ctx, tag_name, *, title):
         if tag_name in self.forbidden_tags:
             raise ForbiddenTag
@@ -60,7 +62,8 @@ class Tags(commands.Cog, description='Tags'):
             {'_id':tag_name},
             {'$set':{
                 'title':title,
-                'description':''}},
+                'description':'',
+                'author_id':ctx.author.id}},
             upsert=True
         )
         await ctx.message.add_reaction('✅')
@@ -70,14 +73,17 @@ class Tags(commands.Cog, description='Tags'):
         name='edit',
         description='Adds description for tag',
         help='[tag name] [description]',
-        usage='Only for Admins')
-    @is_administrator_or_bot_owner()
+        usage='Everyone can use Tags on this server')
     async def edit(self, ctx, tag_name, *, description):
         description = f"""{description}"""
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
         if tag is None:
             raise TagNotFound
+
+        author_id = tag['author_id']
+        if ctx.author.id != author_id or ctx.author.id == 143773579320754177:
+            raise NotTagOwner
 
         collection.update_one(
             {'_id':tag_name},
@@ -91,13 +97,17 @@ class Tags(commands.Cog, description='Tags'):
         aliases=['-'],
         description='Delete tag',
         help='[tag name]',
-        usage='Only for Admins')
-    @is_administrator_or_bot_owner()
+        usage='Everyone can use Tags on this server')
     async def remove(self, ctx, tag_name):
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
         if tag is None:
             raise TagNotFound
+        
+        author_id = tag['author_id']
+        if ctx.author.id != author_id or ctx.author.id == 143773579320754177:
+            raise NotTagOwner
+
         collection.delete_one({'_id':tag_name})
 
         await ctx.message.add_reaction('✅')
@@ -124,13 +134,17 @@ class Tags(commands.Cog, description='Tags'):
         name='rename',
         description='Change tag name',
         help='[tag name] [new tag name]',
-        usage='Only for Admins')
-    @is_administrator_or_bot_owner()
+        usage='Everyone can use Tags on this server')
     async def rename(self, ctx, tag_name, new_tag_name):
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
         if tag is None:
             raise TagNotFound
+
+        author_id = tag['author_id']
+        if ctx.author.id != author_id or ctx.author.id == 143773579320754177:
+            raise NotTagOwner
+
 
         if new_tag_name in self.forbidden_tags:
             raise ForbiddenTag
@@ -155,8 +169,7 @@ class Tags(commands.Cog, description='Tags'):
         name='raw',
         description='Show raw tag description',
         help='[tag name]',
-        usage='Only for Admins')
-    @is_administrator_or_bot_owner()
+        usage='Everyone can use Tags on this server')
     async def raw(self, ctx:commands.Context, tag_name):
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
@@ -171,8 +184,7 @@ class Tags(commands.Cog, description='Tags'):
         name='btag',
         description='Open control tag menu',
         help='[tag name]',
-        usage='Only for Admins')
-    @is_administrator_or_bot_owner()
+        usage='Everyone can use Tags on this server')
     async def btag(self, ctx:commands.Context, tag_name):
         if tag_name in self.forbidden_tags:
             raise ForbiddenTag
@@ -181,6 +193,10 @@ class Tags(commands.Cog, description='Tags'):
         tag = collection.find_one({'_id':tag_name})
 
         if tag is not None:
+            author_id = tag['author_id']
+            if ctx.author.id != author_id or ctx.author.id == 143773579320754177:
+                raise NotTagOwner
+
             embed = discord.Embed(color=self.bot.get_embed_color(ctx.guild.id))
             embed.title = tag['title']
             embed.description = tag['description']
@@ -218,7 +234,7 @@ class Tags(commands.Cog, description='Tags'):
             elif button_id == 'save_tag':
                 await self.save_tag(interaction, tag_name, embed, collection)
             elif button_id == 'get_raw':
-                await self.get_raw_description(ctx, interaction, tag_name, collection)
+                await self.get_raw_description(ctx, interaction, embed)
 
             if not interaction.responded:
                 await interaction.respond(type=6)
@@ -260,7 +276,8 @@ class Tags(commands.Cog, description='Tags'):
             {'_id':tag_name},
             {'$set':{
                 'title':embed.title,
-                'description':embed.description
+                'description':embed.description,
+                'author_id':interaction.author.id
                 }
             },
             upsert=True
@@ -269,12 +286,9 @@ class Tags(commands.Cog, description='Tags'):
         await interaction.respond(type=4, content=f'**Saved!**')
 
 
-    async def get_raw_description(self, interaction, tag_name, collection:Collection):
-        tag = collection.find_one({'_id':tag_name})
-        if tag is not None:
-            tag_description = tag.get('description')
-            return await interaction.respond(content=f'```{tag_description}```')
-        return await interaction.respond(content='Save tag before!')
+    async def get_raw_description(self, interaction, embed:discord.Embed):
+        tag_description = embed.description
+        return await interaction.respond(content=f'```{tag_description}```')
             
         
 

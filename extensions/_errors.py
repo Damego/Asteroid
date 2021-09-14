@@ -6,6 +6,9 @@ class TagNotFound(CommandError):
 class ForbiddenTag(CommandError):
     pass
 
+class NotTagOwner(CommandError):
+    pass
+
 class UIDNotBinded(CommandError):
     pass
 
