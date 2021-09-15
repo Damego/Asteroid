@@ -77,7 +77,7 @@ class Tags(commands.Cog, description='Tags'):
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(
+    @tag.command(
     name='title',
     aliases=['t'],
     description='Set title for tag',
