@@ -93,10 +93,9 @@ class Misc(commands.Cog, description='Misc commands'):
         embed = discord.Embed(title='Information about Asteroid Bot', color=self.bot.get_embed_color(ctx.guild.id))
 
         users_amount = sum(len(guild.members) for guild in self.bot.guilds)
-        bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
 
         embed.description = f"""
-                            **Owner:** **{bot_owner.mention}**
+                            **Owner:** **Damego#8659**
                             **Current version:** `{version}`
                             **Server\'s amount:** `{len(ctx.bot.guilds)}`
                             **User\'s amount:** `{users_amount}`

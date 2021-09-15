@@ -155,15 +155,20 @@ class Tags(commands.Cog, description='Tags'):
         if new_tag_name in self.forbidden_tags:
             raise ForbiddenTag
 
+        title = tag['title']
+        description = tag['description']
 
+        collection.delete_one({'_id':tag_name})
         collection.update_one(
-            {'_id':tag_name},
+            {'_id':new_tag_name},
             {'$set':{
-                '_id':new_tag_name
+                'title':title,
+                'description': description,
+                'author_id':author_id
                 }
             },
             upsert=True
-            )
+        )
 
         await ctx.message.add_reaction('✅')
 
