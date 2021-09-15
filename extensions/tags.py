@@ -155,16 +155,13 @@ class Tags(commands.Cog, description='Tags'):
         if new_tag_name in self.forbidden_tags:
             raise ForbiddenTag
 
-        title = tag['title']
-        description = tag['description']
 
-        collection.delete_one({'_id':tag_name})
         collection.update_one(
-            {'_id':new_tag_name},
+            {'_id':tag_name},
             {'$set':{
-                'title':title,
-                'description': description
-            }},
+                '_id':new_tag_name
+                }
+            },
             upsert=True
             )
 
