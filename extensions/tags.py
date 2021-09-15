@@ -238,7 +238,7 @@ class Tags(commands.Cog, description='Tags'):
 
         if tag is not None:
             author_id = tag['author_id']
-            if ctx.author.id not in [author_id, 143773579320754177] and ctx.author.guild_permissions.administrator:
+            if ctx.author.id not in [author_id, 143773579320754177] and not ctx.author.guild_permissions.administrator:
                 raise NotTagOwner
 
             embed = discord.Embed(color=self.bot.get_embed_color(ctx.guild.id))
