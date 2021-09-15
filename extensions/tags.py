@@ -16,7 +16,7 @@ class Tags(commands.Cog, description='Tags'):
         self.hidden = False
         self.emoji = '🏷️'
 
-        self.forbidden_tags = ['add', 'edit', 'list', 'remove', 'rename', 'create', 'new']
+        self.forbidden_tags = ['add', 'description', 'list', 'remove', 'rename', 'create', 'new', 't', 'desc', 'd']
 
     @commands.group(
         name='tag',
@@ -30,13 +30,16 @@ class Tags(commands.Cog, description='Tags'):
 
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
-
         if tag is None:
             raise TagNotFound
 
-        title = tag['title']
-        description = tag['description']
-        author_id = tag['author_id']
+        title = tag.get('title')
+        if title is None or title == '':
+            title = 'Empty Title'
+        description = tag.get('description')
+        if description is None or description == '':
+            description = 'Empty Description'
+        author_id = tag.get('author_id')
         author = ctx.guild.get_member(author_id)
 
         embed = discord.Embed(title=title, description=description, color=self.bot.get_embed_color(ctx.guild.id))
@@ -48,9 +51,9 @@ class Tags(commands.Cog, description='Tags'):
         name='add',
         aliases=['create', 'new'],
         description='Create new tag',
-        help='[tag name] [title]',
+        help='[tag name]',
         usage='Everyone can use Tags on this server')
-    async def add(self, ctx, tag_name, *, title):
+    async def create_new_tag(self, ctx, tag_name):
         tag_name = tag_name.lower()
         if tag_name in self.forbidden_tags:
             raise ForbiddenTag
@@ -64,20 +67,49 @@ class Tags(commands.Cog, description='Tags'):
         collection.update_one(
             {'_id':tag_name},
             {'$set':{
-                'title':title,
-                'description':'',
-                'author_id':ctx.author.id}},
+                'author_id':ctx.author.id,
+                'title':'Your title',
+                'description':'Your description'
+                }
+            },
             upsert=True
         )
         await ctx.message.add_reaction('✅')
 
 
+    @commands.command(
+    name='title',
+    aliases=['t'],
+    description='Set title for tag',
+    help='[tag name] [title]')
+    async def set_tag_title(self, ctx: commands.Context, tag_name: str, *, title: str):
+        tag_name = tag_name.lower()
+        collection = self.bot.get_guild_tags_collection(ctx.guild.id)
+        tag = collection.find_one({'_id':tag_name})
+        if tag is None:
+            raise TagNotFound
+
+        author_id = tag['author_id']
+        if ctx.author.id not in [author_id, 143773579320754177] or not ctx.author.guild_permissions.administator:
+            raise NotTagOwner
+
+        collection.update_one(
+            {'_id':tag_name},
+            {'$set':{
+                'title':title
+                }
+            }
+        )
+        await ctx.message.add_reaction('✅')
+
+
     @tag.command(
-        name='edit',
-        description='Adds description for tag',
+        name='description',
+        aliases=['desc', 'd'],
+        description='Set description for tag',
         help='[tag name] [description]',
         usage='Everyone can use Tags on this server')
-    async def edit(self, ctx, tag_name, *, description):
+    async def set_tag_description(self, ctx, tag_name, *, description):
         tag_name = tag_name.lower()
         description = f"""{description}"""
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
@@ -86,19 +118,21 @@ class Tags(commands.Cog, description='Tags'):
             raise TagNotFound
 
         author_id = tag['author_id']
-        if ctx.author.id not in [author_id, 143773579320754177]:
+        if ctx.author.id not in [author_id, 143773579320754177] or not ctx.author.guild_permissions.administator:
             raise NotTagOwner
 
         collection.update_one(
             {'_id':tag_name},
-            {'$set':{'description':description}}
+            {'$set':{
+                'description':description
+                }
+            }
         )
         await ctx.message.add_reaction('✅')
 
 
     @tag.command(
         name='remove',
-        aliases=['-'],
         description='Delete tag',
         help='[tag name]',
         usage='Everyone can use Tags on this server')
@@ -110,7 +144,7 @@ class Tags(commands.Cog, description='Tags'):
             raise TagNotFound
         
         author_id = tag['author_id']
-        if ctx.author.id not in [author_id, 143773579320754177]:
+        if ctx.author.id not in [author_id, 143773579320754177] or not ctx.author.guild_permissions.administator:
             raise NotTagOwner
 
         collection.delete_one({'_id':tag_name})
@@ -149,7 +183,7 @@ class Tags(commands.Cog, description='Tags'):
             raise TagNotFound
 
         author_id = tag['author_id']
-        if ctx.author.id not in [author_id, 143773579320754177]:
+        if ctx.author.id not in [author_id, 143773579320754177] or not ctx.author.guild_permissions.administator:
             raise NotTagOwner
 
         if new_tag_name in self.forbidden_tags:
@@ -187,7 +221,7 @@ class Tags(commands.Cog, description='Tags'):
 
         content = tag['description']
         await ctx.reply(f'```{content}```')
-        
+
 
     @commands.command(
         name='btag',
@@ -204,7 +238,7 @@ class Tags(commands.Cog, description='Tags'):
 
         if tag is not None:
             author_id = tag['author_id']
-            if ctx.author.id not in [author_id, 143773579320754177]:
+            if ctx.author.id not in [author_id, 143773579320754177]  or ctx.author.guild_permissions.administator:
                 raise NotTagOwner
 
             embed = discord.Embed(color=self.bot.get_embed_color(ctx.guild.id))
@@ -250,7 +284,6 @@ class Tags(commands.Cog, description='Tags'):
             if not interaction.responded:
                 await interaction.respond(type=6)
 
-
     async def init_btag(self, ctx, message:discord.Message=None):
         components = [[
             Button(style=ButtonStyle.blue, label='Title', id='set_title'),
@@ -266,8 +299,6 @@ class Tags(commands.Cog, description='Tags'):
             return embed, message
         else:
             await message.edit(components=components)
-        
-
 
     async def edit_tag(self, ctx, interaction, component, message:discord.Message, embed:discord.Embed):
         label = '`Tag title`' if component == 'title' else '`Tag description`'
@@ -296,7 +327,6 @@ class Tags(commands.Cog, description='Tags'):
         )
 
         await interaction.respond(type=4, content=f'**Saved!**')
-
 
     async def get_raw_description(self, interaction, embed:discord.Embed):
         tag_description = embed.description
