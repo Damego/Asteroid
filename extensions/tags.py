@@ -90,7 +90,7 @@ class Tags(commands.Cog, description='Tags'):
             raise TagNotFound
 
         author_id = tag['author_id']
-        if ctx.author.id not in [author_id, 143773579320754177] or not ctx.author.guild_permissions.administrator:
+        if ctx.author.id not in [author_id, 143773579320754177] and not ctx.author.guild_permissions.administrator:
             raise NotTagOwner
 
         collection.update_one(
@@ -118,7 +118,7 @@ class Tags(commands.Cog, description='Tags'):
             raise TagNotFound
 
         author_id = tag['author_id']
-        if ctx.author.id not in [author_id, 143773579320754177] or not ctx.author.guild_permissions.administrator:
+        if ctx.author.id not in [author_id, 143773579320754177] and not ctx.author.guild_permissions.administrator:
             raise NotTagOwner
 
         collection.update_one(
@@ -144,7 +144,7 @@ class Tags(commands.Cog, description='Tags'):
             raise TagNotFound
         
         author_id = tag['author_id']
-        if ctx.author.id not in [author_id, 143773579320754177] or not ctx.author.guild_permissions.administrator:
+        if ctx.author.id not in [author_id, 143773579320754177] and not ctx.author.guild_permissions.administrator:
             raise NotTagOwner
 
         collection.delete_one({'_id':tag_name})
@@ -183,7 +183,7 @@ class Tags(commands.Cog, description='Tags'):
             raise TagNotFound
 
         author_id = tag['author_id']
-        if ctx.author.id not in [author_id, 143773579320754177] or not ctx.author.guild_permissions.administrator:
+        if ctx.author.id not in [author_id, 143773579320754177] and not ctx.author.guild_permissions.administrator:
             raise NotTagOwner
 
         if new_tag_name in self.forbidden_tags:
@@ -238,7 +238,7 @@ class Tags(commands.Cog, description='Tags'):
 
         if tag is not None:
             author_id = tag['author_id']
-            if ctx.author.id not in [author_id, 143773579320754177]  or ctx.author.guild_permissions.administrator:
+            if ctx.author.id not in [author_id, 143773579320754177] and ctx.author.guild_permissions.administrator:
                 raise NotTagOwner
 
             embed = discord.Embed(color=self.bot.get_embed_color(ctx.guild.id))
