@@ -70,33 +70,33 @@ class Games(commands.Cog, description='Games'):
 
     async def invite_to_game(self, ctx, member, game_name):
         def member_agree(interaction):
-            return interaction.user.id == member.id and interaction.channel.id == ctx.channel.id and interaction.message.id == msg.id
+            return interaction.user.id == member.id and interaction.message.id == message.id
 
-        msg = await ctx.send(
+        message = await ctx.send(
             content=f"{member.mention}! {ctx.author.name} invites you in {game_name}",
             components=[
                 [
-                    Button(style=ButtonStyle.green, label='Agree', id=1),
-                    Button(style=ButtonStyle.red, label='Decline', id=2)
+                    Button(style=ButtonStyle.green, label='Agree', id='agree'),
+                    Button(style=ButtonStyle.red, label='Decline', id='decline')
                 ]])
         if member.bot:
             embed = discord.Embed(
                 title=game_name, description=f'{ctx.author.display_name} VS {member.display_name}', color=self.bot.get_embed_color(ctx.guild.id))
-            await msg.edit(context=' ', embed=embed)
-            return msg, True
+            await message.edit(context=' ', embed=embed)
+            return message, True
             
         try:
             interaction = await self.bot.wait_for("button_click", check=member_agree, timeout=60)
             await interaction.respond(type=6)
         except TimeoutError:
-            await msg.edit(content=f'No response from {member.display_name}!', components=[])
-            return msg, False
+            await message.edit(content=f'No response from {member.display_name}!', components=[])
+            return message, False
 
-        if interaction.component.id == '1':
+        if interaction.component.id == 'agree':
             embed = discord.Embed(
                 title=game_name, description=f'{ctx.author.display_name} VS {member.display_name}', color=self.bot.get_embed_color(ctx.guild.id))
-            await msg.edit(context=' ', embed=embed)
-            return msg, True
+            await message.edit(context=' ', embed=embed)
+            return message, True
 
-        await msg.edit(content=f'{member.display_name} declined invite!', components=[])
-        return msg, False
+        await message.edit(content=f'{member.display_name} declined invite!', components=[])
+        return message, False

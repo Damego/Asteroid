@@ -40,7 +40,7 @@ class RockPaperScissors:
 
     async def rps_run_game(self, round):
         def check(interaction):
-            return interaction.author.id in self.players
+            return interaction.author.id in self.players and interaction.message.id == self.message.id
 
         embed = Embed(title='🪨-✂️-🧾', color=self.bot.get_embed_color(self.ctx.guild.id))
         embed.add_field(name=f'**{self.member.display_name}** vs. **{self.ctx.author.display_name}**',

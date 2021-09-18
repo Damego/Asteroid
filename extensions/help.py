@@ -72,7 +72,7 @@ class Help(commands.Cog, description='Help'):
                     interaction:Interaction = await self.bot.wait_for(
                         'select_option',
                         timeout=120,
-                        check=lambda i: i.user.id == ctx.author.id)
+                        check=lambda i: i.user.id == ctx.author.id and interaction.message.id == message.id)
                 except asyncio.TimeoutError:
                     return await message.edit(components=[])
                 except Exception:

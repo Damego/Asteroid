@@ -42,19 +42,13 @@ class TicTacToe:
         return game_board, move_board
 
 
-    def player_1(self, interaction):
-            return interaction.user.id == self.member.id
+    def _check(self, player_id, interaction):
+        return interaction.user.id == player_id and interaction.message.id == self.message.id
 
-    def player_2(self, interaction):
-        return interaction.user.id == self.ctx.author.id
 
-    async def move(self, player_id, emoji_id, player):
-        if player_id == 'player_1':
-            check = self.player_1
-            style = ButtonStyle.green
-        else:
-            check = self.player_2
-            style = ButtonStyle.red
+    async def move(self, player_game_name, emoji_id, player):
+        style = ButtonStyle.green if player_game_name == 'player_1' else ButtonStyle.red
+        check = lambda interaction: self._check(player.id, interaction)
 
         interaction:Interaction = await self.bot.wait_for('button_click', check=check)
         await interaction.respond(type=6)
