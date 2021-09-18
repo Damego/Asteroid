@@ -131,15 +131,15 @@ class Music(commands.Cog, description='Music'):
             button_id = interaction.component.id
             try:
                 if button_id == 'pause':
-                    await self._pause_music(ctx, True, message, components)
+                    await self._pause_music(ctx, from_button=True, message=message, components=components)
                 elif button_id == 'stop':
-                    return await self._stop_music(ctx, True, message)
+                    return await self._stop_music(ctx, from_button=True, message=message)
                 elif button_id == 'skip':
-                    await self._skip_music(ctx, True, message)
+                    await self._skip_music(ctx, from_button=True, message=message)
                 elif button_id == 'resume':
-                    await self._resume_music(ctx, True, message, components)
+                    await self._resume_music(ctx, from_button=True, message=message, components=components)
                 elif button_id == 'toggle_loop':
-                    await self._repeat_music(ctx, True, message, components)
+                    await self._repeat_music(ctx, from_button=True, message=message, components=components)
             except Exception as e:
                 print(e)
 
