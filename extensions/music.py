@@ -25,10 +25,6 @@ class Music(commands.Cog, description='Music'):
             members = before.channel.members
             if len(members) == 1 and members[0].bot:
                 await self.stop_on_leave(member.guild)
-        elif member.bot and after.channel is None and before.channel:
-            members = before.channel.members
-            if len(members) == 0: return
-            await self.stop_on_leave(member.guild)
 
 
     @commands.command(name='play', description='Start playing music', help='[url || video name]')
