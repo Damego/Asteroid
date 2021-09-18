@@ -104,9 +104,9 @@ class Music(commands.Cog, description='Music'):
         await player.play()
         if from_nplay:
             message, components = await self._send_message(ctx, track, True)
-            await self._wait_button_click(ctx, message, components)
             self.players[str(ctx.guild.id)] = {'channel_id':ctx.channel, 'message_id':message.id}
             print('in _play_music', self.players)
+            await self._wait_button_click(ctx, message, components)
         else:
             await self._send_message(ctx, track)
 
