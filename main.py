@@ -162,6 +162,8 @@ async def on_command_error(ctx:commands.Context, error):
         desc = 'Account with this UID not found!'
     elif isinstance(error, _errors.GenshinDataNotPublic):
         desc = 'Profile is private! Open profile on [site](https://www.hoyolab.com/genshin/accountCenter/gameRecord)'
+    elif isinstance(error, _errors.NotConnectedToVoice):
+        desc = 'You not connected to Voice Channel!'
     elif isinstance(error, commands.NotOwner):
         desc = 'Only owner can use this command!'
     elif isinstance(error, commands.MissingRequiredArgument):

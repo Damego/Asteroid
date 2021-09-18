@@ -1,5 +1,8 @@
 from discord.ext.commands import CommandError
 
+class NotConnectedToVoice(CommandError):
+    pass
+
 class TagNotFound(CommandError):
     pass
 

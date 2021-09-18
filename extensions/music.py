@@ -3,9 +3,8 @@ from discord.ext import commands
 import DiscordUtils
 from discord_components import Button, ButtonStyle
 
+from ._errors import NotConnectedToVoice
 
-class NotConnectedToVoice(commands.CommandError):
-    pass
 
 
 class Music(commands.Cog, description='Music'):
