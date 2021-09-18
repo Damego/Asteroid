@@ -106,12 +106,14 @@ class Music(commands.Cog, description='Music'):
 
     async def _wait_button_click(self, ctx, message, components):
         async def check(interaction):
-            member = ctx.guild.get_member(interaction.user.id)
-            if ('move_members', True) in member.guild_permissions:
+            member: discord.Member = ctx.guild.get_member(interaction.user.id)
+            if member.guild_permissions.move_members:
                 return True
 
+            if member.voice is None:
+                return False
             channel = member.voice.channel
-            if not channel:
+            if channel is None:
                 return False
 
             members = member.voice.channel.members
@@ -145,23 +147,7 @@ class Music(commands.Cog, description='Music'):
 
 
     async def _send_message(self, ctx, track, from_nplay:bool=False):
-        duration = track.duration
-        if duration != 0.0:
-            duration_hours = duration // 3600
-            duration_minutes = (duration // 60) % 60
-            duration_seconds = duration % 60
-            duration = f'{duration_hours:02}:{duration_minutes:02}:{duration_seconds:02}'
-        else:
-            duration = 'Live'
-
-        embed = discord.Embed(title='Start playing',
-                            color=self.bot.get_embed_color(ctx.guild.id))
-        embed.add_field(name='Name:',
-                        value=f'[{track.name}]({track.url})', inline=False)
-        embed.add_field(name='Duration:',
-                        value=duration, inline=False)
-        embed.set_footer(text=f'Added: {ctx.message.author}', icon_url=ctx.message.author.avatar_url)
-        embed.set_thumbnail(url=track.thumbnail)
+        embed = self._get_music_info(ctx, track)
 
         if from_nplay:
             components = [[
@@ -171,13 +157,24 @@ class Music(commands.Cog, description='Music'):
                 Button(style=ButtonStyle.blue, label='Enable repeat', id='toggle_loop')
             ]]
 
-            message:discord.Message = await ctx.send(embed=embed, components=components)
+            message = await ctx.send(embed=embed, components=components)
             return message, components
         return await ctx.send(embed=embed)
 
+
     async def _update_msg(self, ctx, message, track):
         music_requester = self.track_dict.get(track.name)["requester_msg"]
-        music_requester_avatar = music_requester.avatar_url
+        embed = self._get_music_info(ctx, track, music_requester=music_requester)
+        await message.edit(embed=embed)
+
+
+    async def _get_music_info(self, ctx, track, music_requester=None) -> discord.Embed:
+        if music_requester is None:
+            music_requester = ctx.author
+            music_requester_avatar = ctx.author.avatar_url
+        else:
+            music_requester_avatar = music_requester.avatar_url
+
         duration = track.duration
         if duration != 0.0:
             duration_hours = duration // 3600
@@ -187,7 +184,7 @@ class Music(commands.Cog, description='Music'):
         else:
             duration = 'Live'
 
-        embed = discord.Embed(title='Start playing',
+        embed = discord.Embed(title='Playing',
                               color=self.bot.get_embed_color(ctx.guild.id))
         embed.add_field(name='Name:',
                         value=f'[{track.name}]({track.url})', inline=False)
@@ -196,7 +193,7 @@ class Music(commands.Cog, description='Music'):
         embed.set_footer(text=f'Added: {music_requester}', icon_url=music_requester_avatar)
         embed.set_thumbnail(url=track.thumbnail)
 
-        await message.edit(embed=embed)
+        return embed
 
 
     async def _stop_music(self, ctx:commands.Context, *, from_button:bool=False, message:discord.Message=None):
