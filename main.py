@@ -49,7 +49,7 @@ def _reload_extensions():
 intents=discord.Intents.default()
 intents.members = True
 
-bot = MongoComponentsBot(command_prefix=get_prefix, intents=intents)
+bot = MongoComponentsBot(command_prefix=get_prefix, intents=intents, case_insensitive=True)
 
 
 # EVENTS
