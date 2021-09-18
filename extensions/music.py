@@ -16,6 +16,7 @@ class Music(commands.Cog, description='Music'):
         self.music = DiscordUtils.Music()
 
         self.track_dict = {}
+        self.players = {}
 
 
     @commands.Cog.listener()
@@ -74,6 +75,12 @@ class Music(commands.Cog, description='Music'):
         try:
             await player.stop()
             await voice_client.disconnect()
+            button_player = self.players.get(str(guild.id))
+            if button_player is not None:
+                channel = guild.get_channel(button_player['channel_id'])
+                message = channel.fetch_message(button_player['message_id'])
+                await message.edit(components=[])
+                del self.players[str(guild.id)]
         except Exception as e:
             print('stop_on_leave error: ', e)
 
@@ -99,6 +106,7 @@ class Music(commands.Cog, description='Music'):
         if from_nplay:
             message, components = await self._send_message(ctx, track, True)
             await self._wait_button_click(ctx, message, components)
+            self.players[str(ctx.guild.id)] = {'channel_id':message.channel, 'message_id':message.id}
         else:
             await self._send_message(ctx, track)
 
@@ -117,12 +125,12 @@ class Music(commands.Cog, description='Music'):
 
             members = member.voice.channel.members
             for member in members:
-                if member.id == '833349109347778591':
+                if member.id == 833349109347778591:
                     return True
 
 
         while True:
-            interaction = await self.bot.wait_for("button_click")
+            interaction = await self.bot.wait_for("button_click", check=lambda inter: inter.message.id == message.id)
             is_in_channel = await check(interaction)
             if not is_in_channel:
                 await interaction.send(content='Connect to voice channel with a bot')
@@ -134,7 +142,9 @@ class Music(commands.Cog, description='Music'):
                 if button_id == 'pause':
                     await self._pause_music(ctx, from_button=True, message=message, components=components)
                 elif button_id == 'stop':
-                    return await self._stop_music(ctx, from_button=True, message=message)
+                    await self._stop_music(ctx, from_button=True, message=message)
+                    del self.players[str(ctx.guild.id)]
+                    return
                 elif button_id == 'skip':
                     await self._skip_music(ctx, from_button=True, message=message)
                 elif button_id == 'resume':
