@@ -72,13 +72,12 @@ class Music(commands.Cog, description='Music'):
             await player.stop()
             await voice_client.disconnect()
             button_player = self.players.get(str(guild.id))
-            print(button_player)
             if button_player is not None:
                 message = button_player['message']
                 await message.edit(components=[])
                 del self.players[str(guild.id)]
-        except Exception as e:
-            print('stop_on_leave error: ', e)
+        except KeyError:
+            pass
 
 
     async def _play_music(self, ctx:commands.Context, from_nplay:bool, query:str):
@@ -102,7 +101,6 @@ class Music(commands.Cog, description='Music'):
         if from_nplay:
             message, components = await self._send_message(ctx, track, True)
             self.players[str(ctx.guild.id)] = {'message': message}
-            print('in _play_music', self.players)
             await self._wait_button_click(ctx, message, components)
         else:
             await self._send_message(ctx, track)
