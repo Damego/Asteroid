@@ -168,7 +168,7 @@ class Music(commands.Cog, description='Music'):
         await message.edit(embed=embed)
 
 
-    async def _get_music_info(self, ctx, track, music_requester=None) -> discord.Embed:
+    def _get_music_info(self, ctx, track, music_requester=None) -> discord.Embed:
         if music_requester is None:
             music_requester = ctx.author
             music_requester_avatar = ctx.author.avatar_url
