@@ -24,11 +24,11 @@ class Music(commands.Cog, description='Music'):
         if not member.bot and after.channel is None:
             members = before.channel.members
             if len(members) == 1 and members[0].bot:
-                await self.stop_on_leave(member.guild.id)
+                await self.stop_on_leave(member.guild)
         elif member.bot and after.channel is None and before.channel:
             members = before.channel.members
             if len(members) == 0: return
-            await self.stop_on_leave(member.guild.id)
+            await self.stop_on_leave(member.guild)
 
 
     @commands.command(name='play', description='Start playing music', help='[url || video name]')
@@ -69,14 +69,14 @@ class Music(commands.Cog, description='Music'):
 
 
     # * METHODS
-    async def stop_on_leave(self, guild_id):
-        player = self.music.get_player(guild_id=guild_id)
-        voice_client = self.bot.get_guild(guild_id)
+    async def stop_on_leave(self, guild: discord.Guild):
+        player = self.music.get_player(guild_id=guild.id)
+        voice_client = guild.voice_client
         try:
             await player.stop()
             await voice_client.disconnect()
-        except Exception:
-            pass
+        except Exception as e:
+            print('stop_on_leave error: ', e)
 
 
     async def _play_music(self, ctx:commands.Context, from_nplay:bool, query:str):
@@ -92,16 +92,16 @@ class Music(commands.Cog, description='Music'):
             player = self.music.create_player(ctx, ffmpeg_error_betterfix=True)
         track = await player.queue(query, search=True)
 
-        if not ctx.voice_client.is_playing():
-            await player.play()
-            if from_nplay:
-                message, components = await self._send_message(ctx, track, True)
-                await self._wait_button_click(ctx, message, components)
-            else:
-                await self._send_message(ctx, track)
-        else:
-            await ctx.send(f"`{track.name}` was added in queue")
+        if ctx.voice_client.is_playing():
             self.track_dict[track.name] = {'track': track, 'requester_msg': ctx.author}
+            return await ctx.send(f"`{track.name}` was added in queue")
+
+        await player.play()
+        if from_nplay:
+            message, components = await self._send_message(ctx, track, True)
+            await self._wait_button_click(ctx, message, components)
+        else:
+            await self._send_message(ctx, track)
 
 
     async def _wait_button_click(self, ctx, message, components):
@@ -116,31 +116,32 @@ class Music(commands.Cog, description='Music'):
 
             members = member.voice.channel.members
             for member in members:
-                if member.bot:
+                if member.id == '833349109347778591':
                     return True
+
 
         while True:
             interaction = await self.bot.wait_for("button_click")
             is_in_channel = await check(interaction)
             if not is_in_channel:
                 await interaction.send(content='Connect to voice channel with a bot')
-            else:
-                await interaction.respond(type=6)
-                button_id = interaction.component.id
-                
-                try:
-                    if button_id == 'pause':
-                        await self._pause_music(ctx, True, message, components)
-                    elif button_id == 'stop':
-                        return await self._stop_music(ctx, True, message)
-                    elif button_id == 'skip':
-                        await self._skip_music(ctx, True, message)
-                    elif button_id == 'resume':
-                        await self._resume_music(ctx, True, message, components)
-                    elif button_id == 'toggle_loop':
-                        await self._repeat_music(ctx, True, message, components)
-                except Exception as e:
-                    print(e)
+                continue
+            await interaction.respond(type=6)
+
+            button_id = interaction.component.id
+            try:
+                if button_id == 'pause':
+                    await self._pause_music(ctx, True, message, components)
+                elif button_id == 'stop':
+                    return await self._stop_music(ctx, True, message)
+                elif button_id == 'skip':
+                    await self._skip_music(ctx, True, message)
+                elif button_id == 'resume':
+                    await self._resume_music(ctx, True, message, components)
+                elif button_id == 'toggle_loop':
+                    await self._repeat_music(ctx, True, message, components)
+            except Exception as e:
+                print(e)
 
 
     async def _send_message(self, ctx, track, from_nplay:bool=False):
@@ -170,7 +171,7 @@ class Music(commands.Cog, description='Music'):
                 Button(style=ButtonStyle.blue, label='Enable repeat', id='toggle_loop')
             ]]
 
-            message:discord.Message = await ctx.send(embed=embed, components=self.components)
+            message:discord.Message = await ctx.send(embed=embed, components=components)
             return message, components
         return await ctx.send(embed=embed)
 
@@ -184,7 +185,7 @@ class Music(commands.Cog, description='Music'):
             duration_seconds = duration % 60
             duration = f'{duration_hours:02}:{duration_minutes:02}:{duration_seconds:02}'
         else:
-            duration = 'Прямая трансляция'
+            duration = 'Live'
 
         embed = discord.Embed(title='Start playing',
                               color=self.bot.get_embed_color(ctx.guild.id))
@@ -230,8 +231,8 @@ class Music(commands.Cog, description='Music'):
         if not ctx.voice_client.is_playing():
             await player.resume()
             if from_button:
-                self.components[0][0] = Button(
-                    style=ButtonStyle.gray, label='Пауза', id=1)
+                components[0][0] = Button(
+                    style=ButtonStyle.gray, label='Pause', id='pause')
                 await message.edit(components=components)
             else:
                 await ctx.message.add_reaction('✅')
@@ -243,12 +244,12 @@ class Music(commands.Cog, description='Music'):
         if not from_button:
             return await ctx.message.add_reaction('✅')
 
-        if song.is_looping:
-            components[0][3] = Button(
-                style=ButtonStyle.blue, label='Disable repeat', id='toggle_loop')
-        else:
-            components[0][3] = Button(
-                style=ButtonStyle.blue, label='Enable repeat', id='toggle_loop')
+        label = 'Disable repeat' if song.is_looping else 'Enable repeat'
+        components[0][3] = Button(
+                style=ButtonStyle.blue,
+                label=label,
+                id='toggle_loop'
+        )
         await message.edit(components=components)
 
 
@@ -258,7 +259,7 @@ class Music(commands.Cog, description='Music'):
             new_track = await player.skip(force=True)
             if not from_button:
                 return await ctx.message.add_reaction('✅')
-            await self._update_message(ctx, message, new_track)
+            await self._update_msg(ctx, message, new_track)
         except Exception:
             await ctx.send('**Playlist is empty!**', delete_after=15)
 
