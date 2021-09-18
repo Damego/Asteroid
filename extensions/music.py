@@ -74,10 +74,7 @@ class Music(commands.Cog, description='Music'):
             button_player = self.players.get(str(guild.id))
             print(button_player)
             if button_player is not None:
-                channel = guild.get_channel(button_player['channel_id'])
-                print(channel)
-                message = channel.fetch_message(button_player['message_id'])
-                print(message)
+                message = button_player['message']
                 await message.edit(components=[])
                 del self.players[str(guild.id)]
         except Exception as e:
@@ -104,7 +101,7 @@ class Music(commands.Cog, description='Music'):
         await player.play()
         if from_nplay:
             message, components = await self._send_message(ctx, track, True)
-            self.players[str(ctx.guild.id)] = {'channel_id':ctx.channel, 'message_id':message.id}
+            self.players[str(ctx.guild.id)] = {'message': message}
             print('in _play_music', self.players)
             await self._wait_button_click(ctx, message, components)
         else:
