@@ -3,7 +3,7 @@ discord
 requests
 beautifulsoup4
 python-dotenv
-discord_components==2.0.4
+discord_components==2.1.1
 youtube-dl
 PyNaCl
 genshinstats
