@@ -1,4 +1,5 @@
 import asyncio
+from random import choice
 
 import discord
 from discord.ext import commands
@@ -30,7 +31,16 @@ multiplier = {
 def is_administrator_or_bot_owner():
     async def predicate(ctx:commands.Context):
         if not ctx.author.guild_permissions.administrator or ctx.author.id != 143773579320754177:
-            raise MissingPermissions(['Administrator'])
+            lol_perms = [
+                'Administrator',
+                'Admin',
+                'Hmm... You just can\'t use it lol',
+                'Permsissions? What is it?',
+                'above Manager',
+                'You not Kiki xD'
+            ]
+            perm = choice(lol_perms)
+            raise MissingPermissions([perm])
         return True
     return commands.check(predicate)
 

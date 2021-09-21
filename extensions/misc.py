@@ -222,9 +222,12 @@ class Misc(commands.Cog, description='Misc commands'):
     help='')
     async def roles(self, ctx:commands.Context):
         roles = ctx.guild.roles[::-1]
-        content = ''.join(f'{role.mention}\n' for role in roles)
+        content = ''.join(
+            f'**{count}.** {role.mention}\n' for count, role in enumerate(roles, start=1)
+        )
+
         embed = discord.Embed(
-            title='Guild Roles',
+            title='Server Roles',
             description=content,
             color=self.bot.get_embed_color(ctx.guild.id)
         )

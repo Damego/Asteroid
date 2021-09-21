@@ -169,18 +169,17 @@ async def on_command_error(ctx:commands.Context, error):
     elif isinstance(error, commands.MissingRequiredArgument):
         desc=f'**Missing argument**: `{error.param}`'
     elif isinstance(error, commands.BadArgument):
-        title = f'**Bad argument!** \n'
+        title = '**Bad argument!** \n'
         help = f'`{ctx.prefix}{ctx.command} {ctx.command.help}`'
         desc = title + help
     elif isinstance(error, commands.BotMissingPermissions):
-        desc = f'**Bot not have permission for this!**\nRequired permissions: `{", ".join(error.missing_perms)}`'
+        desc = f'**Bot don\'t have permission for this!**\nRequired permissions: `{", ".join(error.missing_perms)}`'
     elif isinstance(error, commands.MissingPermissions):
-        desc = f'**You not have permission for this!**\nRequired permissions: `{", ".join(error.missing_perms)}`'
+        desc = f'**You don\'t have permission for this!**\nRequired permissions: `{", ".join(error.missing_perms)}`'
     elif isinstance(error, commands.CommandNotFound):
         desc = 'Command not found!'
     elif isinstance(error, commands.CheckFailure):
         desc = 'You can\'t use this command!'
-        
     else:
         desc = f"""
 This bug was sent to owner
