@@ -2,6 +2,7 @@ import asyncio
 
 import discord
 from discord.ext import commands
+from discord.ext.commands.errors import MissingPermissions
 from discord_components import (
     Select,
     SelectOption,
@@ -9,7 +10,6 @@ from discord_components import (
     Button,
     ButtonStyle
 )
-from pymongo.collection import Collection
 from mongobot import MongoComponentsBot
 
 
@@ -29,7 +29,9 @@ multiplier = {
 
 def is_administrator_or_bot_owner():
     async def predicate(ctx:commands.Context):
-        return ctx.author.id == 143773579320754177 or ctx.author.guild_permissions.administrator
+        if not ctx.author.guild_permissions.administrator or ctx.author.id != 143773579320754177:
+            raise MissingPermissions('administrator')
+        return True
     return commands.check(predicate)
 
 
