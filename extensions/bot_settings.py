@@ -30,7 +30,7 @@ multiplier = {
 def is_administrator_or_bot_owner():
     async def predicate(ctx:commands.Context):
         if not ctx.author.guild_permissions.administrator or ctx.author.id != 143773579320754177:
-            raise MissingPermissions('administrator')
+            raise MissingPermissions(['Administrator'])
         return True
     return commands.check(predicate)
 
