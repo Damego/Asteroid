@@ -1,4 +1,4 @@
-from random import randint
+from random import choice
 
 from discord import Embed
 from discord_components import Button, ButtonStyle, Interaction
@@ -27,7 +27,7 @@ class RockPaperScissors:
 
         embed = Embed(title='`          Results            `',
             color=self.bot.get_embed_color(self.ctx.guild.id))
-        embed.add_field(name=f'**Name: Rock Paper Scissors**',
+        embed.add_field(name='**Name: Rock Paper Scissors**',
                         value=f"""
                         **Players:** {self.member.display_name} vs. {self.ctx.author.display_name}
                         **Played games:** {self.total_rounds}
@@ -51,14 +51,14 @@ class RockPaperScissors:
             embed=embed,
             components=[
                 [
-                    Button(style=ButtonStyle.gray, id=1, emoji='🪨'),
-                    Button(style=ButtonStyle.gray, id=2, emoji='🧾'),
-                    Button(style=ButtonStyle.gray, id=3, emoji='✂️')
+                    Button(style=ButtonStyle.gray, id='rock', emoji='🪨'),
+                    Button(style=ButtonStyle.gray, id='paper', emoji='🧾'),
+                    Button(style=ButtonStyle.gray, id='scissors', emoji='✂️')
                 ]])
 
         players_choice = {}
         if self.member.bot:
-            players_choice[self.member.id] = str(randint(1, 3))
+            players_choice[self.member.id] = choice(['rock', 'paper', 'scissors'])
         
         while True:
             interaction = await self.bot.wait_for('button_click', check=check)
@@ -81,23 +81,24 @@ class RockPaperScissors:
 
         if player_1_choice == player_2_choice:
             return
-        elif player_1_choice == '1':
-            if player_2_choice == '3':
-                self.count1 += 1
+
+        if player_1_choice == 'rock':
+            if player_2_choice == 'paper':
+                self.count2 += 1
                 return
-            self.count2 += 1
+            self.count1 += 1
             return
-        elif player_1_choice == '2':
-            if player_2_choice == '1':
-                self.count1 += 1
+        elif player_1_choice == 'paper':
+            if player_2_choice == 'scissors':
+                self.count2 += 1
                 return
-            self.count2 += 1
+            self.count1 += 1
             return
-        elif player_1_choice == '3':
-            if player_2_choice == '2':
-                self.count1 += 1
+        elif player_1_choice == 'scissors':
+            if player_2_choice == 'rock':
+                self.count2 += 1
                 return
-            self.count2 += 1
+            self.count1 += 1
             return
 
 
