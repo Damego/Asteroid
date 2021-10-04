@@ -1,3 +1,4 @@
+import os
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog, MissingPermissions
@@ -174,6 +175,30 @@ class Settings(Cog):
 
         embed = discord.Embed(title='Перезагрузка расширений', description=content, color=0x2f3136)
         await ctx.send(embed=embed)
+
+
+    @slash_command(
+        name='deploy',
+        guild_ids=guild_ids
+    )
+    @commands.is_owner()
+    async def git_pull_updates(self, ctx: SlashContext):
+        embed = discord.Embed(title='Поиск обновлений...', color=0x2f3136)
+        message = await ctx.send(embed=embed)
+        os.system('git fetch')
+        os.system('git stash')
+        embed = discord.Embed(title='Загрузка обновления...', color=0x2f3136)
+        await message.edit(embed=embed)
+        os.system('git pull')
+        embed = discord.Embed(title='Перезагрузка...', color=0x2f3136)
+        await message.edit(embed=embed)
+
+        extensions = self.bot.extensions
+        for extension in extensions:
+            try:
+                self.bot.reload_extension(extension)
+            except Exception:
+                pass
 
 
 
