@@ -1,5 +1,13 @@
 from discord import Embed
-from discord_components import Button, ButtonStyle, Interaction
+from discord_slash import ButtonStyle
+from discord_components import Button
+
+from discord_slash.utils.manage_components import (
+    create_button as Button1,
+    create_actionrow as ActionRow,
+    wait_for_component,
+    spread_to_rows
+)
 
 
 
@@ -12,59 +20,65 @@ class TicTacToe:
         self.member = member
 
     async def start_game(self):
-        self.board, self.move_board = self.create_boards()
+        self.create_boards()
+        action_rows = spread_to_rows(*self.game_board, max_in_row=3)
 
-        await self.message.edit(content='Крестики-Нолики', components=self.board)
+        await self.message.edit(content='Крестики-Нолики', components=action_rows)
 
         player_1_move = True
         while True:
             if player_1_move:
-                result = await self.move('player_1', 850792048080060456, self.member)
+                result = await self.move('player_1', self.member)
                 player_1_move = False
-                if result:
-                    return
             if not player_1_move:
-                result = await self.move('player_2', 850792047698509826, self.ctx.author)
+                result = await self.move('player_2', self.ctx.author)
                 player_1_move = True
-                if result:
-                    return
+            if result:
+                return
 
 
     def create_boards(self):
         game_board = []
         move_board = []
         for i in range(3):
-            game_board.insert(i, [])
             move_board.insert(i, [])
             for j in range(3):
-                game_board[i].insert(j, Button(style=ButtonStyle.gray, label=' ', id=f'{i} {j}'))
+                game_board.append(Button(style=ButtonStyle.gray, label=' ', custom_id=f'{i} {j}'))
                 move_board[i].insert(j, 'UNCHOSEN')
-        return game_board, move_board
+            
+        self.game_board = game_board
+        self.move_board = move_board
 
 
     def player_1(self, interaction):
-            return interaction.user.id == self.member.id
+        return interaction.author.id == self.member.id
 
     def player_2(self, interaction):
-        return interaction.user.id == self.ctx.author.id
+        return interaction.author.id == self.ctx.author.id
 
-    async def move(self, player_id, emoji_id, player):
+    async def move(self, player_id, player):
         if player_id == 'player_1':
             check = self.player_1
-            style = ButtonStyle.green
+            style = ButtonStyle.blue
         else:
             check = self.player_2
             style = ButtonStyle.red
 
-        interaction:Interaction = await self.bot.wait_for('button_click', check=check)
-        await interaction.respond(type=6)
+        interaction = await wait_for_component(self.bot, self.message, spread_to_rows(*self.game_board, max_in_row=3), check=check)
+        await interaction.defer(ignore=True)
 
-        move_id = interaction.component.id
+        move_id = interaction.custom_id
         pos1, pos2 = move_id.split(' ')
-        self.board[int(pos1)][int(pos2)] = Button(
-            style=style, emoji=self.bot.get_emoji(emoji_id), disabled=True)
+        for component in self.game_board:
+            if component['custom_id'] == move_id:
+                self.game_board[self.game_board.index(component)] = Button(
+                    label=' ', style=style, disabled=True
+                )   
+                break
+        action_rows = spread_to_rows(*self.game_board, max_in_row=3)
 
-        await self.message.edit(components=self.board)
+        await self.message.edit(components=action_rows)
+
         self.move_board[int(pos1)][int(pos2)] = player
 
         if self.is_won(player):
@@ -101,13 +115,14 @@ class TicTacToe:
 
     async def pick_a_winner(self, winner='Ничья'):
         embed = Embed(
-            title='`          ИТОГИ ИГРЫ            `', color=self.bot.get_embed_color(self.ctx.guild.id))
+            title='`          ИТОГИ ИГРЫ            `',
+            color=self.bot.get_embed_color(self.ctx.guild.id))
         embed.add_field(name=f'**Название: Крестики-Нолики**',
-                        value=f"""
-                        **Игроки: {self.member.display_name} и {self.ctx.author.display_name}**
-                        **Победитель:** {winner}
-                        """)
-        for row in self.board:
-            for button in row:
-                button.disabled = True
-        await self.message.edit(content=' ', embed=embed, components=self.board)
+            value=f"""
+            **Игроки: {self.member.display_name} и {self.ctx.author.display_name}**
+            **Победитель:** {winner}
+            """)
+        for component in self.game_board:
+            component['disabled'] = True
+        action_rows = spread_to_rows(*self.game_board, max_in_row=3)
+        await self.message.edit(content=' ', embed=embed, components=action_rows)
