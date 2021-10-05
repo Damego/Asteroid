@@ -195,12 +195,12 @@ class Settings(Cog):
         await message.edit(embed=embed)
         try:
             #os.execv(sys.executable, ['python'] + sys.argv)
-            os.system('python3 main.py')
+            os.system('python3 /home/ubuntu/asteroid_bot/main.py')
             exit(1)
         except Exception as e:
             print('CANT RESTART BOT. ERROR', e)
             print('Reloading extensions...')
-            extensions = self.bot.extensions
+            extensions = self.bot.extensions.copy()
             for extension in extensions:
                 try:
                     self.bot.reload_extension(extension)
