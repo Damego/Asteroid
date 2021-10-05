@@ -199,7 +199,7 @@ class Music(commands.Cog, description='Music'):
                 elif button_id == 'resume':
                     await self._resume_music(ctx, content=content, from_button=True, message=message, components=components)
                 elif button_id == 'toggle_loop':
-                    await self._repeat_music(ctx, content, from_button=True, message=message, components=components)
+                    await self._repeat_music(ctx, content=content, from_button=True, message=message, components=components)
             except Exception as e:
                 print(e)
 
@@ -294,7 +294,7 @@ class Music(commands.Cog, description='Music'):
             else:
                 await ctx.send('✔️', hidden=True)
 
-    async def _repeat_music(self, ctx: SlashContext, content, *, from_button:bool=False, message:discord.Message=None, components:list=None):
+    async def _repeat_music(self, ctx: SlashContext, *, content=None, from_button:bool=False, message:discord.Message=None, components:list=None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         song = await player.toggle_song_loop()
 
