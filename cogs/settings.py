@@ -194,7 +194,9 @@ class Settings(Cog):
         embed = discord.Embed(title='Перезагрузка...', color=0x2f3136)
         await message.edit(embed=embed)
         try:
-            os.execv(sys.executable, ['python'] + sys.argv)
+            #os.execv(sys.executable, ['python'] + sys.argv)
+            os.system('python3 main.py')
+            exit(1)
         except Exception as e:
             print('CANT RESTART BOT. ERROR', e)
             print('Reloading extensions...')
