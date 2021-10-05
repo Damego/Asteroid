@@ -5,6 +5,7 @@ from discord import VoiceProtocol
 from discord_components import Button, ButtonStyle
 from discord_slash import SlashContext
 from discord_slash.cog_ext import (
+    cog_slash as slash_command,
     cog_subcommand as slash_subcommand,
 )
 from discord_slash_components_bridge import ComponentContext
@@ -318,6 +319,14 @@ class Music(commands.Cog, description='Music'):
             await self._update_msg(ctx, message, new_track)
         except Exception:
             await ctx.send('**Playlist is empty!**', delete_after=15)
+
+
+    @slash_command(
+        name='test',
+        guild_ids=guild_ids
+    )
+    async def test_command(self, ctx: SlashContext):
+        await ctx.send('hi!')
 
 
 

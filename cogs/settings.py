@@ -179,7 +179,8 @@ class Settings(Cog):
 
     @slash_command(
         name='deploy',
-        guild_ids=guild_ids
+        guild_ids=guild_ids,
+        description='Deploy update from GIT',
     )
     @commands.is_owner()
     async def git_pull_updates(self, ctx: SlashContext):
