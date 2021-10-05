@@ -194,7 +194,7 @@ class Settings(Cog):
         embed = discord.Embed(title='Перезагрузка...', color=0x2f3136)
         await message.edit(embed=embed)
         try:
-            os.execv(sys.executable, sys.argv)
+            os.execv(sys.executable, ['python'] + sys.argv)
         except Exception as e:
             await ctx.send(e)
 
