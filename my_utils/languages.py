@@ -114,6 +114,16 @@ LANGUAGES = {
             'LIVE_TEXT': 'Прямая трансляция',
             'WHO_ADDED_TEXT': 'Добавлено {}',
             'SUCCESSFULLY': 'Успешно!'
+        },
+        'FUNC_PHASMOPHOBIA_RANDOM': {
+            'CHOICE_BUTTON': 'Выборка',
+            'EXCEPTION_BUTTON': 'Исключение',
+            'CHOICE_ITEMS_SELECT': 'Выберите предметы',
+            'START_RANDOM_BUTTON': 'Рандом!',
+            'EXIT_BUTTON': 'Выйти',
+            'EMBED_TITLE': 'Phasmophobia рандомный предмет!',
+            'SECOND_MESSAGE_CONTENT': 'Здесь будет появляться предмет',
+            'CHOSEN_ITEMS_TEXT': '**Выбранные предметы: **\n',
         }
     },
 
@@ -233,6 +243,16 @@ LANGUAGES = {
             'LIVE_TEXT': 'Live',
             'WHO_ADDED_TEXT':'Added {}',
             'SUCCESSFULLY':'Successfully!'
+        },
+        'FUNC_PHASMOPHOBIA_RANDOM': {
+            'CHOICE_BUTTON': 'Select',
+            'EXCEPTION_BUTTON': 'Except',
+            'CHOICE_ITEMS_SELECT': 'Select items',
+            'START_RANDOM_BUTTON': 'Random!',
+            'EXIT_BUTTON': 'Exit',
+            'EMBED_TITLE': 'Phasmophobia random items!',
+            'SECOND_MESSAGE_CONTENT': 'Here will be appear item',
+            'CHOSEN_ITEMS_TEXT': '**Selected items: **\n',
         }
     }
 }

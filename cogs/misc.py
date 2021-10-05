@@ -242,25 +242,27 @@ class Misc(Cog, description='Misc commands'):
         
 
     async def _start_random(self, ctx: SlashContext, _list):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('FUNC_PHASMOPHOBIA_RANDOM', lang)
         components = [
-            Button(style=ButtonStyle.blue, label='Выборка', custom_id='toggle'),
+            Button(style=ButtonStyle.blue, label=content['CHOICE_BUTTON'], custom_id='toggle'),
             Select(
-                placeholder='Выберите предметы',
+                placeholder=content['CHOICE_ITEMS_SELECT'],
                 options=[SelectOption(label=item, value=item) for item in _list],
                 max_values=len(_list)
             ),
             [
-                Button(label='Рандом!', custom_id='start_random', style=ButtonStyle.green),
-                Button(label='Выйти', custom_id='exit', style=ButtonStyle.red),
+                Button(label=content['START_RANDOM_BUTTON'], custom_id='start_random', style=ButtonStyle.green),
+                Button(label=content['EXIT_BUTTON'], custom_id='exit', style=ButtonStyle.red),
             ]
         ]
         selected = None
         is_exception = False
         is_removed = False
-        embed = discord.Embed(title='Phasmophobia рандомный предмет!')
+        embed = discord.Embed(title=content['EMBED_TITLE'])
 
         message = await ctx.send(embed=embed, components=components)
-        message_for_update = await ctx.send('Здесь будет появляться предмет')
+        message_for_update = await ctx.send(content['SECOND_MESSAGE_CONTENT'])
 
         while True:
             try:
@@ -275,12 +277,12 @@ class Misc(Cog, description='Misc commands'):
                     for item in selected:
                         _selected.remove(item)
                     selected = _selected
-                embed.description = '**Выбранные предметы: **\n' + ', '.join(selected)
+                embed.description = content['CHOSEN_ITEMS_TEXT'] + ', '.join(selected)
                 await interaction.edit_origin(embed=embed)
 
             elif interaction.custom_id == 'toggle':
                 is_exception = not is_exception
-                interaction.component.label = 'Исключение' if is_exception else 'Выборка'
+                interaction.component.label = content['EXCEPTION_BUTTON'] if is_exception else content['CHOICE_BUTTON']
                 selected = None
                 is_removed = False
                 embed.description = ''

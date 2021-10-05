@@ -188,7 +188,7 @@ class Music(commands.Cog, description='Music'):
             button_id = interaction.custom_id
             try:
                 if button_id == 'pause':
-                    await self._pause_music(ctx, content, from_button=True, message=message, components=components)
+                    await self._pause_music(ctx, content=content, from_button=True, message=message, components=components)
                 elif button_id == 'stop':
                     await self._stop_music(ctx, from_button=True, message=message)
                     del self.players[str(ctx.guild_id)]
@@ -197,7 +197,7 @@ class Music(commands.Cog, description='Music'):
                 elif button_id == 'skip':
                     await self._skip_music(ctx, from_button=True, message=message)
                 elif button_id == 'resume':
-                    await self._resume_music(ctx, content, from_button=True, message=message, components=components)
+                    await self._resume_music(ctx, content=content, from_button=True, message=message, components=components)
                 elif button_id == 'toggle_loop':
                     await self._repeat_music(ctx, content, from_button=True, message=message, components=components)
             except Exception as e:
@@ -266,14 +266,14 @@ class Music(commands.Cog, description='Music'):
         else:
             await ctx.send('✔️', hidden=True)
 
-    async def _pause_music(self, ctx: SlashContext, content, *, from_button:bool=False, message:discord.Message=None, components:list=None):
+    async def _pause_music(self, ctx: SlashContext, *, content=None, from_button:bool=False, message:discord.Message=None, components:list=None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if ctx.voice_client.is_playing():
             await player.pause()
             if from_button:
                 try:
                     components[0][0] = Button(
-                        style=ButtonStyle.green, label='Resume', id='resume')
+                        style=ButtonStyle.green, label=content['RESUME_BUTTON'], id='resume')
                     await message.edit(components=components)
                 except Exception as e:
                     print('IN PAUSE', e)
@@ -283,13 +283,13 @@ class Music(commands.Cog, description='Music'):
             embed = discord.Embed(title='Music not playing!', color=self.bot.get_embed_color(ctx.guild.id))
             await ctx.send(embed=embed, delete_after=10)
 
-    async def _resume_music(self, ctx: SlashContext, content, *, from_button:bool=False, message:discord.Message=None, components:list=None):
+    async def _resume_music(self, ctx: SlashContext, *, content=None, from_button:bool=False, message:discord.Message=None, components:list=None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if not ctx.voice_client.is_playing():
             await player.resume()
             if from_button:
                 components[0][0] = Button(
-                    style=ButtonStyle.gray, label='Pause', id='pause')
+                    style=ButtonStyle.gray, label=content['PAUSE_BUTTON'], id='pause')
                 await message.edit(components=components)
             else:
                 await ctx.send('✔️', hidden=True)

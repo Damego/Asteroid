@@ -1,4 +1,4 @@
-import os
+import os, sys
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog, MissingPermissions
@@ -193,6 +193,7 @@ class Settings(Cog):
         os.system('git pull')
         embed = discord.Embed(title='Перезагрузка...', color=0x2f3136)
         await message.edit(embed=embed)
+        os.execv(__file__, sys.argv)
 
         extensions = self.bot.extensions
         for extension in extensions:
