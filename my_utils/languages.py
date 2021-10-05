@@ -245,7 +245,7 @@ LANGUAGES = {
             'SUCCESSFULLY':'Successfully!'
         },
         'FUNC_PHASMOPHOBIA_RANDOM': {
-            'CHOICE_BUTTON': 'Select',
+            'SELECTED_ITEMS_TEXT': 'Select',
             'EXCEPTION_BUTTON': 'Except',
             'CHOICE_ITEMS_SELECT': 'Select items',
             'START_RANDOM_BUTTON': 'Random!',

@@ -277,7 +277,7 @@ class Misc(Cog, description='Misc commands'):
                     for item in selected:
                         _selected.remove(item)
                     selected = _selected
-                embed.description = content['CHOSEN_ITEMS_TEXT'] + ', '.join(selected)
+                embed.description = content['SELECTED_ITEMS_TEXT'] + ', '.join(selected)
                 await interaction.edit_origin(embed=embed)
 
             elif interaction.custom_id == 'toggle':
