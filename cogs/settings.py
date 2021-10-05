@@ -193,7 +193,10 @@ class Settings(Cog):
         os.system('git pull')
         embed = discord.Embed(title='Перезагрузка...', color=0x2f3136)
         await message.edit(embed=embed)
-        os.execv(__file__, sys.argv)
+        try:
+            os.execv(__file__, sys.argv)
+        except Exception as e:
+            await ctx.send(e)
 
         extensions = self.bot.extensions
         for extension in extensions:
