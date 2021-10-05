@@ -245,9 +245,9 @@ class Misc(Cog, description='Misc commands'):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_PHASMOPHOBIA_RANDOM', lang)
         components = [
-            Button(style=ButtonStyle.blue, label=content['CHOICE_BUTTON'], custom_id='toggle'),
+            Button(style=ButtonStyle.blue, label=content['SELECT_BUTTON'], custom_id='toggle'),
             Select(
-                placeholder=content['CHOICE_ITEMS_SELECT'],
+                placeholder=content['SELECT_ITEMS_TEXT'],
                 options=[SelectOption(label=item, value=item) for item in _list],
                 max_values=len(_list)
             ),
@@ -282,7 +282,7 @@ class Misc(Cog, description='Misc commands'):
 
             elif interaction.custom_id == 'toggle':
                 is_exception = not is_exception
-                interaction.component.label = content['EXCEPTION_BUTTON'] if is_exception else content['CHOICE_BUTTON']
+                interaction.component.label = content['EXCEPTION_BUTTON'] if is_exception else content['SELECT_BUTTON']
                 selected = None
                 is_removed = False
                 embed.description = ''
