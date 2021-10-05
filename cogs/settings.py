@@ -196,14 +196,15 @@ class Settings(Cog):
         try:
             os.execv(sys.executable, ['python'] + sys.argv)
         except Exception as e:
-            await ctx.send(e)
-
-        extensions = self.bot.extensions
-        for extension in extensions:
-            try:
-                self.bot.reload_extension(extension)
-            except Exception:
-                pass
+            print('CANT RESTART BOT. ERROR', e)
+            print('Reloading extensions...')
+            extensions = self.bot.extensions
+            for extension in extensions:
+                try:
+                    self.bot.reload_extension(extension)
+                except Exception:
+                    pass
+            print('Successfully!')
 
 
 
