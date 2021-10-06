@@ -63,6 +63,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         guild_ids=guild_ids
     )
     async def statistics(self, ctx: SlashContext, uid: int=None):
+        await ctx.defer()
         if uid is None:
             uid = self._get_UID('', ctx.guild_id, ctx.author_id)
 
@@ -129,6 +130,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         guild_ids=guild_ids
     )
     async def characters(self, ctx: SlashContext, uid: int=None):
+        await ctx.defer()
         if uid is None:
             uid = self._get_UID('', ctx.guild.id, ctx.author.id)
 
@@ -166,6 +168,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         guild_ids=guild_ids
     )
     async def chars(self, ctx: SlashContext, uid: int=None):
+        await ctx.defer()
         if uid is None:
             uid = self._get_UID('', ctx.guild.id, ctx.author.id)
             
@@ -220,6 +223,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         guild_ids=guild_ids
     )
     async def info(self, ctx: SlashContext, hoyolab_uid: int=None):
+        await ctx.defer()
         if hoyolab_uid is None:
             hoyolab_uid = self._get_UID('hoyolab', ctx.guild_id, ctx.author_id)
 
@@ -285,7 +289,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
             embed.description += '**Artifacts**'
             for artifact in character['artifacts']:
                 embed.description += f"""
-                ・*{content[artifact['pos_name']]}* 
+                ・*{content['GENSHIN_ARTIFACT_TYPE'][artifact['pos_name']]}*
                 » {content['ARTIFACT_NAME']}: `{artifact['name']}`
                 » {content['ARTIFACT_RARITY']}: `{"⭐" * artifact['rarity']}`
                 » {content['ARTIFACT_LEVEL']}: `{artifact['level']}`
