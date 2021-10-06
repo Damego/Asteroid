@@ -211,7 +211,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
             embed = embeds[page-1]
 
             try:
-                await interaction.respond(type=7, embed=embed, components=components)
+                await interaction.edit_origin(embed=embed, components=components)
             except Exception:
                 print('can\'t respond')
 
