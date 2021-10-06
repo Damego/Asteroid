@@ -35,10 +35,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         base='genshin',
         name='bind',
         description='Bind Hoyolab UID to your account',
-        guild_ids=guild_ids,
-        options=[
-            create_option(name='Hoyolab UID', required=True, option_type=4)
-        ]
+        guild_ids=guild_ids
     )
     async def bind_uid(self, ctx: SlashContext, hoyolab_uid:int):
         self._get_cookie()
@@ -63,10 +60,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         base='genshin',
         name='statistics',
         description='Show your statistics of Genshin Impact',
-        guild_ids=guild_ids,
-        options=[
-            create_option(name='UID', required=False, option_type=4)
-        ]
+        guild_ids=guild_ids
     )
     async def statistics(self, ctx: SlashContext, uid: int=None):
         if uid is None:
@@ -132,10 +126,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         base='genshin',
         name='characters_list',
         description='Show your characters list of Genshin Impact',
-        guild_ids=guild_ids,
-        options=[
-            create_option(name='UID', required=False, option_type=4)
-        ]
+        guild_ids=guild_ids
     )
     async def characters(self, ctx: SlashContext, uid: int=None):
         if uid is None:
@@ -143,6 +134,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
 
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('GENSHIN_CHARACTERS_LIST_COMMAND', lang)
+        chars_vision_content = get_content('GENSHIN_CHARACTERS_COMMAND', lang)['GENSHIN_CHARACTER_VISION']
         _lang = 'ru-ru' if lang == 'ru' else 'en-us'
 
         self._get_cookie()
@@ -161,7 +153,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
             value=f"""
             ┕ {content['CHARACTER_LEVEL']}: `{character['level']}`
             ┕ {content['CHARACTER_CONSTELLATION']}: `C{character['constellation']}`
-            ┕ {content['CHARACTER_VISION']}: {en_element.get(character['element'])}
+            ┕ {content['CHARACTER_VISION']}: {chars_vision_content[character['element']]}
             ┕ {content['CHARACTER_WEAPON']}: `{character['weapon']['name']} {"⭐" * character['weapon']['rarity']}`
             """)
         await ctx.send(embed=embed)
@@ -171,10 +163,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         base='genshin',
         name='characters',
         description='Show your characters of Genshin Impact',
-        guild_ids=guild_ids,
-        options=[
-            create_option(name='UID', required=False, option_type=4)
-        ]
+        guild_ids=guild_ids
     )
     async def chars(self, ctx: SlashContext, uid: int=None):
         if uid is None:
@@ -228,10 +217,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         base='genshin',
         name='info',
         description='Show account information',
-        guild_ids=guild_ids,
-        options=[
-            create_option(name='Hoylolab UID', required=False, option_type=4)
-        ]
+        guild_ids=guild_ids
     )
     async def info(self, ctx: SlashContext, hoyolab_uid: int=None):
         if hoyolab_uid is None:
