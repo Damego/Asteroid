@@ -143,6 +143,7 @@ LANGUAGES = {
         'GENSHIN_BIND_COMMAND': 'Вы привязали UID',
         'GENSHIN_STATISTICS_COMMAND': {
             'EMBED_WORLD_EXPLORATION_TITLE': 'Genshin Impact. Статистика мира',
+            'EXPLORED_TEXT': 'Исследовано',
             'FROSTBEARING_TREE_LEVEL_TEXT': '\nУровень Дерева Вечной Мерзлоты: `{level}`',
             'SACRED_SAKURA_LEVEL_TEXT': '\nУровень Благосклонности сакуры: `{level}`',
             'REPUTATION_LEVEL_TEXT': '\nУровень репутации: `{level}`',
@@ -157,7 +158,7 @@ LANGUAGES = {
             'CHESTS_OPENED': 'Открыто сундуков',
             'UNLOCKED_TELEPORTS': 'Открыто телепортов:',
             'UNLOCKED_DOMAINS': 'Открыто подземелий:',
-            'MISC_INFO': 'Misc'
+            'MISC_INFO': 'Остальное'
         },
         'GENSHIN_CHARACTERS_LIST_COMMAND': {
             'EMBED_GENSHIN_CHARACTERS_LIST_TITLE': 'Genshin Impact. Персонажи',
@@ -340,6 +341,7 @@ LANGUAGES = {
         'GENSHIN_BIND_COMMAND': 'You binded UID',
         'GENSHIN_STATISTICS_COMMAND': {
             'EMBED_WORLD_EXPLORATION_TITLE': 'Genshin Impact. World exploration',
+            'EXPLORED_TEXT': 'Explored',
             'FROSTBEARING_TREE_LEVEL_TEXT': '\nLevel of Frostbearing Tree: `{level}`',
             'SACRED_SAKURA_LEVEL_TEXT': '\nLevel of Sacred Sakura\'s Favor: `{level}`',
             'REPUTATION_LEVEL_TEXT': '\nReputation level: `{level}`',

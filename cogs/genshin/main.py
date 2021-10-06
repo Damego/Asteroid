@@ -74,6 +74,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
             raise GenshinDataNotPublic
         except AccountNotFound:
             raise GenshinAccountNotFound
+
         user_explorations = user_data['explorations']
         user_stats = user_data['stats']
 
@@ -87,7 +88,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
             if region["explored"] == 0.0:
                 continue
 
-            description = f'Explored: `{region["explored"]}%`'
+            description = f'{content["EXPLORED_TEXT"]}: `{region["explored"]}%`'
             if region['name'] == 'Dragonspine':
                 description += content['FROSTBEARING_TREE_LEVEL_TEXT'].format(level=region["level"])
             else:
@@ -103,7 +104,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         <:Item_Electroculus:870989768387878912> {content['ELECTROCULUS']}: `{user_stats['electroculi']}/151`
         """
 
-        embed.add_field(name='Collected oculus', value=oculus_content, inline=False)
+        embed.add_field(name=content['COLLECTED_OCULUS_TEXT'], value=oculus_content, inline=False)
 
         chests_opened = f"""
         {content['COMMON_CHEST']}: `{user_stats['common_chests']}`
