@@ -172,7 +172,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         self._get_cookie()
 
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('GENSHIN_CHARACTERS_LIST_COMMAND', lang)
+        content = get_content('GENSHIN_CHARACTERS_COMMAND', lang)
         _lang = 'ru-ru' if lang == 'ru' else 'en-us'
 
         try:
