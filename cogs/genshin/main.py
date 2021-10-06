@@ -229,7 +229,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         user_stats = user_data['stats']
 
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('GENSHIN_CHARACTERS_LIST_COMMAND', lang)
+        content = get_content('GENSHIN_INFO_COMMAND', lang)
 
         description = f"""
         **{content['ADVENTURE_RANK_TEXT']}: {card['nickname']}**
@@ -268,7 +268,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
             {content['INFORMATION_TEXT']}
             » <:character_exp:871389287978008616> {content['CHARACTER_LEVEL']}: `{character['level']}`
             » {content['CHARACTER_CONSTELLATION']}: `C{character['constellation']}`
-            » {content['CHARACTER_VISION']}: {content[character['element']]}
+            » {content['CHARACTER_VISION']}: {content['GENSHIN_CHARACTER_VISION'][character['element']]}
             » <:friendship_exp:871389291740291082> {content['CHARACTER_FRIENDSHIP']}: `{character['friendship']}`
             
             **{content['WEAPON_TEXT']}**
