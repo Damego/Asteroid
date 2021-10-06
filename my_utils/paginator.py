@@ -6,7 +6,7 @@ async def get_interaction(bot, ctx, message) -> ComponentContext:
     try:
         return await bot.wait_for(
             'button_click',
-            check=lambda i: i.user.id == ctx.author.id and i.message.id == message.id,
+            check=lambda i: i.author_id == ctx.author_id and i.message.id == message.id,
             timeout=120)
     except TimeoutError:
         await message.edit(components=[])

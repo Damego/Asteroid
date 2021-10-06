@@ -286,7 +286,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
             """
 
         if character['artifacts']:
-            embed.description += '**Artifacts**'
+            embed.description += content['ARTIFACTS_TEXT']
             for artifact in character['artifacts']:
                 embed.description += f"""
                 ・*{content['GENSHIN_ARTIFACT_TYPE'][artifact['pos_name']]}*
