@@ -87,15 +87,15 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
             if region["explored"] == 0.0:
                 continue
 
-            content = f'Explored: `{region["explored"]}%`'
+            description = f'Explored: `{region["explored"]}%`'
             if region['name'] == 'Dragonspine':
-                content += content['FROSTBEARING_TREE_LEVEL_TEXT'].format(region["level"])
+                description += content['FROSTBEARING_TREE_LEVEL_TEXT'].format(level=region["level"])
             else:
                 if region['name'] == 'Inazuma':
-                    content += content['SACRED_SAKURA_LEVEL_TEXT'].format(region["offerings"][0]["level"])
-                content += content['REPUTATION_LEVEL_TEXT'].format(region["level"])
+                    description += content['SACRED_SAKURA_LEVEL_TEXT'].format(level=region["offerings"][0]["level"])
+                description += content['REPUTATION_LEVEL_TEXT'].format(level=region["level"])
             
-            embed.add_field(name=region['name'], value=content)
+            embed.add_field(name=region['name'], value=description)
 
         oculus_content = f"""
         <:Item_Anemoculus:870989767960059944> {content['ANEMOCULUS']}: `{user_stats['anemoculi']}/66`
@@ -240,7 +240,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
 
         <:adventure_exp:876142502736965672> {content['ADVENTURE_RANK_TEXT']}: `{card['level']}`
         <:achievements:871370992839176242> {content['ACHIEVEMENTS_TEXT']}: `{user_stats['achievements']}`
-        :mage: Chara{content['CHARACTERS_TEXT']}cters: `{user_stats['characters']}`
+        :mage: {content['CHARACTERS_TEXT']}: `{user_stats['characters']}`
         <:spiral_abyss:871370970600968233> {content['SPIRAL_ABYSS_TEXT']}: `{user_stats['spiral_abyss']}`
         """
 

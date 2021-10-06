@@ -16,7 +16,12 @@ LANGUAGES = {
             'NOT_BOT_OWNER': 'Это команда доступна только владельцу бота!',
             'BOT_MISS_PERMS': '**У бота недостаточно прав!**\nНеобходимые права: ',
             'MISS_PERMS': '**У вас недостаточно прав!**\nНеобходимые права:',
-            'CHECK_FAILURE': 'Вы не можете использовать эту команду!'
+            'CHECK_FAILURE': 'Вы не можете использовать эту команду!',
+            'OTHER_ERRORS_DESCRIPTION': 'This bug was sent to owner\n' \
+                '*Error:* \n' \
+                '```python ' \
+                '{error}' \
+               ' ```',
         },
         'FUNC_RANDOM_NUMBER_OUT_CONTENT': 'Рандомное число: `{}`',
         'FUNC_MEMBER_INFO': {
