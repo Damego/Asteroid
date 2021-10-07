@@ -78,21 +78,6 @@ async def on_guild_join(guild):
         upsert=True)
 
 
-@bot.event
-async def on_guild_remove(guild):
-    guild_id = guild.id
-    collections = [
-        bot.get_guild_main_collection(guild_id),
-        bot.get_guild_configuration_collection(guild_id),
-        bot.get_guild_level_roles_collection(guild_id),
-        bot.get_guild_reaction_roles_collection(guild_id),
-        bot.get_guild_tags_collection(guild_id),
-        bot.get_guild_users_collection(guild_id),
-        bot.get_guild_voice_time_collection(guild_id),
-    ]
-
-    for collection in collections:
-        collection.drop()
 
 # COMMANDS
 @bot.command(name='load', help='Load an Extension', hidden=True)
