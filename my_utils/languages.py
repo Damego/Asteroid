@@ -76,7 +76,7 @@ LANGUAGES = {
             'RESULTS_TITLE': '`          ИТОГИ ИГРЫ            `',
             'RESULTS_GAME_NAME': '**Игра: Крестики Нолики**',
             'RESULTS_TEXT': '' \
-                '**Игроки: {player1} И {player2}**' \
+                '**Игроки: {player1} И {player2}**\n' \
                 '**Победитель:** {winner}',
             'RESULTS_TIE': 'Ничья',
         },
@@ -293,7 +293,7 @@ LANGUAGES = {
             'RESULTS_TITLE': '`          Results            `',
             'RESULTS_GAME_NAME': '**Name: Tic Tac Toe**',
             'RESULTS_TEXT': '' \
-                '**Players: {player1} and {player2}**' \
+                '**Players: {player1} and {player2}**\n' \
                 '**Winner:** {winner}',
             'RESULTS_TIE': 'Draw',
         },
