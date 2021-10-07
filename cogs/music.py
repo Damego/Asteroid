@@ -319,14 +319,6 @@ class Music(commands.Cog, description='Music'):
             await ctx.send('**Playlist is empty!**', delete_after=15)
 
 
-    @slash_command(
-        name='test',
-        guild_ids=guild_ids
-    )
-    async def test_command(self, ctx: SlashContext):
-        await ctx.send('hi!')
-
-
 
 def setup(bot):
     bot.add_cog(Music(bot))

@@ -114,7 +114,7 @@ LANGUAGES = {
             'INPUT_TEXT': 'Введите',
             'SAVED_TAG_TEXT': '**Сохранено!**'
         },
-        'PLAY_MUSIC_COMMAND': {
+        'MUSIC_PLAY_COMMAND': {
             'ADDED_IN_QUEUE_TEXT': '`{}` Было добавлено о очередь',
             'NOT_CONNECTED_TO_VOICE': 'Подключитесь к голосовому каналу с ботом!',
             'PAUSE_BUTTON': 'Пауза',
