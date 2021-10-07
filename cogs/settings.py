@@ -60,6 +60,7 @@ class Settings(Cog):
         description='Changes bot\'s language on your server [ru, en]',
         guild_ids=guild_ids
     )
+    @is_administrator_or_bot_owner()
     async def set_bot_language(self, ctx: SlashContext, lang: str):
         if lang not in LANGUAGES_LIST:
             return await ctx.send('Wrong language', hidden=True)
@@ -127,28 +128,6 @@ class Settings(Cog):
             Ошибка: {e}
             """
             await ctx.send(content)
-
-    @commands.command()
-    async def reload_fucking_slash_commands(self, ctx):
-        extensions = self.bot.extensions
-        extensions_amount = len(extensions)
-        content = ''
-        try:
-            for count, extension in enumerate(extensions, start=1):
-                try:
-                    self.bot.reload_extension(extension)
-                except Exception as e:
-                    content += f'\n`{count}/{extensions_amount}. {extension} `❌'
-                    content += f'\n*Ошибка:* `{e}`'
-                else:
-                    content += f'\n`{count}/{extensions_amount}. {extension} `✅'
-        except RuntimeError:
-            pass
-
-        await self.bot.slash.sync_all_commands()
-
-        embed = discord.Embed(title='Перезагрузка расширений', description=content, color=0x2f3136)
-        await ctx.send(embed=embed)
 
 
     @slash_subcommand(
