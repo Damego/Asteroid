@@ -1,15 +1,12 @@
-from random import randint
+from random import choice
 
 from discord import Embed, Member
-from discord_slash import ButtonStyle, SlashContext, ComponentMessage
-from discord_slash.utils.manage_components import (
-    create_button as Button,
-    create_actionrow as ActionRow,
-    wait_for_component
-)
+from discord_slash import SlashContext
+from discord_components import Button, ButtonStyle
+from discord_slash_components_bridge import ComponentMessage
 
-from my_utils import AsteroidBot
-from my_utils import get_content
+from my_utils import AsteroidBot, get_content
+
 
 
 class RockPaperScissors:
@@ -60,7 +57,7 @@ class RockPaperScissors:
 
     async def start_round(self, round):
         def check(interaction):
-            return interaction.author_id in self.players
+            return interaction.author_id in self.players and interaction.message.id == self.message.id
 
         players_choice = {}
         players_text = self.content['PLAYERS_TEXT'].format(
@@ -81,24 +78,21 @@ class RockPaperScissors:
         )
 
         components = [
-            Button(style=ButtonStyle.gray, custom_id='1', emoji='🪨'),
-            Button(style=ButtonStyle.gray, custom_id='2', emoji='🧾'),
-            Button(style=ButtonStyle.gray, custom_id='3', emoji='✂️')
+            Button(style=ButtonStyle.blue, custom_id='rock', emoji='🪨'),
+            Button(style=ButtonStyle.green, custom_id='paper', emoji='🧾'),
+            Button(style=ButtonStyle.red, custom_id='scissors', emoji='✂️')
         ]
-        action_row = ActionRow(*components)
 
         await self.message.edit(
             embed=embed,
-            components=[action_row])
+            components=components)
                 
         if self.member.bot:
-            players_choice[self.member.id] = str(randint(1, 3))
+            players_choice[self.member.id] = choice(['rock', 'paper', 'scissors'])
         
         while True:
-            interaction = await wait_for_component(
-                self.bot,
-                messages=self.message.id,
-                components=action_row, 
+            interaction = await self.bot.wait_for(
+                'button_click',
                 check=check
             )
                 
@@ -121,23 +115,24 @@ class RockPaperScissors:
 
         if player_1_choice == player_2_choice:
             return
-        elif player_1_choice == '1':
-            if player_2_choice == '3':
-                self.count1 += 1
+
+        if player_1_choice == 'rock':
+            if player_2_choice == 'paper':
+                self.count2 += 1
                 return
-            self.count2 += 1
+            self.count1 += 1
             return
-        elif player_1_choice == '2':
-            if player_2_choice == '1':
-                self.count1 += 1
+        elif player_1_choice == 'paper':
+            if player_2_choice == 'scissors':
+                self.count2 += 1
                 return
-            self.count2 += 1
+            self.count1 += 1
             return
-        elif player_1_choice == '3':
-            if player_2_choice == '2':
-                self.count1 += 1
+        elif player_1_choice == 'scissors':
+            if player_2_choice == 'rock':
+                self.count2 += 1
                 return
-            self.count2 += 1
+            self.count1 += 1
             return
 
 

@@ -2,17 +2,14 @@ from asyncio import TimeoutError
 
 import discord
 from discord.ext.commands import Cog
-from discord_slash import SlashContext, ButtonStyle, ContextMenuType, MenuContext
+from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu
 )
-from discord_slash.utils.manage_components import (
-    create_button as Button,
-    create_actionrow as ActionRow,
-    wait_for_component
-)
+from discord_components import Button, ButtonStyle
+from discord_slash_components_bridge import ComponentContext
 
 from ._tictactoe import TicTacToe
 from ._rockpaperscissors import RockPaperScissors
@@ -82,19 +79,20 @@ class Games(Cog, description='Игры'):
 
     async def _start_ttt(self, ctx, member: discord.Member):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('FUNC_INVITE_TO_GAME', lang)
+        invite_content = get_content('FUNC_INVITE_TO_GAME', lang)
+        game_content = get_content('GAME_TTT', lang)
         game_name = get_content('GAMES_NAMES', lang)['TTT']
 
         if member.id == ctx.author_id:
-            return await ctx.send(content['SELF_INVITE'])
+            return await ctx.send(invite_content['SELF_INVITE'])
         if member.bot:
-            return await ctx.send(content['BOT_INVITE'])
+            return await ctx.send(invite_content['BOT_INVITE'])
             
         message, accept = await self.invite_to_game(ctx, member, game_name)
         if not accept:
             return
 
-        game = TicTacToe(self.bot, message, ctx, member)
+        game = TicTacToe(self.bot, message, ctx, member, game_content)
         await game.start_game()
 
 
@@ -108,17 +106,19 @@ class Games(Cog, description='Игры'):
         )
 
         def member_agree(interaction):
-            return interaction.author.id == member.id
+            return interaction.author_id == member.id
 
         components = [
-            Button(style=ButtonStyle.green, label=button_label_agree, custom_id='agree'),
-            Button(style=ButtonStyle.red, label=button_label_decline, custom_id='decline')
+            [
+                Button(style=ButtonStyle.green, label=button_label_agree, custom_id='agree'),
+                Button(style=ButtonStyle.red, label=button_label_decline, custom_id='decline')
+            ]
         ]
-        action_row = ActionRow(*components)
 
         message = await ctx.send(
             content=invite_text,
-            components=[ActionRow(*components)])
+            components=components
+        )
 
         if member.bot:
             embed = discord.Embed(
@@ -130,7 +130,7 @@ class Games(Cog, description='Игры'):
             return message, True
             
         try:
-            interaction = await wait_for_component(self.bot, components=action_row, check=member_agree, timeout=60)
+            interaction: ComponentContext = await self.bot.wait_for('button_click', check=member_agree, timeout=60)
             accepted_invite = content['AGREE_MESSAGE_CONTENT']
             await interaction.send(accepted_invite, hidden=True)
         except TimeoutError:

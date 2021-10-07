@@ -279,6 +279,15 @@ LANGUAGES = {
             'CURRENT_SCORE_TEXT': '**Score:** {}:{}\n' \
                 '**Match:** {}/{}',
         },
+        'GAME_TTT': {
+            'GAME_NAME': 'Tic Tac Toe',
+            'RESULTS_TITLE': '`          Results            `',
+            'RESULTS_GAME_NAME': '**Name: Tic Tac Toe**',
+            'RESULTS_TEXT': '' \
+                '**Players: {player1} and {player2}**' \
+                '**Winner:** {winner}',
+            'RESULTS_TIE': 'Draw',
+        },
         'FUNC_MODERATION_CHANGE_NICK_TEXT': 'Nick of `{}` was changed to `{}`',
         'FUNC_MODERATION_MUTE_MEMBER': {
             'CANNOT_MUTE_BOT_TEXT': 'You can\'t mute bot!',
@@ -407,5 +416,6 @@ LANGUAGES = {
             'SPIRAL_ABYSS_TEXT': 'Spiral Abyss',
             'PLAYER_INFO_TEXT': 'Information about player',
         }
+        },
     }
 }
