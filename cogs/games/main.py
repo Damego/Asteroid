@@ -72,7 +72,7 @@ class Games(Cog, description='Игры'):
         name='Start Tic Tac Toe',
         guild_ids=guild_ids
     )
-    async def tictactoe_cmd(self, ctx: MenuContext):
+    async def tictactoe_menu(self, ctx: MenuContext):
         member = ctx.target_message.author
         await self._start_ttt(ctx, member)
 
