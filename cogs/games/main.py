@@ -144,7 +144,7 @@ class Games(Cog, description='Игры'):
                 description=f'{ctx.author.display_name} VS {member.display_name}',
                 color=self.bot.get_embed_color(ctx.guild.id)
             )
-            await message.edit(context=' ', embed=embed)
+            await message.edit(content=' ', embed=embed)
             return message, True
 
         declined_invite = content['DECLINE_MESSAGE_CONTENT'].format(member.display_name)
