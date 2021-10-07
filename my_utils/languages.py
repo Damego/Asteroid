@@ -218,6 +218,10 @@ LANGUAGES = {
             'CHARACTERS_TEXT': 'Персонажей',
             'SPIRAL_ABYSS_TEXT': 'Витая Бездна',
             'PLAYER_INFO_TEXT': 'Информация об игроке',
+        },
+        'SET_EMBED_COLOR_COMMAND': {
+            'WRONG_COLOR': 'Неверный формат цвета!',
+            'SUCCESSFULLY_CHANGED': 'Цвет сообщений успешно изменён!'
         }
     },
 
@@ -426,5 +430,9 @@ LANGUAGES = {
             'SPIRAL_ABYSS_TEXT': 'Spiral Abyss',
             'PLAYER_INFO_TEXT': 'Information about player',
         },
+        'SET_EMBED_COLOR_COMMAND': {
+            'WRONG_COLOR': 'Wrong color format',
+            'SUCCESSFULLY_CHANGED': 'Embed color was changed!'
+        }
     }
 }

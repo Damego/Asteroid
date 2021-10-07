@@ -10,6 +10,7 @@ from discord_slash.cog_ext import (
 
 from my_utils import AsteroidBot
 from my_utils import LANGUAGES_LIST
+from my_utils.languages import get_content
 
 
 guild_ids = [
@@ -55,7 +56,8 @@ class Settings(Cog):
         self.bot = bot
 
 
-    @slash_command(
+    @slash_subcommand(
+        base='set',
         name='lang',
         description='Changes bot\'s language on your server [ru, en]',
         guild_ids=guild_ids
@@ -72,6 +74,34 @@ class Settings(Cog):
             upsert=True)
 
         await ctx.send(f'Language was set up to `{lang}`')
+
+    @slash_subcommand(
+        base='set',
+        name='color',
+        description='Set color for embeds',
+        guild_ids=guild_ids
+    )
+    @is_administrator_or_bot_owner()
+    async def set_embed_color(self, ctx: SlashContext, color: str):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('SET_EMBED_COLOR_COMMAND', lang)
+        if color.startswith('#') and len(color) == 7:
+            color = color.replace('#', '')
+        elif len(color) != 6:
+            await ctx.send(content['WRONG_COLOR'])
+            return
+
+        newcolor = '0x' + color
+
+        collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
+        collection.update_one(
+            {'_id':'configuration'},
+            {'$set':{'embed_color':newcolor}},
+            upsert=True
+        )
+
+        embed = discord.Embed(title=content['SUCCESSFULLY_CHANGED'], color=int(newcolor, 16))
+        await ctx.send(embed=embed, delete_after=10)
         
         
 
