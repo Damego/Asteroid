@@ -78,9 +78,11 @@ class RockPaperScissors:
         )
 
         components = [
-            Button(style=ButtonStyle.blue, custom_id='rock', emoji='🪨'),
-            Button(style=ButtonStyle.green, custom_id='paper', emoji='🧾'),
-            Button(style=ButtonStyle.red, custom_id='scissors', emoji='✂️')
+            [
+                Button(style=ButtonStyle.blue, custom_id='rock', emoji='🪨'),
+                Button(style=ButtonStyle.green, custom_id='paper', emoji='🧾'),
+                Button(style=ButtonStyle.red, custom_id='scissors', emoji='✂️')
+            ]
         ]
 
         await self.message.edit(
