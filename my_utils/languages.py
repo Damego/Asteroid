@@ -17,6 +17,7 @@ LANGUAGES = {
             'BOT_MISS_PERMS': '**У бота недостаточно прав!**\nНеобходимые права: ',
             'MISS_PERMS': '**У вас недостаточно прав!**\nНеобходимые права:',
             'CHECK_FAILURE': 'Вы не можете использовать эту команду!',
+            'OTHER_ERRORS_TITLE': '❌ Упс... Произошла непредвиденная ошибка!',
             'OTHER_ERRORS_DESCRIPTION': 'This bug was sent to owner\n' \
                 '*Error:* \n' \
                 '```python ' \

@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import DiscordUtils
+from DiscordUtils import Music as _Music
 from discord import VoiceProtocol
 from discord_components import Button, ButtonStyle
 from discord_slash import SlashContext
@@ -23,7 +23,7 @@ class Music(commands.Cog, description='Music'):
         self.hidden = False
         self.emoji = '🎵'
 
-        self.music = DiscordUtils.Music()
+        self.music = _Music()
 
         self.track_queue = {}
         self.players = {}
@@ -35,8 +35,8 @@ class Music(commands.Cog, description='Music'):
             members = before.channel.members
             if len(members) == 1 and members[0].bot:
                 await self.stop_on_leave(member.guild)
-        #elif member.bot and after.channel is None:
-        #    await self.stop_on_leave(member.guild)
+        elif member.bot and after.channel is None:
+            await self.stop_on_leave(member.guild)
 
 
     @slash_subcommand(
@@ -109,8 +109,6 @@ class Music(commands.Cog, description='Music'):
     )
     async def skip_music(self, ctx: SlashContext):
         await self._skip_music(ctx)
-
-
 
 
     # * METHODS
