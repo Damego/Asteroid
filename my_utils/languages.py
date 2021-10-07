@@ -71,6 +71,15 @@ LANGUAGES = {
             'CURRENT_SCORE_TEXT': '**Счёт:** {}:{}\n' \
                 '**Игра:** {}/{}',
         },
+        'GAME_TTT': {
+            'GAME_NAME': 'Крестики Нолики',
+            'RESULTS_TITLE': '`          ИТОГИ ИГРЫ            `',
+            'RESULTS_GAME_NAME': '**Игра: Крестики Нолики**',
+            'RESULTS_TEXT': '' \
+                '**Игроки: {player1} И {player2}**' \
+                '**Победитель:** {winner}',
+            'RESULTS_TIE': 'Ничья',
+        },
         'FUNC_MODERATION_CHANGE_NICK_TEXT': 'Был изменён ник `{}` на `{}`',
         'FUNC_MODERATION_MUTE_MEMBER': {
             'CANNOT_MUTE_BOT_TEXT': 'Вы не можете замутить бота!',
@@ -415,7 +424,6 @@ LANGUAGES = {
             'CHARACTERS_TEXT': 'Characters',
             'SPIRAL_ABYSS_TEXT': 'Spiral Abyss',
             'PLAYER_INFO_TEXT': 'Information about player',
-        }
         },
     }
 }
