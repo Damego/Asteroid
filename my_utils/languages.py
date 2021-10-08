@@ -282,14 +282,14 @@ LANGUAGES = {
         'GAME_RPS': {
             'RESULTS_TITLE': '`          Results            `',
             'RESULTS_TEXT': '' \
-                '**Players:** {} и {} \n' \
+                '**Players:** {} vs. {} \n' \
                 '**Rounds played:** {} \n' \
                 '**Score:** {}:{} \n' \
                 '**Winner:** {}',
             'RESULTS_GAME_NAME': '**Game name: Rock Paper Scissors**',
             'RESULTS_TIE': 'Draw',
             'MADE_MOVE_TEXT': 'You made move',
-            'PLAYERS_TEXT': '**{}** VS **{}**',
+            'PLAYERS_TEXT': '**{}** vs. **{}**',
             'CURRENT_SCORE_TEXT': '**Score:** {}:{}\n' \
                 '**Match:** {}/{}',
         },
