@@ -75,7 +75,9 @@ async def on_slash_command_error(ctx, error):
     lang = bot.get_guild_bot_lang(ctx.guild_id)
     content = get_content('ERRORS_DESCRIPTIONS', lang)
 
-    if isinstance(error, TagNotFound):
+    if isinstance(error, CogDisabledOnGuild):
+        desc = content['COG_DISABLED']
+    elif isinstance(error, TagNotFound):
         desc = content['TAG_NOT_FOUND']
     elif isinstance(error, ForbiddenTag):
         desc = content['FORBIDDEN_TAG']

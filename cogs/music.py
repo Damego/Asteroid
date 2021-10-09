@@ -10,9 +10,7 @@ from discord_slash.cog_ext import (
 )
 from discord_slash_components_bridge import ComponentContext
 
-from my_utils import AsteroidBot
-from my_utils.errors import NotConnectedToVoice
-from my_utils.languages import get_content
+from my_utils import AsteroidBot, get_content, NotConnectedToVoice
 from .settings import guild_ids
 
 
@@ -22,6 +20,7 @@ class Music(commands.Cog, description='Music'):
         self.bot = bot
         self.hidden = False
         self.emoji = '🎵'
+        self.name = 'music'
 
         self.music = _Music()
 

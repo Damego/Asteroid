@@ -21,6 +21,7 @@ from ..settings import guild_ids
 class Games(Cog, description='Игры'):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
+        self.name = 'games'
 
 
     @slash_subcommand(

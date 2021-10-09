@@ -29,6 +29,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         self.bot = bot
         self.hidden = False
         self.emoji = 863429526632923136
+        self.name = 'genshin'
 
 
     @slash_subcommand(

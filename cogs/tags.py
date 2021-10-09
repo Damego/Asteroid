@@ -15,9 +15,9 @@ from pymongo.collection import Collection
 
 from my_utils.languages import get_content
 
-from .settings import guild_ids, is_administrator_or_bot_owner
+from .settings import guild_ids
 from my_utils.errors import TagNotFound, ForbiddenTag, NotTagOwner
-from my_utils import AsteroidBot
+from my_utils import AsteroidBot, is_administrator_or_bot_owner
 
 guild_ids = guild_ids
 
@@ -27,7 +27,7 @@ class Tags(commands.Cog, description='Tags'):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.hidden = False
-        self.emoji = '🏷️'
+        self.name = 'tags'
 
         self.forbidden_tags = ['add', 'description', 'list', 'remove', 'rename', 'create', 'new', 't', 'desc', 'd']
 

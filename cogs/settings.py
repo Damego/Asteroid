@@ -1,16 +1,19 @@
 import os, sys
 import discord
 from discord.ext import commands
-from discord.ext.commands import Cog, MissingPermissions
+from discord.ext.commands import Cog
 from discord_slash import SlashContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
     cog_subcommand as slash_subcommand
 )
 
-from my_utils import AsteroidBot
-from my_utils import LANGUAGES_LIST
-from my_utils.languages import get_content
+from my_utils import (
+    AsteroidBot,
+    LANGUAGES_LIST,
+    get_content,
+    is_administrator_or_bot_owner
+)
 
 
 guild_ids = [
@@ -20,40 +23,12 @@ guild_ids = [
     847283544803508254
 ]
 
-multiplier = {
-    'д': 86400,
-    'ч': 3600,
-    'м': 60,
-    'с': 1,
-    'd': 86400,
-    'h': 3600,
-    'm': 60,
-    's': 1
-    }
-
-def is_administrator_or_bot_owner():
-    async def predicate(ctx: SlashContext):
-        if not ctx.author.guild_permissions.administrator and ctx.author_id != 143773579320754177:
-            raise MissingPermissions(['Administrator'])
-        return True
-    return commands.check(predicate)
-
-
-class DurationConverter(commands.Converter):
-    async def convert(self, ctx, argument):
-        amount = argument[:-1]
-        time_format = argument[-1]
-
-        if amount.isdigit() and time_format in ['д', 'ч', 'м', 'с', 'd', 'h', 'm', 's']:
-            return (int(amount), time_format)
-
-        raise commands.BadArgument(message='Wrong time format!')
-
 
 
 class Settings(Cog):
     def __init__(self, bot:AsteroidBot) -> None:
         self.bot = bot
+        self.name = 'settings'
 
 
     @slash_subcommand(
@@ -102,10 +77,31 @@ class Settings(Cog):
 
         embed = discord.Embed(title=content['SUCCESSFULLY_CHANGED'], color=int(newcolor, 16))
         await ctx.send(embed=embed, delete_after=10)
-        
+
+
+    @slash_subcommand(
+        base='set',
+        name='status',
+        guild_ids=guild_ids
+    )
+    async def set_cog_status(self, ctx: SlashContext, cog: str, status: bool):
+        await ctx.defer()
+        cogs_names = [self.bot.cogs[_cog].name for _cog in self.bot.cogs]
+        if cog not in cogs_names:
+            return await ctx.send('Cog not found!')
+
+        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection.update_one(
+            {'_id': 'cogs_status'},
+            {'$set': {
+                cog: status
+                }
+            },
+            upsert=True
+        )
+        await ctx.send('Changed!')
         
 
-    
     @slash_subcommand(
     base='ext',
     name='load',
@@ -203,21 +199,7 @@ class Settings(Cog):
         os.system('git pull')
         embed = discord.Embed(title='Перезагрузка...', color=0x2f3136)
         await message.edit(embed=embed)
-        try:
-            os.execv(sys.executable, ['python3.9'] + sys.argv)
-            #os.system('python3.9 /home/ubuntu/asteroid_bot/main.py')
-            #exit(1)
-        except Exception as e:
-            print('CANT RESTART BOT. ERROR', e)
-            print('Reloading extensions...')
-            extensions = self.bot.extensions.copy()
-            for extension in extensions:
-                try:
-                    self.bot.reload_extension(extension)
-                except Exception:
-                    pass
-            print('Successfully!')
-
+        os.execv(sys.executable, ['python3.9'] + sys.argv)
 
 
 def setup(bot):

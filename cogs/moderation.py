@@ -1,4 +1,5 @@
 from asyncio.tasks import sleep
+
 import discord
 from discord.ext import commands
 from discord_slash import ComponentContext, MenuContext, ContextMenuType
@@ -8,9 +9,8 @@ from discord_slash.cog_ext import (
     cog_context_menu as context_menu
 )
 
-from my_utils import AsteroidBot
-from my_utils import get_content
-from .settings import DurationConverter, multiplier, guild_ids
+from my_utils import AsteroidBot, get_content, DurationConverter, multiplier
+from .settings import guild_ids
 
 
 
@@ -19,6 +19,7 @@ class Moderation(commands.Cog):
         self.bot = bot
         self.hidden = False
         self.emoji = '🛡️'
+        self.name = 'moderation'
 
 
     @slash_subcommand(

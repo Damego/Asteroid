@@ -18,3 +18,6 @@ class GenshinDataNotPublic(Exception):
 
 class GenshinAccountNotFound(Exception):
     pass
+
+class CogDisabledOnGuild(Exception):
+    ...

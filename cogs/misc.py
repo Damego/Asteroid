@@ -17,16 +17,18 @@ from discord_slash_components_bridge import ComponentContext
 import qrcode
 import requests
 
-from my_utils import AsteroidBot
-from my_utils import get_content
+from my_utils import AsteroidBot, get_content
 from ._hltv import HLTV
 from .settings import guild_ids
+
+
 
 class Misc(Cog, description='Misc commands'):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.hidden = False
         self.emoji = '💡'
+        self.name = 'misc'
 
 
     @slash_subcommand(
@@ -207,17 +209,7 @@ class Misc(Cog, description='Misc commands'):
         guild_ids=guild_ids
     )
     async def phasmophobia_random_item(self, ctx: SlashContext):
-        items_list = [
-            'Успокоительное', 'Термометр', 'Фотокамера', 'Направленный микрофон',
-            'Свеча', 'Благовоние', 'Зажигалка', 'Распятие', 'Соль',
-            'Штатив',
-            'Датчик ЭМП', 'Радиоприёмник', 'Блокнот', 'Лазерный проектор', 'Видеокамера',
-            'Слабый фонарик', 'УФ-фонарик', 'Сильный фонарик',
-            'Датчик движения', 'Неоновая палочка', 'Датчик звука',
-            'Камера с креплением на голову'
-        ]
-        
-        await self._start_random(ctx, items_list)
+        await self._start_random(ctx)
 
 
     @slash_subcommand(
@@ -237,13 +229,15 @@ class Misc(Cog, description='Misc commands'):
             'Prison',
             'Asylum'
         ]
-        
-        await self._start_random(ctx, maps_list)
-        
 
-    async def _start_random(self, ctx: SlashContext, _list):
+        await self._start_random(ctx, maps_list)
+
+
+    async def _start_random(self, ctx: SlashContext, _list: list=None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_PHASMOPHOBIA_RANDOM', lang)
+        if _list is None:
+            _list = content['ITEMS_LIST']
         components = [
             Button(style=ButtonStyle.blue, label=content['SELECT_BUTTON'], custom_id='toggle'),
             Select(

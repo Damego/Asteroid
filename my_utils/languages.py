@@ -6,6 +6,7 @@ LANGUAGES_LIST = ['ru', 'en']
 LANGUAGES = {
     'ru': {
         'ERRORS_DESCRIPTIONS': {
+            'COG_DISABLED': 'Эта команда отключена на этом сервере!',
             'TAG_NOT_FOUND': 'Тег не найден!',
             'FORBIDDEN_TAG': 'Этот тег нельзя использовать!',
             'NOT_TAG_OWNER': 'Вы не владелец тега!',
@@ -131,22 +132,21 @@ LANGUAGES = {
             'SUCCESSFULLY': 'Успешно!'
         },
         'FUNC_PHASMOPHOBIA_RANDOM': {
+            'ITEMS_LIST': [
+                'Успокоительное', 'Термометр', 'Фотокамера', 'Направленный микрофон',
+                'Свеча', 'Благовоние', 'Зажигалка', 'Распятие', 'Соль',
+                'Штатив',
+                'Датчик ЭМП', 'Радиоприёмник', 'Блокнот', 'Лазерный проектор', 'Видеокамера',
+                'Слабый фонарик', 'УФ-фонарик', 'Сильный фонарик',
+                'Датчик движения', 'Неоновая палочка', 'Датчик звука',
+                'Камера с креплением на голову'
+            ],
             'SELECT_BUTTON': 'Выборка',
             'EXCEPTION_BUTTON': 'Исключение',
             'SELECT_ITEMS_TEXT': 'Выберите предметы',
             'START_RANDOM_BUTTON': 'Рандом!',
             'EXIT_BUTTON': 'Выйти',
             'EMBED_TITLE': 'Phasmophobia рандомный предмет!',
-            'SECOND_MESSAGE_CONTENT': 'Здесь будет появляться предмет',
-            'SELECTED_ITEMS_TEXT': '**Выбранные предметы: **\n',
-        },
-        'FUNC_PHASMOPHOBIA_RANDOM': {
-            'SELECT_BUTTON': 'Выборка',
-            'EXCEPTION_BUTTON': 'Исключение',
-            'SELECT_ITEMS_TEXT': 'Выберите предметы:',
-            'START_RANDOM_BUTTON': 'Рандом!',
-            'EXIT_BUTTON': 'Выйти',
-            'EMBED_TITLE': 'Phasmophobia рандомные предметы!',
             'SECOND_MESSAGE_CONTENT': 'Здесь будет появляться предмет',
             'SELECTED_ITEMS_TEXT': '**Выбранные предметы: **\n',
         },
@@ -227,6 +227,7 @@ LANGUAGES = {
 
     'en': {
         'ERRORS_DESCRIPTIONS': {
+            'COG_DISABLED': 'This command disabled on this server!',
             'TAG_NOT_FOUND': 'Tag not found!',
             'FORBIDDEN_TAG': 'This tag cannot be used!',
             'NOT_TAG_OWNER': 'You not owner of this tag!',
@@ -352,6 +353,15 @@ LANGUAGES = {
             'SUCCESSFULLY':'Successfully!'
         },
         'FUNC_PHASMOPHOBIA_RANDOM': {
+            'ITEMS_LIST': [
+                'Sanity Pills', 'Thermometer', 'Photo Camera', 'Parabolic Microphone',
+                'Candle', 'Smudge Sticks', 'Lighter', 'Crucifix', 'Salt Shaker',
+                'Tripod',
+                'EMF Reader', 'Spirit Box', 'Ghost Writing Book', 'D.O.T.S Projector', 'Video Camera',
+                'Flashlight', 'UV Flashlight', 'Strong Flashlight',
+                'Motion Sensor', 'Glow Stick', 'Sound Sensor',
+                'Head Mounted Camera'
+            ],
             'SELECT_BUTTON': 'Select',
             'EXCEPTION_BUTTON': 'Except',
             'SELECT_ITEMS_TEXT': 'Select items',
