@@ -296,7 +296,7 @@ class Levels(Cog, description='Cистема уровней'):
     )
     @is_enabled
     @is_administrator_or_bot_owner()
-    async def add(self, ctx: SlashContext, level: str, role: Role):
+    async def add_level_role(self, ctx: SlashContext, level: str, role: Role):
         collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
         collection.update_one(
             {'_id':level},
@@ -321,7 +321,7 @@ class Levels(Cog, description='Cистема уровней'):
     )
     @is_enabled
     @is_administrator_or_bot_owner()
-    async def remove(self, ctx: SlashContext, level: str):
+    async def remove_level_role(self, ctx: SlashContext, level: str):
         level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
         try:
             level_roles_collection.delete_one({'_id':level})
@@ -352,7 +352,7 @@ class Levels(Cog, description='Cистема уровней'):
     )
     @is_enabled
     @is_administrator_or_bot_owner()
-    async def replace(self, ctx: SlashContext, old_level: str, new_level: str):
+    async def replace_level_role(self, ctx: SlashContext, old_level: str, new_level: str):
         level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
         role = level_roles_collection.find_one_and_delete({'_id':old_level})['role_id']
         level_roles_collection.update_one(
@@ -429,7 +429,7 @@ class Levels(Cog, description='Cистема уровней'):
     )
     @is_enabled
     @is_administrator_or_bot_owner()
-    async def role(self, ctx: SlashContext, member: Member, role: Role):
+    async def set_role_to_member(self, ctx: SlashContext, member: Member, role: Role):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         collection.update_one(
             {'_id':str(member.id)},
@@ -463,7 +463,7 @@ class Levels(Cog, description='Cистема уровней'):
     )
     @is_enabled
     @is_administrator_or_bot_owner()
-    async def time(self, ctx: SlashContext, member: Member, time: int):
+    async def set_time_to_member(self, ctx: SlashContext, member: Member, time: int):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         collection.update_one(
             {'_id':str(member.id)},
@@ -497,7 +497,7 @@ class Levels(Cog, description='Cистема уровней'):
     )
     @is_enabled
     @is_administrator_or_bot_owner()
-    async def level(self, ctx: SlashContext, member: Member, level: int):
+    async def set_level_to_member(self, ctx: SlashContext, member: Member, level: int):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         collection.update_one(
             {'_id':str(member.id)},
@@ -525,7 +525,7 @@ class Levels(Cog, description='Cистема уровней'):
     )
     @is_enabled
     @is_administrator_or_bot_owner()
-    async def on_join_role(self, ctx: SlashContext, role: Role):
+    async def set_on_join_role(self, ctx: SlashContext, role: Role):
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         collection.update_one(
             {'_id':'configuration'},
@@ -544,7 +544,7 @@ class Levels(Cog, description='Cистема уровней'):
     )
     @is_enabled
     @is_administrator_or_bot_owner()
-    async def on_join_role_remove(self, ctx: SlashContext):
+    async def set_on_join_role_remove(self, ctx: SlashContext):
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         collection.update_one(
             {'_id':'configuration'},
