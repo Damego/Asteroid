@@ -17,7 +17,7 @@ async def get_interaction(bot, ctx, message) -> ComponentContext:
 
 
 class PaginatorStyle:
-    def style1(pages:int):
+    def style1(pages: int):
         return [
             [
                 Button(style=ButtonStyle.gray, label='←', id='back', disabled=True),
@@ -26,7 +26,7 @@ class PaginatorStyle:
             ]
         ]
 
-    def style2(pages:int):
+    def style2(pages: int):
         return [
             [
                 Button(style=ButtonStyle.gray, label='<<', id='first', disabled=True),
@@ -39,7 +39,7 @@ class PaginatorStyle:
 
 
 class PaginatorCheckButtonID:
-    def __init__(self, components:list, pages:int) -> None:
+    def __init__(self, components: list, pages: int) -> None:
         self.components = components
         self.pages = pages
 

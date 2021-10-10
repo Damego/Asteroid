@@ -16,7 +16,7 @@ def is_administrator_or_bot_owner():
 
 
 def is_enabled(func):
-    async def wrapper(self, ctx: Union[SlashContext, RawReactionActionEvent], **kwargs):
+    async def wrapper(self, ctx: SlashContext, **kwargs):
         bot: AsteroidBot = self.bot
         collection = bot.get_guild_configuration_collection(ctx.guild_id)
         try:
@@ -34,7 +34,7 @@ def is_enabled(func):
 # No decorator check
 def _is_enabled(self, ctx):
     bot: AsteroidBot = self.bot
-    collection = bot.get_guild_configuration_collection(ctx.guild_id)
+    collection = bot.get_guild_configuration_collection(ctx.guild.id)
     try:
         enabled = collection.find_one({'_id': 'cogs_status'})[self.name]
     except KeyError:

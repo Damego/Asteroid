@@ -222,6 +222,12 @@ LANGUAGES = {
         'SET_EMBED_COLOR_COMMAND': {
             'WRONG_COLOR': 'Неверный формат цвета!',
             'SUCCESSFULLY_CHANGED': 'Цвет сообщений успешно изменён!'
+        },
+        'LEVELS': {
+            'FUNC_UPDATE_MEMBER':{
+                'NOTIFY_GUILD_CHANNEL': '{member} получил `{level}-й` уровень и повышение до {role}',
+                'NOTIFY_DM': 'Вы получили `{level}-й` уровень и повышение до {role}'
+            }
         }
     },
 
@@ -443,6 +449,12 @@ LANGUAGES = {
         'SET_EMBED_COLOR_COMMAND': {
             'WRONG_COLOR': 'Wrong color format',
             'SUCCESSFULLY_CHANGED': 'Embed color was changed!'
+        },
+        'LEVELS': {
+            'FUNC_UPDATE_MEMBER':{
+                'NOTIFY_GUILD_CHANNEL': '{member} reached level `{level}` and gotted role {role}',
+                'NOTIFY_DM': 'You reached level `{level}` and gotted role {role}'
+            }
         }
     }
 }

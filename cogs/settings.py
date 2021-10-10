@@ -148,12 +148,13 @@ class Settings(Cog):
     async def _reload_extension(self, ctx: SlashContext, extension):
         try:
             self.bot.reload_extension(f'cogs.{extension}')
+            content = 'Перезагружено!'
         except Exception as e:
             content = f"""
             Расширение {extension} не загружено!
             Ошибка: {e}
             """
-            await ctx.send(content)
+        await ctx.send(content)
 
 
     @slash_subcommand(
