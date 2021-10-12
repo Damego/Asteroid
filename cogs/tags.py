@@ -1,6 +1,5 @@
-from discord.ext import commands
-from discord.ext.commands import Context
-import discord
+from discord.ext.commands import Cog
+from discord import Embed
 from discord_slash import (
     SlashContext
 )
@@ -9,36 +8,29 @@ from discord_slash.cog_ext import (
     cog_subcommand as slash_subcommand
 )
 from discord_components import Button, ButtonStyle
-from discord_slash.context import ComponentContext
-from discord_slash_components_bridge import ComponentMessage
+from discord_slash_components_bridge import ComponentMessage, ComponentContext
 from pymongo.collection import Collection
 
-from my_utils.languages import get_content
-
+from my_utils import AsteroidBot, is_administrator_or_bot_owner, get_content
+from my_utils.errors import TagNotFound, NotTagOwner
 from .settings import guild_ids
-from my_utils.errors import TagNotFound, ForbiddenTag, NotTagOwner
-from my_utils import AsteroidBot, is_administrator_or_bot_owner
-
-guild_ids = guild_ids
 
 
 
-class Tags(commands.Cog, description='Tags'):
+class Tags(Cog, description='Tags'):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.hidden = False
         self.name = 'tags'
 
-        self.forbidden_tags = ['add', 'description', 'list', 'remove', 'rename', 'create', 'new', 't', 'desc', 'd']
 
-    @slash_command(
-        name='tags',
+    @slash_subcommand(
+        base='tag',
+        name='open',
         description='Open tag',
         guild_ids=guild_ids
     )
     async def tag(self, ctx: SlashContext, tag_name=None):
-        if tag_name is None:
-            return await ctx.reply(f'Use `{ctx.prefix}tag [tag || subcommand]`')
         tag_name = tag_name.lower()
 
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
@@ -53,7 +45,7 @@ class Tags(commands.Cog, description='Tags'):
         if description is None or description == '':
             description = 'Empty Description'
 
-        embed = discord.Embed(title=title, description=description, color=self.bot.get_embed_color(ctx.guild.id))
+        embed = Embed(title=title, description=description, color=self.bot.get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
 
@@ -65,8 +57,6 @@ class Tags(commands.Cog, description='Tags'):
     )
     async def create_new_tag(self, ctx: SlashContext, tag_name):
         tag_name = tag_name.lower()
-        if tag_name in self.forbidden_tags:
-            raise ForbiddenTag
 
         self._is_can_manage_tags(ctx)
 
@@ -86,7 +76,7 @@ class Tags(commands.Cog, description='Tags'):
             },
             upsert=True
         )
-        await ctx.message.add_reaction('✅')
+        await ctx.send('✅', hidden=True)
 
 
     @slash_subcommand(
@@ -111,7 +101,7 @@ class Tags(commands.Cog, description='Tags'):
                 }
             }
         )
-        await ctx.message.add_reaction('✅')
+        await ctx.send('✅', hidden=True)
 
 
     @slash_subcommand(
@@ -137,7 +127,7 @@ class Tags(commands.Cog, description='Tags'):
                 }
             }
         )
-        await ctx.message.add_reaction('✅')
+        await ctx.send('✅', hidden=True)
 
 
     @slash_subcommand(
@@ -157,7 +147,7 @@ class Tags(commands.Cog, description='Tags'):
 
         collection.delete_one({'_id':tag_name})
 
-        await ctx.message.add_reaction('✅')
+        await ctx.send('✅', hidden=True)
 
 
     @slash_subcommand(
@@ -177,7 +167,7 @@ class Tags(commands.Cog, description='Tags'):
         if description == '':
             description = 'No tags in this server!'
 
-        embed = discord.Embed(title='Tag list', color=self.bot.get_embed_color(ctx.guild.id))
+        embed = Embed(title='Tag list', color=self.bot.get_embed_color(ctx.guild.id))
         embed.description = description
         await ctx.send(embed=embed)
 
@@ -198,8 +188,6 @@ class Tags(commands.Cog, description='Tags'):
 
         self._is_can_manage_tags(ctx)
 
-        if new_tag_name in self.forbidden_tags:
-            raise ForbiddenTag
 
         title = tag['title']
         description = tag['description']
@@ -215,7 +203,7 @@ class Tags(commands.Cog, description='Tags'):
             upsert=True
         )
 
-        await ctx.message.add_reaction('✅')
+        await ctx.send('✅', hidden=True)
 
 
     @slash_subcommand(
@@ -258,6 +246,7 @@ class Tags(commands.Cog, description='Tags'):
         content = 'Tags now public' if status else 'Tags now only for Administators'
         await ctx.send(content)
 
+
     @slash_command(
         name='btag',
         description='Open control tag menu',
@@ -265,8 +254,6 @@ class Tags(commands.Cog, description='Tags'):
     )
     async def btag(self, ctx: SlashContext, tag_name):
         tag_name = tag_name.lower()
-        if tag_name in self.forbidden_tags:
-            raise ForbiddenTag
 
         self._is_can_manage_tags(ctx)
 
@@ -277,7 +264,7 @@ class Tags(commands.Cog, description='Tags'):
         tag = collection.find_one({'_id':tag_name})
 
         if tag is not None:
-            embed = discord.Embed(color=self.bot.get_embed_color(ctx.guild_id))
+            embed = Embed(color=self.bot.get_embed_color(ctx.guild_id))
             embed.title = tag['title']
             embed.description = tag['description']
             components = [[
@@ -304,11 +291,10 @@ class Tags(commands.Cog, description='Tags'):
             if button_id == 'edit_tag':
                 await self.init_btag(ctx, content, message)
             elif button_id == 'remove_tag':
-                self.remove_tag(interaction, tag_name)
+                await self.remove_tag(content, interaction, collection, tag_name)
                 return await message.delete(delay=5)
             elif button_id == 'exit':
-                await message.delete()
-                return
+                return await message.delete()
             elif button_id == 'set_title':
                 embed = await self.edit_tag(ctx, content, interaction, 'title', message, embed)
             elif button_id == 'set_description':
@@ -321,30 +307,45 @@ class Tags(commands.Cog, description='Tags'):
             if not interaction.responded:
                 await interaction.defer(edit_origin=True)
 
-    async def init_btag(self, ctx, content, message: ComponentMessage=None):
-        components = [[
-            Button(style=ButtonStyle.blue, label=content['SET_TITLE_BUTTON'], id='set_title'),
-            Button(style=ButtonStyle.blue, label=content['SET_DESCRIPTION_BUTTON'], id='set_description'),
-            Button(style=ButtonStyle.gray, label=content['GET_RAW_DESCRIPTION_BUTTON'], id='get_raw'),
-            Button(style=ButtonStyle.green, label=content['SAVE_TAG_BUTTON'], id='save_tag'),
-            Button(style=ButtonStyle.red, label=content['EXIT_BUTTON'], id='exit')
-        ]]
+    async def init_btag(self, ctx: SlashContext, content, message: ComponentMessage=None):
+        components = [
+            [
+                Button(style=ButtonStyle.blue, label=content['SET_TITLE_BUTTON'], id='set_title'),
+                Button(style=ButtonStyle.blue, label=content['SET_DESCRIPTION_BUTTON'], id='set_description'),
+                Button(style=ButtonStyle.gray, label=content['GET_RAW_DESCRIPTION_BUTTON'], id='get_raw'),
+                Button(style=ButtonStyle.green, label=content['SAVE_TAG_BUTTON'], id='save_tag'),
+                Button(style=ButtonStyle.red, label=content['EXIT_BUTTON'], id='exit')
+            ]
+        ]
 
-        if message is None:
-            embed = discord.Embed(
-                title=content['TAG_TITLE_TEXT'],
-                description=content['TAG_DESCRIPTION_TEXT'],
-                color=self.bot.get_embed_color(ctx.guild.id)
-            )
-            message: ComponentMessage = await ctx.send(embed=embed, components=components)
-            return embed, message
-        else:
-            await message.edit(components=components)
+        if message is not None:
+            return await message.edit(components=components)
 
-    async def edit_tag(self, ctx, content, interaction, component, message: ComponentMessage, embed: discord.Embed):
+        embed = Embed(
+            title=content['TAG_TITLE_TEXT'],
+            description=content['TAG_DESCRIPTION_TEXT'],
+            color=self.bot.get_embed_color(ctx.guild.id)
+        )
+        message: ComponentMessage = await ctx.send(embed=embed, components=components)
+        return embed, message
+            
+
+    async def edit_tag(
+        self,
+        ctx: SlashContext,
+        content,
+        interaction: ComponentContext,
+        component,
+        message: ComponentMessage,
+        embed: Embed
+        ):
         label = '`Tag title`' if component == 'title' else '`Tag description`'
         await interaction.send(f'{content["INPUT_TEXT"]} {label}', hidden=True)
-        msg = await self.bot.wait_for('message', check=lambda msg: msg.author.id == ctx.author.id)
+
+        msg = await self.bot.wait_for(
+            'message',
+            check=lambda msg: msg.author.id == ctx.author_id and msg.channel.id == ctx.channel_id
+        )
         content = msg.content
 
         if component == 'title':
@@ -355,7 +356,7 @@ class Tags(commands.Cog, description='Tags'):
         await message.edit(embed=embed)
         return embed
 
-    async def save_tag(self, content, interaction, tag_name, embed: discord.Embed, collection: Collection):
+    async def save_tag(self, content, interaction, tag_name, embed: Embed, collection: Collection):
         collection.update_one(
             {'_id':tag_name},
             {'$set':{
@@ -369,9 +370,19 @@ class Tags(commands.Cog, description='Tags'):
 
         await interaction.send(content['SAVED_TAG_TEXT'], hidden=True)
 
-    async def get_raw_description(self, interaction, embed:discord.Embed):
+    async def get_raw_description(self, interaction: ComponentContext, embed: Embed):
         tag_description = embed.description
-        return await interaction.send(content=f'```{tag_description}```', hidden=True)
+        await interaction.send(content=f'```{tag_description}```', hidden=True)
+
+    async def remove_tag(
+        self,
+        content, 
+        interaction: ComponentContext, 
+        collection: Collection, 
+        tag_name: str
+        ):
+        collection.delete_one({'_id': tag_name})
+        await interaction.send(content=content['REMOVED_TAG_TEXT'], hidden=True)
 
     
     def _is_can_manage_tags(self, ctx):

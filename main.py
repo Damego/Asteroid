@@ -114,7 +114,7 @@ async def on_slash_command_error(ctx, error):
         **Error:**
         `{error}`
         **Traceback:**
-        ```python
+        ```python \n
         {error_traceback}
         ``` """
 

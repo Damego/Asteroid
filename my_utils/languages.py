@@ -43,7 +43,7 @@ LANGUAGES = {
         'FUNC_PING': 'Задержка бота `{}` мс',
         'FUNC_ACTIVITIES': {
             'NOT_CONNECTED_TO_CHANNEL_TEXT': 'Вы не подключены к голосовому каналу!',
-            'CHOOSE_ACTIVITY_TEXT':'Выберите категорию'
+            'SELECT_ACTIVITY_TEXT':'Выберите категорию'
         },
         'GAMES_NAMES': {
             'RPS': 'Камень Ножницы бумага',
@@ -113,7 +113,8 @@ LANGUAGES = {
             'TAG_TITLE_TEXT': 'Заголовок Тега',
             'TAG_DESCRIPTION_TEXT': 'Описание Тега',
             'INPUT_TEXT': 'Введите',
-            'SAVED_TAG_TEXT': '**Сохранено!**'
+            'SAVED_TAG_TEXT': '**Сохранено!**',
+            'REMOVED_TAG_TEXT': '**Тег удалён!**'
         },
         'MUSIC_PLAY_COMMAND': {
             'ADDED_IN_QUEUE_TEXT': '`{}` Было добавлено о очередь',
@@ -270,7 +271,7 @@ LANGUAGES = {
         'FUNC_PING': 'Bot latency is `{}` ms',
         'FUNC_ACTIVITIES': {
             'NOT_CONNECTED_TO_CHANNEL_TEXT': 'You not connected to voice channel!',
-            'CHOOSE_ACTIVITY_TEXT':'Choose activity'
+            'SELECT_ACTIVITY_TEXT':'Choose activity'
         },
         'GAMES_NAMES': {
             'RPS': 'Rock Paper Scissors',
@@ -340,7 +341,8 @@ LANGUAGES = {
             'TAG_TITLE_TEXT': 'Tag title',
             'TAG_DESCRIPTION_TEXT': 'Tag description',
             'INPUT_TEXT': 'Input',
-            'SAVED_TAG_TEXT': '**Saved!**'
+            'SAVED_TAG_TEXT': '**Saved!**',
+            'REMOVED_TAG_TEXT': '**Tag was deleted!**'
         },
         'MUSIC_PLAY_COMMAND': {
             'ADDED_IN_QUEUE_TEXT': '`{}` was added in queue',

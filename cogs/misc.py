@@ -157,35 +157,54 @@ class Misc(Cog, description='Misc commands'):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_ACTIVITIES', lang=lang)
         not_connected_text = content.get('NOT_CONNECTED_TO_CHANNEL_TEXT')
-        choose_activity = content.get('CHOOSE_ACTIVITY_TEXT')
+        choose_activity = content.get('SELECT_ACTIVITY_TEXT')
 
         if not ctx.author.voice:
             return await ctx.send(not_connected_text)
 
         channel_id = ctx.author.voice.channel.id
+        activities_list = {
+            'YouTube': '755600276941176913',
+            'Betrayal.io': '773336526917861400',
+            'Fishington.io': '814288819477020702',
+            'Poker Night': '755827207812677713',
+            'Chess': '832012774040141894',
+            'Word Snack': '879863976006127627',
+            'Letter Tile': '879863686565621790',
+            'Doodle Crew': '878067389634314250'
+        }
         components = [
-            [
-                Button(style=ButtonStyle.red, label='YouTube', custom_id='755600276941176913'),
-                Button(style=ButtonStyle.blue, label='Betrayal.io', custom_id='773336526917861400'),
-                Button(style=ButtonStyle.blue, label='Fishington.io', custom_id='814288819477020702'),
-                Button(style=ButtonStyle.gray, label='Poker Night', custom_id='755827207812677713'),
-                Button(style=ButtonStyle.green, label='Chess', custom_id='832012774040141894'),
-            ]
+            Select(
+                placeholder=content['SELECT_ACTIVITY_TEXT'],
+                options=[
+                    SelectOption(label=activity, value=activities_list[activity]) for activity in activities_list
+                ]
+            )
         ]
         message = await ctx.send(choose_activity,
             components=components
         )
-
-        interaction = await self.bot.wait_for('button_click', check=lambda inter: inter.author.id == ctx.author_id and inter.message.id == message.id)
+        try:
+            interaction = await self.bot.wait_for(
+                'select_option',
+                check=lambda inter: inter.author.id == ctx.author_id and inter.message.id == message.id,
+                timeout=30
+            )
+        except asyncio.TimeoutError:
+            return await message.delete()
         await message.delete()
 
-        data = self._get_data(int(interaction.custom_id))
+        data = self._get_data(int(interaction.values[0]))
         headers = {
             'Authorization': f'Bot {environ.get("BOT_TOKEN")}',
             'Content-Type': 'application/json'
         }
 
-        responce = requests.post(f'https://discord.com/api/v8/channels/{channel_id}/invites', data=json.dumps(data), headers=headers)
+        responce = requests.post(
+            f'https://discord.com/api/v8/channels/{channel_id}/invites',
+            data=json.dumps(data),
+            headers=headers
+        )
         code = json.loads(responce.content).get('code')
         if code == '50013':
             raise Forbidden
