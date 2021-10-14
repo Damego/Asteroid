@@ -6,22 +6,20 @@ from discord_slash import SlashContext
 from discord_slash.cog_ext import (
     cog_subcommand as slash_subcommand,
 )
-from discord_slash.utils.manage_commands import create_option
-from discord_slash_components_bridge import ComponentContext
 
 from my_utils import (
     UIDNotBinded,
     GenshinAccountNotFound,
     GenshinDataNotPublic,
-    AsteroidBot
+    AsteroidBot,
+    get_content
 )
-from my_utils.languages import get_content
 from my_utils.paginator import (
     PaginatorStyle,
     PaginatorCheckButtonID,
     get_interaction
-    )
-from ..settings import guild_ids
+)
+from .settings import guild_ids
 
 
 class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
@@ -254,9 +252,13 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
     def _get_cookie(self):
         gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
 
-    def _get_UID(self, uid_type:str, guild_id:int, author_id:int):
+    def _get_UID(self, uid_type:str, guild_id: int, author_id: int):
         collection = self.bot.get_guild_users_collection(guild_id)
-        user_genshin = collection.find_one({'_id':str(author_id)}).get('genshin')
+        user_stats = collection.find_one({'_id':str(author_id)})
+
+        if user_stats is None:
+            raise UIDNotBinded
+        user_genshin = user_stats.get('genshin')
         if user_genshin is None:
             raise UIDNotBinded
 
@@ -298,3 +300,8 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
                 """
 
         return embed
+
+
+
+def setup(bot):
+    bot.add_cog(GenshinStats(bot))

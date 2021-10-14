@@ -1,3 +1,6 @@
+from re import M
+
+
 def get_content(content_type: str, lang: str):
     return LANGUAGES[lang][content_type]
 
