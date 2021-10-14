@@ -34,7 +34,7 @@ def is_enabled(func):
 # No decorator check
 def _is_enabled(self, ctx):
     bot: AsteroidBot = self.bot
-    collection = bot.get_guild_configuration_collection(ctx.guild.id)
+    collection = bot.get_guild_configuration_collection(ctx.guild_id)
     try:
         enabled = collection.find_one({'_id': 'cogs_status'})[self.name]
     except KeyError:
