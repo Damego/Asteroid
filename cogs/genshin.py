@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext.commands import Cog
 import genshinstats as gs
 from genshinstats.errors import DataNotPublic, AccountNotFound
 from discord_slash import SlashContext
@@ -22,7 +22,7 @@ from my_utils.paginator import (
 from .settings import guild_ids
 
 
-class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
+class GenshinStats(Cog, description='Genshin Impact Statistics'):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.hidden = False
@@ -100,7 +100,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         oculus_content = f"""
         <:Item_Anemoculus:870989767960059944> {content['ANEMOCULUS']}: `{user_stats['anemoculi']}/66`
         <:Item_Geoculus:870989769570676757> {content['GEOCULUS']}: `{user_stats['geoculi']}/131`
-        <:Item_Electroculus:870989768387878912> {content['ELECTROCULUS']}: `{user_stats['electroculi']}/151`
+        <:Item_Electroculus:870989768387878912> {content['ELECTROCULUS']}: `{user_stats['electroculi']}/181`
         """
 
         embed.add_field(name=content['COLLECTED_OCULUS_TEXT'], value=oculus_content, inline=False)
@@ -115,8 +115,8 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         embed.add_field(name=content['CHESTS_OPENED'], value=chests_opened, inline=False)
 
         misc_content = f"""
-        <:teleport:871385272376504341> {content['UNLOCKED_TELEPORTS']}: `{user_stats['unlocked_waypoints']}/128`
-        <:domains:871370995192193034> {content['UNLOCKED_DOMAINS']}: `{user_stats['unlocked_domains']}/29`
+        <:teleport:871385272376504341> {content['UNLOCKED_TELEPORTS']}: `{user_stats['unlocked_waypoints']}/120`
+        <:domains:871370995192193034> {content['UNLOCKED_DOMAINS']}: `{user_stats['unlocked_domains']}/30`
         """
 
         embed.add_field(name=content['MISC_INFO'], value=misc_content, inline=False)
