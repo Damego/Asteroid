@@ -3,7 +3,7 @@ from random import choice
 from discord import Embed, Member
 from discord_slash import SlashContext
 from discord_components import Button, ButtonStyle
-from discord_slash_components_bridge import ComponentMessage
+from discord_slash_components_bridge import ComponentMessage, ComponentContext
 
 from my_utils import AsteroidBot, get_content
 
@@ -93,14 +93,14 @@ class RockPaperScissors:
             players_choice[self.member.id] = choice(['rock', 'paper', 'scissors'])
         
         while True:
-            interaction = await self.bot.wait_for(
+            interaction: ComponentContext = await self.bot.wait_for(
                 'button_click',
                 check=check
             )
                 
             if interaction.author_id in players_choice:
                 made_move = self.content['MADE_MOVE_TEXT']
-                await interaction.send(made_move)
+                await interaction.send(made_move, hidden=True)
             else:
                 await interaction.defer(ignore=True)
                 players_choice[interaction.author_id] = interaction.custom_id
