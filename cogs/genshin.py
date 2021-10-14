@@ -52,7 +52,7 @@ class GenshinStats(commands.Cog, description='Genshin Impact Statistics'):
         )
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('GENSHIN_BIND_COMMAND', lang)
-        return await ctx.reply(content)
+        await ctx.send(content)
 
 
     @slash_subcommand(
