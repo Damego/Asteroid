@@ -23,7 +23,7 @@ bot = AsteroidBot(
     command_prefix='+',
     intents=Intents.all()
 )
-slash = SlashCommand(bot, sync_commands=False, sync_on_cog_reload=True)
+slash = SlashCommand(bot, sync_commands=True, sync_on_cog_reload=True)
 
 
 # EVENTS
