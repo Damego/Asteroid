@@ -119,6 +119,10 @@ LANGUAGES = {
             'SAVED_TAG_TEXT': '**Сохранено!**',
             'REMOVED_TAG_TEXT': '**Тег удалён!**'
         },
+        'FUNC_TAG_LIST': {
+            'TAGS_LIST_TEXT': 'Список тегов в {server}',
+            'NO_TAGS_TEXT': 'Список пуст!'
+        },
         'MUSIC_PLAY_COMMAND': {
             'ADDED_IN_QUEUE_TEXT': '`{}` Было добавлено о очередь',
             'NOT_CONNECTED_TO_VOICE': 'Подключитесь к голосовому каналу с ботом!',
@@ -346,6 +350,10 @@ LANGUAGES = {
             'INPUT_TEXT': 'Input',
             'SAVED_TAG_TEXT': '**Saved!**',
             'REMOVED_TAG_TEXT': '**Tag was deleted!**'
+        },
+        'FUNC_TAG_LIST': {
+            'TAGS_LIST_TEXT': 'Tags list on {server}',
+            'NO_TAGS_TEXT': 'No tags in this server!'
         },
         'MUSIC_PLAY_COMMAND': {
             'ADDED_IN_QUEUE_TEXT': '`{}` was added in queue',

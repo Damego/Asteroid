@@ -87,17 +87,18 @@ class RockPaperScissors:
 
         await self.message.edit(
             embed=embed,
-            components=components)
-                
+            components=components
+        )
+   
         if self.member.bot:
             players_choice[self.member.id] = choice(['rock', 'paper', 'scissors'])
-        
+
         while True:
             interaction: ComponentContext = await self.bot.wait_for(
                 'button_click',
                 check=check
             )
-                
+
             if interaction.author_id in players_choice:
                 made_move = self.content['MADE_MOVE_TEXT']
                 await interaction.send(made_move, hidden=True)

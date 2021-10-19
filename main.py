@@ -6,9 +6,9 @@ from discord import Guild, Intents, Embed
 from discord.ext import commands
 from discord_slash_components_bridge import SlashCommand
 
-from my_utils import AsteroidBot
+from my_utils import AsteroidBot, get_content
 from my_utils.errors import *
-from my_utils.languages import get_content 
+from my_utils import slash_override
 
 def _load_extensions():
     for filename in listdir('./cogs'):
@@ -23,7 +23,7 @@ bot = AsteroidBot(
     command_prefix='+',
     intents=Intents.all()
 )
-slash = SlashCommand(bot, sync_commands=True, sync_on_cog_reload=True)
+slash = SlashCommand(bot, sync_commands=False, sync_on_cog_reload=True)
 
 
 # EVENTS
@@ -114,7 +114,7 @@ async def on_slash_command_error(ctx, error):
         **Error:**
         `{error}`
         **Traceback:**
-        ```python \n
+        ``` \n
         {error_traceback}
         ``` """
 

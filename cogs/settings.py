@@ -81,6 +81,7 @@ class Settings(Cog):
     @slash_subcommand(
         base='set',
         name='status',
+        description='Disable all commands in cogs (if implemented)',
         guild_ids=guild_ids
     )
     async def set_cog_status(self, ctx: SlashContext, cog: str, status: bool):

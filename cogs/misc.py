@@ -18,7 +18,6 @@ import qrcode
 import requests
 
 from my_utils import AsteroidBot, get_content
-from ._hltv import HLTV
 from .settings import guild_ids
 
 
@@ -225,6 +224,7 @@ class Misc(Cog, description='Misc commands'):
     @slash_subcommand(
         base='phasmo',
         name='item',
+        description='Random item in Phasmophobia',
         guild_ids=guild_ids
     )
     async def phasmophobia_random_item(self, ctx: SlashContext):
@@ -234,6 +234,7 @@ class Misc(Cog, description='Misc commands'):
     @slash_subcommand(
         base='phasmo',
         name='map',
+        description='Random map in Phasmophobia',
         guild_ids=guild_ids
     )
     async def phasmophobia_random_map(self, ctx: SlashContext):
@@ -339,6 +340,22 @@ class Misc(Cog, description='Misc commands'):
         else:
             await interaction.defer(edit_origin=True)
             return interaction
+
+
+    @slash_command(
+        name='test2',
+        guild_ids=guild_ids
+    )
+    async def test_command1(self, ctx: SlashContext):
+        message1 = await ctx.channel.send('hi', components=[Button(label='test')])
+        message_type1 = type(message1)
+        print(message_type1)
+        message = await ctx.channel.fetch_message(897535295552126997)
+        print(message.components)
+        print(message.ephemeral)
+        message_type = type(message)
+        print(message_type)
+        await ctx.send(str(message_type))
 
 
 

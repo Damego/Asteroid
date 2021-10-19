@@ -31,7 +31,7 @@ class Tags(Cog, description='Tags'):
         guild_ids=guild_ids
     )
     async def tag(self, ctx: SlashContext, tag_name=None):
-        tag_name = tag_name.lower()
+        tag_name = self.convert_tag_name(tag_name)
 
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
@@ -86,7 +86,7 @@ class Tags(Cog, description='Tags'):
         guild_ids=guild_ids
     )
     async def set_tag_title(self, ctx: SlashContext, tag_name: str, *, title: str):
-        tag_name = tag_name.lower()
+        tag_name = self.convert_tag_name(tag_name)
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
         if tag is None:
@@ -111,7 +111,7 @@ class Tags(Cog, description='Tags'):
         guild_ids=guild_ids
     )
     async def set_tag_description(self, ctx: SlashContext, tag_name, *, description):
-        tag_name = tag_name.lower()
+        tag_name = self.convert_tag_name(tag_name)
         description = f"""{description}"""
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
@@ -137,7 +137,7 @@ class Tags(Cog, description='Tags'):
         guild_ids=guild_ids
     )
     async def remove(self, ctx: SlashContext, tag_name):
-        tag_name = tag_name.lower()
+        tag_name = self.convert_tag_name(tag_name)
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
         if tag is None:
@@ -159,15 +159,17 @@ class Tags(Cog, description='Tags'):
     async def list(self, ctx: SlashContext):
         description = ''
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('FUNC_TAG_LIST', lang)
         tags_cursor = collection.find({})
         
         for count, tag in enumerate(tags_cursor, start=1):
             description += f'**{count}. {tag["_id"]}**\n'
             count += 1
         if description == '':
-            description = 'No tags in this server!'
+            description = content['NO_TAGS_TEXT']
 
-        embed = Embed(title='Tag list', color=self.bot.get_embed_color(ctx.guild.id))
+        embed = Embed(title=content['TAGS_LIST_TEXT'].format(server=ctx.guild.name), color=self.bot.get_embed_color(ctx.guild.id))
         embed.description = description
         await ctx.send(embed=embed)
 
@@ -179,7 +181,7 @@ class Tags(Cog, description='Tags'):
         guild_ids=guild_ids
     )
     async def rename(self, ctx: SlashContext, tag_name, new_tag_name):
-        tag_name = tag_name.lower()
+        tag_name = self.convert_tag_name(tag_name)
         new_tag_name = new_tag_name.lower()
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
@@ -213,7 +215,7 @@ class Tags(Cog, description='Tags'):
         guild_ids=guild_ids
     )
     async def raw(self, ctx: SlashContext, tag_name):
-        tag_name = tag_name.lower()
+        tag_name = self.convert_tag_name(tag_name)
         collection = self.bot.get_guild_tags_collection(ctx.guild.id)
         tag = collection.find_one({'_id':tag_name})
         if tag is None:
@@ -228,7 +230,7 @@ class Tags(Cog, description='Tags'):
     @slash_subcommand(
         base='public',
         name='tags',
-        description='Show raw tag description',
+        description='Allows or disallows everyone to use tags',
         guild_ids=guild_ids
     )
     @is_administrator_or_bot_owner()
@@ -253,7 +255,7 @@ class Tags(Cog, description='Tags'):
         guild_ids=guild_ids
     )
     async def btag(self, ctx: SlashContext, tag_name):
-        tag_name = tag_name.lower()
+        tag_name = self.convert_tag_name(tag_name)
 
         self._is_can_manage_tags(ctx)
 
@@ -397,6 +399,20 @@ class Tags(Cog, description='Tags'):
 
         if not is_public_tags:
             raise NotTagOwner
+
+
+    def convert_tag_name(self, tag_name: str):
+        tag_name = tag_name.lower().strip()
+
+        if ' ' in tag_name:
+            tag_name = tag_name.replace(' ', '')
+        if '-' in tag_name:
+            tag_name = tag_name.replace('-', '')
+        if '_' in tag_name:
+            tag_name = tag_name.replace('_', '')
+
+        return tag_name
+
 
 
 def setup(bot):
