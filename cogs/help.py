@@ -49,7 +49,8 @@ class Help(Cog):
             await interaction.edit_origin(embed=embed)
 
     def _init_components(self):
-        options = []
+        options = [SelectOption(label='Main Page', value='main_page', emoji='🏠')]
+
         for _cog in self.bot.cogs:
             cog = self.bot.cogs[_cog]
             if cog.hidden:
@@ -62,10 +63,6 @@ class Help(Cog):
             options.append(
                 SelectOption(label=_cog, value=_cog, emoji=emoji)
             )
-
-        options.append(
-            SelectOption(label='Main Page', value='main_page', emoji='🏠')
-        )
 
         return [
             Select(
