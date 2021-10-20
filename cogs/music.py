@@ -1,26 +1,21 @@
 import discord
-from discord.ext import commands
 from DiscordUtils import Music as _Music
 from discord import VoiceProtocol
 from discord_components import Button, ButtonStyle
 from discord_slash import SlashContext
-from discord_slash.cog_ext import (
-    cog_slash as slash_command,
-    cog_subcommand as slash_subcommand,
-)
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash_components_bridge import ComponentContext
 
-from my_utils import AsteroidBot, get_content, NotConnectedToVoice
+from my_utils import AsteroidBot, get_content, NotConnectedToVoice, Cog
 from .settings import guild_ids
 
 
 
-class Music(commands.Cog, description='Music'):
+class Music(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
-        self.hidden = False
         self.emoji = '🎵'
-        self.name = 'music'
+        self.name = 'Music'
 
         self.music = _Music()
 
@@ -28,7 +23,7 @@ class Music(commands.Cog, description='Music'):
         self.players = {}
 
 
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         if not member.bot and after.channel is None:
             members = before.channel.members

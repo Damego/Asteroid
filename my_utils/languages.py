@@ -236,6 +236,11 @@ LANGUAGES = {
                 'NOTIFY_GUILD_CHANNEL': '{member} получил `{level}-й` уровень и повышение до {role}',
                 'NOTIFY_DM': 'Вы получили `{level}-й` уровень и повышение до {role}'
             }
+        },
+        'HELP_COMMAND': {
+            'INFORMATION_TEXT': 'Информация',
+            'INFORMATION_CONTENT_TEXT': '```Подсказка: [обязательный аргумент] (необязательный аргумент)```',
+            'REQUIRED_BY_TEXT': 'Запрошено {user}'
         }
     },
 
@@ -468,6 +473,11 @@ LANGUAGES = {
                 'NOTIFY_GUILD_CHANNEL': '{member} reached level `{level}` and gotted role {role}',
                 'NOTIFY_DM': 'You reached level `{level}` and gotted role {role}'
             }
+        },
+        'HELP_COMMAND': {
+            'INFORMATION_TEXT': 'Information',
+            'INFORMATION_CONTENT_TEXT': '```Hint: [required argument] (optional argument)```',
+            'REQUIRED_BY_TEXT': 'Required by {user}'
         }
     }
 }

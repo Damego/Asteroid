@@ -1,14 +1,12 @@
 import asyncio
-from discord import Embed
-from discord.ext.commands import Cog
-from discord_slash import SlashContext
-from discord_slash.cog_ext import (
-    cog_slash as slash_command,
-    cog_subcommand as slash_subcommand,
-)
-from discord_components import Select, SelectOption
 
-from my_utils import AsteroidBot
+from discord import Embed
+from discord_slash import SlashContext
+from discord_slash.cog_ext import cog_slash as slash_command
+from discord_components import Select, SelectOption
+from discord_slash_components_bridge import ComponentContext
+
+from my_utils import AsteroidBot, get_content, Cog
 from .settings import guild_ids
 
 
@@ -16,9 +14,8 @@ from .settings import guild_ids
 class Help(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
-        self.hidden = False
-        self.emoji = '💡'
-        self.name = 'help'
+        self.hidden = True
+        self.name = 'Help'
 
 
     @slash_command(
@@ -27,16 +24,60 @@ class Help(Cog):
         guild_ids=guild_ids
     )
     async def help_command(self, ctx: SlashContext):
-        commands_data = self._get_commands_data()
-        components = [
+        components = self._init_components()
+        embeds = self._init_embeds(ctx)
+        message = await ctx.send(embed=embeds[0], components=components)
+
+        while True:
+            try:
+                interaction: ComponentContext = await self.bot.wait_for(
+                    'select_option',
+                    check=lambda inter: inter.author_id == ctx.author_id and inter.message.id == message.id,
+                    timeout=60
+                    )
+            except asyncio.TimeoutError:
+                for component in components:
+                    component.disabled = True
+                return await message.edit(components=components)
+
+            for embed in embeds:
+                if embed.title.startswith(interaction.values[0]):
+                    break
+            await interaction.edit_origin(embed=embed)
+
+    def _init_components(self):
+        options = []
+        for _cog in self.bot.cogs:
+            cog = self.bot.cogs[_cog]
+            if cog.hidden:
+                continue
+
+            emoji = cog.emoji
+            if isinstance(emoji, int):
+                emoji = self.bot.get_emoji(emoji)
+
+            options.append(
+                SelectOption(label=_cog, value=_cog, emoji=emoji)
+            )
+
+        return [
             Select(
-                placeholder='Select a module',
-                options=[SelectOption(label=cog.capitalize(), value=cog.capitalize()) for cog in commands_data]
+                placeholder='Select module',
+                options=options
             )
         ]
-        embeds = []
-        for cog in commands_data:
-            embed = Embed(title=cog.capitalize(), description='')
+
+    def _init_embeds(self, ctx: SlashContext):
+        commands_data = self._get_commands_data()
+        embeds = [self._get_main_menu(ctx)]
+
+        for cog in self.bot.cogs:
+            _cog = self.bot.cogs[cog]
+            if _cog.hidden:
+                continue
+
+            embed = Embed(title=f'{cog} | Asteroid Bot', description='', color=0x2f3136)
+
             for _base_command in commands_data[cog]:
                 base_command = commands_data[cog][_base_command]
                 for _group in base_command:
@@ -57,27 +98,35 @@ class Help(Cog):
 
             embeds.append(embed)
 
-        message = await ctx.send(embed=embeds[0], components=components)
+        return embeds
 
-        while True:
-            try:
-                interaction = await self.bot.wait_for(
-                    'select_option',
-                    check=lambda inter: inter.author_id == ctx.author_id and inter.message.id == message.id,
-                    timeout=60
-                    )
-            except asyncio.TimeoutError:
-                components[0].disabled = True
-                return await message.edit(components=components)
+    def _get_main_menu(self, ctx: SlashContext) -> Embed:
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('HELP_COMMAND', lang)
 
-            value = interaction.values[0]
-            for embed in embeds:
-                if embed.title == value:
-                    break
-            await interaction.edit_origin(embed=embed)
+        embed = Embed(title='Help | Asteroid Bot', color=0x2f3136)
+        embed.add_field(
+            name=content['INFORMATION_TEXT'],
+            value=content['INFORMATION_CONTENT_TEXT'],
+            inline=False
+        )
+        embed.set_thumbnail(url=ctx.bot.user.avatar_url)
+        embed.set_footer(
+            text=content['REQUIRED_BY_TEXT'].format(user=ctx.author),
+            icon_url=ctx.author.avatar_url
+        )
 
+        content = ''
+        for _cog in self.bot.cogs:
+            cog = self.bot.cogs[_cog]
+            if not cog.hidden:
+                content += f'**» {_cog}**\n'
 
-    def get_options(self, command):
+        embed.add_field(name='Plugins', value=content)
+
+        return embed
+
+    def get_options(self, command) -> str:
         options = command['options']
         option_line = ''
         if options is None:
@@ -87,8 +136,7 @@ class Help(Cog):
             option_line += f'[{option_name}] ' if _option['required'] else f'({option_name}) '
         return option_line
 
-
-    def _get_commands_data(self):
+    def _get_commands_data(self) -> dict:
         commands_data = {}
         _commands = self.bot.slash.commands
         for _command in _commands:
@@ -103,7 +151,6 @@ class Help(Cog):
         self._get_subcommands_data(commands_data)
         return commands_data
 
-
     def _get_subcommands_data(self, commands_data):
         _subcommands = self.bot.slash.subcommands
         for _slash_command in _subcommands:
@@ -116,7 +163,6 @@ class Help(Cog):
                         self._append_subcommand(commands_data, group)
                 else:
                     self._append_subcommand(commands_data, cogsubcommand)
-
 
     def _append_subcommand(self, commands_data, command):
         if command.cog.name not in commands_data:
@@ -138,7 +184,8 @@ class Help(Cog):
                     'description': command.description,
                     'options': command.options
             }
-            
+
+
 
 def setup(bot):
     bot.add_cog(Help(bot))

@@ -4,24 +4,23 @@ import discord
 from discord.ext.commands import Cog
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
-    cog_slash as slash_command,
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu
 )
 from discord_components import Button, ButtonStyle
 from discord_slash_components_bridge import ComponentContext
 
+from my_utils import AsteroidBot, get_content, Cog
 from ._tictactoe import TicTacToe
 from ._rockpaperscissors import RockPaperScissors
-from my_utils import AsteroidBot
-from my_utils import get_content
 from ..settings import guild_ids
 
 
-class Games(Cog, description='Игры'):
+class Games(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
-        self.name = 'games'
+        self.name = 'Games'
+        self.emoji = '🎮'
 
 
     @slash_subcommand(

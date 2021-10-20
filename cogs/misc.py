@@ -5,7 +5,6 @@ from random import choice, randint
 
 import discord
 from discord.errors import Forbidden
-from discord.ext.commands import Cog
 from discord_components import Select, SelectOption, Button, ButtonStyle
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
@@ -17,17 +16,17 @@ from discord_slash_components_bridge import ComponentContext
 import qrcode
 import requests
 
-from my_utils import AsteroidBot, get_content
+from my_utils import AsteroidBot, get_content, Cog
 from .settings import guild_ids
 
 
 
-class Misc(Cog, description='Misc commands'):
+class Misc(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.hidden = False
         self.emoji = '💡'
-        self.name = 'misc'
+        self.name = 'Misc'
 
 
     @slash_subcommand(

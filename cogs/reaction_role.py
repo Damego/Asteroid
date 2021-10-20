@@ -1,13 +1,17 @@
 import discord
 from discord import RawReactionActionEvent
-from discord.ext.commands import Cog
 from discord_slash.cog_ext import (
-    cog_slash as slash_command,
     cog_subcommand as slash_subcommand
 )
 from discord_slash.utils.manage_commands import create_option
 
-from my_utils import AsteroidBot, is_administrator_or_bot_owner, is_enabled, _is_enabled, CogDisabledOnGuild
+from my_utils import (
+    AsteroidBot,
+    is_administrator_or_bot_owner,
+    is_enabled, _is_enabled,
+    CogDisabledOnGuild,
+    Cog
+)
 from .settings import guild_ids
 
 
@@ -21,9 +25,8 @@ def get_emoji_role(collection, payload, emoji):
 class ReactionRole(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
-        self.hidden = False
         self.emoji = '✨'
-        self.name = 'reactionrole'
+        self.name = 'ReactionRole'
 
 
     @Cog.listener()

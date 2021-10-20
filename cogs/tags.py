@@ -1,4 +1,3 @@
-from discord.ext.commands import Cog
 from discord import Embed
 from discord_slash import (
     SlashContext
@@ -11,17 +10,17 @@ from discord_components import Button, ButtonStyle
 from discord_slash_components_bridge import ComponentMessage, ComponentContext
 from pymongo.collection import Collection
 
-from my_utils import AsteroidBot, is_administrator_or_bot_owner, get_content
+from my_utils import AsteroidBot, is_administrator_or_bot_owner, get_content, Cog
 from my_utils.errors import TagNotFound, NotTagOwner
 from .settings import guild_ids
 
 
 
-class Tags(Cog, description='Tags'):
+class Tags(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.hidden = False
-        self.name = 'tags'
+        self.name = 'Tags'
 
 
     @slash_subcommand(

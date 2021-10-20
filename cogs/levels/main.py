@@ -2,32 +2,29 @@ from time import time
 from random import randint
 
 from discord import Member, Message, VoiceState, Role, Embed
-from discord.ext.commands import Cog
 from discord_slash.utils.manage_commands import create_option
 from pymongo.collection import Collection
 from discord_slash import SlashContext
-from discord_slash.cog_ext import (
-    cog_subcommand as slash_subcommand,
-)
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
 from my_utils import (
     AsteroidBot,
     is_administrator_or_bot_owner,
     is_enabled,
     _is_enabled,
-    CogDisabledOnGuild
+    CogDisabledOnGuild,
+    Cog
 )
 from ._levels import update_member, formula_of_experience
 from ..settings import guild_ids
 
 
 
-class Levels(Cog, description='Cистема уровней'):
+class Levels(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
-        self.hidden = False
         self.emoji = 863677232239869964
-        self.name = 'levels'
+        self.name = 'Levels'
 
         self.last_user_message = {}
         self.time_factor = 10

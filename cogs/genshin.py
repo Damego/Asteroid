@@ -1,5 +1,4 @@
 import discord
-from discord.ext.commands import Cog
 import genshinstats as gs
 from genshinstats.errors import DataNotPublic, AccountNotFound
 from discord_slash import SlashContext
@@ -12,7 +11,8 @@ from my_utils import (
     GenshinAccountNotFound,
     GenshinDataNotPublic,
     AsteroidBot,
-    get_content
+    get_content,
+    Cog
 )
 from my_utils.paginator import (
     PaginatorStyle,
@@ -22,12 +22,11 @@ from my_utils.paginator import (
 from .settings import guild_ids
 
 
-class GenshinStats(Cog, description='Genshin Impact Statistics'):
+class GenshinStats(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
-        self.hidden = False
         self.emoji = 863429526632923136
-        self.name = 'genshin'
+        self.name = 'GenshinStats'
 
 
     @slash_subcommand(

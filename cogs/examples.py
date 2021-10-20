@@ -1,19 +1,15 @@
 # This Cog maded to discord-components server
 import asyncio
 from discord.ext.commands import Cog
-from discord import Embed
 from discord_slash import (
     SlashContext
 )
 from discord_slash.cog_ext import (
-    cog_slash as slash_command,
     cog_subcommand as slash_subcommand
 )
 from discord_components import Button, ButtonStyle, Select, SelectOption
-from discord_slash_components_bridge import ComponentMessage, ComponentContext
 
-
-from my_utils import AsteroidBot
+from my_utils import AsteroidBot, Cog
 from .settings import guild_ids
 
 
@@ -21,7 +17,8 @@ from .settings import guild_ids
 class Examples(Cog):
     def __init__(self, bot: AsteroidBot) -> None:
         self.bot = bot
-        self.name = 'examples'
+        self.name = 'Examples'
+        self.emoji = '⚙️'
 
 
     @slash_subcommand(

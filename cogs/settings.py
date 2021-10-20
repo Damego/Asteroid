@@ -1,7 +1,6 @@
 import os, sys
 import discord
 from discord.ext import commands
-from discord.ext.commands import Cog
 from discord_slash import SlashContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
@@ -12,22 +11,27 @@ from my_utils import (
     AsteroidBot,
     LANGUAGES_LIST,
     get_content,
-    is_administrator_or_bot_owner
+    is_administrator_or_bot_owner,
+    Cog
 )
 
 
+#guild_ids = [
+#    422989643634442240,
+#    822119465575383102,
+#    847283544803508254
+#]
 guild_ids = [
-    422989643634442240,
-    822119465575383102,
-    847283544803508254
+    829333896561819648
 ]
 
 
 
 class Settings(Cog):
-    def __init__(self, bot:AsteroidBot) -> None:
+    def __init__(self, bot: AsteroidBot) -> None:
         self.bot = bot
-        self.name = 'settings'
+        self.emoji = '🛠️'
+        self.name = 'Settings'
 
 
     @slash_subcommand(

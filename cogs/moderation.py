@@ -1,25 +1,20 @@
-from asyncio.tasks import sleep
+from asyncio import sleep
 
 import discord
-from discord.ext import commands
-from discord_slash import ComponentContext, MenuContext, ContextMenuType
-from discord_slash.cog_ext import (
-    cog_slash as slash_command,
-    cog_subcommand as slash_subcommand,
-    cog_context_menu as context_menu
-)
+from discord.ext.commands import has_guild_permissions
+from discord_slash import ComponentContext
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
-from my_utils import AsteroidBot, get_content, DurationConverter, multiplier
+from my_utils import AsteroidBot, get_content, DurationConverter, multiplier, Cog
 from .settings import guild_ids
 
 
 
-class Moderation(commands.Cog):
+class Moderation(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
-        self.hidden = False
-        self.emoji = '🛡️'
-        self.name = 'moderation'
+        self.emoji = 900384185804525678
+        self.name = 'Moderation'
 
 
     @slash_subcommand(
@@ -28,7 +23,7 @@ class Moderation(commands.Cog):
         description='Mute member',
         guild_ids=guild_ids
     )
-    @commands.has_guild_permissions(mute_members=True)
+    @has_guild_permissions(mute_members=True)
     async def mute(self, ctx: ComponentContext, member: discord.Member, duration: DurationConverter, *, reason=None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: str = get_content('FUNC_MODERATION_MUTE_MEMBER', lang)
@@ -73,7 +68,7 @@ class Moderation(commands.Cog):
         description='Unmute members',
         guild_ids=guild_ids
     )
-    @commands.has_guild_permissions(mute_members=True)
+    @has_guild_permissions(mute_members=True)
     async def unmute(self, ctx: ComponentContext, member:discord.Member):
         muted_role = await self.get_muted_role(ctx)
         await member.remove_roles(muted_role)
@@ -86,7 +81,7 @@ class Moderation(commands.Cog):
         description='Ban member',
         guild_ids=guild_ids
     )
-    @commands.has_guild_permissions(ban_members=True)
+    @has_guild_permissions(ban_members=True)
     async def ban(self, ctx: ComponentContext, member:discord.Member, *, reason=None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: str = get_content('FUNC_MODERATION_BAN_MEMBER', lang)
@@ -112,7 +107,7 @@ class Moderation(commands.Cog):
         description='Unban member',
         guild_ids=guild_ids
     )
-    @commands.has_guild_permissions(ban_members=True)
+    @has_guild_permissions(ban_members=True)
     async def unban(self, ctx:ComponentContext, user: discord.User):
         await ctx.guild.unban(user)
         await ctx.message.add_reaction('✅')
@@ -124,7 +119,7 @@ class Moderation(commands.Cog):
         description='Kick member',
         guild_ids=guild_ids
     )
-    @commands.has_guild_permissions(kick_members=True)
+    @has_guild_permissions(kick_members=True)
     async def kick(self, ctx: ComponentContext, member: discord.Member, reason: str):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: str = get_content('FUNC_MODERATION_KICK_MEMBER', lang)
@@ -150,7 +145,7 @@ class Moderation(commands.Cog):
         description='Remove role of member',
         guild_ids=guild_ids
     )
-    @commands.has_guild_permissions(manage_roles=True)
+    @has_guild_permissions(manage_roles=True)
     async def remove_role(self, ctx: ComponentContext, member: discord.Member, role: discord.Role):
         await member.remove_roles(role)
         await ctx.message.add_reaction('✅')
@@ -162,13 +157,13 @@ class Moderation(commands.Cog):
         description='Add role to member',
         guild_ids=guild_ids
     )
-    @commands.has_guild_permissions(manage_roles=True)
+    @has_guild_permissions(manage_roles=True)
     async def add_role(self, ctx: ComponentContext, member: discord.Member, role: discord.Role):
         await member.add_roles(role)
         await ctx.message.add_reaction('✅')
 
 
-    @commands.has_guild_permissions(manage_nicknames=True)
+    @has_guild_permissions(manage_nicknames=True)
     @slash_subcommand(
         base='mod',
         name='nick',
@@ -192,7 +187,7 @@ class Moderation(commands.Cog):
         description='Deletes messages in channel',
         guild_ids=guild_ids
     )
-    @commands.has_guild_permissions(manage_messages=True)
+    @has_guild_permissions(manage_messages=True)
     async def clear(self, ctx: ComponentContext, amount: int):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: str = get_content('FUNC_MODERATION_CLEAR_MESSAGES', lang)
