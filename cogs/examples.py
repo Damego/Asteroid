@@ -48,7 +48,7 @@ class Examples(Cog):
                 interaction = await self.bot.wait_for(
                     'button_click',
                     check=lambda inter: inter.message.id == message.id,
-                    timeout=180
+                    timeout=60
                     )
             except asyncio.TimeoutError:
                 for row in components:
@@ -85,7 +85,7 @@ while True:
         interaction = await self.bot.wait_for(
             'button_click',
             check=lambda inter: inter.message.id == message.id,
-            timeout=180
+            timeout=60
             )
     except asyncio.TimeoutError:
         for row in components:
@@ -128,7 +128,7 @@ while True:
                 interaction = await self.bot.wait_for(
                     'select_option',
                     check=lambda inter: inter.message.id == message.id,
-                    timeout=180
+                    timeout=60
                     )
             except asyncio.TimeoutError:
                 for row in components:
@@ -169,7 +169,7 @@ while True:
         interaction = await self.bot.wait_for(
             'select_option',
             check=lambda inter: inter.message.id == message.id,
-            timeout=180
+            timeout=60
             )
     except asyncio.TimeoutError:
         for row in components:
@@ -219,7 +219,7 @@ while True:
                 interaction = await self.bot.wait_for(
                     'component',
                     check=lambda inter: inter.message.id == message.id,
-                    timeout=180
+                    timeout=60
                     )
             except asyncio.TimeoutError:
                 for row in components:
@@ -268,7 +268,7 @@ while True:
         interaction = await self.bot.wait_for(
             'interaction',
             check=lambda inter: inter.message.id == message.id,
-            timeout=180
+            timeout=60
             )
     except asyncio.TimeoutError:
         for row in components:
