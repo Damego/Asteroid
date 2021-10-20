@@ -53,7 +53,7 @@ class Examples(Cog):
             except asyncio.TimeoutError:
                 for row in components:
                     row.disable_components()
-                return await message.edit(components=components)
+                return await message.edit(content='Timed out!', components=components)
             
             await interaction.send(f'You clicked `{interaction.custom_id}` button', hidden=True)
 
@@ -90,7 +90,7 @@ while True:
     except asyncio.TimeoutError:
         for row in components:
             row.disable_components()
-        return await message.edit(components=components)
+        return await message.edit(content='Timed out!', components=components)
     
     await interaction.send(f'You clicked `{interaction.custom_id}` button')
         ```
@@ -133,7 +133,7 @@ while True:
             except asyncio.TimeoutError:
                 for row in components:
                     row.disable_components()
-                return await message.edit(components=components)
+                return await message.edit(content='Timed out!', components=components)
             
             await interaction.send(f'You selected `{", ".join(interaction.values)}`!', hidden=True)
 
@@ -174,7 +174,7 @@ while True:
     except asyncio.TimeoutError:
         for row in components:
             row.disable_components()
-        return await message.edit(components=components)
+        return await message.edit(content='Timed out!', components=components)
     
     await interaction.send(f'You selected `{interaction.values}`!', hidden=True)
         ```
@@ -224,7 +224,7 @@ while True:
             except asyncio.TimeoutError:
                 for row in components:
                     row.disable_components()
-                return await message.edit(components=components)
+                return await message.edit(content='Timed out!', components=components)
 
             if isinstance(interaction.component, Select):
                 await interaction.send(f'You selected `{", ".join(interaction.values)}`!', hidden=True)
@@ -273,7 +273,7 @@ while True:
     except asyncio.TimeoutError:
         for row in components:
             row.disable_components()
-        return await message.edit(components=components)
+        return await message.edit(content='Timed out!', components=components)
 
     if isinstance(interaction.component, Select):
         await interaction.send(f'You selected `{", ".join(interaction.values)}`!')
