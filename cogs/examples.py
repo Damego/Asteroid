@@ -176,7 +176,7 @@ while True:
             row.disable_components()
         return await message.edit(content='Timed out!', components=components)
     
-    await interaction.send(f'You selected `{interaction.values}`!', hidden=True)
+    await interaction.send(f'You selected `{interaction.values}`!')
         ```
         """
 
