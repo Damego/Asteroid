@@ -36,13 +36,16 @@ class Help(Cog):
                     timeout=60
                     )
             except asyncio.TimeoutError:
-                for component in components:
-                    component.disabled = True
-                return await message.edit(components=components)
+                return await message.edit(components=[])
 
-            for embed in embeds:
-                if embed.title.startswith(interaction.values[0]):
-                    break
+            value = interaction.values[0]
+
+            if value == 'main_page':
+                embed = embeds[0]
+            else:
+                for embed in embeds:
+                    if embed.title.startswith(value):
+                        break
             await interaction.edit_origin(embed=embed)
 
     def _init_components(self):
@@ -59,6 +62,10 @@ class Help(Cog):
             options.append(
                 SelectOption(label=_cog, value=_cog, emoji=emoji)
             )
+
+        options.append(
+            SelectOption(label='Main Page', value='main_page', emoji='🏠')
+        )
 
         return [
             Select(
