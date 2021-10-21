@@ -1,3 +1,5 @@
+import asyncio
+
 from discord import Embed
 from discord_slash import (
     SlashContext
@@ -281,8 +283,11 @@ class Tags(Cog):
             try:
                 interaction: ComponentContext = await self.bot.wait_for(
                     'button_click',
-                    check=lambda inter: inter.author.id == ctx.author.id and message.id == inter.message.id
-                    )
+                    check=lambda inter: inter.author_id == ctx.author_id and message.id == inter.message.id,
+                    timeout=600
+                )
+            except asyncio.TimeoutError:
+                return await message.delete()
             except Exception as e:
                 print('TAG ERROR:', e)
                 continue
