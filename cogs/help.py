@@ -95,10 +95,10 @@ class Help(Cog):
                                 continue
                             command = group[_command_name]
                             option_line = self.get_options(command)
-                            embed.description += f"`/{_base_command} {_group} {_command_name} {option_line}`\n *description:* {command['description']} \n"
+                            embed.description += f"`/{_base_command} {_group} {_command_name}{option_line}`\n *description:* {command['description']} \n"
                     else:
                         option_line = self.get_options(group)
-                        embed.description += f"`/{_base_command} {_group} {option_line}`\n *description:* {group['description']} \n"
+                        embed.description += f"`/{_base_command} {_group}{option_line}`\n *description:* {group['description']} \n"
 
             embeds.append(embed)
 
@@ -137,7 +137,7 @@ class Help(Cog):
             return option_line
         for _option in options:
             option_name = _option['name']
-            option_line += f'[{option_name}] ' if _option['required'] else f'({option_name}) '
+            option_line += f' [{option_name}]' if _option['required'] else f' ({option_name})'
         return option_line
 
     def _get_commands_data(self) -> dict:

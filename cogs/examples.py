@@ -46,7 +46,7 @@ class Examples(Cog):
                     'button_click',
                     check=lambda inter: inter.message.id == message.id,
                     timeout=60
-                    )
+                )
             except asyncio.TimeoutError:
                 for row in components:
                     row.disable_components()
@@ -83,7 +83,7 @@ while True:
             'button_click',
             check=lambda inter: inter.message.id == message.id,
             timeout=60
-            )
+        )
     except asyncio.TimeoutError:
         for row in components:
             row.disable_components()
@@ -126,7 +126,7 @@ while True:
                     'select_option',
                     check=lambda inter: inter.message.id == message.id,
                     timeout=60
-                    )
+                )
             except asyncio.TimeoutError:
                 for row in components:
                     row.disable_components()
@@ -167,7 +167,7 @@ while True:
             'select_option',
             check=lambda inter: inter.message.id == message.id,
             timeout=60
-            )
+        )
     except asyncio.TimeoutError:
         for row in components:
             row.disable_components()
@@ -217,7 +217,7 @@ while True:
                     'component',
                     check=lambda inter: inter.message.id == message.id,
                     timeout=60
-                    )
+                )
             except asyncio.TimeoutError:
                 for row in components:
                     row.disable_components()
@@ -266,7 +266,7 @@ while True:
             'interaction',
             check=lambda inter: inter.message.id == message.id,
             timeout=60
-            )
+        )
     except asyncio.TimeoutError:
         for row in components:
             row.disable_components()
@@ -280,6 +280,158 @@ while True:
         """
 
         await ctx.send(code_content)
+
+
+    @slash_subcommand(
+        base='example',
+        name='private1',
+        description='Private button example 1 (Shows This interaction failed for others)',
+        guild_ids=guild_ids
+    )
+    async def private_button_example1(self, ctx: SlashContext):
+        count = 0
+        components = [
+            [
+                Button(label=count, style=ButtonStyle.blue)
+            ]
+        ]
+
+        message = await ctx.send(f'Only {ctx.author} can click this button', components=components)
+
+        while True:
+            try:
+                interaction = await self.bot.wait_for(
+                    'button_click',
+                    check=lambda inter: inter.message.id == message.id and inter.author_id == ctx.author_id,
+                    timeout=60
+                )
+            except asyncio.TimeoutError:
+                for row in components:
+                    row.disable_components()
+                return await message.edit(content='Timed out!', components=components)
+
+            count += 1
+            interaction.component.label = count
+            await interaction.edit_origin(components=interaction.message.components)
+
+
+
+    @slash_subcommand(
+        base='code',
+        name='private1',
+        description='Code of Private button example 1',
+        guild_ids=guild_ids
+    )
+    async def private_button_code_example1(self, ctx: SlashContext):
+        code_content = """
+        ```py
+count = 0
+components = [
+    [
+        Button(label=count, style=ButtonStyle.blue)
+    ]
+]
+
+message = await ctx.send(f'Only {ctx.author} can click this button', components=components)
+
+while True:
+    try:
+        interaction = await self.bot.wait_for(
+            'button_click',
+            check=lambda inter: inter.message.id == message.id and inter.author.id == ctx.author.id,
+            timeout=60
+        )
+    except asyncio.TimeoutError:
+        for row in components:
+            row.disable_components()
+        return await message.edit(content='Timed out!', components=components)
+
+    count += 1
+    interaction.component.label = count
+    await interaction.edit_origin(components=interaction.message.components)
+        ```
+        """
+
+        await ctx.send(code_content)
+
+
+    @slash_subcommand(
+        base='example',
+        name='private2',
+        description='Private button example 2',
+        guild_ids=guild_ids
+    )
+    async def private_button_example2(self, ctx: SlashContext):
+        count = 0
+        components = [
+            [
+                Button(label=count, style=ButtonStyle.blue)
+            ]
+        ]
+
+        message = await ctx.send(f'Only {ctx.author} can click this button', components=components)
+
+        while True:
+            try:
+                interaction = await self.bot.wait_for(
+                    'button_click',
+                    check=lambda inter: inter.message.id == message.id,
+                    timeout=60
+                )
+            except asyncio.TimeoutError:
+                for row in components:
+                    row.disable_components()
+                return await message.edit(content='Timed out!', components=components)
+
+            if interaction.author_id == ctx.author_id:
+                count += 1
+                interaction.component.label = count
+                await interaction.edit_origin(components=interaction.message.components)
+            else:
+                await interaction.send('Hey! You can\'t interact with this button!', hidden=True)
+
+
+    @slash_subcommand(
+        base='code',
+        name='private2',
+        description='Code of Private button example 2',
+        guild_ids=guild_ids
+    )
+    async def private_button_code_example2(self, ctx: SlashContext):
+        code_content = """
+        ```py
+count = 0
+components = [
+    [
+        Button(label=count, style=ButtonStyle.blue)
+    ]
+]
+
+message = await ctx.send(f'Only {ctx.author} can click this button', components=components)
+
+while True:
+    try:
+        interaction = await self.bot.wait_for(
+            'button_click',
+            check=lambda inter: inter.message.id == message.id,
+            timeout=60
+        )
+    except asyncio.TimeoutError:
+        for row in components:
+            row.disable_components()
+        return await message.edit(content='Timed out!', components=components)
+    
+    if interaction.author.id == ctx.author.id:
+        count += 1
+        interaction.component.label = count
+        await interaction.edit_origin(components=interaction.message.components)
+    else:
+        await interaction.send('Hey! You can\'t interact with this button!')
+        ```
+        """
+
+        await ctx.send(code_content)
+
 
 
 def setup(bot):
