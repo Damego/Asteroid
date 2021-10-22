@@ -306,6 +306,7 @@ while True:
                     timeout=60
                 )
             except asyncio.TimeoutError:
+                components[0][0].label = count
                 for row in components:
                     row.disable_components()
                 return await message.edit(content='Timed out!', components=components)
@@ -342,6 +343,7 @@ while True:
             timeout=60
         )
     except asyncio.TimeoutError:
+        components[0][0].label = count
         for row in components:
             row.disable_components()
         return await message.edit(content='Timed out!', components=components)
@@ -379,6 +381,7 @@ while True:
                     timeout=60
                 )
             except asyncio.TimeoutError:
+                components[0][0].label = count
                 for row in components:
                     row.disable_components()
                 return await message.edit(content='Timed out!', components=components)
@@ -417,6 +420,7 @@ while True:
             timeout=60
         )
     except asyncio.TimeoutError:
+        components[0][0].label = count
         for row in components:
             row.disable_components()
         return await message.edit(content='Timed out!', components=components)
