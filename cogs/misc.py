@@ -3,20 +3,21 @@ import json
 from os import remove, environ
 from random import choice, randint
 
-import discord
+from discord import Member, File, Embed
 from discord.errors import Forbidden
 from discord_components import Select, SelectOption, Button, ButtonStyle
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
     cog_subcommand as slash_subcommand,
-    cog_context_menu as context_menu,
+    cog_context_menu as context_menu
 )
 from discord_slash_components_bridge import ComponentContext
 import qrcode
 import requests
 
-from my_utils import AsteroidBot, get_content, Cog
+from my_utils import AsteroidBot, get_content, Cog, _is_enabled, CogDisabledOnGuild
+from .levels._levels import formula_of_experience
 from .settings import guild_ids
 
 
@@ -63,8 +64,8 @@ class Misc(Cog):
         name='info',
         description='Out information about guild member',
         guild_ids=guild_ids
-        )
-    async def get_member_information_slash(self, ctx: SlashContext, member: discord.Member=None):
+    )
+    async def get_member_information_slash(self, ctx: SlashContext, member: Member=None):
         if member is None:
             member = ctx.author
         embed = self._get_embed_member_info(ctx, member)
@@ -82,32 +83,72 @@ class Misc(Cog):
         await ctx.send(embed=embed)
 
 
-    def _get_embed_member_info(self, ctx, member: discord.Member) -> discord.Embed:
+    def _get_embed_member_info(self, ctx: SlashContext, member: Member) -> Embed:
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_MEMBER_INFO', lang=lang)
-        status = content.get('MEMBER_STATUS')
-        about_text = content.get('ABOUT_TITLE').format(member)
-        gen_info_title_text = content.get('GENERAL_INFO_TITLE')
-        date_reg_discord_text = content.get('DISCORD_REGISTRATION_TEXT')
-        date_joined_server_text = content.get('JOINED_ON_SERVER_TEXT')
-        current_status_text = content.get('CURRENT_STATUS_TEXT')
-        roles_text = content.get('ROLES')
-        
-        embed = discord.Embed(title=about_text, color=self.bot.get_embed_color(ctx.guild.id))
+        status = content['MEMBER_STATUS']
+        about_text = content['ABOUT_TITLE'].format(member)
+        general_info_title_text = content['GENERAL_INFO_TITLE']
+        date_reg_discord_text = content['DISCORD_REGISTRATION_TEXT']
+        date_joined_server_text = content['JOINED_ON_SERVER_TEXT']
+        current_status_text = content['CURRENT_STATUS_TEXT']
+        roles_text = content['ROLES']
+
+        embed = Embed(title=about_text, color=self.bot.get_embed_color(ctx.guild_id))
         embed.set_thumbnail(url=member.avatar_url)
 
         member_roles = [role.mention for role in member.roles if role.name != "@everyone"][::-1]
         member_roles = ', '.join(member_roles)
         member_status = str(member.status)
 
-        embed.add_field(name=gen_info_title_text, value=f"""
+        embed.add_field(name=general_info_title_text, value=f"""
             {date_reg_discord_text} <t:{int(member.created_at.timestamp())}:F>
             {date_joined_server_text} <t:{int(member.joined_at.timestamp())}:F>
             {current_status_text} {status.get(member_status)}
             {roles_text} {member_roles}
             """, inline=False)
 
+        try:
+            levels_enabled = _is_enabled(self.bot.get_cog('Levels'), ctx.guild_id)
+        except CogDisabledOnGuild:
+            levels_enabled = False
+        else:
+            if member.bot:
+                levels_enabled = False
+
+        if levels_enabled:
+            self._get_levels_info(ctx, member.id, embed, content)
+
         return embed
+
+    def _get_levels_info(self, ctx: SlashContext, user_id: int, embed: Embed, content: dict):
+        content = content['LEVELING']
+
+        users_collection = self.bot.get_guild_users_collection(ctx.guild_id)
+        user_data = users_collection.find_one({'_id': str(user_id)})
+        user_voice_time = user_data['voice_time_count']
+        user_stats = user_data['leveling']
+        user_level = user_stats['level']
+        user_exp = user_stats['xp']
+        user_exp_amount = user_stats['xp_amount']
+        xp_to_next_level = formula_of_experience(user_level)
+
+        user_level_text = content['CURRENT_LEVEL_TEXT'].format(
+            level=user_level
+        )
+        user_exp_text = content['CURRENT_EXP_TEXT'].format(
+            exp=user_exp,
+            exp_to_next_level=xp_to_next_level,
+            exp_amount=user_exp_amount
+        )
+        user_voice_time_count = content['TOTAL_VOICE_TIME'].format(
+            voice_time=user_voice_time
+        )
+
+        embed.add_field(
+            name=content['LEVELING_INFO_TITLE_TEXT'],
+            value=f'{user_level_text}\n{user_exp_text}\n{user_voice_time_count}'
+        )
 
 
     @slash_subcommand(
@@ -127,7 +168,7 @@ class Misc(Cog):
         qr.make(fit=True)
         img = qr.make_image(fill_color="black", back_color="white")
         img.save(f'./qrcodes/{ctx.author.id}.png')
-        await ctx.send(file = discord.File(f'./qrcodes/{ctx.author.id}.png'))
+        await ctx.send(file = File(f'./qrcodes/{ctx.author.id}.png'))
         remove(f'./qrcodes/{ctx.author.id}.png')
 
 
@@ -141,7 +182,7 @@ class Misc(Cog):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_PING', lang=lang)
 
-        embed = discord.Embed(title='🏓 Pong!', description=content.format(int(self.bot.latency * 1000)), color=self.bot.get_embed_color(ctx.guild.id))
+        embed = Embed(title='🏓 Pong!', description=content.format(int(self.bot.latency * 1000)), color=self.bot.get_embed_color(ctx.guild.id))
         await ctx.send(embed=embed)
 
 
@@ -272,7 +313,7 @@ class Misc(Cog):
         selected = None
         is_exception = False
         is_removed = False
-        embed = discord.Embed(title=content['EMBED_TITLE'])
+        embed = Embed(title=content['EMBED_TITLE'])
 
         message = await ctx.send(embed=embed, components=components)
         message_for_update = await ctx.send(content['SECOND_MESSAGE_CONTENT'])
@@ -340,21 +381,14 @@ class Misc(Cog):
             await interaction.defer(edit_origin=True)
             return interaction
 
-
     @slash_command(
-        name='test2',
+        name='test',
         guild_ids=guild_ids
     )
-    async def test_command1(self, ctx: SlashContext):
-        message1 = await ctx.channel.send('hi', components=[Button(label='test')])
-        message_type1 = type(message1)
-        print(message_type1)
-        message = await ctx.channel.fetch_message(897535295552126997)
-        print(message.components)
-        print(message.ephemeral)
-        message_type = type(message)
-        print(message_type)
-        await ctx.send(str(message_type))
+    async def test_command(self, ctx):
+        role_id = 843178317871317054
+        role = ctx.guild.get_role(role_id)
+        await ctx.guild.get_member(ctx.author_id).add_roles(role)
 
 
 

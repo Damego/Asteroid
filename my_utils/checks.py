@@ -41,3 +41,4 @@ def _is_enabled(self, guild_id: int):
         enabled = True
     if not enabled:
         raise CogDisabledOnGuild
+    return enabled

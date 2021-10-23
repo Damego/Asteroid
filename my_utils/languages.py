@@ -41,7 +41,13 @@ LANGUAGES = {
             'DISCORD_REGISTRATION_TEXT': '**Дата регистрации в Discord:**',
             'JOINED_ON_SERVER_TEXT': '**Дата присоединения на сервер:**',
             'CURRENT_STATUS_TEXT':'**Текущий статус:**',
-            'ROLES':'**Роли:**'
+            'ROLES':'**Роли:**',
+            'LEVELING': {
+                'CURRENT_LEVEL_TEXT': '<:level:863677232239869964> **Уровень:** `{level}`',
+                'CURRENT_EXP_TEXT': '<:exp:863672576941490176> **Опыт:** `{exp}/{exp_to_next_level}` Всего: `{exp_amount}`',
+                'LEVELING_INFO_TITLE_TEXT': 'Уровневая информация',
+                'TOTAL_VOICE_TIME': '<:voice_time:863674908969926656> **Время в голосом канале:** `{voice_time}` минут'
+            }
         },
         'FUNC_PING': 'Задержка бота `{}` мс',
         'FUNC_ACTIVITIES': {
@@ -278,7 +284,13 @@ LANGUAGES = {
             'DISCORD_REGISTRATION_TEXT': '**Date of registration in Discord:**',
             'JOINED_ON_SERVER_TEXT': '**Date of joined in server:**',
             'CURRENT_STATUS_TEXT':'**Current status:**',
-            'ROLES':'**Roles:**'
+            'ROLES':'**Roles:**',
+            'LEVELING': {
+                'CURRENT_LEVEL_TEXT': '<:level:863677232239869964> **Level:** `{level}`',
+                'CURRENT_EXP_TEXT': '<:exp:863672576941490176> **Exp:** `{exp}/{exp_to_next_level}` Total: `{exp_amount}`',
+                'LEVELING_INFO_TITLE_TEXT': 'Level Information',
+                'TOTAL_VOICE_TIME': '<:voice_time:863674908969926656> **Time in voice channel:** `{voice_time}` minutes'
+            }
         },
         'FUNC_PING': 'Bot latency is `{}` ms',
         'FUNC_ACTIVITIES': {
