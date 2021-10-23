@@ -45,7 +45,7 @@ class Levels(Cog):
         if member.bot:
             return
         try:
-            _is_enabled(self, member)
+            _is_enabled(self, member.guild.id)
         except CogDisabledOnGuild:
             return
         await self.add_member(member)
@@ -56,7 +56,7 @@ class Levels(Cog):
         if member.bot:
             return
         try:
-            _is_enabled(self, member)
+            _is_enabled(self, member.guild.id)
         except CogDisabledOnGuild:
             return
         collection = self.bot.get_guild_users_collection(member.guild.id)
@@ -66,7 +66,7 @@ class Levels(Cog):
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
         try:
-            _is_enabled(self, member)
+            _is_enabled(self, member.guild.id)
         except CogDisabledOnGuild:
             return
         if member.bot:

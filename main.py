@@ -10,6 +10,8 @@ from my_utils import AsteroidBot, get_content
 from my_utils.errors import *
 from my_utils import slash_override
 
+
+
 def _load_extensions():
     for filename in listdir('./cogs'):
         if not filename.startswith('_'):
@@ -24,7 +26,6 @@ bot = AsteroidBot(
     intents=Intents.all()
 )
 slash = SlashCommand(bot, sync_commands=True, sync_on_cog_reload=True)
-
 
 # EVENTS
 @bot.event
@@ -47,7 +48,8 @@ async def on_guild_join(guild: Guild):
     collection['configuration'].update_one(
         {'_id':'configuration'},
         {'$set':configuration},
-        upsert=True)
+        upsert=True
+    )
 
 
 @bot.event

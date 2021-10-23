@@ -15,9 +15,8 @@ from my_utils import (
 from .settings import guild_ids
 
 
-def get_emoji_role(collection, payload, emoji):
-    """Get guild emoji roles from json """
-    emoji_role = collection.find_one({'_id':str(payload.message_id)})
+def get_emoji_role(collection, message_id: int, emoji):
+    emoji_role = collection.find_one({'_id':str(message_id)})
 
     return emoji_role[str(emoji)]
 
@@ -34,7 +33,7 @@ class ReactionRole(Cog):
         if payload.member.bot:
             return
         try:
-            _is_enabled(self, payload)
+            _is_enabled(self, payload.guild_id)
         except CogDisabledOnGuild:
             return
 
@@ -46,14 +45,17 @@ class ReactionRole(Cog):
         if payload.emoji.id is None:
             emoji = payload.emoji
 
-        role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(collection, payload, emoji))
+        emoji_role = get_emoji_role(collection, payload.message_id, emoji)
+        role = self.bot.get_guild(payload.guild_id).get_role(emoji_role)
+
+        #role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=)
         await payload.member.add_roles(role)
 
 
     @Cog.listener()
     async def on_raw_reaction_remove(self, payload: RawReactionActionEvent):
         try:
-            _is_enabled(self, payload)
+            _is_enabled(self, payload.guild_id)
         except CogDisabledOnGuild:
             return
 
