@@ -126,11 +126,16 @@ class Misc(Cog):
 
         users_collection = self.bot.get_guild_users_collection(ctx.guild_id)
         user_data = users_collection.find_one({'_id': str(user_id)})
-        user_voice_time = user_data['voice_time_count']
         user_stats = user_data['leveling']
         user_level = user_stats['level']
-        user_exp = user_stats['xp']
-        user_exp_amount = user_stats['xp_amount']
+        user_exp, user_exp_amount, user_voice_time =  map(
+                int,
+                [
+                    user_stats['xp'],
+                    user_stats['xp_amount'],
+                    user_data['voice_time_count']
+                ]
+            )
         xp_to_next_level = formula_of_experience(user_level)
 
         user_level_text = content['CURRENT_LEVEL_TEXT'].format(
