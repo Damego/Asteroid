@@ -130,7 +130,7 @@ async def button(self, ctx):
         ]
     ]
 
-    message = await ctx.send('Buttons!', components=components)
+    await ctx.send('Buttons!', components=components)
 
 @commands.Cog.listener()
 async def on_button_click(self, interaction)
@@ -150,10 +150,10 @@ async def button(self, ctx):
         ]
     ]
 
-    message = await ctx.send('Buttons!', components=components)
+    await ctx.send('Buttons!', components=components)
 
 async def callback(self, interaction)
-    await interaction.send(f'You clicked `{interaction.custom_id}` button')
+    await interaction.send(f'You clicked callback button!')
 ```"""
         await ctx.send(code_content)
 
