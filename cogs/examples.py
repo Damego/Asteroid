@@ -146,7 +146,7 @@ async def button(self, ctx):
             self.bot.components_manager.add_callback(
                 Button(label='Click Me!', style=ButtonStyle.blue, custom_id='callback_button'),
                 self.callback
-
+            )
         ]
     ]
 
