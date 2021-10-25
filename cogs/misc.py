@@ -386,6 +386,26 @@ class Misc(Cog):
             await interaction.defer(edit_origin=True)
             return interaction
 
+
+    @slash_command(
+        name='bots',
+        guild_ids=guild_ids
+    )
+    async def check_bots(self, ctx: SlashContext):
+        bots_list = [member for member in ctx.guild.members if member.bot]
+
+        embed = Embed(
+            title=f'Bots in {ctx.guild.name}',
+            description='',
+            color=self.bot.get_embed_color(ctx.guild_id)
+        )
+        embed.description += '**Name** | **Status**\n'
+        for bot in bots_list:
+            embed.description += f'{bot.name} | {bot.status}\n'
+
+        await ctx.send(embed=embed)
+
+
     @slash_command(
         name='test',
         guild_ids=guild_ids
