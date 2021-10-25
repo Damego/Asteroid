@@ -3,7 +3,7 @@ import json
 from os import remove, environ
 from random import choice, randint
 
-from discord import Member, File, Embed
+from discord import Member, File, Embed, Role
 from discord.errors import Forbidden
 from discord_components import Select, SelectOption, Button, ButtonStyle
 from discord_slash import SlashContext, ContextMenuType, MenuContext
@@ -387,7 +387,8 @@ class Misc(Cog):
             return interaction
 
 
-    @slash_command(
+    @slash_subcommand(
+        base='server',
         name='bots',
         guild_ids=guild_ids
     )
@@ -400,6 +401,27 @@ class Misc(Cog):
         )
 
         await ctx.send(content=content)
+
+    
+    @slash_subcommand(
+        base='server',
+        name='role_perms',
+        guild_ids=guild_ids
+    )
+    async def guild_role_permissions(self, ctx: SlashContext, role: Role):
+        description = ''.join(
+            f'✅ {permission[0]}\n' if permission[1] else f'❌ {permission[0]}\n'
+            for permission in role.permissions
+        )
+
+        embed = Embed(
+            title=f'Server permissions for {role.name} role',
+            description=description,
+            color=self.bot.get_embed_color(ctx.guild_id)
+        )
+
+        await ctx.send(embed=embed)
+
 
 
     @slash_command(
