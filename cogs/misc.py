@@ -394,16 +394,12 @@ class Misc(Cog):
     async def check_bots(self, ctx: SlashContext):
         bots_list = [member for member in ctx.guild.members if member.bot]
 
-        embed = Embed(
-            title=f'Bots in {ctx.guild.name}',
-            description='',
-            color=self.bot.get_embed_color(ctx.guild_id)
+        content = '**Offline bots in discord-components server**'
+        content += ', '.join(
+            f'{bot.mention}' for bot in bots_list if str(bot.status) != 'online'
         )
-        embed.description += '**Name** | **Status**\n'
-        for bot in bots_list:
-            embed.description += f'{bot.name} | {bot.status}\n'
 
-        await ctx.send(embed=embed)
+        await ctx.send(content=content)
 
 
     @slash_command(
