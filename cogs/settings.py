@@ -105,8 +105,7 @@ class Settings(Cog):
     @slash_subcommand(
     base='ext',
     name='load',
-    description='Load extension',
-    guild_ids=guild_ids
+    description='Load extension'
 )
     @commands.is_owner()
     async def _load_extension(self, ctx: SlashContext, extension):
