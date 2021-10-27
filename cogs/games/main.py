@@ -1,6 +1,6 @@
 from asyncio import TimeoutError
 
-import discord
+from discord import Embed, Member
 from discord.ext.commands import Cog
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
@@ -13,7 +13,6 @@ from discord_slash_components_bridge import ComponentContext
 from my_utils import AsteroidBot, get_content, Cog
 from ._tictactoe import TicTacToe
 from ._rockpaperscissors import RockPaperScissors
-from ..settings import guild_ids
 
 
 class Games(Cog):
@@ -26,23 +25,21 @@ class Games(Cog):
     @slash_subcommand(
         base='game',
         name='rps',
-        description='Start play a Rock Paper Scissors',
-        guild_ids=guild_ids
+        description='Start play a Rock Paper Scissors'
     )
-    async def rockpaperscissors_cmd(self, ctx: SlashContext, member: discord.Member, total_rounds: int=1):
+    async def rockpaperscissors_cmd(self, ctx: SlashContext, member: Member, total_rounds: int=3):
         await self._start_rps(ctx, member, total_rounds)
 
     @context_menu(
         target=ContextMenuType.MESSAGE,
-        name='Start Rock Paper Scissors',
-        guild_ids=guild_ids
+        name='Start Rock Paper Scissors'
     )
     async def rockpaperscissors_contex(self, ctx: MenuContext):
         member = ctx.target_message.author
         await self._start_rps(ctx, member, 3)
         
 
-    async def _start_rps(self, ctx: SlashContext, member: discord.Member, total_rounds: int=1):
+    async def _start_rps(self, ctx: SlashContext, member: Member, total_rounds: int):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_INVITE_TO_GAME', lang)
         
@@ -61,23 +58,21 @@ class Games(Cog):
     @slash_subcommand(
         base='game',
         name='ttt',
-        description='Play a Tic Tac Toe',
-        guild_ids=guild_ids
+        description='Play a Tic Tac Toe'
     )
-    async def tictactoe_cmd(self, ctx: SlashContext, member: discord.Member):
+    async def tictactoe_cmd(self, ctx: SlashContext, member: Member):
         await self._start_ttt(ctx, member)
         
     @context_menu(
         target=ContextMenuType.MESSAGE,
-        name='Start Tic Tac Toe',
-        guild_ids=guild_ids
+        name='Start Tic Tac Toe'
     )
     async def tictactoe_menu(self, ctx: MenuContext):
         member = ctx.target_message.author
         await self._start_ttt(ctx, member)
 
 
-    async def _start_ttt(self, ctx, member: discord.Member):
+    async def _start_ttt(self, ctx, member: Member):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         invite_content = get_content('FUNC_INVITE_TO_GAME', lang)
         game_content = get_content('GAME_TTT', lang)
@@ -121,7 +116,7 @@ class Games(Cog):
         )
 
         if member.bot:
-            embed = discord.Embed(
+            embed = Embed(
                 title=game_name,
                 description=f'{ctx.author.display_name} VS {member.display_name}',
                 color=self.bot.get_embed_color(ctx.guild.id)
@@ -139,7 +134,7 @@ class Games(Cog):
             return message, False
 
         if interaction.custom_id == 'agree':
-            embed = discord.Embed(
+            embed = Embed(
                 title=game_name,
                 description=f'{ctx.author.display_name} VS {member.display_name}',
                 color=self.bot.get_embed_color(ctx.guild.id)

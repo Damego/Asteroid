@@ -16,7 +16,6 @@ from my_utils import (
     Cog
 )
 from ._levels import update_member, formula_of_experience
-from ..settings import guild_ids
 
 
 
@@ -201,7 +200,6 @@ class Levels(Cog):
         base='levels',
         name='reset_stats',
         description='Reset levels statistics of Member',
-        guild_ids=guild_ids,
         options=[
             create_option(
                 name='member',
@@ -247,7 +245,6 @@ class Levels(Cog):
     @slash_subcommand(
         base='levels',
         name='xp',
-        guild_ids=guild_ids,
         description='Add exp to member',
         options=[
             create_option(
@@ -274,7 +271,6 @@ class Levels(Cog):
     @slash_subcommand(
         base='levels',
         name='add',
-        guild_ids=guild_ids,
         description='Add Role to level',
         options=[
             create_option(
@@ -305,7 +301,6 @@ class Levels(Cog):
     @slash_subcommand(
         base='levels',
         name='remove',
-        guild_ids=guild_ids,
         description='Remove Role of a level',
         options=[
             create_option(
@@ -330,7 +325,6 @@ class Levels(Cog):
     @slash_subcommand(
         base='levels',
         name='replace',
-        guild_ids=guild_ids,
         description='Replace level to another',
         options=[
             create_option(
@@ -362,7 +356,6 @@ class Levels(Cog):
     @slash_subcommand(
         base='levels',
         name='reset',
-        guild_ids=guild_ids,
         description='Reset levels in server',
         options=[]
     )
@@ -377,7 +370,6 @@ class Levels(Cog):
     @slash_subcommand(
         base='levels',
         name='list',
-        guild_ids=guild_ids,
         description='Show list of levels in server',
         options=[]
     )
@@ -408,7 +400,6 @@ class Levels(Cog):
         subcommand_group='set',
         name='role',
         description='Set role to member',
-        guild_ids=guild_ids,
         options=[
             create_option(
                 name='member',
@@ -442,7 +433,6 @@ class Levels(Cog):
         subcommand_group='set',
         name='time',
         description='Set voice time to member',
-        guild_ids=guild_ids,
         options=[
             create_option(
                 name='member',
@@ -476,7 +466,6 @@ class Levels(Cog):
         subcommand_group='set',
         name='level',
         description='Set level to member',
-        guild_ids=guild_ids,
         options=[
             create_option(
                 name='member',
@@ -510,7 +499,6 @@ class Levels(Cog):
         subcommand_group='on_join_role',
         name='add',
         description='Add on join role',
-        guild_ids=guild_ids,
         options=[
             create_option(
                 name='role',
@@ -536,7 +524,6 @@ class Levels(Cog):
         subcommand_group='on_join_role',
         name='remove',
         description='Remove on join role',
-        guild_ids=guild_ids,
         options=[]
     )
     @is_enabled
@@ -554,7 +541,6 @@ class Levels(Cog):
         base='levels',
         name='add_start_role',
         description='Add to everyone start role of guild',
-        guild_ids=guild_ids,
         options=[]
     )
     @is_enabled
@@ -591,7 +577,6 @@ class Levels(Cog):
     @slash_subcommand(
         base='levels',
         name='clear_members_stats',
-        guild_ids=guild_ids,
         options=[]
     )
     @is_enabled

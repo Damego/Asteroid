@@ -12,7 +12,7 @@ from discord_slash.cog_ext import (
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu
 )
-from discord_slash_components_bridge import ComponentContext
+from discord_slash_components_bridge import ComponentContext, ComponentMessage
 import qrcode
 import requests
 
@@ -33,8 +33,7 @@ class Misc(Cog):
     @slash_subcommand(
         base='fun',
         name='random',
-        description='Generate random number',
-        guild_ids=guild_ids
+        description='Generate random number'
     )
     async def random_num(self, ctx: SlashContext, _from: int, _to: int):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -47,8 +46,7 @@ class Misc(Cog):
     @slash_subcommand(
         base='fun',
         name='coinflip',
-        description='flip a coin',
-        guild_ids=guild_ids
+        description='flip a coin'
     )
     async def coinflip(self, ctx: SlashContext):
         result = randint(0,1)
@@ -62,8 +60,7 @@ class Misc(Cog):
 
     @slash_command(
         name='info',
-        description='Out information about guild member',
-        guild_ids=guild_ids
+        description='Out information about guild member'
     )
     async def get_member_information_slash(self, ctx: SlashContext, member: Member=None):
         if member is None:
@@ -74,7 +71,6 @@ class Misc(Cog):
 
     @context_menu(
         name='Get information',
-        guild_ids=guild_ids,
         target=ContextMenuType.MESSAGE
     )
     async def get_member_information_context(self, ctx: MenuContext):
@@ -159,8 +155,7 @@ class Misc(Cog):
     @slash_subcommand(
         base='fun',
         name='qr',
-        description='Create a QR-code',
-        guild_ids=guild_ids
+        description='Create a QR-code'
     )
     async def create_qr(self, ctx: SlashContext, *, text):
         qr = qrcode.QRCode(
@@ -180,8 +175,7 @@ class Misc(Cog):
     @slash_subcommand(
         base='misc',
         name='ping',
-        description='Show bot latency',
-        guild_ids=guild_ids
+        description='Show bot latency'
     )
     async def ping(self, ctx: SlashContext):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -194,8 +188,7 @@ class Misc(Cog):
     @slash_subcommand(
         base='fun',
         name='activity',
-        description='Open discord Activities',
-        guild_ids=guild_ids
+        description='Open discord Activities'
     )
     async def start_activity(self, ctx: SlashContext):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -269,8 +262,7 @@ class Misc(Cog):
     @slash_subcommand(
         base='phasmo',
         name='item',
-        description='Random item in Phasmophobia',
-        guild_ids=guild_ids
+        description='Random item in Phasmophobia'
     )
     async def phasmophobia_random_item(self, ctx: SlashContext):
         await self._start_random(ctx)
@@ -279,8 +271,7 @@ class Misc(Cog):
     @slash_subcommand(
         base='phasmo',
         name='map',
-        description='Random map in Phasmophobia',
-        guild_ids=guild_ids
+        description='Random map in Phasmophobia'
     )
     async def phasmophobia_random_map(self, ctx: SlashContext):
         maps_list = [
@@ -389,8 +380,7 @@ class Misc(Cog):
 
     @slash_subcommand(
         base='server',
-        name='bots',
-        guild_ids=guild_ids
+        name='bots'
     )
     async def check_bots(self, ctx: SlashContext):
         bots_list = [member for member in ctx.guild.members if member.bot]
@@ -405,8 +395,7 @@ class Misc(Cog):
     
     @slash_subcommand(
         base='server',
-        name='role_perms',
-        guild_ids=guild_ids
+        name='role_perms'
     )
     async def guild_role_permissions(self, ctx: SlashContext, role: Role):
         description = ''.join(
@@ -421,7 +410,6 @@ class Misc(Cog):
         )
 
         await ctx.send(embed=embed)
-
 
 
     @slash_command(

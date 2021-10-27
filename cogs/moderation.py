@@ -6,7 +6,6 @@ from discord_slash import ComponentContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
 from my_utils import AsteroidBot, get_content, DurationConverter, multiplier, Cog
-from .settings import guild_ids
 
 
 
@@ -20,8 +19,7 @@ class Moderation(Cog):
     @slash_subcommand(
         base='mod',
         name='mute',
-        description='Mute member',
-        guild_ids=guild_ids
+        description='Mute member'
     )
     @has_guild_permissions(mute_members=True)
     async def mute(self, ctx: ComponentContext, member: discord.Member, duration: DurationConverter, *, reason=None):
@@ -65,8 +63,7 @@ class Moderation(Cog):
     @slash_subcommand(
         base='mod',
         name='unmute',
-        description='Unmute members',
-        guild_ids=guild_ids
+        description='Unmute members'
     )
     @has_guild_permissions(mute_members=True)
     async def unmute(self, ctx: ComponentContext, member:discord.Member):
@@ -78,8 +75,7 @@ class Moderation(Cog):
     @slash_subcommand(
         base='mod',
         name='ban',
-        description='Ban member',
-        guild_ids=guild_ids
+        description='Ban member'
     )
     @has_guild_permissions(ban_members=True)
     async def ban(self, ctx: ComponentContext, member:discord.Member, *, reason=None):
@@ -104,8 +100,7 @@ class Moderation(Cog):
     @slash_subcommand(
         base='mod',
         name='unban',
-        description='Unban member',
-        guild_ids=guild_ids
+        description='Unban member'
     )
     @has_guild_permissions(ban_members=True)
     async def unban(self, ctx:ComponentContext, user: discord.User):
@@ -116,8 +111,7 @@ class Moderation(Cog):
     @slash_subcommand(
         base='mod',
         name='kick',
-        description='Kick member',
-        guild_ids=guild_ids
+        description='Kick member'
     )
     @has_guild_permissions(kick_members=True)
     async def kick(self, ctx: ComponentContext, member: discord.Member, reason: str):
@@ -142,8 +136,7 @@ class Moderation(Cog):
     @slash_subcommand(
         base='mod',
         name='remove_role',
-        description='Remove role of member',
-        guild_ids=guild_ids
+        description='Remove role of member'
     )
     @has_guild_permissions(manage_roles=True)
     async def remove_role(self, ctx: ComponentContext, member: discord.Member, role: discord.Role):
@@ -154,8 +147,7 @@ class Moderation(Cog):
     @slash_subcommand(
         base='mod',
         name='add_role',
-        description='Add role to member',
-        guild_ids=guild_ids
+        description='Add role to member'
     )
     @has_guild_permissions(manage_roles=True)
     async def add_role(self, ctx: ComponentContext, member: discord.Member, role: discord.Role):
@@ -167,8 +159,7 @@ class Moderation(Cog):
     @slash_subcommand(
         base='mod',
         name='nick',
-        description='Change nick of member',
-        guild_ids=guild_ids
+        description='Change nick of member'
     )
     async def nick(self, ctx: ComponentContext, member: discord.Member, new_nick:str):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -184,8 +175,7 @@ class Moderation(Cog):
     @slash_subcommand(
         base='mod',
         name='clear',
-        description='Deletes messages in channel',
-        guild_ids=guild_ids
+        description='Deletes messages in channel'
     )
     @has_guild_permissions(manage_messages=True)
     async def clear(self, ctx: ComponentContext, amount: int):

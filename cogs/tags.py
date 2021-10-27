@@ -14,7 +14,6 @@ from pymongo.collection import Collection
 
 from my_utils import AsteroidBot, is_administrator_or_bot_owner, get_content, Cog
 from my_utils.errors import TagNotFound, NotTagOwner
-from .settings import guild_ids
 
 
 
@@ -28,8 +27,7 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='open',
-        description='Open tag',
-        guild_ids=guild_ids
+        description='Open tag'
     )
     async def tag(self, ctx: SlashContext, tag_name=None):
         tag_name = self.convert_tag_name(tag_name)
@@ -53,8 +51,7 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='add',
-        description='Create new tag',
-        guild_ids=guild_ids
+        description='Create new tag'
     )
     async def create_new_tag(self, ctx: SlashContext, tag_name):
         tag_name = tag_name.lower()
@@ -83,8 +80,7 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='title',
-        description='Set title for tag',
-        guild_ids=guild_ids
+        description='Set title for tag'
     )
     async def set_tag_title(self, ctx: SlashContext, tag_name: str, *, title: str):
         tag_name = self.convert_tag_name(tag_name)
@@ -108,8 +104,7 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='description',
-        description='Set description for tag',
-        guild_ids=guild_ids
+        description='Set description for tag'
     )
     async def set_tag_description(self, ctx: SlashContext, tag_name, *, description):
         tag_name = self.convert_tag_name(tag_name)
@@ -134,8 +129,7 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='remove',
-        description='Delete tag',
-        guild_ids=guild_ids
+        description='Delete tag'
     )
     async def remove(self, ctx: SlashContext, tag_name):
         tag_name = self.convert_tag_name(tag_name)
@@ -154,8 +148,7 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='list',
-        description='Shows list of tags',
-        guild_ids=guild_ids
+        description='Shows list of tags'
     )
     async def list(self, ctx: SlashContext):
         description = ''
@@ -178,8 +171,7 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='rename',
-        description='Change tag name',
-        guild_ids=guild_ids
+        description='Change tag name'
     )
     async def rename(self, ctx: SlashContext, tag_name, new_tag_name):
         tag_name = self.convert_tag_name(tag_name)
@@ -212,8 +204,7 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='raw',
-        description='Show raw tag description',
-        guild_ids=guild_ids
+        description='Show raw tag description'
     )
     async def raw(self, ctx: SlashContext, tag_name):
         tag_name = self.convert_tag_name(tag_name)
@@ -231,8 +222,7 @@ class Tags(Cog):
     @slash_subcommand(
         base='public',
         name='tags',
-        description='Allows or disallows everyone to use tags',
-        guild_ids=guild_ids
+        description='Allows or disallows everyone to use tags'
     )
     @is_administrator_or_bot_owner()
     async def allow_public_tags(self, ctx):
@@ -252,8 +242,7 @@ class Tags(Cog):
 
     @slash_command(
         name='btag',
-        description='Open control tag menu',
-        guild_ids=guild_ids
+        description='Open control tag menu'
     )
     async def btag(self, ctx: SlashContext, tag_name):
         tag_name = self.convert_tag_name(tag_name)

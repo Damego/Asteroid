@@ -12,7 +12,7 @@ from my_utils import (
     CogDisabledOnGuild,
     Cog
 )
-from .settings import guild_ids
+
 
 
 def get_emoji_role(collection, message_id: int, emoji):
@@ -83,7 +83,6 @@ class ReactionRole(Cog):
         base='reactionrole',
         subcommand_group='add',
         name='post',
-        guild_ids=guild_ids,
         options=[
             create_option(
                 name='message_id',
@@ -106,7 +105,6 @@ class ReactionRole(Cog):
         base='reactionrole',
         subcommand_group='add',
         name='role',
-        guild_ids=guild_ids,
         options=[
             create_option(
                 name='message_id',
@@ -148,7 +146,6 @@ class ReactionRole(Cog):
         base='reactionrole',
         subcommand_group='remove',
         name='post',
-        guild_ids=guild_ids,
         options=[
             create_option(
                 name='message_id',
@@ -171,7 +168,6 @@ class ReactionRole(Cog):
         base='reactionrole',
         subcommand_group='remove',
         name='role',
-        guild_ids=guild_ids,
         options=[
             create_option(
                 name='message_id',

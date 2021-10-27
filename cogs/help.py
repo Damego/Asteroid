@@ -7,7 +7,6 @@ from discord_components import Select, SelectOption
 from discord_slash_components_bridge import ComponentContext
 
 from my_utils import AsteroidBot, get_content, Cog
-from .settings import guild_ids
 
 
 
@@ -20,8 +19,7 @@ class Help(Cog):
 
     @slash_command(
         name='help',
-        description='Show all bot\'s commands',
-        guild_ids=guild_ids
+        description='Show all bot\'s commands'
     )
     async def help_command(self, ctx: SlashContext):
         components = self._init_components()

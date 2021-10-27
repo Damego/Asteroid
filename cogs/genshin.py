@@ -19,7 +19,7 @@ from my_utils.paginator import (
     PaginatorCheckButtonID,
     get_interaction
 )
-from .settings import guild_ids
+
 
 
 class GenshinStats(Cog):
@@ -32,8 +32,7 @@ class GenshinStats(Cog):
     @slash_subcommand(
         base='genshin',
         name='bind',
-        description='Bind Hoyolab UID to your account',
-        guild_ids=guild_ids
+        description='Bind Hoyolab UID to your account'
     )
     async def bind_uid(self, ctx: SlashContext, hoyolab_uid:int):
         self._get_cookie()
@@ -57,8 +56,7 @@ class GenshinStats(Cog):
     @slash_subcommand(
         base='genshin',
         name='statistics',
-        description='Show your statistics of Genshin Impact',
-        guild_ids=guild_ids
+        description='Show your statistics of Genshin Impact'
     )
     async def statistics(self, ctx: SlashContext, uid: int=None):
         await ctx.defer()
@@ -125,8 +123,7 @@ class GenshinStats(Cog):
     @slash_subcommand(
         base='genshin',
         name='characters_list',
-        description='Show your characters list of Genshin Impact',
-        guild_ids=guild_ids
+        description='Show your characters list of Genshin Impact'
     )
     async def characters(self, ctx: SlashContext, uid: int=None):
         await ctx.defer()
@@ -163,8 +160,7 @@ class GenshinStats(Cog):
     @slash_subcommand(
         base='genshin',
         name='characters',
-        description='Show your characters of Genshin Impact',
-        guild_ids=guild_ids
+        description='Show your characters of Genshin Impact'
     )
     async def chars(self, ctx: SlashContext, uid: int=None):
         await ctx.defer()
@@ -218,8 +214,7 @@ class GenshinStats(Cog):
     @slash_subcommand(
         base='genshin',
         name='info',
-        description='Show account information',
-        guild_ids=guild_ids
+        description='Show account information'
     )
     async def info(self, ctx: SlashContext, hoyolab_uid: int=None):
         await ctx.defer()

@@ -7,7 +7,6 @@ from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash_components_bridge import ComponentContext
 
 from my_utils import AsteroidBot, get_content, NotConnectedToVoice, Cog
-from .settings import guild_ids
 
 
 
@@ -36,8 +35,7 @@ class Music(Cog):
     @slash_subcommand(
         base='music',
         name='play',
-        description='Start playing music',
-        guild_ids=guild_ids
+        description='Start playing music'
     )
     async def play_music(self, ctx: SlashContext, *, query: str):
         await ctx.defer()
@@ -47,8 +45,7 @@ class Music(Cog):
     @slash_subcommand(
         base='music',
         name='nplay',
-        description='Start playing music',
-        guild_ids=guild_ids
+        description='Start playing music'
     )
     async def button_play_music(self, ctx: SlashContext, *, query: str):
         await ctx.defer()
@@ -58,8 +55,7 @@ class Music(Cog):
     @slash_subcommand(
         base='music',
         name='stop',
-        description='Stop playing music',
-        guild_ids=guild_ids
+        description='Stop playing music'
     )
     async def stop_music(self, ctx: SlashContext):
         await self._stop_music(ctx)
@@ -68,8 +64,7 @@ class Music(Cog):
     @slash_subcommand(
         base='music',
         name='pause',
-        description='Pause playing music',
-        guild_ids=guild_ids
+        description='Pause playing music'
     )
     async def pause_music(self, ctx: SlashContext):
         await self._pause_music(ctx)
@@ -78,8 +73,7 @@ class Music(Cog):
     @slash_subcommand(
         base='music',
         name='resume',
-        description='Resume playing music',
-        guild_ids=guild_ids
+        description='Resume playing music'
     )
     async def resume_music(self, ctx: SlashContext):
         await self._resume_music(ctx)
@@ -88,8 +82,7 @@ class Music(Cog):
     @slash_subcommand(
         base='music',
         name='repeat',
-        description='Toggle music repeat',
-        guild_ids=guild_ids
+        description='Toggle music repeat'
     )
     async def repeat_music(self, ctx: SlashContext):
         await self._repeat_music(ctx)
@@ -98,8 +91,7 @@ class Music(Cog):
     @slash_subcommand(
         base='music',
         name='skip',
-        description='Skip music',
-        guild_ids=guild_ids
+        description='Skip music'
     )
     async def skip_music(self, ctx: SlashContext):
         await self._skip_music(ctx)

@@ -18,7 +18,6 @@ from my_utils import (
 
 guild_ids = [
     422989643634442240,
-    822119465575383102,
     847283544803508254
 ]
 #guild_ids = [
@@ -37,8 +36,7 @@ class Settings(Cog):
     @slash_subcommand(
         base='set',
         name='lang',
-        description='Changes bot\'s language on your server [ru, en]',
-        guild_ids=guild_ids
+        description='Changes bot\'s language on your server [ru, en]'
     )
     @is_administrator_or_bot_owner()
     async def set_bot_language(self, ctx: SlashContext, lang: str):
@@ -56,8 +54,7 @@ class Settings(Cog):
     @slash_subcommand(
         base='set',
         name='color',
-        description='Set color for embeds',
-        guild_ids=guild_ids
+        description='Set color for embeds'
     )
     @is_administrator_or_bot_owner()
     async def set_embed_color(self, ctx: SlashContext, color: str):
@@ -85,8 +82,7 @@ class Settings(Cog):
     @slash_subcommand(
         base='set',
         name='status',
-        description='Disable all commands in cogs (if implemented)',
-        guild_ids=guild_ids
+        description='Disable all commands in cogs (if implemented)'
     )
     async def set_cog_status(self, ctx: SlashContext, cog: str, status: bool):
         await ctx.defer()
@@ -129,8 +125,7 @@ class Settings(Cog):
     @slash_subcommand(
         base='ext',
         name='unload',
-        description='Unload extension',
-        guild_ids=guild_ids
+        description='Unload extension'
     )
     @commands.is_owner()
     async def _unload_extension(self, ctx: SlashContext, extension):
@@ -145,8 +140,7 @@ class Settings(Cog):
     @slash_subcommand(
         base='ext',
         name='reload',
-        description='reload extension',
-        guild_ids=guild_ids
+        description='reload extension'
     )
     @commands.is_owner()
     async def _reload_extension(self, ctx: SlashContext, extension):
@@ -164,8 +158,7 @@ class Settings(Cog):
     @slash_subcommand(
         base='ext',
         name='reload_all',
-        description='Reload all extensions',
-        guild_ids=guild_ids
+        description='Reload all extensions'
     )
     @commands.is_owner()
     async def _reload_all_extensions(self, ctx: SlashContext):
@@ -190,8 +183,7 @@ class Settings(Cog):
 
     @slash_command(
         name='deploy',
-        guild_ids=guild_ids,
-        description='Deploy update from GIT',
+        description='Deploy update from GIT'
     )
     @commands.is_owner()
     async def git_pull_updates(self, ctx: SlashContext):
