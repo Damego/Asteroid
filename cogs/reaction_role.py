@@ -45,8 +45,12 @@ class ReactionRole(Cog):
         if payload.emoji.id is None:
             emoji = payload.emoji
 
+        guild: discord.Guild = self.bot.get_guild(payload.guild_id)
+        if guild is None:
+            self.bot.fetch_guild(payload.guild_id)
+
         emoji_role = get_emoji_role(collection, payload.message_id, emoji)
-        role = self.bot.get_guild(payload.guild_id).get_role(emoji_role)
+        role = guild.get_role(emoji_role)
 
         #role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=)
         await payload.member.add_roles(role)
@@ -68,10 +72,12 @@ class ReactionRole(Cog):
         if payload.emoji.id is None:
             emoji = payload.emoji
 
-        role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=get_emoji_role(collection, payload, emoji))
-        guild = self.bot.get_guild(payload.guild_id)
+        guild: discord.Guild = self.bot.get_guild(payload.guild_id)
         if guild is None:
             self.bot.fetch_guild(payload.guild_id)
+
+        emoji_role = get_emoji_role(collection, payload.message_id, emoji)
+        role = guild.get_role(emoji_role)
         
         member = guild.get_member(payload.user_id)
         if member is None:
