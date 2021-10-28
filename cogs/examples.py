@@ -545,7 +545,7 @@ async def private_button2(self, ctx):
         description='Code of check_by_custom_id example',
         guild_ids=guild_ids
     )
-    async def private_button_code_example2(self, ctx: SlashContext):
+    async def code_check_custom_id_example(self, ctx: SlashContext):
         code_content = """
         ```py
 @commands.command()
