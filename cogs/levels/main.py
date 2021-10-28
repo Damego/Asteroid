@@ -263,8 +263,8 @@ class Levels(Cog):
     )
     @is_enabled
     @is_administrator_or_bot_owner()
-    async def levels_add_xp(self, ctx: SlashContext, member: Member, xp: int):
-        await update_member(self.bot, member, xp)
+    async def levels_add_xp(self, ctx: SlashContext, member: Member, exp: int):
+        await update_member(self.bot, member, exp)
         await ctx.send('✅', hidden=True)
 
 
