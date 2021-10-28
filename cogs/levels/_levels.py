@@ -61,15 +61,16 @@ async def update_member(
         exp_to_next_level = formula_of_experience(level)
 
         guild_level_roles_collection = bot.get_guild_level_roles_collection(guild_id)
-        role_id = guild_level_roles_collection.find_one({'_id':(str(level))}).get('role_id')
-        if role_id is None:
+        level_document = guild_level_roles_collection.find_one({'_id':(str(level))})
+        if level_document is None:
             continue
 
+        role_id = level_document.get('role_id')
         new_role = guild.get_role(role_id)
         if new_role is not None:
             lang = bot.get_guild_bot_lang(guild_id)
             content = get_content('LEVELS', lang)['FUNC_UPDATE_MEMBER']
-            await update_member_role(content, bot, guild_id, member, new_role)
+            await update_member_role(bot, guild_id, member, new_role)
             await notify_member(content, guild, member, member_stats['level'], new_role, message)
 
 
