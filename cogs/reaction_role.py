@@ -89,6 +89,7 @@ class ReactionRole(Cog):
         base='reactionrole',
         subcommand_group='add',
         name='post',
+        description='Adds new message to react',
         options=[
             create_option(
                 name='message_id',
@@ -111,6 +112,7 @@ class ReactionRole(Cog):
         base='reactionrole',
         subcommand_group='add',
         name='role',
+        description='Add reaction role to message',
         options=[
             create_option(
                 name='message_id',
@@ -152,6 +154,7 @@ class ReactionRole(Cog):
         base='reactionrole',
         subcommand_group='remove',
         name='post',
+        description='Remove\'s message to react',
         options=[
             create_option(
                 name='message_id',
@@ -174,6 +177,7 @@ class ReactionRole(Cog):
         base='reactionrole',
         subcommand_group='remove',
         name='role',
+        description='Remove reaction role from message',
         options=[
             create_option(
                 name='message_id',

@@ -12,6 +12,7 @@ from discord_slash.cog_ext import (
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu
 )
+from discord_slash.utils.manage_commands import create_permission
 from discord_slash_components_bridge import ComponentContext, ComponentMessage
 import qrcode
 import requests
@@ -281,6 +282,7 @@ class Misc(Cog):
             'Ridgeview Road House',
             'Tanglewood Street House',
             'Willow Street House',
+            'Maple Lodge Campsite',
             'Brownstone High School',
             'Prison',
             'Asylum'
@@ -380,12 +382,12 @@ class Misc(Cog):
 
     @slash_subcommand(
         base='server',
-        name='bots'
+        name='offline_bots'
     )
     async def check_bots(self, ctx: SlashContext):
         bots_list = [member for member in ctx.guild.members if member.bot]
 
-        content = '**Offline bots in discord-components server**'
+        content = f'**Offline bots in {ctx.guild.name} server**\n'
         content += ', '.join(
             f'{bot.mention}' for bot in bots_list if str(bot.status) != 'online'
         )
@@ -413,13 +415,37 @@ class Misc(Cog):
 
 
     @slash_command(
-        name='test',
-        guild_ids=guild_ids
+        name='invite',
+        description='Send\'s bot invite link'
     )
-    async def test_command(self, ctx):
-        role_id = 843178317871317054
-        role = ctx.guild.get_role(role_id)
-        await ctx.guild.get_member(ctx.author_id).add_roles(role)
+    async def invite_bot(self, ctx: SlashContext):
+        no_perms_invite_link = 'https://discord.com/api/oauth2/authorize?client_id=883690387884081183&permissions=0&scope=bot%20applications.commands'
+        admin_invite_link = 'https://discord.com/api/oauth2/authorize?client_id=883690387884081183&permissions=8&scope=bot%20applications.commands'
+        recommended_invite_link = 'https://discord.com/api/oauth2/authorize?client_id=883690387884081183&permissions=506850391&scope=bot%20applications.commands'
+        components = [
+            [
+                Button(style=ButtonStyle.URL, label='Invite (No perms)', url=no_perms_invite_link),
+                Button(style=ButtonStyle.URL, label='Invite (Administrator)', url=admin_invite_link),
+                Button(style=ButtonStyle.URL, label='Invite (Recommended)', url=recommended_invite_link)
+            ]
+        ]
+
+        await ctx.send('Click on button to invite bot!', components=components)
+
+
+    @slash_command(
+        name='test',
+        guild_ids=guild_ids,
+        permissions={
+            847283544803508254: create_permission(
+                847283544803508254,
+                1,
+                False
+            )
+        }
+    )
+    async def test_command(self, ctx: SlashContext):
+        await ctx.send('test')
 
 
 
