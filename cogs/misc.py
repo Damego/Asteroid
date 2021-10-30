@@ -3,7 +3,7 @@ import json
 from os import remove, environ
 from random import choice, randint
 
-from discord import Member, File, Embed, Role
+from discord import Member, File, Embed, Role, Guild
 from discord.errors import Forbidden
 from discord_components import Select, SelectOption, Button, ButtonStyle
 from discord_slash import SlashContext, ContextMenuType, MenuContext
@@ -29,6 +29,26 @@ class Misc(Cog):
         self.hidden = False
         self.emoji = '💡'
         self.name = 'Misc'
+
+
+    @Cog.listener()
+    async def on_guild_join(self, guild: Guild):
+        channel = self.bot.get_channel(903920844114362389)
+        if channel is None:
+            channel = self.bot.fetch_channel(903920844114362389)
+
+        guild_info = f"**Название:** {guild.name}" \
+            f"**id:** {guild.id}" \
+            f"**Количество участников:** {guild.member_count}" \
+            f"**Создатель сервера:** {guild.owner.display_name}"
+
+        embed = Embed(
+            title='Новый сервер!',
+            description=guild_info
+        )
+        embed.set_thumbnail(url=guild.icon_url)
+        
+        await channel.send(embed=embed)
 
 
     @slash_subcommand(
