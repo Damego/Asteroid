@@ -37,9 +37,9 @@ class Misc(Cog):
         if channel is None:
             channel = self.bot.fetch_channel(903920844114362389)
 
-        guild_info = f"**Название:** {guild.name}" \
-            f"**id:** {guild.id}" \
-            f"**Количество участников:** {guild.member_count}" \
+        guild_info = f"**Название:** {guild.name}\n" \
+            f"**id:** {guild.id}\n" \
+            f"**Количество участников:** {guild.member_count}\n" \
             f"**Создатель сервера:** {guild.owner.display_name}"
 
         embed = Embed(
