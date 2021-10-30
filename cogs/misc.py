@@ -433,21 +433,6 @@ class Misc(Cog):
         await ctx.send('Click on button to invite bot!', components=components)
 
 
-    @slash_command(
-        name='test',
-        guild_ids=guild_ids,
-        permissions={
-            847283544803508254: create_permission(
-                847283544803508254,
-                1,
-                False
-            )
-        }
-    )
-    async def test_command(self, ctx: SlashContext):
-        await ctx.send('test')
-
-
 
 def setup(bot):
     bot.add_cog(Misc(bot))
