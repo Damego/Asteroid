@@ -1,4 +1,3 @@
-from re import M
 
 
 def get_content(content_type: str, lang: str):
@@ -38,10 +37,15 @@ LANGUAGES = {
             },
             'ABOUT_TITLE': 'Информация о {}',
             'GENERAL_INFO_TITLE': 'Общая информация:',
-            'DISCORD_REGISTRATION_TEXT': '**Дата регистрации в Discord:**',
-            'JOINED_ON_SERVER_TEXT': '**Дата присоединения на сервер:**',
-            'CURRENT_STATUS_TEXT':'**Текущий статус:**',
-            'ROLES':'**Роли:**',
+            'FULL_NAME_TEXT': 'Полное имя',
+            'BADGES_TEXT': 'Значки:',
+            'NITRO_SINCE_TEXT': 'Подписка Nitro:',
+            'NO_NITRO_TEXT': 'Нет подписки на Nitro',
+            'DISCORD_REGISTRATION_TEXT': 'Дата регистрации в Discord:',
+            'JOINED_ON_SERVER_TEXT': 'Дата присоединения на сервер:',
+            'CURRENT_STATUS_TEXT':'Текущий статус:',
+            'TOP_ROLE_TEXT': 'Высшая роль:',
+            'ROLES_TEXT':'Роли:',
             'LEVELING': {
                 'CURRENT_LEVEL_TEXT': '<:level:863677232239869964> **Уровень:** `{level}`',
                 'CURRENT_EXP_TEXT': '<:exp:863672576941490176> **Опыт:** `{exp}/{exp_to_next_level}` Всего: `{exp_amount}`',
@@ -247,6 +251,21 @@ LANGUAGES = {
             'INFORMATION_TEXT': 'Информация',
             'INFORMATION_CONTENT_TEXT': '```Подсказка: [обязательный аргумент] (необязательный аргумент)```',
             'REQUIRED_BY_TEXT': 'Запрошено {user}'
+        },
+        'COMMAND_ECONOMY_REGISTER': {
+            'ALREADY_REGISTERED': 'Вы уже зарегистрированы!',
+            'SUCCESSFULLY_REGISTERED': 'Вы успешно зарегистрировались!'
+        },
+        'COMMAND_ECONOMY_WORK': {
+            'WORKS_LIST': ['Обычный работник', 'Электрик', 'Сантехник', 'Офисный работник'],
+            'WORKED_TITLE': 'Работа',
+            'WORKED_DESCRIPTION': 'Вы поработали `{work}` и получили `{money}$`'
+        },
+        'COMMAND_ECONOMY_COINFLIP': {
+            'COINFLIP_NAME': 'Подкидывание монеты',
+            'LOSE_DESCRIPTION': '{emoji} Вы проиграли и потеряли `{bet}$`! Попробуйте снова!\n**Ваши игры:**\n{results}',
+            'WON_DESCRIPTION': '{emoji} Вы выиграли и получили `{bet}$`! Попробуйте снова!\n**Ваши игры:**\n{results}',
+            'PLAY_BUTTON_LABEL': 'Играть'
         }
     },
 
@@ -281,10 +300,15 @@ LANGUAGES = {
             },
             'ABOUT_TITLE': 'Information about {}',
             'GENERAL_INFO_TITLE': 'General information:',
-            'DISCORD_REGISTRATION_TEXT': '**Date of registration in Discord:**',
-            'JOINED_ON_SERVER_TEXT': '**Date of joined in server:**',
-            'CURRENT_STATUS_TEXT':'**Current status:**',
-            'ROLES':'**Roles:**',
+            'FULL_NAME_TEXT': 'Full name',
+            'BADGES_TEXT': 'Badges:',
+            'NITRO_SINCE_TEXT': 'Nitro:',
+            'NO_NITRO_TEXT': 'No Nitro',
+            'DISCORD_REGISTRATION_TEXT': 'Date of registration in Discord:',
+            'JOINED_ON_SERVER_TEXT': 'Date of joined in server:',
+            'CURRENT_STATUS_TEXT':'Current status:',
+            'TOP_ROLE_TEXT': 'Top role:',
+            'ROLES_TEXT':'Roles:',
             'LEVELING': {
                 'CURRENT_LEVEL_TEXT': '<:level:863677232239869964> **Level:** `{level}`',
                 'CURRENT_EXP_TEXT': '<:exp:863672576941490176> **Exp:** `{exp}/{exp_to_next_level}` Total: `{exp_amount}`',
@@ -490,6 +514,21 @@ LANGUAGES = {
             'INFORMATION_TEXT': 'Information',
             'INFORMATION_CONTENT_TEXT': '```Hint: [required argument] (optional argument)```',
             'REQUIRED_BY_TEXT': 'Required by {user}'
+        },
+        'COMMAND_ECONOMY_REGISTER': {
+            'ALREADY_REGISTERED': 'You already registered!',
+            'SUCCESSFULLY_REGISTERED': 'You successfully registered!'
+        },
+        'COMMAND_ECONOMY_WORK': {
+            'WORKS_LIST': ['Common worker', 'Electrician', 'Plumber', 'Office worker'],
+            'WORKED_TITLE': 'Work',
+            'WORKED_DESCRIPTION': 'You worked `{work}` and got `{money}$`'
+        },
+        'COMMAND_ECONOMY_COINFLIP': {
+            'COINFLIP_NAME': 'Coinflip',
+            'LOSE_DESCRIPTION': '{emoji} You lose this game and your `{bet}$`! Try again!\n**Your games:**\n{results}',
+            'WON_DESCRIPTION': '{emoji} You won this game and you get `{bet}$`! Try again!\n**Your games:**\n{results}',
+            'PLAY_BUTTON_LABEL': 'Play'
         }
     }
 }

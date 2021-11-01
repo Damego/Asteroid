@@ -5,6 +5,7 @@ from random import choice, randint
 
 from discord import Member, File, Embed, Role, Guild
 from discord.errors import Forbidden
+from discord.flags import PublicUserFlags
 from discord_components import Select, SelectOption, Button, ButtonStyle
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
@@ -64,21 +65,6 @@ class Misc(Cog):
         await ctx.reply(content.format(random_number))
 
 
-    @slash_subcommand(
-        base='fun',
-        name='coinflip',
-        description='flip a coin'
-    )
-    async def coinflip(self, ctx: SlashContext):
-        result = randint(0,1)
-        if result:
-            content = '<:eagle_coin:855061929827106818>'
-        else:
-            content = '<:tail_coin:855060316609970216>'
-
-        await ctx.reply(content)
-
-
     @slash_command(
         name='info',
         description='Out information about guild member'
@@ -103,34 +89,42 @@ class Misc(Cog):
     def _get_embed_member_info(self, ctx: SlashContext, member: Member) -> Embed:
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_MEMBER_INFO', lang=lang)
+
         status = content['MEMBER_STATUS']
-        about_text = content['ABOUT_TITLE'].format(member)
+        about_text = content['ABOUT_TITLE'].format(member.display_name)
         general_info_title_text = content['GENERAL_INFO_TITLE']
-        date_reg_discord_text = content['DISCORD_REGISTRATION_TEXT']
-        date_joined_server_text = content['JOINED_ON_SERVER_TEXT']
-        current_status_text = content['CURRENT_STATUS_TEXT']
-        roles_text = content['ROLES']
+        is_bot = '<:discord_bot_badge:904659785180401694>' if member.bot else ''
+        user_badges = self._get_user_badges(member.public_flags)
+        nitro = f'<t:{member.premium_since.timestamp}:F>' if member.premium_since is not None else content['NO_NITRO_TEXT']
 
         embed = Embed(title=about_text, color=self.bot.get_embed_color(ctx.guild_id))
         embed.set_thumbnail(url=member.avatar_url)
+        embed.set_footer(text=f'{ctx.author.name}', icon_url=ctx.author.avatar_url)
 
         member_roles = [role.mention for role in member.roles if role.name != "@everyone"][::-1]
         member_roles = ', '.join(member_roles)
         member_status = str(member.status)
 
         embed.add_field(name=general_info_title_text, value=f"""
-            {date_reg_discord_text} <t:{int(member.created_at.timestamp())}:F>
-            {date_joined_server_text} <t:{int(member.joined_at.timestamp())}:F>
-            {current_status_text} {status.get(member_status)}
-            {roles_text} {member_roles}
-            """, inline=False)
+            **{content['FULL_NAME_TEXT']}** {member} {is_bot}
+            **{content['BADGES_TEXT']}** {user_badges}
+            **{content['NITRO_SINCE_TEXT']}** {nitro}
 
-        try:
-            levels_enabled = _is_enabled(self.bot.get_cog('Levels'), ctx.guild_id)
-        except CogDisabledOnGuild:
+            **{content['DISCORD_REGISTRATION_TEXT']}** <t:{int(member.created_at.timestamp())}:F>
+            **{content['JOINED_ON_SERVER_TEXT']}** <t:{int(member.joined_at.timestamp())}:F>
+            **{content['CURRENT_STATUS_TEXT']}** {status.get(member_status)}
+            **{content['TOP_ROLE_TEXT']}** {member.top_role.mention}
+            **{content['ROLES_TEXT']}** {member_roles}
+            """,
+            inline=False
+        )
+
+        if member.bot:
             levels_enabled = False
         else:
-            if member.bot:
+            try:
+                levels_enabled = _is_enabled(self.bot.get_cog('Levels'), ctx.guild_id)
+            except CogDisabledOnGuild:
                 levels_enabled = False
 
         if levels_enabled:
@@ -171,6 +165,33 @@ class Misc(Cog):
             name=content['LEVELING_INFO_TITLE_TEXT'],
             value=f'{user_level_text}\n{user_exp_text}\n{user_voice_time_count}'
         )
+
+    def _get_user_badges(self, public_flags: PublicUserFlags) -> str:
+        badges = ''
+        if public_flags.staff:
+            badges += '<:Discordstaff:904695373350707210> '
+        if public_flags.partner:
+            badges += '<:New_partner_badge:904695373363298304>'
+        if public_flags.hypesquad:
+            badges += '<:HypeSquad_Event_Badge:904695519270551612>'
+        if public_flags.bug_hunter:
+            badges += '<:Bug_hunter_badge:904695373300383744> '
+        if public_flags.hypesquad_bravery:
+            badges += '<:Hypesquad_bravery_badge:904695373606555648>'
+        if public_flags.hypesquad_brilliance:
+            badges += '<:Hypesquad_brilliance_badge:904695373321367582>'
+        if public_flags.hypesquad_balance:
+            badges += '<:Hypesquad_balance_badge:904695373367509002>'
+        if public_flags.early_supporter:
+            badges += '<:Early_supporter_badge:904695372931280947>'
+        if public_flags.bug_hunter_level_2:
+            badges += '<:Bug_buster_badge:904695373312950312>'
+        if public_flags.verified_bot_developer:
+            badges += '<:Verified_developer_badge:904695373401038848>'
+        if public_flags.early_verified_bot_developer:
+            badges += '<:Verified_developer_badge:904695373401038848>'
+
+        return badges
 
 
     @slash_subcommand(
