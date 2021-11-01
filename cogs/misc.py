@@ -134,10 +134,15 @@ class Misc(Cog):
 
     def _get_levels_info(self, ctx: SlashContext, user_id: int, embed: Embed, content: dict):
         content = content['LEVELING']
-
         users_collection = self.bot.get_guild_users_collection(ctx.guild_id)
         user_data = users_collection.find_one({'_id': str(user_id)})
-        user_stats = user_data['leveling']
+
+        if user_data is None:
+            return
+        user_stats = user_data.get('leveling')
+        if user_stats is None:
+            return
+
         user_level = user_stats['level']
         user_exp, user_exp_amount, user_voice_time =  map(
                 int,
