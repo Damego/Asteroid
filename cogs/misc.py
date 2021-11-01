@@ -95,7 +95,6 @@ class Misc(Cog):
         general_info_title_text = content['GENERAL_INFO_TITLE']
         is_bot = '<:discord_bot_badge:904659785180401694>' if member.bot else ''
         user_badges = self._get_user_badges(member.public_flags)
-        nitro = f'<t:{member.premium_since.timestamp}:F>' if member.premium_since is not None else content['NO_NITRO_TEXT']
 
         embed = Embed(title=about_text, color=self.bot.get_embed_color(ctx.guild_id))
         embed.set_thumbnail(url=member.avatar_url)
@@ -108,7 +107,6 @@ class Misc(Cog):
         embed.add_field(name=general_info_title_text, value=f"""
             **{content['FULL_NAME_TEXT']}** {member} {is_bot}
             **{content['BADGES_TEXT']}** {user_badges}
-            **{content['NITRO_SINCE_TEXT']}** {nitro}
 
             **{content['DISCORD_REGISTRATION_TEXT']}** <t:{int(member.created_at.timestamp())}:F>
             **{content['JOINED_ON_SERVER_TEXT']}** <t:{int(member.joined_at.timestamp())}:F>
@@ -191,8 +189,6 @@ class Misc(Cog):
             badges += '<:Early_supporter_badge:904695372931280947>'
         if public_flags.bug_hunter_level_2:
             badges += '<:Bug_buster_badge:904695373312950312>'
-        if public_flags.verified_bot_developer:
-            badges += '<:Verified_developer_badge:904695373401038848>'
         if public_flags.early_verified_bot_developer:
             badges += '<:Verified_developer_badge:904695373401038848>'
 
