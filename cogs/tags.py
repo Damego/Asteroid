@@ -1,9 +1,7 @@
 import asyncio
 
-from discord import Embed
-from discord_slash import (
-    SlashContext
-)
+from discord import Embed, Message
+from discord_slash import SlashContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
     cog_subcommand as slash_subcommand
@@ -29,22 +27,22 @@ class Tags(Cog):
         name='open',
         description='Open tag'
     )
-    async def tag(self, ctx: SlashContext, tag_name=None):
+    async def open_tag(self, ctx: SlashContext, tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
 
-        collection = self.bot.get_guild_tags_collection(ctx.guild.id)
-        tag = collection.find_one({'_id':tag_name})
+        collection = self.bot.get_guild_tags_collection(ctx.guild_id)
+        tag = collection.find_one({'_id': tag_name})
         if tag is None:
             raise TagNotFound
 
-        title = tag.get('title')
-        if title is None or title == '':
-            title = 'Empty Title'
-        description = tag.get('description')
-        if description is None or description == '':
-            description = 'Empty Description'
+        if tag.get('is_embed') is False:
+            return await ctx.send(tag['description'])
 
-        embed = Embed(title=title, description=description, color=self.bot.get_embed_color(ctx.guild.id))
+        embed = Embed(
+            title=tag['title'],
+            description=tag['description'],
+            color=self.bot.get_embed_color(ctx.guild_id)
+        )
         await ctx.send(embed=embed)
 
 
@@ -53,106 +51,60 @@ class Tags(Cog):
         name='add',
         description='Create new tag'
     )
-    async def create_new_tag(self, ctx: SlashContext, tag_name):
+    async def create_new_tag(self, ctx: SlashContext, tag_name: str, *, tag_content: str):
         tag_name = tag_name.lower()
 
-        self._is_can_manage_tags(ctx)
+        self._is_can_manage_tags(ctx, None)
 
-        collection = self.bot.get_guild_tags_collection(ctx.guild.id)
-        tag = collection.find_one({'_id':tag_name})
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('TAG_ADD_COMMAND', lang)
+
+        collection = self.bot.get_guild_tags_collection(ctx.guild_id)
+        tag = collection.find_one({'_id': tag_name})
 
         if tag is not None:
-            return await ctx.reply('Tag already exists!')
+            return await ctx.send(content['TAG_ALREADY_EXISTS_TEXT'])
 
         collection.update_one(
             {'_id':tag_name},
             {'$set':{
-                'author_id':ctx.author.id,
-                'title':'Your title',
-                'description':'Your description'
+                'is_embed': False,
+                'title': 'No title',
+                'description': tag_content,
+                'author_id': ctx.author.id
                 }
             },
             upsert=True
         )
-        await ctx.send('✅', hidden=True)
-
-
-    @slash_subcommand(
-        base='tag',
-        name='title',
-        description='Set title for tag'
-    )
-    async def set_tag_title(self, ctx: SlashContext, tag_name: str, *, title: str):
-        tag_name = self.convert_tag_name(tag_name)
-        collection = self.bot.get_guild_tags_collection(ctx.guild.id)
-        tag = collection.find_one({'_id':tag_name})
-        if tag is None:
-            raise TagNotFound
-
-        self._is_can_manage_tags(ctx)
-
-        collection.update_one(
-            {'_id':tag_name},
-            {'$set':{
-                'title':title
-                }
-            }
-        )
-        await ctx.send('✅', hidden=True)
-
-
-    @slash_subcommand(
-        base='tag',
-        name='description',
-        description='Set description for tag'
-    )
-    async def set_tag_description(self, ctx: SlashContext, tag_name, *, description):
-        tag_name = self.convert_tag_name(tag_name)
-        description = f"""{description}"""
-        collection = self.bot.get_guild_tags_collection(ctx.guild.id)
-        tag = collection.find_one({'_id':tag_name})
-        if tag is None:
-            raise TagNotFound
-
-        self._is_can_manage_tags(ctx)
-
-        collection.update_one(
-            {'_id':tag_name},
-            {'$set':{
-                'description':description
-                }
-            }
-        )
-        await ctx.send('✅', hidden=True)
+        await ctx.send(content=content['TAG_CREATED_TEXT'].format(tag_name=tag_name))
 
 
     @slash_subcommand(
         base='tag',
         name='remove',
-        description='Delete tag'
+        description='Removes tag'
     )
-    async def remove(self, ctx: SlashContext, tag_name):
+    async def tag_remove(self, ctx: SlashContext, tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
-        collection = self.bot.get_guild_tags_collection(ctx.guild.id)
+        collection = self.bot.get_guild_tags_collection(ctx.guild_id)
         tag = collection.find_one({'_id':tag_name})
         if tag is None:
             raise TagNotFound
+        self._is_can_manage_tags(ctx, tag)
 
-        self._is_can_manage_tags(ctx)
-
-        collection.delete_one({'_id':tag_name})
-
-        await ctx.send('✅', hidden=True)
+        content = get_content('TAG_REMOVE_COMMAND', lang=self.bot.get_guild_bot_lang(ctx.guild_id))
+        collection.delete_one({'_id': tag_name})
+        await ctx.send(content['TAG_REMOVED_TEXT'].format(tag_name=tag_name))
 
 
     @slash_subcommand(
         base='tag',
         name='list',
-        description='Shows list of tags'
+        description='Shows list of exists tags'
     )
-    async def list(self, ctx: SlashContext):
+    async def tag_list(self, ctx: SlashContext):
         description = ''
-        collection = self.bot.get_guild_tags_collection(ctx.guild.id)
+        collection = self.bot.get_guild_tags_collection(ctx.guild_id)
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_TAG_LIST', lang)
         tags_cursor = collection.find({})
@@ -163,42 +115,60 @@ class Tags(Cog):
         if description == '':
             description = content['NO_TAGS_TEXT']
 
-        embed = Embed(title=content['TAGS_LIST_TEXT'].format(server=ctx.guild.name), color=self.bot.get_embed_color(ctx.guild.id))
-        embed.description = description
+        embed = Embed(
+            title=content['TAGS_LIST_TEXT'].format(server=ctx.guild.name),
+            description=description,
+            color=self.bot.get_embed_color(ctx.guild_id)
+        )
         await ctx.send(embed=embed)
 
 
     @slash_subcommand(
         base='tag',
         name='rename',
-        description='Change tag name'
+        description='Renames tag\'s name'
     )
-    async def rename(self, ctx: SlashContext, tag_name, new_tag_name):
+    async def rename(self, ctx: SlashContext, tag_name: str, new_tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
-        new_tag_name = new_tag_name.lower()
-        collection = self.bot.get_guild_tags_collection(ctx.guild.id)
+        new_tag_name = self.convert_tag_name(new_tag_name)
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('TAG_RENAME_TAG', lang)
+
+        collection = self.bot.get_guild_tags_collection(ctx.guild_id)
         tag = collection.find_one({'_id':tag_name})
         if tag is None:
             raise TagNotFound
 
-        self._is_can_manage_tags(ctx)
+        self._is_can_manage_tags(ctx, tag)
 
+        if tag.get('is_embed'):
+            data = {
+                'is_embed': True,
+                'title': tag['title'],
+                'description': tag['description'],
+                'author_id': tag['author_id']
+            }
+        else:
+            data = {
+                'is_embed': False,
+                'title': 'No title',
+                'description': tag['description'],
+                'author_id': tag['author_id']
+            }
 
-        title = tag['title']
-        description = tag['description']
-
-        collection.delete_one({'_id':tag_name})
+        collection.delete_one({'_id': tag_name})
         collection.update_one(
-            {'_id':new_tag_name},
-            {'$set':{
-                'title':title,
-                'description': description
-                }
-            },
+            {'_id': new_tag_name},
+            {'$set': data},
             upsert=True
         )
 
-        await ctx.send('✅', hidden=True)
+        await ctx.send(
+            content['TAG_RENAMED_TEXT'].format(
+                tag_name=tag_name,
+                new_tag_name=new_tag_name
+            )
+        )
 
 
     @slash_subcommand(
@@ -206,26 +176,29 @@ class Tags(Cog):
         name='raw',
         description='Show raw tag description'
     )
-    async def raw(self, ctx: SlashContext, tag_name):
+    async def raw(self, ctx: SlashContext, tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
-        collection = self.bot.get_guild_tags_collection(ctx.guild.id)
-        tag = collection.find_one({'_id':tag_name})
+        collection = self.bot.get_guild_tags_collection(ctx.guild_id)
+        tag = collection.find_one({'_id': tag_name})
         if tag is None:
             raise TagNotFound
 
-        self._is_can_manage_tags(ctx)
+        self._is_can_manage_tags(ctx, tag)
 
-        content = tag['description']
-        await ctx.reply(f'```{content}```')
+        tag_content = tag['description']
+        await ctx.reply(f'```{tag_content}```')
 
-    
+
     @slash_subcommand(
         base='public',
         name='tags',
         description='Allows or disallows everyone to use tags'
     )
     @is_administrator_or_bot_owner()
-    async def allow_public_tags(self, ctx):
+    async def allow_public_tags(self, ctx: SlashContext):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('PUBLIC_TAGS_COMMAND', lang)
+
         collection = self.bot.get_guild_cogs_collection(ctx.guild_id)
         tags = collection.find_one({'_id':'tags'})
         if tags is not None:
@@ -234,40 +207,64 @@ class Tags(Cog):
         else:
             status = True
 
-        collection.update_one({'_id':'tags'}, {'$set':{'is_public':status}}, upsert=True)
+        collection.update_one(
+            {'_id':'tags'},
+            {'$set':{'is_public': status}},
+            upsert=True
+        )
 
-        content = 'Tags now public' if status else 'Tags now only for Administators'
-        await ctx.send(content)
+        message_content = content['TAGS_PUBLIC'] if status else content['TAGS_FOR_ADMINS']
+        await ctx.send(message_content)
 
 
-    @slash_command(
-        name='btag',
-        description='Open control tag menu'
+    @slash_subcommand(
+        base='tag',
+        name='embed',
+        description='Open embed control tag menu'
     )
-    async def btag(self, ctx: SlashContext, tag_name):
+    async def tag_embed(self, ctx: SlashContext, tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
-
-        self._is_can_manage_tags(ctx)
-
         collection = self.bot.get_guild_tags_collection(ctx.guild_id)
+        tag = collection.find_one({'_id': tag_name})
+
+        self._is_can_manage_tags(ctx, tag)
+
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('FUNC_TAGS_BTAG', lang)
+        content = get_content('EMBED_TAG_CONTROL', lang)
 
-        tag = collection.find_one({'_id':tag_name})
+        if tag is None:
+            embed, message = await self.init_btag(ctx, content)
+            return await self._process_interactions(ctx, message, collection, content, embed, tag_name)
 
-        if tag is not None:
-            embed = Embed(color=self.bot.get_embed_color(ctx.guild_id))
-            embed.title = tag['title']
-            embed.description = tag['description']
-            components = [[
+        if tag.get('is_embed') is False:
+            return await ctx.send(content['NOT_SUPPORTED_TAG_TYPE'])
+
+        embed = Embed(
+            title=tag['title'],
+            description=tag['description'],
+            color=self.bot.get_embed_color(ctx.guild_id)
+        )
+        components = [
+            [
                 Button(style=ButtonStyle.green, label=content['EDIT_TAG_BUTTON'], id='edit_tag'),
                 Button(style=ButtonStyle.red, label=content['REMOVE_TAG_BUTTON'], id='remove_tag'),
                 Button(style=ButtonStyle.red, label=content['EXIT_BUTTON'], id='exit')
-            ]]
-            message: ComponentMessage = await ctx.send(embed=embed, components=components)
-        else:
-            embed, message = await self.init_btag(ctx, content)
+            ]
+        ]
+        message: ComponentMessage = await ctx.send(embed=embed, components=components)
         
+        await self._process_interactions(ctx, message, collection, content, embed, tag_name)
+
+
+    async def _process_interactions(
+        self,
+        ctx: SlashContext,
+        message: ComponentMessage,
+        collection: Collection,
+        content: dict,
+        embed: Embed,
+        tag_name: str
+        ):
         while True:
             try:
                 interaction: ComponentContext = await self.bot.wait_for(
@@ -280,7 +277,7 @@ class Tags(Cog):
             except Exception as e:
                 print('TAG ERROR:', e)
                 continue
-            
+
             button_id = interaction.custom_id
 
             if button_id == 'edit_tag':
@@ -302,7 +299,7 @@ class Tags(Cog):
             if not interaction.responded:
                 await interaction.defer(edit_origin=True)
 
-    async def init_btag(self, ctx: SlashContext, content, message: ComponentMessage=None):
+    async def init_btag(self, ctx: SlashContext, content: dict, message: ComponentMessage=None):
         components = [
             [
                 Button(style=ButtonStyle.blue, label=content['SET_TITLE_BUTTON'], id='set_title'),
@@ -319,7 +316,7 @@ class Tags(Cog):
         embed = Embed(
             title=content['TAG_TITLE_TEXT'],
             description=content['TAG_DESCRIPTION_TEXT'],
-            color=self.bot.get_embed_color(ctx.guild.id)
+            color=self.bot.get_embed_color(ctx.guild_id)
         )
         message: ComponentMessage = await ctx.send(embed=embed, components=components)
         return embed, message
@@ -328,25 +325,25 @@ class Tags(Cog):
     async def edit_tag(
         self,
         ctx: SlashContext,
-        content,
+        content: dict,
         interaction: ComponentContext,
-        component,
+        component: str,
         message: ComponentMessage,
         embed: Embed
         ):
-        label = '`Tag title`' if component == 'title' else '`Tag description`'
+        label = content['TAG_TITLE_TEXT'] if component == 'title' else content['TAG_DESCRIPTION_TEXT']
         await interaction.send(f'{content["INPUT_TEXT"]} {label}', hidden=True)
 
-        msg = await self.bot.wait_for(
+        user_message: Message = await self.bot.wait_for(
             'message',
             check=lambda msg: msg.author.id == ctx.author_id and msg.channel.id == ctx.channel_id
         )
-        content = msg.content
+        message_content = user_message.content
 
         if component == 'title':
-            embed.title = content
+            embed.title = message_content
         elif component == 'description':
-            embed.description = content
+            embed.description = message_content
 
         await message.edit(embed=embed)
         return embed
@@ -355,6 +352,7 @@ class Tags(Cog):
         collection.update_one(
             {'_id':tag_name},
             {'$set':{
+                'is_embed': True,
                 'title':embed.title,
                 'description':embed.description,
                 'author_id':interaction.author.id
@@ -371,16 +369,16 @@ class Tags(Cog):
 
     async def remove_tag(
         self,
-        content, 
-        interaction: ComponentContext, 
-        collection: Collection, 
+        content: dict,
+        interaction: ComponentContext,
+        collection: Collection,
         tag_name: str
         ):
         collection.delete_one({'_id': tag_name})
         await interaction.send(content=content['REMOVED_TAG_TEXT'], hidden=True)
 
     
-    def _is_can_manage_tags(self, ctx):
+    def _is_can_manage_tags(self, ctx: SlashContext, tag_data: dict):
         if ctx.author_id == 143773579320754177 or ctx.author.guild_permissions.administrator:
             return
 
@@ -391,6 +389,12 @@ class Tags(Cog):
             raise NotTagOwner
 
         if not is_public_tags:
+            raise NotTagOwner
+
+        if tag_data is None:
+            return
+
+        if ctx.author_id != tag_data.get('author_id'):
             raise NotTagOwner
 
 

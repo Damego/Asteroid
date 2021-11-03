@@ -113,7 +113,12 @@ LANGUAGES = {
             'SERVER': '\n**Сервер:** {guild}'
         },
         'FUNC_MODERATION_CLEAR_MESSAGES': 'Успешно удалено `{}` сообщений!',
-        'FUNC_TAGS_BTAG': {
+        'PUBLIC_TAGS_COMMAND': {
+            'TAGS_PUBLIC': 'Теги теперь доступны всем!',
+            'TAGS_FOR_ADMINS': 'Теги теперь могут создавать только администраторы!'
+        },
+        'EMBED_TAG_CONTROL': {
+            'NOT_SUPPORTED_TAG_TYPE': 'Этот тег не поддерживается!',
             'EDIT_TAG_BUTTON': 'Редактировать',
             'REMOVE_TAG_BUTTON': 'Удалить',
             'EXIT_BUTTON': 'Выйти',
@@ -130,6 +135,16 @@ LANGUAGES = {
         'FUNC_TAG_LIST': {
             'TAGS_LIST_TEXT': 'Список тегов в {server}',
             'NO_TAGS_TEXT': 'Список пуст!'
+        },
+        'TAG_ADD_COMMAND': {
+            'TAG_ALREADY_EXISTS_TEXT': 'Этот тег уже существует!',
+            'TAG_CREATED_TEXT': 'Тег `{tag_name}` успешно создан!'
+        },
+        'TAG_REMOVE_COMMAND': {
+            'TAG_REMOVED_TEXT': 'Тег `{tag_name}` успешно удалён!'
+        },
+        'TAG_RENAME_TAG': {
+            'TAG_RENAMED_TEXT': 'Тег `{tag_name}` переименован в `{new_tag_name}`!'
         },
         'MUSIC_PLAY_COMMAND': {
             'ADDED_IN_QUEUE_TEXT': '`{}` Было добавлено о очередь',
@@ -254,10 +269,9 @@ LANGUAGES = {
             'ALREADY_REGISTERED': 'Вы уже зарегистрированы!',
             'SUCCESSFULLY_REGISTERED': 'Вы успешно зарегистрировались!'
         },
-        'COMMAND_ECONOMY_WORK': {
-            'WORKS_LIST': ['Обычный работник', 'Электрик', 'Сантехник', 'Офисный работник'],
-            'WORKED_TITLE': 'Работа',
-            'WORKED_DESCRIPTION': 'Вы поработали `{work}` и получили `{money}$`'
+        'COMMAND_ECONOMY_FREE': {
+            'FREE_MONEY_TITLE': 'Халява',
+            'FREE_MONEY_DESCRIPTION': 'Вы получили `{money}$`'
         },
         'COMMAND_ECONOMY_COINFLIP': {
             'COINFLIP_NAME': 'Подкидывание монеты',
@@ -374,7 +388,12 @@ LANGUAGES = {
             'SERVER': '\n**Server:** {guild}'
         },
         'FUNC_MODERATION_CLEAR_MESSAGES': 'Successfully deleted `{}` messages!',
-        'FUNC_TAGS_BTAG': {
+        'PUBLIC_TAGS_COMMAND': {
+            'TAGS_PUBLIC': 'Tags for now public!',
+            'TAGS_FOR_ADMINS': 'For now tags only for administators!'
+        },
+        'EMBED_TAG_CONTROL': {
+            'NOT_SUPPORTED_TAG_TYPE': 'This tag not supported!',
             'EDIT_TAG_BUTTON': 'Edit',
             'REMOVE_TAG_BUTTON': 'Delete',
             'EXIT_BUTTON': 'Exit',
@@ -387,6 +406,16 @@ LANGUAGES = {
             'INPUT_TEXT': 'Input',
             'SAVED_TAG_TEXT': '**Saved!**',
             'REMOVED_TAG_TEXT': '**Tag was deleted!**'
+        },
+        'TAG_ADD_COMMAND': {
+            'TAG_ALREADY_EXISTS_TEXT': 'This tag already exists!',
+            'TAG_CREATED_TEXT': 'Tag `{tag_name}` successfully created!'
+        },
+        'TAG_REMOVE_COMMAND': {
+            'TAG_REMOVED_TEXT': 'Tag `{tag_name}` successufully removed!'
+        },
+        'TAG_RENAME_TAG': {
+            'TAG_RENAMED_TEXT': 'Tag `{tag_name}` renamed to `{new_tag_name}`!'
         },
         'FUNC_TAG_LIST': {
             'TAGS_LIST_TEXT': 'Tags list on {server}',
@@ -515,10 +544,9 @@ LANGUAGES = {
             'ALREADY_REGISTERED': 'You already registered!',
             'SUCCESSFULLY_REGISTERED': 'You successfully registered!'
         },
-        'COMMAND_ECONOMY_WORK': {
-            'WORKS_LIST': ['Common worker', 'Electrician', 'Plumber', 'Office worker'],
-            'WORKED_TITLE': 'Work',
-            'WORKED_DESCRIPTION': 'You worked `{work}` and got `{money}$`'
+        'COMMAND_ECONOMY_FREE': {
+            'FREE_MONEY_TITLE': 'Free money',
+            'FREE_MONEY_DESCRIPTION': 'You got `{money}$`'
         },
         'COMMAND_ECONOMY_COINFLIP': {
             'COINFLIP_NAME': 'Coinflip',

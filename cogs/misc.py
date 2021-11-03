@@ -3,7 +3,7 @@ import json
 from os import remove, environ
 from random import choice, randint
 
-from discord import Member, File, Embed, Role, Guild
+from discord import Member, File, Embed, Role, Guild, TextChannel
 from discord.errors import Forbidden
 from discord.flags import PublicUserFlags
 from discord_components import Select, SelectOption, Button, ButtonStyle
@@ -288,7 +288,7 @@ class Misc(Cog):
         code = json.loads(responce.content).get('code')
         if code == '50013':
             raise Forbidden
-        
+
         await interaction.send(f'https://discord.com/invite/{code}')
         
     def _get_data(self, application_id: int):
@@ -473,6 +473,18 @@ class Misc(Cog):
         ]
 
         await ctx.send('Click on button to invite bot!', components=components)
+
+
+    @slash_command(
+        name='send',
+        description='Sends message in channel'
+    )
+    async def send_message(self, ctx: SlashContext, content: str, channel: TextChannel=None):
+        if channel is None:
+            channel = ctx.channel
+
+        await channel.send(content)
+        await ctx.send('✅', hidden=True)
 
 
 
