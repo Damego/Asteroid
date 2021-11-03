@@ -370,7 +370,7 @@ async def select_and_buttons(self, ctx):
                     timeout=60
                 )
             except asyncio.TimeoutError:
-                components[0][0].label = count
+                components[0][0].label = f'{count}'
                 for row in components:
                     row.disable_components()
                 return await message.edit(content='Timed out!', components=components)
@@ -409,7 +409,7 @@ async def private_button1(self, ctx):
                 timeout=60
             )
         except asyncio.TimeoutError:
-            components[0][0].label = count
+            components[0][0].label = f'{count}'
             for row in components:
                 row.disable_components()
             return await message.edit(content='Timed out!', components=components)
@@ -446,7 +446,7 @@ async def private_button1(self, ctx):
                     timeout=60
                 )
             except asyncio.TimeoutError:
-                components[0][0].label = count
+                components[0][0].label = f'{count}'
                 for row in components:
                     row.disable_components()
                 return await message.edit(content='Timed out!', components=components)
@@ -487,7 +487,7 @@ async def private_button2(self, ctx):
                 timeout=60
             )
         except asyncio.TimeoutError:
-            components[0][0].label = count
+            components[0][0].label = f'{count}'
             for row in components:
                 row.disable_components()
             return await message.edit(content='Timed out!', components=components)
