@@ -78,10 +78,10 @@ class Misc(Cog):
 
     @context_menu(
         name='Get information',
-        target=ContextMenuType.MESSAGE
+        target=ContextMenuType.USER
     )
     async def get_member_information_context(self, ctx: MenuContext):
-        member = ctx.target_message.author
+        member = ctx.target_author
         embed = self._get_embed_member_info(ctx, member)
         await ctx.send(embed=embed)
 

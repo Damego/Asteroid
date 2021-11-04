@@ -31,11 +31,11 @@ class Games(Cog):
         await self._start_rps(ctx, member, total_rounds)
 
     @context_menu(
-        target=ContextMenuType.MESSAGE,
+        target=ContextMenuType.USER,
         name='Start Rock Paper Scissors'
     )
     async def rockpaperscissors_contex(self, ctx: MenuContext):
-        member = ctx.target_message.author
+        member = ctx.target_author
         await self._start_rps(ctx, member, 3)
         
 
@@ -64,11 +64,11 @@ class Games(Cog):
         await self._start_ttt(ctx, member)
         
     @context_menu(
-        target=ContextMenuType.MESSAGE,
+        target=ContextMenuType.USER,
         name='Start Tic Tac Toe'
     )
     async def tictactoe_menu(self, ctx: MenuContext):
-        member = ctx.target_message.author
+        member = ctx.target_author
         await self._start_ttt(ctx, member)
 
 
