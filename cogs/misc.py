@@ -475,18 +475,6 @@ class Misc(Cog):
         await ctx.send('Click on button to invite bot!', components=components)
 
 
-    @slash_command(
-        name='send',
-        description='Sends message in channel'
-    )
-    async def send_message(self, ctx: SlashContext, content: str, channel: TextChannel=None):
-        if channel is None:
-            channel = ctx.channel
-
-        await channel.send(content)
-        await ctx.send('✅', hidden=True)
-
-
 
 def setup(bot):
     bot.add_cog(Misc(bot))
