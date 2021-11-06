@@ -86,8 +86,8 @@ class Utilities(Cog):
             color=0xeee2a0
         )
         embed.set_author(
-            name=payload.member,
-            icon_url=payload.member.avatar_url
+            name=message.author,
+            icon_url=message.author.avatar_url
         )
         starboard_message = await starboard_channel.send(
             content=f'⭐{count} | {original_channel_mention}',
