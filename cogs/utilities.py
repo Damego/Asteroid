@@ -30,6 +30,8 @@ class Utilities(Cog):
         starboard_channel: TextChannel = guild.get_channel(starboard_data['channel_id'])
         channel: TextChannel = guild.get_channel(payload.channel_id)
         message: Message = await channel.fetch_message(payload.message_id)
+        if message.embeds is not None:
+            return
 
         count = 0
         for reaction in message.reactions:
