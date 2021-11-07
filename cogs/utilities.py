@@ -25,8 +25,8 @@ class Utilities(Cog):
             return
 
         guild: Guild = self.bot.get_guild(payload.guild_id)
-        if payload.channel_id == starboard_data['channel_id']:
-            return
+        #if payload.channel_id == starboard_data['channel_id']:
+        #    return
         starboard_channel: TextChannel = guild.get_channel(starboard_data['channel_id'])
         channel: TextChannel = guild.get_channel(payload.channel_id)
         message: Message = await channel.fetch_message(payload.message_id)
