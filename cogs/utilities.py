@@ -20,7 +20,7 @@ class Utilities(Cog):
 
         collection = self.bot.get_guild_configuration_collection(payload.guild_id)
         starboard_data = collection.find_one({'_id': 'starboard'})
-        print(starboard_data['is_enabled'])
+        print(starboard_data)
         if not starboard_data['is_enabled']:
             return
 
@@ -30,8 +30,8 @@ class Utilities(Cog):
         starboard_channel: TextChannel = guild.get_channel(starboard_data['channel_id'])
         channel: TextChannel = guild.get_channel(payload.channel_id)
         message: Message = await channel.fetch_message(payload.message_id)
-        if message.embeds is not None:
-            return
+        #if message.embeds is not None:
+        #    return
 
         count = 0
         for reaction in message.reactions:
@@ -70,7 +70,9 @@ class Utilities(Cog):
         starboard_message = await starboard_channel.fetch_message(_starboard_message_id)
         origin_channel_mention = starboard_message.content.split()[2]
         message_content = f'⭐{count} | {origin_channel_mention}'
+        print('Editing message...')
         await starboard_message.edit(content=message_content)
+        print('Message was edited!')
 
     @staticmethod
     async def _create_message(
@@ -93,10 +95,12 @@ class Utilities(Cog):
             name=message.author,
             icon_url=message.author.avatar_url
         )
+        print('Sending message...')
         starboard_message = await starboard_channel.send(
             content=f'⭐{count} | {original_channel_mention}',
             embed=embed
         )
+        print('Message was sent!')
         collection.update_one(
             {'_id': 'starboard'},
             {
