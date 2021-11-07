@@ -44,19 +44,21 @@ class Utilities(Cog):
             return
 
         exists_messages = starboard_data.get('messages')
-        if exists_messages is None:
-            await self._create_message(collection, payload, message, count, starboard_channel, channel.mention)
-        elif str(payload.message_id) in exists_messages:
-            await self._update_message(payload, starboard_channel, starboard_data, count)
-        else:
-            for _message in exists_messages:
-                message_data = exists_messages[_message]
-                if payload.message_id == message_data['starboard_message']:
-                    await self._update_message(payload, starboard_channel, starboard_data, count)
-                    break
-            else:
+        try:
+            if exists_messages is None:
                 await self._create_message(collection, payload, message, count, starboard_channel, channel.mention)
-
+            elif str(payload.message_id) in exists_messages:
+                await self._update_message(payload, starboard_channel, starboard_data, count)
+            else:
+                for _message in exists_messages:
+                    message_data = exists_messages[_message]
+                    if payload.message_id == message_data['starboard_message']:
+                        await self._update_message(payload, starboard_channel, starboard_data, count)
+                        break
+                else:
+                    await self._create_message(collection, payload, message, count, starboard_channel, channel.mention)
+        except Exception as e:
+            print(e)
     @staticmethod
     async def _update_message(
         payload: RawReactionActionEvent,
