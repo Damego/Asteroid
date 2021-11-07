@@ -20,18 +20,17 @@ class Utilities(Cog):
 
         collection = self.bot.get_guild_configuration_collection(payload.guild_id)
         starboard_data = collection.find_one({'_id': 'starboard'})
-        print(starboard_data)
+        if starboard_data is None:
+            return
         if not starboard_data['is_enabled']:
+            return
+        if payload.channel_id == starboard_data['channel_id']:
             return
 
         guild: Guild = self.bot.get_guild(payload.guild_id)
-        #if payload.channel_id == starboard_data['channel_id']:
-        #    return
         starboard_channel: TextChannel = guild.get_channel(starboard_data['channel_id'])
         channel: TextChannel = guild.get_channel(payload.channel_id)
         message: Message = await channel.fetch_message(payload.message_id)
-        #if message.embeds is not None:
-        #    return
 
         count = 0
         for reaction in message.reactions:
@@ -44,30 +43,21 @@ class Utilities(Cog):
             return
 
         exists_messages = starboard_data.get('messages')
-        try:
-            if exists_messages is None:
-                await self._create_message(collection, payload, message, count, starboard_channel, channel.mention)
-            elif str(payload.message_id) in exists_messages:
-                await self._update_message(payload, starboard_channel, starboard_data, count)
-            else:
-                for _message in exists_messages:
-                    message_data = exists_messages[_message]
-                    if payload.message_id == message_data['starboard_message']:
-                        await self._update_message(payload, starboard_channel, starboard_data, count)
-                        break
-                else:
-                    await self._create_message(collection, payload, message, count, starboard_channel, channel.mention)
-        except Exception as e:
-            print(e)
+        if exists_messages is None:
+            await self._create_message(collection, payload, message, count, starboard_channel, channel.mention)
+        elif str(payload.message_id) in exists_messages:
+            starboard_message_id = starboard_data['messages'][str(payload.message_id)]['starboard_message']
+            await self._update_message(starboard_channel, starboard_message_id, count)
+        else:
+            await self._create_message(collection, payload, message, count, starboard_channel, channel.mention)
+
     @staticmethod
     async def _update_message(
-        payload: RawReactionActionEvent,
         starboard_channel: TextChannel,
-        starboard_data: dict,
+        starboard_message_id: int,
         count: int
     ):
-        _starboard_message_id = starboard_data['messages'][str(payload.message_id)]['starboard_message']
-        starboard_message = await starboard_channel.fetch_message(_starboard_message_id)
+        starboard_message = await starboard_channel.fetch_message(starboard_message_id)
         origin_channel_mention = starboard_message.content.split()[2]
         message_content = f'⭐{count} | {origin_channel_mention}'
         print('Editing message...')
@@ -85,6 +75,7 @@ class Utilities(Cog):
     ):
         if message.content == '':
             return
+
         embed_description = f"{message.content}\n\n" \
                             f"**[Jump to original message!]({message.jump_url})**"
         embed = Embed(
@@ -95,6 +86,11 @@ class Utilities(Cog):
             name=message.author,
             icon_url=message.author.avatar_url
         )
+        embed.set_footer(
+            text=message.created_at.strftime('%d/%m/%Y')
+        )
+        if message.attachments:
+            embed.set_image(url=message.attachments[0].url)
         print('Sending message...')
         starboard_message = await starboard_channel.send(
             content=f'⭐{count} | {original_channel_mention}',
