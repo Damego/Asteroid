@@ -10,6 +10,8 @@ from my_utils import AsteroidBot, Cog, is_administrator_or_bot_owner
 class Utilities(Cog):
     def __init__(self, bot: AsteroidBot) -> None:
         self.bot = bot
+        self.emoji = '🧰'
+        self.name = 'Utilities'
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: RawReactionActionEvent):
