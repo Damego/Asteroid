@@ -14,13 +14,11 @@ from my_utils import AsteroidBot, is_administrator_or_bot_owner, get_content, Co
 from my_utils.errors import TagNotFound, NotTagOwner
 
 
-
 class Tags(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.hidden = False
         self.name = 'Tags'
-
 
     @slash_subcommand(
         base='tag',
@@ -44,7 +42,6 @@ class Tags(Cog):
             color=self.bot.get_embed_color(ctx.guild_id)
         )
         await ctx.send(embed=embed)
-
 
     @slash_subcommand(
         base='tag',
@@ -78,7 +75,6 @@ class Tags(Cog):
         )
         await ctx.send(content=content['TAG_CREATED_TEXT'].format(tag_name=tag_name))
 
-
     @slash_subcommand(
         base='tag',
         name='remove',
@@ -95,7 +91,6 @@ class Tags(Cog):
         content = get_content('TAG_REMOVE_COMMAND', lang=self.bot.get_guild_bot_lang(ctx.guild_id))
         collection.delete_one({'_id': tag_name})
         await ctx.send(content['TAG_REMOVED_TEXT'].format(tag_name=tag_name))
-
 
     @slash_subcommand(
         base='tag',
@@ -121,7 +116,6 @@ class Tags(Cog):
             color=self.bot.get_embed_color(ctx.guild_id)
         )
         await ctx.send(embed=embed)
-
 
     @slash_subcommand(
         base='tag',
@@ -170,7 +164,6 @@ class Tags(Cog):
             )
         )
 
-
     @slash_subcommand(
         base='tag',
         name='raw',
@@ -187,7 +180,6 @@ class Tags(Cog):
 
         tag_content = tag['description']
         await ctx.reply(f'```{tag_content}```')
-
 
     @slash_subcommand(
         base='public',
@@ -215,7 +207,6 @@ class Tags(Cog):
 
         message_content = content['TAGS_PUBLIC'] if status else content['TAGS_FOR_ADMINS']
         await ctx.send(message_content)
-
 
     @slash_subcommand(
         base='tag',
@@ -254,7 +245,6 @@ class Tags(Cog):
         message: ComponentMessage = await ctx.send(embed=embed, components=components)
         
         await self._process_interactions(ctx, message, collection, content, embed, tag_name)
-
 
     async def _process_interactions(
         self,
@@ -299,7 +289,7 @@ class Tags(Cog):
             if not interaction.responded:
                 await interaction.defer(edit_origin=True)
 
-    async def init_btag(self, ctx: SlashContext, content: dict, message: ComponentMessage=None):
+    async def init_btag(self, ctx: SlashContext, content: dict, message: ComponentMessage = None):
         components = [
             [
                 Button(style=ButtonStyle.blue, label=content['SET_TITLE_BUTTON'], id='set_title'),
@@ -320,7 +310,6 @@ class Tags(Cog):
         )
         message: ComponentMessage = await ctx.send(embed=embed, components=components)
         return embed, message
-            
 
     async def edit_tag(
         self,
@@ -350,12 +339,12 @@ class Tags(Cog):
 
     async def save_tag(self, content, interaction, tag_name, embed: Embed, collection: Collection):
         collection.update_one(
-            {'_id':tag_name},
-            {'$set':{
+            {'_id': tag_name},
+            {'$set': {
                 'is_embed': True,
-                'title':embed.title,
-                'description':embed.description,
-                'author_id':interaction.author.id
+                'title': embed.title,
+                'description': embed.description,
+                'author_id': interaction.author.id
                 }
             },
             upsert=True
@@ -377,9 +366,9 @@ class Tags(Cog):
         collection.delete_one({'_id': tag_name})
         await interaction.send(content=content['REMOVED_TAG_TEXT'], hidden=True)
 
-    
+
     def _is_can_manage_tags(self, ctx: SlashContext, tag_data: dict):
-        if ctx.author_id == 143773579320754177 or ctx.author.guild_permissions.administrator:
+        if ctx.author_id == 143773579320754177 or ctx.author.guild_permissions.manage_guild:
             return
 
         cogs_collection = self.bot.get_guild_cogs_collection(ctx.guild_id)
@@ -397,8 +386,8 @@ class Tags(Cog):
         if ctx.author_id != tag_data.get('author_id'):
             raise NotTagOwner
 
-
-    def convert_tag_name(self, tag_name: str):
+    @staticmethod
+    def convert_tag_name(tag_name: str):
         tag_name = tag_name.lower().strip()
 
         if ' ' in tag_name:
@@ -409,7 +398,6 @@ class Tags(Cog):
             tag_name = tag_name.replace('_', '')
 
         return tag_name
-
 
 
 def setup(bot):
