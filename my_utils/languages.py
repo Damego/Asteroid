@@ -21,11 +21,7 @@ LANGUAGES = {
             'MISS_PERMS': '**У вас недостаточно прав!**\nНеобходимые права:',
             'CHECK_FAILURE': 'Вы не можете использовать эту команду!',
             'OTHER_ERRORS_TITLE': '❌ Упс... Произошла непредвиденная ошибка!',
-            'OTHER_ERRORS_DESCRIPTION': 'This bug was sent to owner\n' \
-                '*Error:* \n' \
-                '```python ' \
-                '{error}' \
-               ' ```',
+            'OTHER_ERRORS_DESCRIPTION': 'Этот баг был отправлен создателю\n *Ошибка:* ```\n{error}\n```'
         },
         'FUNC_RANDOM_NUMBER_OUT_CONTENT': 'Рандомное число: `{}`',
         'FUNC_MEMBER_INFO': {
@@ -115,7 +111,7 @@ LANGUAGES = {
         'FUNC_MODERATION_CLEAR_MESSAGES': 'Успешно удалено `{}` сообщений!',
         'PUBLIC_TAGS_COMMAND': {
             'TAGS_PUBLIC': 'Теги теперь доступны всем!',
-            'TAGS_FOR_ADMINS': 'Теги теперь могут создавать только администраторы!'
+            'TAGS_FOR_ADMINS': 'Теги теперь могут создавать только те, у кого есть право `Управлять сервером`!'
         },
         'EMBED_TAG_CONTROL': {
             'NOT_SUPPORTED_TAG_TYPE': 'Этот тег не поддерживается!',
@@ -390,7 +386,7 @@ LANGUAGES = {
         'FUNC_MODERATION_CLEAR_MESSAGES': 'Successfully deleted `{}` messages!',
         'PUBLIC_TAGS_COMMAND': {
             'TAGS_PUBLIC': 'Tags for now public!',
-            'TAGS_FOR_ADMINS': 'For now tags only for administators!'
+            'TAGS_FOR_ADMINS': 'For now tags only for roles with `Manage Server` permission!'
         },
         'EMBED_TAG_CONTROL': {
             'NOT_SUPPORTED_TAG_TYPE': 'This tag not supported!',
@@ -412,7 +408,7 @@ LANGUAGES = {
             'TAG_CREATED_TEXT': 'Tag `{tag_name}` successfully created!'
         },
         'TAG_REMOVE_COMMAND': {
-            'TAG_REMOVED_TEXT': 'Tag `{tag_name}` successufully removed!'
+            'TAG_REMOVED_TEXT': 'Tag `{tag_name}` successfully removed!'
         },
         'TAG_RENAME_TAG': {
             'TAG_RENAMED_TEXT': 'Tag `{tag_name}` renamed to `{new_tag_name}`!'
@@ -424,18 +420,18 @@ LANGUAGES = {
         'MUSIC_PLAY_COMMAND': {
             'ADDED_IN_QUEUE_TEXT': '`{}` was added in queue',
             'NOT_CONNECTED_TO_VOICE': 'Connect to voice channel with a bot',
-            'PAUSE_BUTTON':'Stop',
-            'RESUME_BUTTON':'Resume',
-            'STOP_BUTTON':'Stop',
-            'SKIP_BUTTON':'Skip',
-            'TOGGLE_OFF_BUTTON':'Disable repeat',
-            'TOGGLE_ON_BUTTON':'Enable repeat',
-            'PLAYING_TEXT':'Now playing',
-            'NAME_TEXT':'Name:',
-            'DURATION_TEXT':'Duration:',
+            'PAUSE_BUTTON': 'Pause',
+            'RESUME_BUTTON': 'Resume',
+            'STOP_BUTTON': 'Stop',
+            'SKIP_BUTTON': 'Skip',
+            'TOGGLE_OFF_BUTTON': 'Disable repeat',
+            'TOGGLE_ON_BUTTON': 'Enable repeat',
+            'PLAYING_TEXT': 'Now playing',
+            'NAME_TEXT': 'Name:',
+            'DURATION_TEXT': 'Duration:',
             'LIVE_TEXT': 'Live',
-            'WHO_ADDED_TEXT':'Added {}',
-            'SUCCESSFULLY':'Successfully!'
+            'WHO_ADDED_TEXT': 'Added {}',
+            'SUCCESSFULLY': 'Successfully!'
         },
         'FUNC_PHASMOPHOBIA_RANDOM': {
             'ITEMS_LIST': [
@@ -530,9 +526,9 @@ LANGUAGES = {
             'SUCCESSFULLY_CHANGED': 'Embed color was changed!'
         },
         'LEVELS': {
-            'FUNC_UPDATE_MEMBER':{
-                'NOTIFY_GUILD_CHANNEL': '{member} reached level `{level}` and gotted role {role}',
-                'NOTIFY_DM': 'You reached level `{level}` and gotted role {role}'
+            'FUNC_UPDATE_MEMBER': {
+                'NOTIFY_GUILD_CHANNEL': '{member} reached level `{level}` and got role {role}',
+                'NOTIFY_DM': 'You reached level `{level}` and got role {role}'
             }
         },
         'HELP_COMMAND': {

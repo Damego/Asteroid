@@ -1,51 +1,69 @@
-from os import getenv
+from os import listdir
 
-from dotenv import load_dotenv
-from pymongo import MongoClient
-from motor.motor_asyncio import AsyncIOMotorClient
 from discord.ext.commands import Bot
-import certifi
+from discord_slash_components_bridge import SlashCommand
 
+
+from my_utils.mongo import Mongo
 
 
 class AsteroidBot(Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.mongodatabase = self.get_database()
+        self.__default_invite_link = None
+        self.mongo = Mongo()
+        self.slash = SlashCommand(self, sync_commands=False, sync_on_cog_reload=False)
 
-    def get_database(self):
-        load_dotenv()
-        return MongoClient(getenv('MONGODB_URL'), tlsCAFile=certifi.where())['guilds']
+        self.add_listener(self.on_ready, 'on_ready')
+        self._load_extensions()
 
-    def get_guild_main_collection(self, guild_id:int):
-        return self.mongodatabase[str(guild_id)]
+    async def on_ready(self):
+        self.__default_invite_link = 'https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions' \
+                                     '={scope}&scope=bot%20applications.commands'
+        self._get_invite_link()
+
+    def _get_invite_link(self):
+        self.no_perms_invite_link = self.__default_invite_link.format(bot_id=self.user.id, scope=0)
+        self.admin_invite_link = self.__default_invite_link.format(bot_id=self.user.id, scope=8)
+        self.recommended_invite_link = self.__default_invite_link.format(bot_id=self.user.id, scope=506850391)
+
+    def _load_extensions(self):
+        for filename in listdir('./cogs'):
+            if filename.startswith('_'):
+                continue
+            if filename.endswith('.py'):
+                self.load_extension(f'cogs.{filename[:-3]}')
+            elif '.' in filename:
+                continue
+            else:
+                self.load_extension(f'cogs.{filename}')
 
     def get_guild_configuration_collection(self, guild_id:int):
-        return self.get_guild_main_collection(guild_id)['configuration']
+        return self.mongo.connection[str(guild_id)]['configuration']
 
     def get_guild_users_collection(self, guild_id:int):
-        return self.get_guild_main_collection(guild_id)['users']
+        return self.mongo.connection[str(guild_id)]['users']
 
     def get_guild_tags_collection(self, guild_id:int):
-        return self.get_guild_main_collection(guild_id)['tags']
+        return self.mongo.connection[str(guild_id)]['tags']
 
     def get_guild_voice_time_collection(self, guild_id:int):
-        return self.get_guild_main_collection(guild_id)['voice_time']
+        return self.mongo.connection[str(guild_id)]['voice_time']
 
     def get_guild_level_roles_collection(self, guild_id:int):
-        return self.get_guild_main_collection(guild_id)['roles_by_level']
+        return self.mongo.connection[str(guild_id)]['roles_by_level']
 
     def get_guild_reaction_roles_collection(self, guild_id:int):
-        return self.get_guild_main_collection(guild_id)['reaction_roles']
+        return self.mongo.connection[str(guild_id)]['reaction_roles']
 
     def get_guild_giveaways_collection(self, guild_id:int):
-        return self.get_guild_main_collection(guild_id)['giveaways']
+        return self.mongo.connection[str(guild_id)]['giveaways']
 
     def get_guild_auto_role_collection(self, guild_id:int):
-        return self.get_guild_main_collection(guild_id)['auto_role']
+        return self.mongo.connection[str(guild_id)]['auto_role']
 
     def get_guild_cogs_collection(self, guild_id: int):
-        return self.get_guild_main_collection(guild_id)['cogs_config']
+        return self.mongo.connection[str(guild_id)]['cogs_config']
 
     def _extract_from_guild_collection(self, guild_id: int, key: str):
         collection = self.get_guild_configuration_collection(guild_id)

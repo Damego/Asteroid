@@ -1,13 +1,11 @@
-import discord
-from DiscordUtils import Music as _Music
-from discord import VoiceProtocol
+from discord import VoiceProtocol, Member, Message, Embed, VoiceState, Guild
 from discord_components import Button, ButtonStyle
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash_components_bridge import ComponentContext
+from DiscordUtils import Music as _Music
 
 from my_utils import AsteroidBot, get_content, NotConnectedToVoice, Cog
-
 
 
 class Music(Cog):
@@ -15,22 +13,18 @@ class Music(Cog):
         self.bot = bot
         self.emoji = '🎵'
         self.name = 'Music'
-
         self.music = _Music()
-
         self.track_queue = {}
         self.players = {}
 
-
     @Cog.listener()
-    async def on_voice_state_update(self, member, before, after):
+    async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
         if not member.bot and after.channel is None:
             members = before.channel.members
             if len(members) == 1 and members[0].bot:
                 await self.stop_on_leave(member.guild)
         elif member.bot and after.channel is None:
             await self.stop_on_leave(member.guild)
-
 
     @slash_subcommand(
         base='music',
@@ -41,7 +35,6 @@ class Music(Cog):
         await ctx.defer()
         await self._play_music(ctx, False, query)
 
-
     @slash_subcommand(
         base='music',
         name='nplay',
@@ -51,7 +44,6 @@ class Music(Cog):
         await ctx.defer()
         await self._play_music(ctx, True, query)
 
-
     @slash_subcommand(
         base='music',
         name='stop',
@@ -59,7 +51,6 @@ class Music(Cog):
     )
     async def stop_music(self, ctx: SlashContext):
         await self._stop_music(ctx)
-
 
     @slash_subcommand(
         base='music',
@@ -69,7 +60,6 @@ class Music(Cog):
     async def pause_music(self, ctx: SlashContext):
         await self._pause_music(ctx)
 
-
     @slash_subcommand(
         base='music',
         name='resume',
@@ -77,7 +67,6 @@ class Music(Cog):
     )
     async def resume_music(self, ctx: SlashContext):
         await self._resume_music(ctx)
-
 
     @slash_subcommand(
         base='music',
@@ -87,7 +76,6 @@ class Music(Cog):
     async def repeat_music(self, ctx: SlashContext):
         await self._repeat_music(ctx)
 
-
     @slash_subcommand(
         base='music',
         name='skip',
@@ -96,9 +84,8 @@ class Music(Cog):
     async def skip_music(self, ctx: SlashContext):
         await self._skip_music(ctx)
 
-
     # * METHODS
-    async def stop_on_leave(self, guild: discord.Guild):
+    async def stop_on_leave(self, guild: Guild):
         player = self.music.get_player(guild_id=guild.id)
         voice_client: VoiceProtocol = guild.voice_client
         try:
@@ -111,7 +98,6 @@ class Music(Cog):
                 del self.players[str(guild.id)]
         except KeyError:
             pass
-
 
     async def _play_music(self, ctx: SlashContext, from_nplay: bool, query: str):
         if not ctx.author.voice:
@@ -142,10 +128,9 @@ class Music(Cog):
         else:
             await self._send_message(ctx, content, track)
 
-
-    async def _wait_button_click(self, ctx, content, message, components):
+    async def _wait_button_click(self, ctx: SlashContext, content: dict, message: Message, components: list):
         async def check(interaction):
-            member: discord.Member = ctx.guild.get_member(interaction.author_id)
+            member: Member = ctx.guild.get_member(interaction.author_id)
             if member.guild_permissions.move_members:
                 return True
 
@@ -160,9 +145,11 @@ class Music(Cog):
                 if member.id == 833349109347778591:
                     return True
 
-
         while True:
-            interaction: ComponentContext = await self.bot.wait_for("button_click", check=lambda inter: inter.message.id == message.id)
+            interaction: ComponentContext = await self.bot.wait_for(
+                "button_click",
+                check=lambda inter: inter.message.id == message.id
+            )
             is_in_channel = await check(interaction)
             if not is_in_channel:
                 await interaction.send(content=content['NOT_CONNECTED_TO_VOICE'])
@@ -172,7 +159,13 @@ class Music(Cog):
             button_id = interaction.custom_id
             try:
                 if button_id == 'pause':
-                    await self._pause_music(ctx, content=content, from_button=True, message=message, components=components)
+                    await self._pause_music(
+                        ctx,
+                        content=content,
+                        from_button=True,
+                        message=message,
+                        components=components
+                    )
                 elif button_id == 'stop':
                     await self._stop_music(ctx, from_button=True, message=message)
                     del self.players[str(ctx.guild_id)]
@@ -181,14 +174,25 @@ class Music(Cog):
                 elif button_id == 'skip':
                     await self._skip_music(ctx, from_button=True, message=message)
                 elif button_id == 'resume':
-                    await self._resume_music(ctx, content=content, from_button=True, message=message, components=components)
+                    await self._resume_music(
+                        ctx,
+                        content=content,
+                        from_button=True,
+                        message=message,
+                        components=components
+                    )
                 elif button_id == 'toggle_loop':
-                    await self._repeat_music(ctx, content=content, from_button=True, message=message, components=components)
+                    await self._repeat_music(
+                        ctx,
+                        content=content,
+                        from_button=True,
+                        message=message,
+                        components=components
+                    )
             except Exception as e:
                 print(e)
 
-
-    async def _send_message(self, ctx, content, track, from_nplay:bool=False):
+    async def _send_message(self, ctx, content, track, from_nplay: bool = False):
         embed = self._get_music_info(ctx, content, track)
 
         if from_nplay:
@@ -205,14 +209,12 @@ class Music(Cog):
             return message, components
         return await ctx.send(embed=embed)
 
-
-    async def _update_msg(self, ctx, message, track):
+    async def _update_msg(self, ctx: SlashContext, message: Message, track):
         music_requester = self.track_queue[str(ctx.guild_id)].get(track.name)["requester_msg"]
         embed = self._get_music_info(ctx, track, music_requester=music_requester)
         await message.edit(embed=embed)
 
-
-    def _get_music_info(self, ctx, content, track, music_requester=None) -> discord.Embed:
+    def _get_music_info(self, ctx, content, track, music_requester=None) -> Embed:
         if music_requester is None:
             music_requester = ctx.author
             music_requester_avatar = ctx.author.avatar_url
@@ -228,7 +230,7 @@ class Music(Cog):
         else:
             duration = content['LIVE_TEXT']
 
-        embed = discord.Embed(title=content['PLAYING_TEXT'],
+        embed = Embed(title=content['PLAYING_TEXT'],
                               color=self.bot.get_embed_color(ctx.guild.id))
         embed.add_field(name=content['NAME_TEXT'],
                         value=f'[{track.name}]({track.url})', inline=False)
@@ -239,8 +241,7 @@ class Music(Cog):
 
         return embed
 
-
-    async def _stop_music(self, ctx: SlashContext, *, from_button:bool=False, message:discord.Message=None):
+    async def _stop_music(self, ctx: SlashContext, *, from_button: bool = False, message: Message = None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if ctx.voice_client.is_playing():
             await player.stop()
@@ -250,7 +251,15 @@ class Music(Cog):
         else:
             await ctx.send('✔️', hidden=True)
 
-    async def _pause_music(self, ctx: SlashContext, *, content=None, from_button:bool=False, message:discord.Message=None, components:list=None):
+    async def _pause_music(
+            self,
+            ctx: SlashContext,
+            *,
+            content=None,
+            from_button: bool = False,
+            message: Message = None,
+            components: list = None
+    ):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if ctx.voice_client.is_playing():
             await player.pause()
@@ -264,10 +273,18 @@ class Music(Cog):
             else:
                 await ctx.send('✔️', hidden=True)
         else:
-            embed = discord.Embed(title='Music not playing!', color=self.bot.get_embed_color(ctx.guild.id))
+            embed = Embed(title='Music not playing!', color=self.bot.get_embed_color(ctx.guild.id))
             await ctx.send(embed=embed, delete_after=10)
 
-    async def _resume_music(self, ctx: SlashContext, *, content=None, from_button:bool=False, message:discord.Message=None, components:list=None):
+    async def _resume_music(
+            self,
+            ctx: SlashContext,
+            *,
+            content=None,
+            from_button: bool = False,
+            message: Message = None,
+            components: list = None
+    ):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if not ctx.voice_client.is_playing():
             await player.resume()
@@ -278,7 +295,15 @@ class Music(Cog):
             else:
                 await ctx.send('✔️', hidden=True)
 
-    async def _repeat_music(self, ctx: SlashContext, *, content=None, from_button:bool=False, message:discord.Message=None, components:list=None):
+    async def _repeat_music(
+            self,
+            ctx: SlashContext,
+            *,
+            content=None,
+            from_button: bool = False,
+            message: Message = None,
+            components: list = None
+    ):
         player = self.music.get_player(guild_id=ctx.guild.id)
         song = await player.toggle_song_loop()
 
@@ -293,8 +318,7 @@ class Music(Cog):
         )
         await message.edit(components=components)
 
-
-    async def _skip_music(self, ctx: SlashContext, *, from_button:bool=False, message:discord.Message=None):
+    async def _skip_music(self, ctx: SlashContext, *, from_button: bool = False, message: Message = None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         try:
             new_track = await player.skip(force=True)
@@ -303,7 +327,6 @@ class Music(Cog):
             await self._update_msg(ctx, message, new_track)
         except Exception:
             await ctx.send('**Playlist is empty!**', delete_after=15)
-
 
 
 def setup(bot):

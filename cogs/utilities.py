@@ -4,7 +4,7 @@ from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 from pymongo.collection import Collection
 
-from my_utils import AsteroidBot, Cog, is_administrator_or_bot_owner
+from my_utils import AsteroidBot, Cog, bot_owner_or_permissions
 
 
 class Utilities(Cog):
@@ -115,7 +115,7 @@ class Utilities(Cog):
         name='channel',
         description='Starboard channel setting'
     )
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_channel(self, ctx: SlashContext, channel: TextChannel):
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         data = {
@@ -135,7 +135,7 @@ class Utilities(Cog):
         name='limit',
         description='Limit setting'
     )
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_stars_limit(self, ctx: SlashContext, limit: int):
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         collection.update_one(
@@ -168,11 +168,9 @@ class Utilities(Cog):
             )
         ]
     )
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_status(self, ctx: SlashContext, status: str):
         _status = True if status == 'enable' else False
-        print(status)
-        print(_status)
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'starboard'},

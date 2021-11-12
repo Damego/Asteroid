@@ -1,11 +1,13 @@
-from typing import Union
+from typing import List
 
 from discord import RawReactionActionEvent
-from discord.ext.commands import check, MissingPermissions
+from discord import Permissions
+from discord.ext.commands import check, MissingPermissions, has_guild_permissions
 from discord_slash import SlashContext
 
 from .asteroid_bot import AsteroidBot
 from .errors import CogDisabledOnGuild
+
 
 def is_administrator_or_bot_owner():
     async def predicate(ctx: SlashContext):
@@ -13,6 +15,17 @@ def is_administrator_or_bot_owner():
             return True
         raise MissingPermissions(['Administrator'])
     return check(predicate)
+
+
+def bot_owner_or_permissions(**perms):
+    original = has_guild_permissions(**perms).predicate
+
+    async def _check(ctx: SlashContext):
+        if ctx.guild is None:
+            return False
+        return ctx.author.id == 143773579320754177 or await original(ctx)
+
+    return check(_check)
 
 
 def is_enabled(func):
@@ -30,6 +43,7 @@ def is_enabled(func):
         return await func(self, ctx, **kwargs)
 
     return wrapper
+
 
 # No decorator check
 def _is_enabled(self, guild_id: int):

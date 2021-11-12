@@ -70,15 +70,15 @@ class Help(Cog):
     def _init_embeds(self, ctx: SlashContext):
         commands_data = self._get_commands_data()
         embeds = [self._get_main_menu(ctx)]
-        for cog in self.bot.cogs:
-            _cog = self.bot.cogs[cog]
-            if _cog.hidden:
+        for _cog in self.bot.cogs:
+            cog = self.bot.cogs[_cog]
+            if cog.hidden:
                 continue
 
-            embed = Embed(title=f'{cog} | Asteroid Bot', description='', color=0x2f3136)
+            embed = Embed(title=f'{_cog} | Asteroid Bot', description='', color=0x2f3136)
 
-            for _base_command in commands_data[cog]:
-                base_command = commands_data[cog][_base_command]
+            for _base_command in commands_data[_cog]:
+                base_command = commands_data[_cog][_base_command]
                 for _group in base_command:
                     if _group == 'command_description':
                         continue

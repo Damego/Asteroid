@@ -7,12 +7,11 @@ from discord_slash.utils.manage_commands import create_option
 
 from my_utils import (
     AsteroidBot,
-    is_administrator_or_bot_owner,
+    bot_owner_or_permissions,
     is_enabled, _is_enabled,
     CogDisabledOnGuild,
     Cog
 )
-
 
 
 def get_emoji_role(collection, message_id: int, emoji):
@@ -26,7 +25,6 @@ class ReactionRole(Cog):
         self.bot = bot
         self.emoji = '✨'
         self.name = 'ReactionRole'
-
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: RawReactionActionEvent):
@@ -47,14 +45,12 @@ class ReactionRole(Cog):
 
         guild: discord.Guild = self.bot.get_guild(payload.guild_id)
         if guild is None:
-            self.bot.fetch_guild(payload.guild_id)
+            guild = await self.bot.fetch_guild(payload.guild_id)
 
         emoji_role = get_emoji_role(collection, payload.message_id, emoji)
         role = guild.get_role(emoji_role)
 
-        #role = discord.utils.get(self.bot.get_guild(payload.guild_id).roles, id=)
         await payload.member.add_roles(role)
-
 
     @Cog.listener()
     async def on_raw_reaction_remove(self, payload: RawReactionActionEvent):
@@ -74,7 +70,7 @@ class ReactionRole(Cog):
 
         guild: discord.Guild = self.bot.get_guild(payload.guild_id)
         if guild is None:
-            self.bot.fetch_guild(payload.guild_id)
+            guild = await self.bot.fetch_guild(payload.guild_id)
 
         emoji_role = get_emoji_role(collection, payload.message_id, emoji)
         role = guild.get_role(emoji_role)
@@ -83,7 +79,6 @@ class ReactionRole(Cog):
         if member is None:
             member = guild.fetch_member(payload.user_id)
         await member.remove_roles(role)
-
 
     @slash_subcommand(
         base='reactionrole',
@@ -100,13 +95,12 @@ class ReactionRole(Cog):
         ]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def add_post(self, ctx, message_id):
         collection = self.bot.get_guild_reaction_roles_collection(ctx.guild.id)
         collection.insert_one({'_id':message_id})
 
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='reactionrole',
@@ -135,7 +129,7 @@ class ReactionRole(Cog):
         ]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def add_emoji_role(self, ctx, message_id, emoji, role:discord.Role):
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>','')
@@ -148,7 +142,6 @@ class ReactionRole(Cog):
         )
 
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='reactionrole',
@@ -164,14 +157,13 @@ class ReactionRole(Cog):
             ),
         ]
     )
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     @is_enabled
     async def remove_post(self, ctx, message_id):
         collection = self.bot.get_guild_reaction_roles_collection(ctx.guild.id)
         collection.delete_one({'_id': message_id})
 
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='reactionrole',
@@ -193,7 +185,7 @@ class ReactionRole(Cog):
             )
         ]
     )
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     @is_enabled
     async def remove_role(self, ctx, message_id, emoji):
         if emoji[0] == '<':
@@ -206,8 +198,6 @@ class ReactionRole(Cog):
         )
 
         await ctx.send('✅', hidden=True)
-
-
 
 
 def setup(bot):

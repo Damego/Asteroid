@@ -1,4 +1,4 @@
-# This Cog maded to discord-components server
+# This Cog made to discord-components server
 import asyncio
 from discord.ext.commands import Cog
 from discord_slash import (
@@ -12,13 +12,11 @@ from my_utils import AsteroidBot, Cog
 from .settings import guild_ids
 
 
-
 class Examples(Cog):
     def __init__(self, bot: AsteroidBot) -> None:
         self.bot = bot
         self.name = 'Examples'
         self.emoji = '⚙️'
-
 
     @slash_subcommand(
         base='example',

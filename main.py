@@ -1,31 +1,21 @@
 import logging
-from os import listdir, environ
+from os import listdir, environ, getenv
 from traceback import format_exception
 
 from discord import Guild, Intents, Embed
 from discord.ext import commands
-from discord_slash_components_bridge import SlashCommand
+from dotenv import load_dotenv
 
 from my_utils import AsteroidBot, get_content
 from my_utils.errors import *
 from my_utils import slash_override
 
 
-
-def _load_extensions():
-    for filename in listdir('./cogs'):
-        if not filename.startswith('_'):
-            if filename.endswith('.py'):
-                bot.load_extension(f'cogs.{filename[:-3]}')
-            else:
-                bot.load_extension(f'cogs.{filename}')
-
-
 bot = AsteroidBot(
     command_prefix='+',
     intents=Intents.all()
 )
-slash = SlashCommand(bot, sync_commands=False, sync_on_cog_reload=True)
+
 
 # EVENTS
 @bot.event
@@ -40,14 +30,10 @@ async def on_ready():
 
 @bot.event
 async def on_guild_join(guild: Guild):
-    collection = bot.get_guild_main_collection(guild.id)
-    configuration = {
-        'embed_color': '0xFFFFFE'
-    }
-
-    collection['configuration'].update_one(
-        {'_id':'configuration'},
-        {'$set':configuration},
+    collection = bot.get_guild_configuration_collection(guild.id)
+    collection.update_one(
+        {'_id': 'configuration'},
+        {'$set': {'embed_color': '0xFFFFFE'}},
         upsert=True
     )
 
@@ -57,7 +43,6 @@ async def on_guild_remove(guild: Guild):
     return
     guild_id = guild.id
     collections = [
-        bot.get_guild_main_collection(guild_id),
         bot.get_guild_configuration_collection(guild_id),
         bot.get_guild_level_roles_collection(guild_id),
         bot.get_guild_reaction_roles_collection(guild_id),
@@ -96,9 +81,11 @@ async def on_slash_command_error(ctx, error):
     elif isinstance(error, commands.NotOwner):
         desc = content['NOT_BOT_OWNER']
     elif isinstance(error, commands.BotMissingPermissions):
-        desc = f'**Bot don\'t have permission for this!**\nRequired permissions: `{", ".join(error.missing_perms)}`'
+        missing_perms = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
+        desc = f'**Bot don\'t have permission for this!**\nRequired permissions: `{", ".join(missing_perms)}`'
     elif isinstance(error, commands.MissingPermissions):
-        desc = f'**You don\'t have permission for this!**\nRequired permissions: `{", ".join(error.missing_perms)}`'
+        missing_perms = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
+        desc = f'**You don\'t have permission for this!**\nRequired permissions: `{", ".join(missing_perms)}`'
     elif isinstance(error, commands.CheckFailure):
         desc = content['CHECK_FAILURE']
     else:
@@ -136,6 +123,5 @@ async def on_slash_command_error(ctx, error):
         await ctx.send(desc)
 
 
-
-_load_extensions()
-bot.run(environ.get('BOT_TOKEN'))
+load_dotenv()
+bot.run(getenv('BOT_TOKEN'))

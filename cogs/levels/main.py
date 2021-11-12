@@ -9,14 +9,13 @@ from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
 from my_utils import (
     AsteroidBot,
-    is_administrator_or_bot_owner,
+    bot_owner_or_permissions,
     is_enabled,
     _is_enabled,
     CogDisabledOnGuild,
     Cog
 )
 from ._levels import update_member, formula_of_experience
-
 
 
 class Levels(Cog):
@@ -28,16 +27,14 @@ class Levels(Cog):
         self.last_user_message = {}
         self.time_factor = 10
 
-
     def _get_guild_start_role(self, guild_id: int):
         guild_configuration_collection = self.bot.get_guild_configuration_collection(guild_id)
-        guild_configuration = guild_configuration_collection.find_one({'_id':'configuration'})
+        guild_configuration = guild_configuration_collection.find_one({'_id': 'configuration'})
 
         if 'on_join_role' in guild_configuration:
             return guild_configuration.get('on_join_role')
         else:
             return ''
-
 
     @Cog.listener()
     async def on_member_join(self, member: Member):
@@ -48,7 +45,6 @@ class Levels(Cog):
         except CogDisabledOnGuild:
             return
         await self.add_member(member)
-
 
     @Cog.listener()
     async def on_member_remove(self, member: Member):
@@ -61,7 +57,6 @@ class Levels(Cog):
         collection = self.bot.get_guild_users_collection(member.guild.id)
         collection.delete_one({'_id': str(member.id)})
 
-
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
         try:
@@ -73,30 +68,30 @@ class Levels(Cog):
         
         voice_collection = self.bot.get_guild_voice_time_collection(member.guild.id)
 
-        if (not before.channel) and after.channel: # * If member join to channel
+        if (not before.channel) and after.channel:  # * If member join to channel
             members = after.channel.members
             if len(members) == 2:
                 voice_collection.update_one(
-                    {'_id':str(member.id)},
-                    {'$set':{'voice_time':time()}},
+                    {'_id': str(member.id)},
+                    {'$set': {'voice_time': time()}},
                     upsert=True
                 )
 
                 first_member = members[0]
-                if voice_collection.find_one({'_id':str(first_member.id)}) is None:
+                if voice_collection.find_one({'_id': str(first_member.id)}) is None:
                     voice_collection.update_one(
-                    {'_id':str(first_member.id)},
-                    {'$set':{'voice_time':time()}},
-                    upsert=True
-                )
+                        {'_id': str(first_member.id)},
+                        {'$set': {'voice_time': time()}},
+                        upsert=True
+                    )
             elif len(members) > 2:
                 voice_collection.update_one(
-                    {'_id':str(member.id)},
-                    {'$set':{'voice_time':time()}},
+                    {'_id': str(member.id)},
+                    {'$set': {'voice_time': time()}},
                     upsert=True
                 )
 
-        elif member not in before.channel.members and (not after.channel): # * if member left from channel
+        elif member not in before.channel.members and (not after.channel):  # * if member left from channel
             members = before.channel.members
             if len(members) == 1:
                 await self.check_time(member, voice_collection)
@@ -104,7 +99,8 @@ class Levels(Cog):
                 await self.check_time(first_member, voice_collection)
             elif len(members) > 1:
                 await self.check_time(member, voice_collection)
-        elif member not in before.channel.members and member in after.channel.members: # * If member moved from one channel to another
+        elif member not in before.channel.members and member in after.channel.members:
+            # * If member moved from one channel to another
             before_members = before.channel.members
             after_members = after.channel.members
 
@@ -114,13 +110,13 @@ class Levels(Cog):
                 elif len(after_members) > 1:
                     if len(after_members) == 2:
                         voice_collection.update_one(
-                            {'_id':str(after_members[0].id)},
-                            {'$set':{'voice_time':time()}},
+                            {'_id': str(after_members[0].id)},
+                            {'$set': {'voice_time': time()}},
                             upsert=True
                         )
                     voice_collection.update_one(
-                        {'_id':str(member.id)},
-                        {'$set':{'voice_time':time()}},
+                        {'_id': str(member.id)},
+                        {'$set': {'voice_time': time()}},
                         upsert=True
                     )
 
@@ -129,32 +125,29 @@ class Levels(Cog):
             if len(after_members) == 1:
                 await self.check_time(after_members[0], voice_collection)
 
-
     async def check_time(self, member: Member, voice_collection: Collection):
         try:
-            voice_user = voice_collection.find_one({'_id':str(member.id)})
+            voice_user = voice_collection.find_one({'_id': str(member.id)})
             sit_time = int(time()) - voice_user['voice_time']
-            voice_collection.delete_one({'_id':str(member.id)})
+            voice_collection.delete_one({'_id': str(member.id)})
             exp = (sit_time // 60) * self.time_factor
             await update_member(self.bot, member, exp)
 
             collection = self.bot.get_guild_users_collection(member.guild.id)
-            member_db = collection.find_one({'_id':str(member.id)})
+            user_data = collection.find_one({'_id': str(member.id)})
 
-            if member_db.get('voice_time_count') is None:
+            if user_data.get('voice_time_count') is None:
                 collection.update_one(
-                    {'_id':str(member.id)},
-                    {'$set':{'voice_time_count':0}},
+                    {'_id': str(member.id)},
+                    {'$set': {'voice_time_count': 0}},
                     upsert=True
                 )
             collection.update_one(
-                {'_id':str(member.id)},
-                {'$inc':{'voice_time_count':(sit_time // 60)}}
-                )
+                {'_id': str(member.id)},
+                {'$inc': {'voice_time_count': (sit_time // 60)}}
+            )
         except Exception as e:
             print('[LEVELS ERROR]', e)
-            print(e.__traceback__)
-
 
     @Cog.listener()
     async def on_message(self, message: Message):
@@ -164,28 +157,28 @@ class Levels(Cog):
         user_id = message.author.id
 
         users_collection = self.bot.get_guild_users_collection(message.guild.id)
-        user = users_collection.find_one({'_id':str(user_id)})
+        user = users_collection.find_one({'_id': str(user_id)})
 
         if user is None:
             await self.add_member(message.author)
         else:
-            xp = randint(25,35)
+            xp = randint(25, 35)
             await update_member(self.bot, message, xp)
-
 
     async def add_member(self, member: Member):
         role = self._get_guild_start_role(member.guild.id)
 
         collection = self.bot.get_guild_users_collection(member.guild.id)
         collection.update_one(
-            {'_id':str(member.id)},
-            {'$set':{
-            'voice_time_count':0,
-            'leveling': {
-                'level':1,
-                'xp':0,
-                'xp_amount':0,
-                'role':role
+            {'_id': str(member.id)},
+            {
+                '$set': {
+                    'voice_time_count': 0,
+                    'leveling': {
+                        'level': 1,
+                        'xp': 0,
+                        'xp_amount': 0,
+                        'role': role
                     }
                 }
             },
@@ -194,7 +187,6 @@ class Levels(Cog):
 
         if role != '':
             await member.add_roles(member.guild.get_role(role))
-
 
     @slash_subcommand(
         base='levels',
@@ -211,11 +203,11 @@ class Levels(Cog):
         ]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def reset_member_statistics(self, ctx: SlashContext, member: Member):
         user_id = str(member.id)
         users_collection = self.bot.get_guild_users_collection(ctx.guild_id)
-        user_stats = users_collection.find_one({'_id':user_id})
+        user_stats = users_collection.find_one({'_id': user_id})
 
         current_role = ctx.guild.get_role(user_stats['leveling']['role'])
         if current_role:
@@ -223,24 +215,25 @@ class Levels(Cog):
         role_id = self._get_guild_start_role(ctx.guild_id)
 
         users_collection.update_one(
-            {'_id':user_id},
-            {'$set':{
-                'voice_time_count':0,
-                'leveling': {
-                    'level':1,
-                    'xp':0,
-                    'xp_amount':0,
-                    'role':role_id
+            {'_id': user_id},
+            {
+                '$set': {
+                    'voice_time_count': 0,
+                    'leveling': {
+                        'level': 1,
+                        'xp': 0,
+                        'xp_amount': 0,
+                        'role': role_id
                     }
                 }
             },
-        upsert=True)
+            upsert=True
+        )
     
         if role_id:
-            await ctx.author.add_roles(ctx.guild.get_role(role_id))
+            await ctx.author.add_roles(ctx.guild.get_role(int(role_id)))
 
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='levels',
@@ -262,11 +255,10 @@ class Levels(Cog):
         ]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def levels_add_xp(self, ctx: SlashContext, member: Member, exp: int):
         await update_member(self.bot, member, exp)
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='levels',
@@ -276,7 +268,7 @@ class Levels(Cog):
             create_option(
                 name='level',
                 description='level',
-                option_type=3,
+                option_type=4,
                 required=True
             ),
             create_option(
@@ -288,15 +280,14 @@ class Levels(Cog):
         ]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
-    async def add_level_role(self, ctx: SlashContext, level: str, role: Role):
+    @bot_owner_or_permissions(manage_guild=True)
+    async def add_level_role(self, ctx: SlashContext, level: int, role: Role):
         collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
         collection.update_one(
-            {'_id':level},
-            {'$set':{'role_id':role.id}},
+            {'_id': str(level)},
+            {'$set': {'role_id': role.id}},
             upsert=True)
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='levels',
@@ -312,15 +303,14 @@ class Levels(Cog):
         ]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def remove_level_role(self, ctx: SlashContext, level: str):
         level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
         try:
-            level_roles_collection.delete_one({'_id':level})
+            level_roles_collection.delete_one({'_id': level})
             await ctx.send('✅', hidden=True)
         except Exception:
-            await ctx.reply('Такого уровня не существует!')
-
+            await ctx.send('❌', hidden=True)
 
     @slash_subcommand(
         base='levels',
@@ -342,16 +332,15 @@ class Levels(Cog):
         ]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def replace_level_role(self, ctx: SlashContext, old_level: str, new_level: str):
         level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
-        role = level_roles_collection.find_one_and_delete({'_id':old_level})['role_id']
+        role = level_roles_collection.find_one_and_delete({'_id': old_level})['role_id']
         level_roles_collection.update_one(
-            {'_id':new_level},
-            {'$set':{'role_id':role}},
+            {'_id': new_level},
+            {'$set': {'role_id': role}},
             upsert=True)
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='levels',
@@ -360,12 +349,11 @@ class Levels(Cog):
         options=[]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def reset_levels(self, ctx: SlashContext):
         level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
         level_roles_collection.drop_indexes()
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='levels',
@@ -375,7 +363,7 @@ class Levels(Cog):
     )
     @is_enabled
     async def send_levels_list(self, ctx: SlashContext):
-        collection = self.bot.get_guild_level_roles_collection(str(ctx.guild_id))
+        collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
         dict_levels = collection.find()
 
         content = ''
@@ -384,8 +372,8 @@ class Levels(Cog):
             xp_amount = 0
             role = ctx.guild.get_role(level['role_id'])
             for _level in range(1, int(level['_id'])):
-              exp = formula_of_experience(_level)
-              xp_amount += exp
+                exp = formula_of_experience(_level)
+                xp_amount += exp
             content += f'{level["_id"]} — {role.mention} | EXP: {xp_amount}\n'
 
         if content == '':
@@ -393,7 +381,6 @@ class Levels(Cog):
 
         embed = Embed(description=content, color=self.bot.get_embed_color(ctx.guild_id))
         await ctx.send(embed=embed)
-
 
     @slash_subcommand(
         base='levels',
@@ -416,17 +403,18 @@ class Levels(Cog):
         ]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def set_role_to_member(self, ctx: SlashContext, member: Member, role: Role):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         collection.update_one(
-            {'_id':str(member.id)},
-            {'$set':{
-                'leveling.role':role.id
-            }}
+            {'_id': str(member.id)},
+            {
+                '$set': {
+                    'leveling.role': role.id
+                }
+            }
         )
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='levels',
@@ -449,17 +437,18 @@ class Levels(Cog):
         ]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def set_time_to_member(self, ctx: SlashContext, member: Member, time: int):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         collection.update_one(
-            {'_id':str(member.id)},
-            {'$set':{
-                'voice_time_count':time
-            }}
+            {'_id': str(member.id)},
+            {
+                '$set': {
+                    'voice_time_count': time
+                }
+            }
         )
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='levels',
@@ -482,17 +471,17 @@ class Levels(Cog):
         ]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def set_level_to_member(self, ctx: SlashContext, member: Member, level: int):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         collection.update_one(
-            {'_id':str(member.id)},
-            {'$set':{
-                'leveling.level':level
-            }}
+            {'_id': str(member.id)},
+            {'$set': {
+                'leveling.level': level
+            }
+            }
         )
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='levels',
@@ -509,15 +498,14 @@ class Levels(Cog):
         ]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def set_on_join_role(self, ctx: SlashContext, role: Role):
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         collection.update_one(
-            {'_id':'configuration'},
-            {'$set':{'on_join_role':role.id}},
+            {'_id': 'configuration'},
+            {'$set': {'on_join_role': role.id}},
             upsert=True)
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='levels',
@@ -527,15 +515,14 @@ class Levels(Cog):
         options=[]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def set_on_join_role_remove(self, ctx: SlashContext):
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         collection.update_one(
-            {'_id':'configuration'},
-            {'$unset':'on_join_role'},
+            {'_id': 'configuration'},
+            {'$unset': 'on_join_role'},
         )
         await ctx.send('✅', hidden=True)
-
 
     @slash_subcommand(
         base='levels',
@@ -544,11 +531,11 @@ class Levels(Cog):
         options=[]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def add_start_role(self, ctx: SlashContext):
         guild_configuration_collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         try:
-            role_id = guild_configuration_collection.find_one({'_id':'configuration'})['on_join_role']
+            role_id = guild_configuration_collection.find_one({'_id': 'configuration'})['on_join_role']
             role = ctx.guild.get_role(role_id)
         except Exception as e:
             print('adr', e)
@@ -561,18 +548,17 @@ class Levels(Cog):
             if member.bot:
                 continue
 
-            current_role = guild_users_collection.find_one({'_id':str(member.id)})['leveling']['role']
+            current_role = guild_users_collection.find_one({'_id': str(member.id)})['leveling']['role']
             if current_role is None:
                 await self.add_member(member)
                 continue
             
             if current_role == '':
                 guild_users_collection.update_one(
-                    {'_id':str(member.id)},
-                    {'$set':{'leveling.role':role_id}}
+                    {'_id': str(member.id)},
+                    {'$set': {'leveling.role': role_id}}
                 )
                 await member.add_roles(role)
-
 
     @slash_subcommand(
         base='levels',
@@ -580,13 +566,13 @@ class Levels(Cog):
         options=[]
     )
     @is_enabled
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_guild=True)
     async def clear_members_stats(self, ctx: SlashContext):
         members = ctx.guild.members
         guild_configuration_collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         guild_users_collection = self.bot.get_guild_users_collection(ctx.guild_id)
 
-        configuration = guild_configuration_collection.find_one({'_id':'configuration'})
+        configuration = guild_configuration_collection.find_one({'_id': 'configuration'})
         role = configuration.get('on_join_role')
         if role is None:
             role = ''
@@ -596,15 +582,18 @@ class Levels(Cog):
                 continue
 
             guild_users_collection.update_one(
-                {'_id':str(member.id)},
-                {'$set':{
-                    'leveling.level':1,
-                    'leveling.xp':0,
-                    'leveling.xp_amount':0,
-                    'leveling.role':role
-                    }})
+                {'_id': str(member.id)},
+                {
+                    '$set': {
+                        'leveling.level': 1,
+                        'leveling.xp': 0,
+                        'leveling.xp_amount': 0,
+                        'leveling.role': role
+                    }
+                }
+            )
 
             if role:
-                await member.add_roles(ctx.guild.get_role(role))
+                await member.add_roles(ctx.guild.get_role(int(role)))
 
         await ctx.send('✅', hidden=True)

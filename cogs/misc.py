@@ -421,7 +421,6 @@ class Misc(Cog):
             await interaction.defer(edit_origin=True)
             return interaction
 
-
     @slash_subcommand(
         base='server',
         name='offline_bots'
@@ -436,7 +435,6 @@ class Misc(Cog):
 
         await ctx.send(content=content)
 
-    
     @slash_subcommand(
         base='server',
         name='role_perms'
@@ -455,20 +453,16 @@ class Misc(Cog):
 
         await ctx.send(embed=embed)
 
-
     @slash_command(
         name='invite',
         description='Send\'s bot invite link'
     )
     async def invite_bot(self, ctx: SlashContext):
-        no_perms_invite_link = 'https://discord.com/api/oauth2/authorize?client_id=883690387884081183&permissions=0&scope=bot%20applications.commands'
-        admin_invite_link = 'https://discord.com/api/oauth2/authorize?client_id=883690387884081183&permissions=8&scope=bot%20applications.commands'
-        recommended_invite_link = 'https://discord.com/api/oauth2/authorize?client_id=883690387884081183&permissions=506850391&scope=bot%20applications.commands'
         components = [
             [
-                Button(style=ButtonStyle.URL, label='Invite (No perms)', url=no_perms_invite_link),
-                Button(style=ButtonStyle.URL, label='Invite (Administrator)', url=admin_invite_link),
-                Button(style=ButtonStyle.URL, label='Invite (Recommended)', url=recommended_invite_link)
+                Button(style=ButtonStyle.URL, label='Invite (No perms)', url=self.bot.no_perms_invite_link),
+                Button(style=ButtonStyle.URL, label='Invite (Administrator)', url=self.bot.admin_invite_link),
+                Button(style=ButtonStyle.URL, label='Invite (Recommended)', url=self.bot.recommended_invite_link)
             ]
         ]
 
