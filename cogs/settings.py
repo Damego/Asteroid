@@ -212,6 +212,7 @@ class Settings(Cog):
                 'component',
                 check=lambda inter: inter.message.id == message.id and inter.author_id == ctx.author_id
             )
+            print(type(interaction.message))
             if interaction.custom_id == 'select_reload_extensions':
                 extensions = interaction.values
                 for extension in extensions:
