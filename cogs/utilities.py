@@ -1,3 +1,5 @@
+import datetime
+
 from discord import Embed, TextChannel, RawReactionActionEvent, Guild, Message
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
@@ -82,14 +84,12 @@ class Utilities(Cog):
                             f"**[Jump to original message!]({message.jump_url})**"
         embed = Embed(
             description=embed_description,
-            color=0xeee2a0
+            color=0xeee2a0,
+            timestamp=datetime.datetime.utcnow()
         )
         embed.set_author(
             name=message.author,
             icon_url=message.author.avatar_url
-        )
-        embed.set_footer(
-            text=message.created_at.strftime('%d/%m/%Y')
         )
         if message.attachments:
             embed.set_image(url=message.attachments[0].url)
