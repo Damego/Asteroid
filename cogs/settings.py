@@ -188,7 +188,8 @@ class Settings(Cog):
             Select(
                 placeholder='Reload extensions',
                 custom_id='select_reload_extensions',
-                options=[SelectOption(label=extension[5:], value=extension) for extension in self.bot.extensions]
+                options=[SelectOption(label=extension[5:], value=extension) for extension in self.bot.extensions],
+                max_values=len(self.bot.extensions)
             ),
             [
                 Button(style=ButtonStyle.blue, label='Reload bot', custom_id='button_reload_bot'),
@@ -212,13 +213,12 @@ class Settings(Cog):
                 'component',
                 check=lambda inter: inter.message.id == message.id and inter.author_id == ctx.author_id
             )
-            print(type(interaction.message))
             if interaction.custom_id == 'select_reload_extensions':
                 extensions = interaction.values
                 for extension in extensions:
                     self.bot.reload_extension(extension)
 
-                await interaction.send('**Reloaded:**\n`' + '`, `'.join(extensions))
+                await interaction.send(f'**Reloaded:**\n `{", ".join(extensions)}`')
             elif interaction.custom_id == 'button_reload_bot':
                 await interaction.defer(edit_origin=True)
                 await interaction.message.disable_components()
