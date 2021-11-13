@@ -1,11 +1,16 @@
-import os, sys
-import discord
+import asyncio
+import os
+import sys
+
+from discord import Embed
 from discord.ext import commands
 from discord_slash import SlashContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
     cog_subcommand as slash_subcommand
 )
+from discord_components import Select, SelectOption, Button, ButtonStyle
+from discord_slash_components_bridge import ComponentContext
 
 from my_utils import (
     AsteroidBot,
@@ -59,12 +64,12 @@ class Settings(Cog):
     async def set_embed_color(self, ctx: SlashContext, color: str):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('SET_EMBED_COLOR_COMMAND', lang)
+
         if color.startswith('#') and len(color) == 7:
             color = color.replace('#', '')
         elif len(color) != 6:
             await ctx.send(content['WRONG_COLOR'])
             return
-
         newcolor = '0x' + color
 
         collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
@@ -74,7 +79,7 @@ class Settings(Cog):
             upsert=True
         )
 
-        embed = discord.Embed(title=content['SUCCESSFULLY_CHANGED'], color=int(newcolor, 16))
+        embed = Embed(title=content['SUCCESSFULLY_CHANGED'], color=int(newcolor, 16))
         await ctx.send(embed=embed, delete_after=10)
 
     @slash_subcommand(
@@ -170,7 +175,7 @@ class Settings(Cog):
         except RuntimeError:
             pass
 
-        embed = discord.Embed(title='Перезагрузка расширений', description=content, color=0x2f3136)
+        embed = Embed(title='Перезагрузка расширений', description=content, color=0x2f3136)
         await ctx.send(embed=embed)
 
     @slash_command(
@@ -179,16 +184,65 @@ class Settings(Cog):
     )
     @commands.is_owner()
     async def git_pull_updates(self, ctx: SlashContext):
-        embed = discord.Embed(title='Поиск обновлений...', color=0x2f3136)
-        message = await ctx.send(embed=embed)
-        os.system('git fetch')
-        os.system('git stash')
-        embed = discord.Embed(title='Загрузка обновления...', color=0x2f3136)
-        await message.edit(embed=embed)
-        os.system('git pull')
-        embed = discord.Embed(title='Перезагрузка...', color=0x2f3136)
-        await message.edit(embed=embed)
-        os.execv(sys.executable, ['python3.9'] + sys.argv)
+        components = [
+            Select(
+                placeholder='Reload extensions',
+                custom_id='select_reload_extensions',
+                options=[SelectOption(label=extension[5:], value=extension) for extension in self.bot.extensions]
+            ),
+            [
+                Button(style=ButtonStyle.blue, label='Reload bot', custom_id='button_reload_bot'),
+                Button(style=ButtonStyle.red, label='Exit', custom_id='button_exit'),
+            ]
+        ]
+
+        preresult = await self.run_shell('gut pull')
+        if preresult == '':
+            result = 'NO DATA'
+        else:
+            result = '\n'.join(preresult)
+
+        content = f'```\n{result}\n```'
+        embed = Embed(title='SHEll', description=content, color=0x2f3136)
+
+        message = await ctx.send(embed=embed, components=components)
+
+        while True:
+            interaction: ComponentContext = await self.bot.wait_for(
+                'component',
+                check=lambda inter: inter.message.id == message.id and inter.author_id == ctx.author_id
+            )
+            if interaction.custom_id == 'select_reload_extensions':
+                extensions = interaction.values
+                for extension in extensions:
+                    self.bot.reload_extension(extension)
+            elif interaction.custom_id == 'button_reload_bot':
+                await interaction.defer(edit_origin=True)
+                await interaction.message.disable_components()
+                await ctx.channel.send('Reloading...')
+                os.execv(sys.executable, ['python3.9'] + sys.argv)
+            elif interaction.custom_id == 'button_exit':
+                await interaction.defer(edit_origin=True)
+                await interaction.message.disable_components()
+                return
+
+    @staticmethod
+    async def run_shell(command: str):
+        process = await asyncio.create_subprocess_shell(
+            command,
+            stderr=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await process.communicate()
+        try:
+            stdout = stdout.decode(encoding='UTF-8')
+        except UnicodeDecodeError:
+            stdout = ''
+        try:
+            stderr = stderr.decode(encoding='UTF-8')
+        except UnicodeDecodeError:
+            stderr = ''
+        return stdout, stderr
 
     @slash_command(
         name='sync_commands',
