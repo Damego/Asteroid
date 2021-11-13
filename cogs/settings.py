@@ -196,7 +196,7 @@ class Settings(Cog):
             ]
         ]
 
-        preresult = await self.run_shell('gut pull')
+        preresult = await self.run_shell('git pull')
         if preresult == '':
             result = 'NO DATA'
         else:
