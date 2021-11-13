@@ -274,6 +274,17 @@ LANGUAGES = {
             'LOSE_DESCRIPTION': '{emoji} Вы проиграли и потеряли `{bet}$`! Попробуйте снова!\n**Ваши игры:**\n{results}',
             'WON_DESCRIPTION': '{emoji} Вы выиграли и получили `{bet}$`! Попробуйте снова!\n**Ваши игры:**\n{results}',
             'PLAY_BUTTON_LABEL': 'Играть'
+        },
+        'SET_STARBOARD_CHANNEL_COMMAND': {
+            'CHANNEL_WAS_SETUP_TEXT': 'Канал был установлен!'
+        },
+        'SET_STARBOARD_STARS_LIMIT_COMMAND': {
+            'LIMIT_WAS_SETUP_TEXT': 'Лимит звёзд был установлен до `{limit}`!'
+        },
+        'SET_STARBOARD_STATUS_COMMAND': {
+            'STARBOARD_NOT_SETUP': 'Канал или лимит звёзд не были установлены!',
+            'STARBOARD_ENABLED': 'Starboard был `включен`!',
+            'STARBOARD_DISABLED': 'Starboard был `выключен`!'
         }
     },
 
@@ -549,6 +560,17 @@ LANGUAGES = {
             'LOSE_DESCRIPTION': '{emoji} You lose this game and your `{bet}$`! Try again!\n**Your games:**\n{results}',
             'WON_DESCRIPTION': '{emoji} You won this game and you get `{bet}$`! Try again!\n**Your games:**\n{results}',
             'PLAY_BUTTON_LABEL': 'Play'
+        },
+        'SET_STARBOARD_CHANNEL_COMMAND': {
+            'CHANNEL_WAS_SETUP_TEXT': 'Channel was set up!'
+        },
+        'SET_STARBOARD_STARS_LIMIT_COMMAND': {
+            'LIMIT_WAS_SETUP_TEXT': 'Stars limit was set up to `{limit}`!'
+        },
+        'SET_STARBOARD_STATUS_COMMAND': {
+            'STARBOARD_NOT_SETUP': 'Channel or stars limit didn\'t set up!',
+            'STARBOARD_ENABLED': 'Starboard was `enabled`!',
+            'STARBOARD_DISABLED': 'Starboard was `disabled`!'
         }
     }
 }

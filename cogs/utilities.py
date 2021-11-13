@@ -6,7 +6,7 @@ from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 from pymongo.collection import Collection
 
-from my_utils import AsteroidBot, Cog, bot_owner_or_permissions
+from my_utils import AsteroidBot, Cog, bot_owner_or_permissions, get_content
 
 
 class Utilities(Cog):
@@ -117,18 +117,27 @@ class Utilities(Cog):
     )
     @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_channel(self, ctx: SlashContext, channel: TextChannel):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('SET_STARBOARD_CHANNEL_COMMAND', lang)
+
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
-        data = {
-            'is_enabled': True,
-            'channel_id': channel.id,
-            'limit': 3
-        }
+        starboard_data = collection.find_one({'_id': 'starboard'})
+        if starboard_data is None:
+            data = {
+                'is_enabled': True,
+                'channel_id': channel.id,
+                'limit': 3
+            }
+        else:
+            data = {
+                'channel_id': channel.id
+            }
         collection.update_one(
             {'_id': 'starboard'},
             {'$set': data},
             upsert=True
         )
-        await ctx.send('Starboard channel was set up!')
+        await ctx.send(content['CHANNEL_WAS_SETUP_TEXT'])
 
     @slash_subcommand(
         base='starboard',
@@ -137,13 +146,16 @@ class Utilities(Cog):
     )
     @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_stars_limit(self, ctx: SlashContext, limit: int):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('SET_STARBOARD_STARS_LIMIT_COMMAND', lang)
+
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'starboard'},
             {'$set': {'limit': limit}},
             upsert=True
         )
-        await ctx.send(f'For now limit is {limit}')
+        await ctx.send(content['LIMIT_WAS_SETUP_TEXT'].format(limit=limit))
 
     @slash_subcommand(
         base='starboard',
@@ -170,14 +182,29 @@ class Utilities(Cog):
     )
     @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_status(self, ctx: SlashContext, status: str):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('SET_STARBOARD_STATUS_COMMAND', lang)
+
         _status = True if status == 'enable' else False
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        starboard_data = collection.find_one({'_id': 'starboard'})
+        if starboard_data is None:
+            return await ctx.send(content['STARBOARD_NOT_SETUP'])
+        elif 'channel_id' not in starboard_data:
+            return await ctx.send(content['STARBOARD_NOT_SETUP'])
+        elif 'limit' not in starboard_data:
+            return await ctx.send(content['STARBOARD_NOT_SETUP'])
+
         collection.update_one(
             {'_id': 'starboard'},
             {'$set': {'is_enabled': _status}},
             upsert=True
         )
-        await ctx.send(f'Starboard was `{status}d`')
+        if _status:
+            message_content = content['STARBOARD_ENABLED']
+        else:
+            message_content = content['STARBOARD_DISABLED']
+        await ctx.send(message_content)
 
 
 def setup(bot):
