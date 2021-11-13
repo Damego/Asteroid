@@ -32,7 +32,6 @@ class Settings(Cog):
         self.emoji = '🛠️'
         self.name = 'Settings'
 
-
     @slash_subcommand(
         base='set',
         name='lang',
@@ -70,14 +69,13 @@ class Settings(Cog):
 
         collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
         collection.update_one(
-            {'_id':'configuration'},
-            {'$set':{'embed_color':newcolor}},
+            {'_id': 'configuration'},
+            {'$set': {'embed_color': newcolor}},
             upsert=True
         )
 
         embed = discord.Embed(title=content['SUCCESSFULLY_CHANGED'], color=int(newcolor, 16))
         await ctx.send(embed=embed, delete_after=10)
-
 
     @slash_subcommand(
         base='set',
@@ -100,13 +98,12 @@ class Settings(Cog):
             upsert=True
         )
         await ctx.send('Changed!')
-        
 
     @slash_subcommand(
-    base='ext',
-    name='load',
-    description='Load extension'
-)
+        base='ext',
+        name='load',
+        description='Load extension'
+    )
     @commands.is_owner()
     async def _load_extension(self, ctx: SlashContext, extension):
         try:
@@ -119,7 +116,6 @@ class Settings(Cog):
             await ctx.send(content)
         else:
             await ctx.send(f'Плагин {extension} загружен!')
-
 
     @slash_subcommand(
         base='ext',
@@ -134,7 +130,6 @@ class Settings(Cog):
             await ctx.send(f'Плагин {extension} не загружен')
         else:
             await ctx.send(f'Плагин {extension} отключен!')
-
 
     @slash_subcommand(
         base='ext',
@@ -152,7 +147,6 @@ class Settings(Cog):
             Ошибка: {e}
             """
         await ctx.send(content)
-
 
     @slash_subcommand(
         base='ext',
@@ -179,7 +173,6 @@ class Settings(Cog):
         embed = discord.Embed(title='Перезагрузка расширений', description=content, color=0x2f3136)
         await ctx.send(embed=embed)
 
-
     @slash_command(
         name='deploy',
         description='Deploy update from GIT'
@@ -196,6 +189,14 @@ class Settings(Cog):
         embed = discord.Embed(title='Перезагрузка...', color=0x2f3136)
         await message.edit(embed=embed)
         os.execv(sys.executable, ['python3.9'] + sys.argv)
+
+    @slash_command(
+        name='sync_commands',
+        guild_ids=[422989643634442240]
+    )
+    async def _sync_commands(self, ctx: SlashContext):
+        await self.bot.slash.sync_all_commands()
+        await ctx.send('Синхронизировано!')
 
 
 def setup(bot):
