@@ -217,6 +217,8 @@ class Settings(Cog):
                 extensions = interaction.values
                 for extension in extensions:
                     self.bot.reload_extension(extension)
+
+                await ctx.channel.send('Reloaded:' + ', '.join(extensions))
             elif interaction.custom_id == 'button_reload_bot':
                 await interaction.defer(edit_origin=True)
                 await interaction.message.disable_components()
