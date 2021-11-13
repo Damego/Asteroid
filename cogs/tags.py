@@ -25,7 +25,7 @@ class Tags(Cog):
         name='open',
         description='Open tag'
     )
-    async def open_tag(self, ctx: SlashContext, tag_name: str):
+    async def open_tag(self, ctx: SlashContext, tag_name: str, hidden: bool = True):
         tag_name = self.convert_tag_name(tag_name)
 
         collection = self.bot.get_guild_tags_collection(ctx.guild_id)
@@ -41,7 +41,10 @@ class Tags(Cog):
             description=tag['description'],
             color=self.bot.get_embed_color(ctx.guild_id)
         )
-        await ctx.send(embed=embed)
+        if not hidden:
+            return await ctx.send(embed=embed)
+        await ctx.send('✅', hidden=True)
+        await ctx.channel.send(embed=embed)
 
     @slash_subcommand(
         base='tag',
@@ -51,7 +54,7 @@ class Tags(Cog):
     async def create_new_tag(self, ctx: SlashContext, tag_name: str, *, tag_content: str):
         tag_name = tag_name.lower()
 
-        self._is_can_manage_tags(ctx, None)
+        self._is_can_manage_tags(ctx)
 
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('TAG_ADD_COMMAND', lang)
@@ -63,14 +66,15 @@ class Tags(Cog):
             return await ctx.send(content['TAG_ALREADY_EXISTS_TEXT'])
 
         collection.update_one(
-            {'_id':tag_name},
-            {'$set':{
-                'is_embed': False,
-                'title': 'No title',
-                'description': tag_content,
-                'author_id': ctx.author.id
-                }
-            },
+            {'_id': tag_name},
+            {
+                '$set': {
+                    'is_embed': False,
+                    'title': 'No title',
+                    'description': tag_content,
+                    'author_id': ctx.author.id
+                    }
+                },
             upsert=True
         )
         await ctx.send(content=content['TAG_CREATED_TEXT'].format(tag_name=tag_name))
@@ -366,8 +370,7 @@ class Tags(Cog):
         collection.delete_one({'_id': tag_name})
         await interaction.send(content=content['REMOVED_TAG_TEXT'], hidden=True)
 
-
-    def _is_can_manage_tags(self, ctx: SlashContext, tag_data: dict):
+    def _is_can_manage_tags(self, ctx: SlashContext, tag_data: dict = None):
         if ctx.author_id == 143773579320754177 or ctx.author.guild_permissions.manage_guild:
             return
 

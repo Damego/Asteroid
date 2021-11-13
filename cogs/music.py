@@ -201,7 +201,7 @@ class Music(Cog):
                     Button(style=ButtonStyle.gray, label=content['PAUSE_BUTTON'], id='pause'),
                     Button(style=ButtonStyle.red, label=content['STOP_BUTTON'], id='stop'),
                     Button(style=ButtonStyle.blue, label=content['SKIP_BUTTON'], id='skip'),
-                    Button(style=ButtonStyle.blue, label=content['TOGGLE_OFF_BUTTON'], id='toggle_loop')
+                    Button(style=ButtonStyle.blue, label=content['TOGGLE_ON_BUTTON'], id='toggle_loop')
                 ]
             ]
 
