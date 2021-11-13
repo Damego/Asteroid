@@ -193,6 +193,7 @@ class Settings(Cog):
             ),
             [
                 Button(style=ButtonStyle.blue, label='Reload bot', custom_id='button_reload_bot'),
+                Button(style=ButtonStyle.blue, label='Sync commands', custom_id='button_sync_commands'),
                 Button(style=ButtonStyle.red, label='Exit', custom_id='button_exit'),
             ]
         ]
@@ -204,7 +205,7 @@ class Settings(Cog):
             result = '\n'.join(preresult)
 
         content = f'```\n{result}\n```'
-        embed = Embed(title='SHEll', description=content, color=0x2f3136)
+        embed = Embed(title='Git Sync', description=content, color=0x2f3136)
 
         message = await ctx.send(embed=embed, components=components)
 
@@ -217,13 +218,15 @@ class Settings(Cog):
                 extensions = interaction.values
                 for extension in extensions:
                     self.bot.reload_extension(extension)
-
                 await interaction.send(f'**Reloaded:**\n `{", ".join(extensions)}`')
             elif interaction.custom_id == 'button_reload_bot':
                 await interaction.defer(edit_origin=True)
                 await interaction.message.disable_components()
                 await ctx.channel.send('Reloading...')
                 os.execv(sys.executable, ['python3.9'] + sys.argv)
+            elif interaction.custom_id == 'button_sync_commands':
+                await self.bot.slash.sync_all_commands()
+                await ctx.send('Slash Commands were synced!', hidden=True)
             elif interaction.custom_id == 'button_exit':
                 await interaction.defer(edit_origin=True)
                 await interaction.message.disable_components()
@@ -258,3 +261,5 @@ class Settings(Cog):
 
 def setup(bot):
     bot.add_cog(Settings(bot))
+
+
