@@ -34,7 +34,7 @@ def is_enabled(func):
         collection = bot.get_guild_configuration_collection(ctx.guild_id)
         try:
             enabled = collection.find_one({'_id': 'cogs_status'})[self.name]
-        except KeyError:
+        except Exception:
             enabled = True
         if not enabled:
             raise CogDisabledOnGuild
