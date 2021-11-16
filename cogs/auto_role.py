@@ -1,4 +1,4 @@
-from discord import Role, PartialEmoji
+from discord import Role
 from discord_components import Select, SelectOption
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
@@ -104,6 +104,11 @@ class AutoRole(Cog):
 
         if len(select_component.options) == 25:
             return await ctx.send(content['OPTIONS_OVERKILL_TEXT'], hidden=True)
+
+        _emoji = emoji.split(':')
+        if len(_emoji) == 3:
+            _emoji = _emoji[-1].replace('>', '')
+            emoji = self.bot.get_emoji(int(_emoji))
 
         if select_component.options[0].label == 'None':
             select_component.options = [
