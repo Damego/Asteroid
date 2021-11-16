@@ -285,9 +285,23 @@ LANGUAGES = {
             'STARBOARD_NOT_SETUP': 'Канал или лимит звёзд не были установлены!',
             'STARBOARD_ENABLED': 'Starboard был `включен`!',
             'STARBOARD_DISABLED': 'Starboard был `выключен`!'
+        },
+        'AUTOROLE_DROPDOWN': {
+            'ADDED_ROLES_TEXT': 'Добавлено: ',
+            'REMOVED_ROLES_TEXT': '\nУдалено: ',
+            'NO_OPTIONS_TEXT': 'Нет опций',
+            'CREATED_DROPDOWN_TEXT': 'Меню создано!',
+            'MESSAGE_WITHOUT_DROPDOWN_TEXT': 'Сообщение не имеет меню!',
+            'OPTIONS_OVERKILL_TEXT': 'Вы не можете добавить больше 25 опций в меню1',
+            'SELECT_ROLE_TEXT': 'Выберите роль',
+            'ROLE_ADDED_TEXT': 'Роль добавлена!',
+            'OPTION_NOT_FOUND_TEXT': 'Не удалось найти опцию с таким именем!',
+            'OPTIONS_LESS_THAN_1_TEXT': 'Опций в меню не может быть меньше 1',
+            'ROLE_REMOVED_TEXT': 'Роль удалена!',
+            'DROPDOWN_ENABLED_TEXT': 'Меню включено!',
+            'DROPDOWN_DISABLED_TEXT': 'Меню выключено!'
         }
     },
-
     'en': {
         'ERRORS_DESCRIPTIONS': {
             'COG_DISABLED': 'This command disabled on this server!',
@@ -568,9 +582,24 @@ LANGUAGES = {
             'LIMIT_WAS_SETUP_TEXT': 'Stars limit was set up to `{limit}`!'
         },
         'SET_STARBOARD_STATUS_COMMAND': {
-            'STARBOARD_NOT_SETUP': 'Channel or stars limit didn\'t set up!',
+            'STARBOARD_NOT_SETUP': 'Channel or stars limit doesn\'t set up!',
             'STARBOARD_ENABLED': 'Starboard was `enabled`!',
             'STARBOARD_DISABLED': 'Starboard was `disabled`!'
+        },
+        'AUTOROLE_DROPDOWN': {
+            'ADDED_ROLES_TEXT': 'Added Roles: ',
+            'REMOVED_ROLES_TEXT': '\nRemoved Roles: ',
+            'NO_OPTIONS_TEXT': 'No options',
+            'CREATED_DROPDOWN_TEXT': 'Dropdown created!',
+            'MESSAGE_WITHOUT_DROPDOWN_TEXT': 'Message without dropdown!',
+            'OPTIONS_OVERKILL_TEXT': 'You can\'t add more than 25 options in dropdown!',
+            'SELECT_ROLE_TEXT': 'Select role',
+            'ROLE_ADDED_TEXT': 'Role added!',
+            'OPTION_NOT_FOUND_TEXT': 'Could not find an option with this name',
+            'OPTIONS_LESS_THAN_1_TEXT': 'Options in dropdown can\'t be less than 1',
+            'ROLE_REMOVED_TEXT': 'Role removed!',
+            'DROPDOWN_ENABLED_TEXT': 'Dropdown enabled!',
+            'DROPDOWN_DISABLED_TEXT': 'Dropdown disabled!'
         }
     }
 }

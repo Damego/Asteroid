@@ -172,6 +172,7 @@ class Moderation(Cog):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: str = get_content('FUNC_MODERATION_CLEAR_MESSAGES', lang)
 
+        await ctx.defer()
         await ctx.channel.purge(limit=amount+1)
         await ctx.send(content.format(amount), delete_after=5)
 
