@@ -89,7 +89,7 @@ class AutoRole(Cog):
         message_id: str,
         title: str,
         role: Role,
-        emoji: PartialEmoji = None,
+        emoji: str = None,
         description: str = None
     ):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -124,7 +124,7 @@ class AutoRole(Cog):
                 )
             )
         select_component.disabled = False
-        create_dropdown_content = get_content('AUTOROLE_CREATE_DROPDOWN', lang)
+        create_dropdown_content = get_content('AUTOROLE_DROPDOWN', lang)
         if select_component.placeholder == create_dropdown_content['NO_OPTIONS_TEXT']:
             select_component.placeholder = content['SELECT_ROLE_TEXT']
 
