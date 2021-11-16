@@ -129,13 +129,12 @@ class AutoRole(Cog):
                 )
             )
         select_component.disabled = False
-        create_dropdown_content = get_content('AUTOROLE_DROPDOWN', lang)
-        if select_component.placeholder == create_dropdown_content['NO_OPTIONS_TEXT']:
+        if select_component.placeholder == content['NO_OPTIONS_TEXT']:
             select_component.placeholder = content['SELECT_ROLE_TEXT']
 
         select_component.max_values = len(select_component.options)
         await original_message.edit(components=[select_component])
-        await ctx.send('Added!', hidden=True)
+        await ctx.send(content['ROLE_ADDED_TEXT'], hidden=True)
 
     @slash_subcommand(
         base='autorole',
