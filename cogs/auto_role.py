@@ -194,6 +194,7 @@ class AutoRole(Cog):
             )
         ]
     )
+    @bot_owner_or_permissions(manage_guild=True)
     async def autorole_dropdown_set_status(
         self,
         ctx: SlashContext,
