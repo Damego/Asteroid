@@ -1,4 +1,4 @@
-from discord import Role
+from discord import Role, Embed
 from discord_components import Select, SelectOption
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
@@ -96,7 +96,7 @@ class AutoRole(Cog):
         content: dict = get_content('AUTOROLE_DROPDOWN', lang)
         original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
         if not original_message.components:
-            return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'])
+            return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'], hidden=True)
 
         select_component: Select = original_message.components[0].components[0]
         if select_component.custom_id != 'autorole_select':
@@ -105,10 +105,11 @@ class AutoRole(Cog):
         if len(select_component.options) == 25:
             return await ctx.send(content['OPTIONS_OVERKILL_TEXT'], hidden=True)
 
-        _emoji = emoji.split(':')
-        if len(_emoji) == 3:
-            _emoji = _emoji[-1].replace('>', '')
-            emoji = self.bot.get_emoji(int(_emoji))
+        if emoji:
+            _emoji = emoji.split(':')
+            if len(_emoji) == 3:
+                _emoji = _emoji[-1].replace('>', '')
+                emoji = self.bot.get_emoji(int(_emoji))
 
         if select_component.options[0].label == 'None':
             select_component.options = [
@@ -209,7 +210,7 @@ class AutoRole(Cog):
         content: dict = get_content('AUTOROLE_DROPDOWN', lang)
         original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
         if not original_message.components:
-            return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'])
+            return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'], hidden=True)
 
         select_component: Select = original_message.components[0].components[0]
         if select_component.custom_id != 'autorole_select':
@@ -221,6 +222,97 @@ class AutoRole(Cog):
 
         await original_message.edit(components=[select_component])
         await ctx.send(message_content, hidden=True)
+
+    @slash_subcommand(
+        base='autorole',
+        subcommand_group='dropdown',
+        name='save',
+        description='Save dropdown to database'
+    )
+    async def autorole_dropdown_save(
+        self,
+        ctx: SlashContext,
+        message_id: str,
+        name: str
+    ):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content: dict = get_content('AUTOROLE_DROPDOWN', lang)
+
+        original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
+        if not original_message.components:
+            return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'], hidden=True)
+
+        select_component: Select = original_message.components[0].components[0]
+        if select_component.custom_id != 'autorole_select':
+            return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'], hidden=True)
+
+        data = {
+            'content': original_message.content,
+            'component': select_component.to_dict()
+        }
+
+        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection.update_one(
+            {'_id': 'autorole'},
+            {
+                '$set': {
+                    name: data
+                }
+            },
+            upsert=True
+        )
+
+        await ctx.send(content['DROPDOWN_SAVED_TEXT'], hidden=True)
+
+    @slash_subcommand(
+        base='autorole',
+        subcommand_group='dropdown',
+        name='load',
+        description='Load dropdown from database and send this'
+    )
+    async def autorole_dropdown_load(self, ctx: SlashContext, name: str):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content: dict = get_content('AUTOROLE_DROPDOWN', lang)
+
+        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        autorole_data = collection.find_one({'_id': 'autorole'})
+        if autorole_data is None:
+            return await ctx.send(content['NOT_SAVED_DROPDOWNS'])
+        message_data = autorole_data.get(name)
+        if message_data is None:
+            return await ctx.send(content['DROPDOWN_NOT_FOUND'])
+
+        select_component = Select.from_json(message_data['component'])
+
+        await ctx.channel.send(content=message_data['content'], components=[select_component])
+        await ctx.send(content['DROPDOWN_LOADED_TEXT'], hidden=True)
+
+    @slash_subcommand(
+        base='autorole',
+        subcommand_group='dropdown',
+        name='list',
+        description='Show list of saved dropdowns'
+    )
+    async def autorole_dropdown_list(self, ctx: SlashContext):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content: dict = get_content('AUTOROLE_DROPDOWN', lang)
+
+        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        autorole_data = collection.find_one({'_id': 'autorole'})
+        if autorole_data is None:
+            return await ctx.send(content['NOT_SAVED_DROPDOWNS'])
+
+        embed = Embed(
+            title=content['DROPDOWN_LIST'],
+            description='',
+            color=self.bot.get_embed_color(ctx.guild_id)
+        )
+
+        del autorole_data['_id']
+        for count, dropdown in enumerate(autorole_data, start=1):
+            embed.description += f'**{count}. {dropdown}**\n'
+
+        await ctx.send(embed=embed, hidden=True)
 
 
 def setup(bot):

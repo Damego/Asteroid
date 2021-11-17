@@ -299,7 +299,12 @@ LANGUAGES = {
             'OPTIONS_LESS_THAN_1_TEXT': 'Опций в меню не может быть меньше 1',
             'ROLE_REMOVED_TEXT': 'Роль удалена!',
             'DROPDOWN_ENABLED_TEXT': 'Меню включено!',
-            'DROPDOWN_DISABLED_TEXT': 'Меню выключено!'
+            'DROPDOWN_DISABLED_TEXT': 'Меню выключено!',
+            'DROPDOWN_SAVED_TEXT': 'Сохранено!',
+            'NOT_SAVED_DROPDOWNS': 'Нет сохранённих меню!',
+            'DROPDOWN_NOT_FOUND': 'Нет меню с таким именем!',
+            'DROPDOWN_LOADED_TEXT': 'Меню загружено!',
+            'DROPDOWN_LIST': 'Список меню с ролями'
         }
     },
     'en': {
@@ -599,7 +604,12 @@ LANGUAGES = {
             'OPTIONS_LESS_THAN_1_TEXT': 'Options in dropdown can\'t be less than 1',
             'ROLE_REMOVED_TEXT': 'Role removed!',
             'DROPDOWN_ENABLED_TEXT': 'Dropdown enabled!',
-            'DROPDOWN_DISABLED_TEXT': 'Dropdown disabled!'
+            'DROPDOWN_DISABLED_TEXT': 'Dropdown disabled!',
+            'DROPDOWN_SAVED_TEXT': 'Dropdown saved!',
+            'NOT_SAVED_DROPDOWNS': 'No dropdowns saved!',
+            'DROPDOWN_NOT_FOUND': 'Could not find Dropdown with this name',
+            'DROPDOWN_LOADED_TEXT': 'Dropdown loaded!',
+            'DROPDOWN_LIST': 'Dropdowns list'
         }
     }
 }
