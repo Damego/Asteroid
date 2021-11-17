@@ -143,6 +143,7 @@ class AutoRole(Cog):
         name='remove_role',
         description='Removing role from dropdown'
     )
+    @bot_owner_or_permissions(manage_guild=True)
     async def autorole_dropdown_remove_role(
         self,
         ctx: SlashContext,
@@ -229,6 +230,7 @@ class AutoRole(Cog):
         name='save',
         description='Save dropdown to database'
     )
+    @bot_owner_or_permissions(manage_guild=True)
     async def autorole_dropdown_save(
         self,
         ctx: SlashContext,
@@ -270,6 +272,7 @@ class AutoRole(Cog):
         name='load',
         description='Load dropdown from database and send this'
     )
+    @bot_owner_or_permissions(manage_guild=True)
     async def autorole_dropdown_load(self, ctx: SlashContext, name: str):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_DROPDOWN', lang)
@@ -293,6 +296,7 @@ class AutoRole(Cog):
         name='list',
         description='Show list of saved dropdowns'
     )
+    @bot_owner_or_permissions(manage_guild=True)
     async def autorole_dropdown_list(self, ctx: SlashContext):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_DROPDOWN', lang)
