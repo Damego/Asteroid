@@ -1,11 +1,9 @@
-from asyncio import sleep
-
 from discord import utils, User, Member, Embed, Role
 from discord.ext.commands import has_guild_permissions
-from discord_slash import ComponentContext
+from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
-from my_utils import AsteroidBot, get_content, DurationConverter, multiplier, Cog
+from my_utils import AsteroidBot, get_content, Cog
 
 
 class Moderation(Cog):
@@ -20,32 +18,23 @@ class Moderation(Cog):
         description='Mute member'
     )
     @has_guild_permissions(mute_members=True)
-    async def mute(self, ctx: ComponentContext, member: Member, duration: DurationConverter, *, reason=None):
+    async def mute(self, ctx: SlashContext, member: Member, reason: str = None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('FUNC_MODERATION_MUTE_MEMBER', lang)
 
         if member.bot:
             return await ctx.send(content['CANNOT_MUTE_BOT_TEXT'], hidden=True)
 
-        amount, time_format = duration
-
         was_muted = content['WAS_MUTED_TEXT'].format(member.mention)
-        muted_time = content['TIME_TEXT'].format(amount=amount, time_format=time_format)
         mute_reason = content['REASON_TEXT'].format(reason=reason)
-        amount, time_format = duration
-        
+
         muted_role = await self.get_muted_role(ctx)
         await member.add_roles(muted_role, reason=reason)
-        embed = Embed(title=was_muted, color=self.bot.get_embed_color(ctx.guild.id))
-        _description = muted_time
+        message_content = was_muted
+        if reason:
+            message_content += f"\n{mute_reason}"
 
-        if reason is not None:
-            _description += mute_reason
-        embed.description = _description
-        await ctx.send(embed=embed)
-
-        await sleep(amount * multiplier[time_format])
-        await member.remove_roles(muted_role)
+        await ctx.send(message_content)
 
     @staticmethod
     async def get_muted_role(ctx):
@@ -63,7 +52,7 @@ class Moderation(Cog):
         description='Unmute members'
     )
     @has_guild_permissions(mute_members=True)
-    async def unmute(self, ctx: ComponentContext, member: Member):
+    async def unmute(self, ctx: SlashContext, member: Member):
         muted_role = await self.get_muted_role(ctx)
         await member.remove_roles(muted_role)
         await ctx.send('✅', hidden=True)
@@ -74,7 +63,7 @@ class Moderation(Cog):
         description='Ban member'
     )
     @has_guild_permissions(ban_members=True)
-    async def ban(self, ctx: ComponentContext, member: Member, *, reason=None):
+    async def ban(self, ctx: SlashContext, member: Member, reason: str = None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('FUNC_MODERATION_BAN_MEMBER', lang)
         if member.bot:
@@ -98,7 +87,7 @@ class Moderation(Cog):
         description='Unban member'
     )
     @has_guild_permissions(ban_members=True)
-    async def unban(self, ctx: ComponentContext, user: User):
+    async def unban(self, ctx: SlashContext, user: User):
         await ctx.guild.unban(user)
         await ctx.send('✅', hidden=True)
                     
@@ -108,7 +97,7 @@ class Moderation(Cog):
         description='Kick member'
     )
     @has_guild_permissions(kick_members=True)
-    async def kick(self, ctx: ComponentContext, member: Member, reason: str):
+    async def kick(self, ctx: SlashContext, member: Member, reason: str = None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('FUNC_MODERATION_KICK_MEMBER', lang)
         if member.bot:
@@ -132,7 +121,7 @@ class Moderation(Cog):
         description='Remove role of member'
     )
     @has_guild_permissions(manage_roles=True)
-    async def remove_role(self, ctx: ComponentContext, member: Member, role: Role):
+    async def remove_role(self, ctx: SlashContext, member: Member, role: Role):
         await member.remove_roles(role)
         await ctx.send('✅', hidden=True)
 
@@ -142,7 +131,7 @@ class Moderation(Cog):
         description='Add role to member'
     )
     @has_guild_permissions(manage_roles=True)
-    async def add_role(self, ctx: ComponentContext, member: Member, role: Role):
+    async def add_role(self, ctx: SlashContext, member: Member, role: Role):
         await member.add_roles(role)
         await ctx.send('✅', hidden=True)
 
@@ -152,7 +141,7 @@ class Moderation(Cog):
         name='nick',
         description='Change nick of member'
     )
-    async def nick(self, ctx: ComponentContext, member: Member, new_nick: str):
+    async def nick(self, ctx: SlashContext, member: Member, new_nick: str):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: str = get_content('FUNC_MODERATION_CHANGE_NICK_TEXT', lang)
 
@@ -168,13 +157,13 @@ class Moderation(Cog):
         description='Deletes messages in channel'
     )
     @has_guild_permissions(manage_messages=True)
-    async def clear(self, ctx: ComponentContext, amount: int):
+    async def clear(self, ctx: SlashContext, amount: int, member: Member = None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: str = get_content('FUNC_MODERATION_CLEAR_MESSAGES', lang)
 
-        await ctx.defer()
-        await ctx.channel.purge(limit=amount+1)
-        await ctx.send(content.format(amount), delete_after=5)
+        await ctx.defer(hidden=True)
+        await ctx.channel.purge(limit=amount+1, check=lambda message: message.author.id == member.id)
+        await ctx.send(content.format(amount), hidden=True)
 
 
 def setup(bot):
