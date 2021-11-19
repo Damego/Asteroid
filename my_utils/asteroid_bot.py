@@ -1,5 +1,6 @@
 from os import listdir
 
+from aiohttp import ClientSession, ClientResponse
 from discord.ext.commands import Bot
 from discord_slash_components_bridge import SlashCommand
 
@@ -84,3 +85,10 @@ class AsteroidBot(Bot):
 
     def get_guild_bot_lang(self, guild_id):
         return self._extract_from_guild_collection(guild_id, 'lang')
+
+    async def async_request(self, url: str) -> dict:
+        async with ClientSession() as session:
+            async with session.get(url) as response:
+                data = await response.json()
+        return data
+

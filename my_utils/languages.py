@@ -50,7 +50,9 @@ LANGUAGES = {
         'FUNC_PING': 'Задержка бота `{}` мс',
         'FUNC_ACTIVITIES': {
             'NOT_CONNECTED_TO_CHANNEL_TEXT': 'Вы не подключены к голосовому каналу!',
-            'SELECT_ACTIVITY_TEXT':'Выберите категорию'
+            'WRONG_CHANNEL_TEXT': 'Вы выбрали неверный канал! Выберите голосовой!',
+            'JOIN_TEXT': '**Присоединиться**',
+            'REQUESTED_BY_TEXT': 'Запрошено {}'
         },
         'GAMES_NAMES': {
             'RPS': 'Камень Ножницы бумага',
@@ -355,7 +357,9 @@ LANGUAGES = {
         'FUNC_PING': 'Bot latency is `{}` ms',
         'FUNC_ACTIVITIES': {
             'NOT_CONNECTED_TO_CHANNEL_TEXT': 'You not connected to voice channel!',
-            'SELECT_ACTIVITY_TEXT':'Choose activity'
+            'WRONG_CHANNEL_TEXT': 'You selected wrong channel! Select voice channel!',
+            'JOIN_TEXT': '**JOIN**',
+            'REQUESTED_BY_TEXT': 'Requested by {}'
         },
         'GAMES_NAMES': {
             'RPS': 'Rock Paper Scissors',

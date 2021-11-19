@@ -1,9 +1,10 @@
 import asyncio
+import datetime
 import json
 from os import remove, environ
 from random import choice, randint
 
-from discord import Member, File, Embed, Role, Guild, TextChannel
+from discord import Member, File, Embed, Role, Guild, VoiceChannel
 from discord.errors import Forbidden
 from discord.flags import PublicUserFlags
 from discord_components import Select, SelectOption, Button, ButtonStyle
@@ -13,7 +14,7 @@ from discord_slash.cog_ext import (
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu
 )
-from discord_slash.utils.manage_commands import create_permission
+from discord_slash.utils.manage_commands import create_option, create_choice
 from discord_slash_components_bridge import ComponentContext, ComponentMessage
 import qrcode
 import requests
@@ -22,6 +23,18 @@ from my_utils import AsteroidBot, get_content, Cog, _is_enabled, CogDisabledOnGu
 from .levels._levels import formula_of_experience
 from .settings import guild_ids
 
+bored_api_types = ["education", "recreational", "social", "diy", "charity", "cooking", "relaxation", "music",
+                   "busywork"]
+discord_activities_list = {
+    'YouTube': '755600276941176913',
+    'Betrayal.io': '773336526917861400',
+    'Fishington.io': '814288819477020702',
+    'Poker Night': '755827207812677713',
+    'Chess': '832012774040141894',
+    'Word Snack': '879863976006127627',
+    'Letter Tile': '879863686565621790',
+    'Doodle Crew': '878067389634314250'
+}
 
 
 class Misc(Cog):
@@ -31,7 +44,6 @@ class Misc(Cog):
         self.emoji = '💡'
         self.name = 'Misc'
 
-
     @Cog.listener()
     async def on_guild_join(self, guild: Guild):
         channel = self.bot.get_channel(903920844114362389)
@@ -39,18 +51,17 @@ class Misc(Cog):
             channel = self.bot.fetch_channel(903920844114362389)
 
         guild_info = f"**Название:** {guild.name}\n" \
-            f"**id:** {guild.id}\n" \
-            f"**Количество участников:** {guild.member_count}\n" \
-            f"**Создатель сервера:** {guild.owner.display_name}"
+                     f"**id:** {guild.id}\n" \
+                     f"**Количество участников:** {guild.member_count}\n" \
+                     f"**Создатель сервера:** {guild.owner.display_name}"
 
         embed = Embed(
             title='Новый сервер!',
             description=guild_info
         )
         embed.set_thumbnail(url=guild.icon_url)
-        
-        await channel.send(embed=embed)
 
+        await channel.send(embed=embed)
 
     @slash_subcommand(
         base='fun',
@@ -64,17 +75,15 @@ class Misc(Cog):
         random_number = randint(_from, _to)
         await ctx.reply(content.format(random_number))
 
-
     @slash_command(
         name='info',
         description='Out information about guild member'
     )
-    async def get_member_information_slash(self, ctx: SlashContext, member: Member=None):
+    async def get_member_information_slash(self, ctx: SlashContext, member: Member = None):
         if member is None:
             member = ctx.author
         embed = self._get_embed_member_info(ctx, member)
         await ctx.send(embed=embed)
-
 
     @context_menu(
         name='Get information',
@@ -84,7 +93,6 @@ class Misc(Cog):
         member = ctx.target_author
         embed = self._get_embed_member_info(ctx, member)
         await ctx.send(embed=embed)
-
 
     def _get_embed_member_info(self, ctx: SlashContext, member: Member) -> Embed:
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -114,8 +122,8 @@ class Misc(Cog):
             **{content['TOP_ROLE_TEXT']}** {member.top_role.mention}
             **{content['ROLES_TEXT']}** {member_roles}
             """,
-            inline=False
-        )
+                        inline=False
+                        )
 
         if member.bot:
             levels_enabled = False
@@ -142,14 +150,14 @@ class Misc(Cog):
             return
 
         user_level = user_stats['level']
-        user_exp, user_exp_amount, user_voice_time =  map(
-                int,
-                [
-                    user_stats['xp'],
-                    user_stats['xp_amount'],
-                    user_data['voice_time_count']
-                ]
-            )
+        user_exp, user_exp_amount, user_voice_time = map(
+            int,
+            [
+                user_stats['xp'],
+                user_stats['xp_amount'],
+                user_data['voice_time_count']
+            ]
+        )
         xp_to_next_level = formula_of_experience(user_level)
 
         user_level_text = content['CURRENT_LEVEL_TEXT'].format(
@@ -194,7 +202,6 @@ class Misc(Cog):
 
         return badges
 
-
     @slash_subcommand(
         base='fun',
         name='qr',
@@ -211,9 +218,8 @@ class Misc(Cog):
         qr.make(fit=True)
         img = qr.make_image(fill_color="black", back_color="white")
         img.save(f'./qrcodes/{ctx.author.id}.png')
-        await ctx.send(file = File(f'./qrcodes/{ctx.author.id}.png'))
+        await ctx.send(file=File(f'./qrcodes/{ctx.author.id}.png'))
         remove(f'./qrcodes/{ctx.author.id}.png')
-
 
     @slash_subcommand(
         base='misc',
@@ -224,74 +230,83 @@ class Misc(Cog):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_PING', lang=lang)
 
-        embed = Embed(title='🏓 Pong!', description=content.format(int(self.bot.latency * 1000)), color=self.bot.get_embed_color(ctx.guild.id))
+        embed = Embed(
+            title='🏓 Pong!',
+            description=content.format(int(self.bot.latency * 1000)),
+            color=self.bot.get_embed_color(ctx.guild_id)
+        )
+
         await ctx.send(embed=embed)
 
-
     @slash_subcommand(
-        base='fun',
+        guild_ids=guild_ids,
+        base='test',
         name='activity',
-        description='Open discord Activities'
-    )
-    async def start_activity(self, ctx: SlashContext):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('FUNC_ACTIVITIES', lang=lang)
-        not_connected_text = content.get('NOT_CONNECTED_TO_CHANNEL_TEXT')
-        choose_activity = content.get('SELECT_ACTIVITY_TEXT')
-
-        if not ctx.author.voice:
-            return await ctx.send(not_connected_text)
-
-        channel_id = ctx.author.voice.channel.id
-        activities_list = {
-            'YouTube': '755600276941176913',
-            'Betrayal.io': '773336526917861400',
-            'Fishington.io': '814288819477020702',
-            'Poker Night': '755827207812677713',
-            'Chess': '832012774040141894',
-            'Word Snack': '879863976006127627',
-            'Letter Tile': '879863686565621790',
-            'Doodle Crew': '878067389634314250'
-        }
-        components = [
-            Select(
-                placeholder=content['SELECT_ACTIVITY_TEXT'],
-                options=[
-                    SelectOption(label=activity, value=activities_list[activity]) for activity in activities_list
+        description='Open discord Activities',
+        options=[
+            create_option(
+                name='activity',
+                description='Choose discord activity',
+                option_type=3,
+                required=True,
+                choices=[create_choice(
+                    name=activity,
+                    value=activity)
+                    for activity in discord_activities_list
                 ]
+            ),
+            create_option(
+                name='channel',
+                description='Choose voice channel',
+                required=False,
+                option_type=7
             )
         ]
-        message = await ctx.send(choose_activity,
-            components=components
-        )
-        try:
-            interaction = await self.bot.wait_for(
-                'select_option',
-                check=lambda inter: inter.author.id == ctx.author_id and inter.message.id == message.id,
-                timeout=30
-            )
-        except asyncio.TimeoutError:
-            return await message.delete()
-        await message.delete()
+    )
+    async def start_activity(self, ctx: SlashContext, activity: str, channel: VoiceChannel = None):
+        await ctx.defer()
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('FUNC_ACTIVITIES', lang=lang)
 
-        data = self._get_data(int(interaction.values[0]))
+        if not channel and not ctx.author.voice:
+            return await ctx.send(content['NOT_CONNECTED_TO_CHANNEL_TEXT'])
+        if not isinstance(channel, VoiceChannel):
+            return await ctx.send(content['WRONG_CHANNEL_TEXT'])
+        if not channel:
+            channel = ctx.author.voice.channel
+
+        data = self._get_data(int(discord_activities_list[activity]))
         headers = {
             'Authorization': f'Bot {environ.get("BOT_TOKEN")}',
             'Content-Type': 'application/json'
         }
 
-        responce = requests.post(
-            f'https://discord.com/api/v8/channels/{channel_id}/invites',
+        response = requests.post(
+            f'https://discord.com/api/v8/channels/{channel.id}/invites',
             data=json.dumps(data),
             headers=headers
         )
-        code = json.loads(responce.content).get('code')
+        code = json.loads(response.content).get('code')
         if code == '50013':
             raise Forbidden
 
-        await interaction.send(f'https://discord.com/invite/{code}')
-        
-    def _get_data(self, application_id: int):
+        embed = Embed(
+            title='Discord Activity',
+            description=f'[{content["JOIN_TEXT"]}](https://discord.com/invite/{code})\n\n'
+                        f'**Activity:** `{activity}`',
+            color=self.bot.get_embed_color(ctx.guild_id),
+            timestamp=datetime.datetime.utcnow()
+        )
+        embed.set_footer(
+            text=content['REQUESTED_BY_TEXT'].format(ctx.author.name),
+            icon_url=ctx.author.avatar_url
+        )
+        embed.set_thumbnail(url=ctx.bot.user.avatar_url)
+
+        await ctx.send(embed=embed)
+
+    @staticmethod
+    def _get_data(application_id: int):
         return {
             'max_age': 86400,
             'max_uses': 0,
@@ -301,7 +316,6 @@ class Misc(Cog):
             'validate': None
         }
 
-    
     @slash_subcommand(
         base='phasmo',
         name='item',
@@ -309,7 +323,6 @@ class Misc(Cog):
     )
     async def phasmophobia_random_item(self, ctx: SlashContext):
         await self._start_random(ctx)
-
 
     @slash_subcommand(
         base='phasmo',
@@ -332,8 +345,7 @@ class Misc(Cog):
 
         await self._start_random(ctx, maps_list)
 
-
-    async def _start_random(self, ctx: SlashContext, _list: list=None):
+    async def _start_random(self, ctx: SlashContext, _list: list = None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_PHASMOPHOBIA_RANDOM', lang)
         if _list is None:
@@ -468,6 +480,39 @@ class Misc(Cog):
 
         await ctx.send('Click on button to invite bot!', components=components)
 
+    @slash_subcommand(
+        base='fun',
+        name='bored',
+        options=[
+            create_option(
+                name='type',
+                option_type=3,
+                required=False,
+                description='Types: education, recreational, social, diy, charity, cooking, relaxation, music, busywork',
+                choices=[create_choice(name=bored_type, value=bored_type) for bored_type in bored_api_types]
+            )
+        ]
+    )
+    async def bored_api(self, ctx: SlashContext, type: str = None):
+        await ctx.defer()
+        if type:
+            url = f'https://www.boredapi.com/api/activity?type={type}'
+        else:
+            url = 'https://www.boredapi.com/api/activity'
+
+        data = await self.bot.async_request(url)
+        activity = data['activity']
+        embed = Embed(
+            title='Bored API',
+            color=self.bot.get_embed_color(ctx.guild_id),
+            timestamp=datetime.datetime.utcnow()
+        )
+        embed.description = f'**Activity for you: ** \n{activity}\n\n' \
+                            f'**Activity type: ** `{type if type else data["type"]}`\n'
+        embed.description += f'**Link:** {data["link"]}' if data.get('link') else ''
+        embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
+
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
