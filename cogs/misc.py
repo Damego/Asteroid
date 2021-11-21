@@ -239,8 +239,7 @@ class Misc(Cog):
         await ctx.send(embed=embed)
 
     @slash_subcommand(
-        guild_ids=guild_ids,
-        base='test',
+        base='fun',
         name='activity',
         description='Open discord Activities',
         options=[
