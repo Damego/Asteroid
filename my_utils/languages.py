@@ -160,7 +160,7 @@ LANGUAGES = {
             'WHO_ADDED_TEXT': 'Добавлено {}',
             'SUCCESSFULLY': 'Успешно!'
         },
-        'FUNC_PHASMOPHOBIA_RANDOM': {
+        'FUNC_RANDOM_ITEMS': {
             'ITEMS_LIST': [
                 'Успокоительное', 'Термометр', 'Фотокамера', 'Направленный микрофон',
                 'Свеча', 'Благовоние', 'Зажигалка', 'Распятие', 'Соль',
@@ -175,7 +175,7 @@ LANGUAGES = {
             'SELECT_ITEMS_TEXT': 'Выберите предметы',
             'START_RANDOM_BUTTON': 'Рандом!',
             'EXIT_BUTTON': 'Выйти',
-            'EMBED_TITLE': 'Phasmophobia рандомный предмет!',
+            'EMBED_TITLE': 'Рандомные предметы!',
             'SECOND_MESSAGE_CONTENT': 'Здесь будет появляться предмет',
             'SELECTED_ITEMS_TEXT': '**Выбранные предметы: **\n',
         },
@@ -253,7 +253,7 @@ LANGUAGES = {
             'SUCCESSFULLY_CHANGED': 'Цвет сообщений успешно изменён!'
         },
         'LEVELS': {
-            'FUNC_UPDATE_MEMBER':{
+            'FUNC_UPDATE_MEMBER': {
                 'NOTIFY_GUILD_CHANNEL': '{member} получил `{level}-й` уровень и повышение до {role}',
                 'NOTIFY_DM': 'Вы получили `{level}-й` уровень и повышение до {role}'
             }
@@ -262,20 +262,6 @@ LANGUAGES = {
             'INFORMATION_TEXT': 'Информация',
             'INFORMATION_CONTENT_TEXT': '```Подсказка: [обязательный аргумент] (необязательный аргумент)```',
             'REQUIRED_BY_TEXT': 'Запрошено {user}'
-        },
-        'COMMAND_ECONOMY_REGISTER': {
-            'ALREADY_REGISTERED': 'Вы уже зарегистрированы!',
-            'SUCCESSFULLY_REGISTERED': 'Вы успешно зарегистрировались!'
-        },
-        'COMMAND_ECONOMY_FREE': {
-            'FREE_MONEY_TITLE': 'Халява',
-            'FREE_MONEY_DESCRIPTION': 'Вы получили `{money}$`'
-        },
-        'COMMAND_ECONOMY_COINFLIP': {
-            'COINFLIP_NAME': 'Подкидывание монеты',
-            'LOSE_DESCRIPTION': '{emoji} Вы проиграли и потеряли `{bet}$`! Попробуйте снова!\n**Ваши игры:**\n{results}',
-            'WON_DESCRIPTION': '{emoji} Вы выиграли и получили `{bet}$`! Попробуйте снова!\n**Ваши игры:**\n{results}',
-            'PLAY_BUTTON_LABEL': 'Играть'
         },
         'SET_STARBOARD_CHANNEL_COMMAND': {
             'CHANNEL_WAS_SETUP_TEXT': 'Канал был установлен!'
@@ -467,7 +453,7 @@ LANGUAGES = {
             'WHO_ADDED_TEXT': 'Added {}',
             'SUCCESSFULLY': 'Successfully!'
         },
-        'FUNC_PHASMOPHOBIA_RANDOM': {
+        'FUNC_RANDOM_ITEMS': {
             'ITEMS_LIST': [
                 'Sanity Pills', 'Thermometer', 'Photo Camera', 'Parabolic Microphone',
                 'Candle', 'Smudge Sticks', 'Lighter', 'Crucifix', 'Salt Shaker',
@@ -482,7 +468,7 @@ LANGUAGES = {
             'SELECT_ITEMS_TEXT': 'Select items',
             'START_RANDOM_BUTTON': 'Random!',
             'EXIT_BUTTON': 'Exit',
-            'EMBED_TITLE': 'Phasmophobia random items!',
+            'EMBED_TITLE': 'Random items!',
             'SECOND_MESSAGE_CONTENT': 'Here will be appear item',
             'SELECTED_ITEMS_TEXT': '**Selected items: **\n',
         },
@@ -569,20 +555,6 @@ LANGUAGES = {
             'INFORMATION_TEXT': 'Information',
             'INFORMATION_CONTENT_TEXT': '```Hint: [required argument] (optional argument)```',
             'REQUIRED_BY_TEXT': 'Required by {user}'
-        },
-        'COMMAND_ECONOMY_REGISTER': {
-            'ALREADY_REGISTERED': 'You already registered!',
-            'SUCCESSFULLY_REGISTERED': 'You successfully registered!'
-        },
-        'COMMAND_ECONOMY_FREE': {
-            'FREE_MONEY_TITLE': 'Free money',
-            'FREE_MONEY_DESCRIPTION': 'You got `{money}$`'
-        },
-        'COMMAND_ECONOMY_COINFLIP': {
-            'COINFLIP_NAME': 'Coinflip',
-            'LOSE_DESCRIPTION': '{emoji} You lose this game and your `{bet}$`! Try again!\n**Your games:**\n{results}',
-            'WON_DESCRIPTION': '{emoji} You won this game and you get `{bet}$`! Try again!\n**Your games:**\n{results}',
-            'PLAY_BUTTON_LABEL': 'Play'
         },
         'SET_STARBOARD_CHANNEL_COMMAND': {
             'CHANNEL_WAS_SETUP_TEXT': 'Channel was set up!'

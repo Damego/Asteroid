@@ -86,7 +86,6 @@ class Help(Cog):
                     is_group = group.get('has_subcommand_group')
                     if is_group is None:
                         for _command_name in group:
-                            print(_command_name)
                             command = group[_command_name]
                             option_line = self.get_options(command)
                             embed.description += f"`/{_base_command} {_group} {_command_name}{option_line}`\n *description:* {command['description']} \n"

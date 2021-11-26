@@ -52,7 +52,7 @@ class Tags(Cog):
         description='Create new tag'
     )
     async def create_new_tag(self, ctx: SlashContext, tag_name: str, *, tag_content: str):
-        tag_name = tag_name.lower()
+        tag_name = self.convert_tag_name(tag_name)
 
         self._is_can_manage_tags(ctx)
 
