@@ -1,5 +1,7 @@
 # This Cog made to discord-components server
 import asyncio
+
+import discord
 from discord.ext.commands import Cog
 from discord_slash import (
     SlashContext
@@ -580,6 +582,100 @@ async def check_custom_id(self, ctx):
 
         await ctx.send(code_content)
 
+    @slash_subcommand(
+        base='example',
+        name='button_paginator',
+        description='Example of button paginator',
+        guild_ids=guild_ids
+    )
+    async def button_paginator_example(self, ctx: SlashContext):
+        components = [
+            [
+                Button(style=1, label='<', custom_id='back', disabled=True),
+                Button(style=1, label='>', custom_id='next')
+            ]
+        ]
+        embed1 = discord.Embed(title='Page 1')
+        embed2 = discord.Embed(title='Page 2')
+        embed3 = discord.Embed(title='Page 3')
+        embed4 = discord.Embed(title='Page 4')
+        embed5 = discord.Embed(title='Page 5')
+        pages = [embed1, embed2, embed3, embed4, embed5]
+        page = 0
+        message = await ctx.send(embed=pages[page], components=components)
+
+        while True:
+            try:
+                interaction = await self.bot.wait_for(
+                    'button_click',
+                    check=lambda inter: inter.message.id == message.id and inter.author_id == ctx.author_id,
+                    timeout=60
+                )
+            except asyncio.TimeoutError:
+                return await message.disable_components()
+            if interaction.custom_id == 'back':
+                if page == len(pages)-1:
+                    components[0][1].disabled = False
+                page -= 1
+                if page == 0:
+                    components[0][0].disabled = True
+            elif interaction.custom_id == 'next':
+                if page == 0:
+                    components[0][0].disabled = False
+                page += 1
+                if page == len(pages)-1:
+                    components[0][1].disabled = True
+            await interaction.edit_origin(embed=pages[page], components=components)
+
+    @slash_subcommand(
+        base='code',
+        name='button_paginator',
+        description='Code of button_paginator example',
+        guild_ids=guild_ids
+    )
+    async def button_paginator_code(self, ctx: SlashContext):
+        code_content = '''```py
+@commands.command()
+async def button_paginator_example(self, ctx):
+    components = [
+        [
+            Button(style=1, label='<', custom_id='back', disabled=True),
+            Button(style=1, label='>', custom_id='next')
+        ]
+    ]
+    embed1 = discord.Embed(title='Page 1')
+    embed2 = discord.Embed(title='Page 2')
+    embed3 = discord.Embed(title='Page 3')
+    embed4 = discord.Embed(title='Page 4')
+    embed5 = discord.Embed(title='Page 5')
+    pages = [embed1, embed2, embed3, embed4, embed5]
+    page = 0
+    message = await ctx.send(embed=pages[page], components=components)
+
+    while True:
+        try:
+            interaction = await self.bot.wait_for(
+                'button_click',
+                check=lambda inter: inter.message.id == message.id and inter.author_id == ctx.author_id,
+                timeout=60
+            )
+        except asyncio.TimeoutError:
+            return await message.disable_components()
+        if interaction.custom_id == 'back':
+            if page == len(pages)-1:
+                components[0][1].disabled = False
+            page -= 1
+            if page == 0:
+                components[0][0].disabled = True
+        elif interaction.custom_id == 'next':
+            if page == 0:
+                components[0][0].disabled = False
+            page += 1
+            if page == len(pages)-1:
+                components[0][1].disabled = True
+        await interaction.edit_origin(embed=pages[page], components=components)
+        ```'''
+        await ctx.send(code_content)
 
 
 def setup(bot):
