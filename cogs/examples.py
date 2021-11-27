@@ -612,7 +612,10 @@ async def check_custom_id(self, ctx):
                     timeout=60
                 )
             except asyncio.TimeoutError:
-                return await message.disable_components()
+                return await message.edit(
+                    content='Time out!',
+                    components=[row.disable_components() for row in message.components]
+                )
             if interaction.custom_id == 'back':
                 if page == len(pages)-1:
                     components[0][1].disabled = False
@@ -656,11 +659,14 @@ async def button_paginator_example(self, ctx):
         try:
             interaction = await self.bot.wait_for(
                 'button_click',
-                check=lambda inter: inter.message.id == message.id and inter.author_id == ctx.author_id,
+                check=lambda inter: inter.message.id == message.id and inter.author.id == ctx.author.id,
                 timeout=60
             )
         except asyncio.TimeoutError:
-            return await message.disable_components()
+            return await message.edit(
+                content='Time out!',
+                components=[row.disable_components() for row in message.components]
+            )
         if interaction.custom_id == 'back':
             if page == len(pages)-1:
                 components[0][1].disabled = False
