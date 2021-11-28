@@ -71,8 +71,12 @@ class NewMusic(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.name = 'NewMusic'
-        self.bot.lavalink = lavalink.Client(bot.user.id)
-        self.bot.lavalink.add_node('127.0.0.1', 2333, os.getenv('LAVALINK_PASS'), 'eu', 'default-node')
+        self.bot.lavalink = None
+
+    @Cog.listener()
+    async def on_ready(self):
+        self.bot.lavalink = lavalink.Client(self.bot.user.id)
+        self.bot.lavalink.add_node('127.0.0.1', 2333, os.getenv('LAVALINK_PASS'), 'ru', 'default-node')
 
 
     @slash_subcommand(
