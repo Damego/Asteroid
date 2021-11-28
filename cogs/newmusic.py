@@ -153,6 +153,8 @@ class NewMusic(Cog):
             await voice_channel.connect()
 
         player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild_id)
+        if player is None:
+            player = self.bot.lavalink.player_manager.create(ctx.guild_id, endpoint=str(ctx.guild.region))
         if not url_rx.match(query):
             query = f'ytsearch:{query}'
         results = await player.node.get_tracks(query)
