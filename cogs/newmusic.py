@@ -175,6 +175,7 @@ class NewMusic(Cog):
     def _get_music_info(self, ctx, track: lavalink.models.AudioTrack) -> Embed:
         music_requester = track.requester
         music_requester_avatar = track.requester.avatar_url
+        print(track.extra)
 
         duration = track.duration
         if track.stream:
@@ -188,11 +189,11 @@ class NewMusic(Cog):
         embed = Embed(title='Играет',
                       color=self.bot.get_embed_color(ctx.guild_id))
         embed.add_field(name="Название",
-                        value=f'[{track.name}]({track.url})', inline=False)
+                        value=f'[{track.title}]({track.uri})', inline=False)
         embed.add_field(name="Продолжительность",
                         value=duration, inline=False)
         embed.set_footer(text=f"Добавлено: {music_requester}", icon_url=music_requester_avatar)
-        embed.set_thumbnail(url=track.thumbnail)
+        #embed.set_thumbnail(url=track.thumbnail)
 
         return embed
 
