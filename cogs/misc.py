@@ -1,4 +1,7 @@
-from discord import Member, Embed, Role, Guild, PublicUserFlags
+import os
+
+import aiohttp
+from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter
 from discord_components import Button, ButtonStyle
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
@@ -18,24 +21,39 @@ class Misc(Cog):
         self.emoji = '💡'
         self.name = 'Misc'
 
+    async def send_guilds_update_webhooks(embed: Embed):
+        async with aiohttp.ClientSession() as session:
+            webhook = Webhook.from_url(os.getenv('WEBHOOK_GUILDS_UPDATE'), adapter=AsyncWebhookAdapter(session))
+            await webhook.send('Hello World', username='Asteroid | Servers Information')
+
     @Cog.listener()
     async def on_guild_join(self, guild: Guild):
-        channel = self.bot.get_channel(903920844114362389)
-        if channel is None:
-            channel = self.bot.fetch_channel(903920844114362389)
-
         guild_info = f"**Название:** {guild.name}\n" \
-                     f"**id:** {guild.id}\n" \
+                     f"**ID:** {guild.id}\n" \
+                     f"**Количество участников:** {guild.member_count}\n" \
+                     f"**Создатель сервера:** {guild.owner.display_name}"
+        embed = Embed(
+            title='Новый сервер!',
+            description=guild_info,
+            color=0x00ff00
+        )
+        embed.set_thumbnail(url=guild.icon_url)
+        await self.send_guilds_update_webhooks(embed)
+
+    @Cog.listener()
+    async def on_guild_remove(self, guild: Guild):
+        guild_info = f"**Название:** {guild.name}\n" \
+                     f"**ID:** {guild.id}\n" \
                      f"**Количество участников:** {guild.member_count}\n" \
                      f"**Создатель сервера:** {guild.owner.display_name}"
 
         embed = Embed(
-            title='Новый сервер!',
-            description=guild_info
+            title='Минус сервак!',
+            description=guild_info,
+            color=0xff0000
         )
         embed.set_thumbnail(url=guild.icon_url)
-
-        await channel.send(embed=embed)
+        await self.send_guilds_update_webhooks(embed)
 
     @slash_command(
         name='info',

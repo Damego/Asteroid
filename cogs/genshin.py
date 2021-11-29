@@ -16,10 +16,8 @@ from my_utils import (
 )
 from my_utils.paginator import (
     PaginatorStyle,
-    PaginatorCheckButtonID,
-    get_interaction
+    Paginator
 )
-
 
 
 class GenshinStats(Cog):
@@ -191,25 +189,8 @@ class GenshinStats(Cog):
             embed = self.get_character_info(content, embed, character)
             embeds.append(embed)
 
-        page = 1
-        components = PaginatorStyle.style2(pages)
-        
-        message = await ctx.send(embed=embeds[0], components=components)
-        while True:
-            interaction = await get_interaction(self.bot, ctx, message)
-            if interaction is None:
-                return
-
-            button_id = interaction.component.id
-            paginator = PaginatorCheckButtonID(components, pages)
-            page = paginator._style2(button_id, page)
-            embed = embeds[page-1]
-
-            try:
-                await interaction.edit_origin(embed=embed, components=components)
-            except Exception:
-                print('can\'t respond')
-
+        paginator = Paginator(self.bot, ctx, PaginatorStyle.FOUR_BUTTONS_WITH_COUNT, embeds)
+        await paginator.start()
 
     @slash_subcommand(
         base='genshin',
