@@ -21,10 +21,10 @@ class Misc(Cog):
         self.emoji = '💡'
         self.name = 'Misc'
 
-    async def send_guilds_update_webhooks(embed: Embed):
+    async def send_guilds_update_webhooks(self, embed: Embed):
         async with aiohttp.ClientSession() as session:
             webhook = Webhook.from_url(os.getenv('WEBHOOK_GUILDS_UPDATE'), adapter=AsyncWebhookAdapter(session))
-            await webhook.send('Hello World', username='Asteroid | Servers Information')
+            await webhook.send(embed=embed, username='Asteroid | Servers Information')
 
     @Cog.listener()
     async def on_guild_join(self, guild: Guild):
