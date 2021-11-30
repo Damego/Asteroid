@@ -1,9 +1,6 @@
-
-
 def get_content(content_type: str, lang: str):
     return LANGUAGES[lang][content_type]
 
-LANGUAGES_LIST = ['ru', 'en']
 
 LANGUAGES = {
     'ru': {

@@ -33,8 +33,7 @@ def is_enabled(func):
         bot: AsteroidBot = self.bot
         collection = bot.get_guild_configuration_collection(ctx.guild_id)
         try:
-            cogs_status = collection.find_one({'_id': 'cogs_status'})
-            enabled = cogs_status[self.name] if cogs_status else True
+            enabled = collection.find_one({'_id': 'cogs_status'})[self.name]
         except Exception:
             enabled = True
         if not enabled:
@@ -52,7 +51,7 @@ def _is_enabled(self, guild_id: int):
     collection = bot.get_guild_configuration_collection(guild_id)
     try:
         enabled = collection.find_one({'_id': 'cogs_status'})[self.name]
-    except KeyError:
+    except Exception:
         enabled = True
     if not enabled:
         raise CogDisabledOnGuild

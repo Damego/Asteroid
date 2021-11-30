@@ -14,11 +14,11 @@ from discord_slash_components_bridge import ComponentContext
 
 from my_utils import (
     AsteroidBot,
-    LANGUAGES_LIST,
     get_content,
     is_administrator_or_bot_owner,
     Cog
 )
+from my_utils.consts import LANGUAGES_LIST
 
 
 guild_ids = [
