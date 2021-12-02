@@ -45,6 +45,12 @@ LANGUAGES = {
             }
         },
         'FUNC_PING': 'Задержка бота `{}` мс',
+        'INVITE_COMMAND': {
+            'INVITE_BUTTON_NO_PERMS': 'Без разрешений',
+            'INVITE_BUTTON_ADMIN': 'Администратор',
+            'INVITE_BUTTON_RECOMMENDED': 'Рекомендуемый',
+            'CLICK_TO_INVITE_TEXT': 'Нажмите на кнопку, чтобы пригласить бота',
+        },
         'FUNC_ACTIVITIES': {
             'NOT_CONNECTED_TO_CHANNEL_TEXT': 'Вы не подключены к голосовому каналу!',
             'WRONG_CHANNEL_TEXT': 'Вы выбрали неверный канал! Выберите голосовой!',
@@ -93,7 +99,8 @@ LANGUAGES = {
             'CANNOT_MUTE_BOT_TEXT': 'Вы не можете замутить бота!',
             'WAS_MUTED_TEXT': '{} был отправлен в мут!',
             'TIME_TEXT': '**Время**: {amount} {time_format}\n',
-            'REASON_TEXT': '**Причина**: {reason}'
+            'REASON_TEXT': '**Причина**: {reason}',
+            'MUTED_ROLE_CREATED_TEXT': 'Роль для мута `role_name` была создана!'
         },
         'FUNC_MODERATION_BAN_MEMBER': {
             'CANNOT_BAN_BOT_TEXT': 'Вы не можете забанить бота!',
@@ -337,6 +344,12 @@ LANGUAGES = {
                 'TOTAL_VOICE_TIME': '<:voice_time:863674908969926656> **Time in voice channel:** `{voice_time}` minutes'
             }
         },
+        'INVITE_COMMAND': {
+            'INVITE_BUTTON_NO_PERMS': 'Without permissions',
+            'INVITE_BUTTON_ADMIN': 'Administrator',
+            'INVITE_BUTTON_RECOMMENDED': 'Recommenend',
+            'CLICK_TO_INVITE_TEXT': 'Click on button to invite bot!',
+        },
         'FUNC_PING': 'Bot latency is `{}` ms',
         'FUNC_ACTIVITIES': {
             'NOT_CONNECTED_TO_CHANNEL_TEXT': 'You not connected to voice channel!',
@@ -386,7 +399,8 @@ LANGUAGES = {
             'CANNOT_MUTE_BOT_TEXT': 'You can\'t mute bot!',
             'WAS_MUTED_TEXT': '{} was muted!',
             'TIME_TEXT': '**Timeout**: {amount} {time_format}\n',
-            'REASON_TEXT': '**Reason**: {reason}'
+            'REASON_TEXT': '**Reason**: {reason}',
+            'MUTED_ROLE_CREATED_TEXT': 'Muted role with name `{role_name}` created!'
         },
         'FUNC_MODERATION_BAN_MEMBER': {
             'CANNOT_BAN_BOT_TEXT': 'You can\'t ban bot!',

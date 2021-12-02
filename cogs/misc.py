@@ -11,6 +11,8 @@ from discord_slash.cog_ext import (
 )
 
 from my_utils import AsteroidBot, get_content, Cog, _is_enabled, CogDisabledOnGuild
+from my_utils.paginator import Paginator, PaginatorStyle
+from my_utils.consts import test_guild_id
 from .levels._levels import formula_of_experience
 
 
@@ -239,11 +241,13 @@ class Misc(Cog):
         description='Send\'s bot invite link'
     )
     async def invite_bot(self, ctx: SlashContext):
+        content = get_content('INVITE_COMMAND', lang=self.bot.get_guild_bot_lang(ctx.guild_id))
+
         components = [
             [
-                Button(style=ButtonStyle.URL, label='Invite (No perms)', url=self.bot.no_perms_invite_link),
-                Button(style=ButtonStyle.URL, label='Invite (Administrator)', url=self.bot.admin_invite_link),
-                Button(style=ButtonStyle.URL, label='Invite (Recommended)', url=self.bot.recommended_invite_link)
+                Button(style=ButtonStyle.URL, label=content['INVITE_BUTTON_NO_PERMS'], url=self.bot.no_perms_invite_link),
+                Button(style=ButtonStyle.URL, label=content['INVITE_BUTTON_ADMIN'], url=self.bot.admin_invite_link),
+                Button(style=ButtonStyle.URL, label=content['INVITE_BUTTON_RECOMMENDED'], url=self.bot.recommended_invite_link)
             ]
         ]
 

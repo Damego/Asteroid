@@ -189,7 +189,7 @@ class GenshinStats(Cog):
             embed = self.get_character_info(content, embed, character)
             embeds.append(embed)
 
-        paginator = Paginator(self.bot, ctx, PaginatorStyle.FOUR_BUTTONS_WITH_COUNT, embeds)
+        paginator = Paginator(self.bot, ctx, PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds)
         await paginator.start()
 
     @slash_subcommand(

@@ -16,9 +16,10 @@ from discord_slash_components_bridge import ComponentContext
 import qrcode
 import requests
 
-from my_utils import AsteroidBot, get_content, Cog
+from my_utils import AsteroidBot, get_content, Cog, consts
 from ._tictactoe import TicTacToe
 from ._rockpaperscissors import RockPaperScissors
+from ._calculator import Calculator
 
 
 bored_api_types = ["education", "recreational", "social", "diy", "charity", "cooking", "relaxation", "music",
@@ -430,9 +431,17 @@ class Fun(Cog):
             color=self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.datetime.utcnow()
         )
-        embed.description = f'**Activity for you: ** \n{activity}\n\n' \
-                            f'**Activity type: ** `{type if type else data["type"]}`\n'
+        embed.description = f'**Activity for you: ** \n{activity}\n\n**Activity type: ** `{type or data["type"]}`\n'
         embed.description += f'**Link:** {data["link"]}' if data.get('link') else ''
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
 
         await ctx.send(embed=embed)
+
+    @slash_subcommand(
+        base='fun',
+        name='calculator',
+        description='Open calculator (based on calculator by Polsulpicien#5020)'
+    )
+    async def start_calculator(self, ctx: SlashContext):
+        calculator = Calculator(self.bot)
+        await calculator.start(ctx)

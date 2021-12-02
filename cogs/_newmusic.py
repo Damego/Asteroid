@@ -71,7 +71,6 @@ class NewMusic(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.name = 'NewMusic'
-        self.bot.lavalink = None
 
     @Cog.listener()
     async def on_ready(self):
