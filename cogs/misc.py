@@ -251,7 +251,7 @@ class Misc(Cog):
             ]
         ]
 
-        await ctx.send('Click on button to invite bot!', components=components)
+        await ctx.send(content['CLICK_TO_INVITE_TEXT'], components=components)
 
 
 def setup(bot):

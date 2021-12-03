@@ -8,9 +8,7 @@ from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 import lavalink
 
-from my_utils import AsteroidBot, NotConnectedToVoice, Cog
-from my_utils.music import Music
-from .settings import guild_ids
+from my_utils import AsteroidBot, NotConnectedToVoice, Cog, consts
 
 
 url_rx = re.compile(r'https?://(?:www\.)?.+')
@@ -67,7 +65,7 @@ class LavalinkVoiceClient(VoiceClient):
         self.cleanup()
 
 
-class NewMusic(Cog):
+class TestMusic(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.name = 'NewMusic'
@@ -82,7 +80,7 @@ class NewMusic(Cog):
         base='test',
         name='play',
         description='Start playing music',
-        guild_ids=guild_ids
+        guild_ids=consts.test_global_guilds_ids
     )
     async def play_music(self, ctx: SlashContext, *, query: str):
         await ctx.defer()
@@ -92,7 +90,7 @@ class NewMusic(Cog):
         base='test',
         name='stop',
         description='Stop playing music',
-        guild_ids=guild_ids
+        guild_ids=consts.test_global_guilds_ids
     )
     async def stop_music(self, ctx: SlashContext):
         await self._stop_music(ctx)
@@ -101,7 +99,7 @@ class NewMusic(Cog):
         base='test',
         name='pause',
         description='Pause playing music',
-        guild_ids=guild_ids
+        guild_ids=consts.test_global_guilds_ids
     )
     async def pause_music(self, ctx: SlashContext):
         await self._pause_music(ctx)
@@ -110,7 +108,7 @@ class NewMusic(Cog):
         base='test',
         name='resume',
         description='Resume playing music',
-        guild_ids=guild_ids
+        guild_ids=consts.test_global_guilds_ids
     )
     async def resume_music(self, ctx: SlashContext):
         await self._resume_music(ctx)
@@ -119,7 +117,7 @@ class NewMusic(Cog):
         base='test',
         name='repeat',
         description='Toggle music repeat',
-        guild_ids=guild_ids
+        guild_ids=consts.test_global_guilds_ids
     )
     async def repeat_music(self, ctx: SlashContext):
         await self._repeat_music(ctx)
@@ -128,7 +126,7 @@ class NewMusic(Cog):
         base='test',
         name='skip',
         description='Skip music',
-        guild_ids=guild_ids
+        guild_ids=consts.test_global_guilds_ids
     )
     async def skip_music(self, ctx: SlashContext):
         await self._skip_music(ctx)
@@ -137,7 +135,7 @@ class NewMusic(Cog):
         base='test',
         name='queue',
         description='Show current queue',
-        guild_ids=guild_ids
+        guild_ids=consts.test_global_guilds_ids
     )
     async def queue_music(self, ctx: SlashContext):
         player = self.music.get_player(ctx.guild_id)
@@ -262,4 +260,4 @@ class NewMusic(Cog):
             await ctx.send('**Playlist is empty!**', delete_after=15)
 
 def setup(bot):
-    bot.add_cog(NewMusic(bot))
+    bot.add_cog(TestMusic(bot))

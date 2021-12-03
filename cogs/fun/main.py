@@ -407,6 +407,7 @@ class Fun(Cog):
     @slash_subcommand(
         base='fun',
         name='bored',
+        description='Are you bored? Run this command and find activity for you!',
         options=[
             create_option(
                 name='type',
