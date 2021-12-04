@@ -127,13 +127,13 @@ class Help(Cog):
             icon_url=ctx.author.avatar_url
         )
 
-        content = ''
+        cogs = ''
         for _cog in self.bot.cogs:
             cog = self.bot.cogs[_cog]
             if not cog.hidden:
-                content += f'**» {_cog}**\n'
+                cogs += f'**» {_cog}**\n'
 
-        embed.add_field(name=content['PLUGINS_TEXT'], value=content)
+        embed.add_field(name=content['PLUGINS_TEXT'], value=cogs)
         return embed
 
     @staticmethod
