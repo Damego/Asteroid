@@ -21,16 +21,6 @@ from my_utils import (
 from my_utils.consts import LANGUAGES_LIST
 
 
-guild_ids = [
-    422989643634442240,
-    847283544803508254
-]
-#guild_ids = [
-#    829333896561819648
-#]
-
-
-
 class Settings(Cog):
     def __init__(self, bot: AsteroidBot) -> None:
         self.bot = bot

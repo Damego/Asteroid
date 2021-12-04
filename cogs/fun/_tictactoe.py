@@ -8,6 +8,7 @@ from discord_slash_components_bridge import (
 
 from my_utils import AsteroidBot
 
+
 class TicTacToe:
     def __init__(
         self,

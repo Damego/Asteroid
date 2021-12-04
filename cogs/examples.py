@@ -10,8 +10,7 @@ from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 from discord_components import Button, ButtonStyle, Select, SelectOption
 
-from my_utils import AsteroidBot, Cog
-from .settings import guild_ids
+from my_utils import AsteroidBot, Cog, consts
 
 
 class Examples(Cog):
@@ -24,7 +23,7 @@ class Examples(Cog):
         base='example',
         name='button',
         description='Buttons example',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def button_example(self, ctx: SlashContext):
         components = [
@@ -59,7 +58,7 @@ class Examples(Cog):
         base='code',
         name='button',
         description='Code of button example',
-        guild_ids=guild_ids,
+        guild_ids=consts.discord_components_guild_id,
         options=[
             create_option(
                 name='type',
@@ -162,7 +161,7 @@ async def callback(self, interaction):
         base='example',
         name='select',
         description='Select example',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def select_example(self, ctx: SlashContext):
         components = [
@@ -201,7 +200,7 @@ async def callback(self, interaction):
         base='code',
         name='select',
         description='Code of select example',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def select_code_example(self, ctx: SlashContext):
         code_content = """
@@ -247,7 +246,7 @@ async def select(self, ctx):
         base='example',
         name='button_and_select',
         description='Buttons and Select example',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def button_button_example(self, ctx: SlashContext):
         components = [
@@ -296,7 +295,7 @@ async def select(self, ctx):
         base='code',
         name='button_and_select',
         description='Code of button and select example',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def button_select_code_example(self, ctx: SlashContext):
         code_content = """
@@ -350,7 +349,7 @@ async def select_and_buttons(self, ctx):
         base='example',
         name='private1',
         description='Private button example 1 (Shows This interaction failed for others)',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def private_button_example1(self, ctx: SlashContext):
         count = 0
@@ -385,7 +384,7 @@ async def select_and_buttons(self, ctx):
         base='code',
         name='private1',
         description='Code of Private button example 1',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def private_button_code_example1(self, ctx: SlashContext):
         code_content = """
@@ -426,7 +425,7 @@ async def private_button1(self, ctx):
         base='example',
         name='private2',
         description='Private button example 2',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def private_button_example2(self, ctx: SlashContext):
         count = 0
@@ -463,7 +462,7 @@ async def private_button1(self, ctx):
         base='code',
         name='private2',
         description='Code of Private button example 2',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def private_button_code_example2(self, ctx: SlashContext):
         code_content = """
@@ -506,7 +505,7 @@ async def private_button2(self, ctx):
         base='example',
         name='check_by_custom_id',
         description='You can check what button was pressed',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def check_custom_id(self, ctx: SlashContext):
         components = [
@@ -543,7 +542,7 @@ async def private_button2(self, ctx):
         base='code',
         name='check_by_custom_id',
         description='Code of check_by_custom_id example',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def code_check_custom_id_example(self, ctx: SlashContext):
         code_content = """
@@ -586,7 +585,7 @@ async def check_custom_id(self, ctx):
         base='example',
         name='button_paginator',
         description='Example of button paginator',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def button_paginator_example(self, ctx: SlashContext):
         components = [
@@ -634,7 +633,7 @@ async def check_custom_id(self, ctx):
         base='code',
         name='button_paginator',
         description='Code of button_paginator example',
-        guild_ids=guild_ids
+        guild_ids=consts.discord_components_guild_id
     )
     async def button_paginator_code(self, ctx: SlashContext):
         code_content = '''```py

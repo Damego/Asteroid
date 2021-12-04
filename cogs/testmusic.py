@@ -68,7 +68,8 @@ class LavalinkVoiceClient(VoiceClient):
 class TestMusic(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
-        self.name = 'NewMusic'
+        self.hidden = True
+        self.name = 'TestMusic'
 
     @Cog.listener()
     async def on_ready(self):

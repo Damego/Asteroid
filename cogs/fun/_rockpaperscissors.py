@@ -8,7 +8,6 @@ from discord_slash_components_bridge import ComponentMessage, ComponentContext
 from my_utils import AsteroidBot, get_content
 
 
-
 class RockPaperScissors:
     def __init__(
         self,
