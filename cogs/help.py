@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 
 from discord import Embed
 from discord_slash import SlashContext
@@ -20,8 +21,11 @@ class Help(Cog):
         description='Show all bot\'s commands'
     )
     async def help_command(self, ctx: SlashContext):
-        components = self._init_components()
-        embeds = self._init_embeds(ctx)
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('HELP_COMMAND', lang)
+
+        components = self._init_components(content)
+        embeds = self._init_embeds(ctx, content)
         message = await ctx.send(embed=embeds[0], components=components)
 
         while True:
@@ -44,7 +48,7 @@ class Help(Cog):
                         break
             await interaction.edit_origin(embed=embed)
 
-    def _init_components(self):
+    def _init_components(self, content: dict):
         options = [SelectOption(label='Main Page', value='main_page', emoji='🏠')]
 
         for _cog in self.bot.cogs:
@@ -62,20 +66,31 @@ class Help(Cog):
 
         return [
             Select(
-                placeholder='Select module',
+                placeholder=content['SELECT_MODULE_TEXT'],
                 options=options
             )
         ]
 
-    def _init_embeds(self, ctx: SlashContext):
+    def _init_embeds(self, ctx: SlashContext, content: dict):
         commands_data = self._get_commands_data()
-        embeds = [self._get_main_menu(ctx)]
+        embeds = [self._get_main_menu(ctx, content)]
+
         for _cog in self.bot.cogs:
             cog = self.bot.cogs[_cog]
             if cog.hidden:
                 continue
 
-            embed = Embed(title=f'{_cog} | Asteroid Bot', description='', color=0x2f3136)
+            embed = Embed(
+                title=f'{_cog} | Asteroid Bot',
+                description='',
+                timestamp=datetime.datetime.utcnow(),
+                color=0x2f3136
+            )
+            embed.set_footer(
+            text=content['REQUIRED_BY_TEXT'].format(user=ctx.author),
+            icon_url=ctx.author.avatar_url
+            )
+            embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
             for _base_command in commands_data[_cog]:
                 base_command = commands_data[_cog][_base_command]
@@ -95,11 +110,12 @@ class Help(Cog):
             embeds.append(embed)
         return embeds
 
-    def _get_main_menu(self, ctx: SlashContext) -> Embed:
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('HELP_COMMAND', lang)
-
-        embed = Embed(title='Help | Asteroid Bot', color=0x2f3136)
+    def _get_main_menu(self, ctx: SlashContext, content: dict) -> Embed:
+        embed = Embed(
+            title='Help | Asteroid Bot',
+            timestamp=datetime.datetime.utcnow(),
+            color=0x2f3136
+        )
         embed.add_field(
             name=content['INFORMATION_TEXT'],
             value=content['INFORMATION_CONTENT_TEXT'],
@@ -117,7 +133,7 @@ class Help(Cog):
             if not cog.hidden:
                 content += f'**» {_cog}**\n'
 
-        embed.add_field(name='Plugins', value=content)
+        embed.add_field(name=content['PLUGINS_TEXT'], value=content)
         return embed
 
     @staticmethod

@@ -265,7 +265,9 @@ LANGUAGES = {
         'HELP_COMMAND': {
             'INFORMATION_TEXT': 'Информация',
             'INFORMATION_CONTENT_TEXT': '```Подсказка: [обязательный аргумент] (необязательный аргумент)```',
-            'REQUIRED_BY_TEXT': 'Запрошено {user}'
+            'REQUIRED_BY_TEXT': 'Запрошено {user}',
+            'PLUGINS_TEXT': 'Плагины',
+            'SELECT_MODULE_TEXT': 'Выберите плагин'
         },
         'SET_STARBOARD_CHANNEL_COMMAND': {
             'CHANNEL_WAS_SETUP_TEXT': 'Канал был установлен!'
@@ -565,7 +567,9 @@ LANGUAGES = {
         'HELP_COMMAND': {
             'INFORMATION_TEXT': 'Information',
             'INFORMATION_CONTENT_TEXT': '```Hint: [required argument] (optional argument)```',
-            'REQUIRED_BY_TEXT': 'Required by {user}'
+            'REQUIRED_BY_TEXT': 'Required by {user}',
+            'PLUGINS_TEXT': 'Plugins',
+            'SELECT_MODULE_TEXT': 'Select Module'
         },
         'SET_STARBOARD_CHANNEL_COMMAND': {
             'CHANNEL_WAS_SETUP_TEXT': 'Channel was set up!'
