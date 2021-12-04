@@ -79,6 +79,8 @@ class Help(Cog):
             cog = self.bot.cogs[_cog]
             if cog.hidden:
                 continue
+            if cog.private_guild_id and ctx.guild_id not in cog.private_guild_id:
+                continue
 
             embed = Embed(
                 title=f'{_cog} | Asteroid Bot',
@@ -130,8 +132,11 @@ class Help(Cog):
         cogs = ''
         for _cog in self.bot.cogs:
             cog = self.bot.cogs[_cog]
-            if not cog.hidden:
-                cogs += f'**» {_cog}**\n'
+            if cog.hidden:
+                continue
+            if cog.private_guild_id and ctx.guild_id not in cog.private_guild_id:
+                continue
+            cogs += f'**» {_cog}**\n'
 
         embed.add_field(name=content['PLUGINS_TEXT'], value=cogs)
         return embed

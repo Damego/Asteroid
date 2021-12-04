@@ -18,6 +18,7 @@ class Examples(Cog):
         self.bot = bot
         self.name = 'Examples'
         self.emoji = '⚙️'
+        self.private_guild_id = consts.discord_components_guild_id
 
     @slash_subcommand(
         base='example',
