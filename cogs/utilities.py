@@ -28,7 +28,7 @@ class Utilities(Cog):
             return
         if not starboard_data['is_enabled']:
             return
-        if payload.guild_id == starboard_data['channel_id']:
+        if payload.channel_id == starboard_data['channel_id']:
             return
 
         guild: Guild = self.bot.get_guild(payload.guild_id)
