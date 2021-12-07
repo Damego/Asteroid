@@ -356,7 +356,7 @@ class Utilities(Cog):
         await ctx.send(content['BLACKLIST_REMOVED_TEXT'], hidden=True)
 
     @slash_subcommand(
-        base='test',
+        base='starboard',
         subcommand_group='blacklist',
         name='list',
         description='Shows blacklist'
