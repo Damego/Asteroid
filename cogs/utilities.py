@@ -260,6 +260,7 @@ class Utilities(Cog):
         name='add',
         description='Adds member, role or channel in blacklist'
     )
+    @bot_owner_or_permissions(manage_guild=True)
     async def starboard_blacklist_add(
         self,
         ctx: SlashContext,
@@ -313,6 +314,7 @@ class Utilities(Cog):
         name='remove',
         description='Removes member/role/channel from blacklist'
     )
+    @bot_owner_or_permissions(manage_guild=True)
     async def starboard_blacklist_remove(
         self,
         ctx: SlashContext,
@@ -361,6 +363,7 @@ class Utilities(Cog):
         name='list',
         description='Shows blacklist'
     )
+    @bot_owner_or_permissions(manage_guild=True)
     async def starboard_blacklist_list(self, ctx: SlashContext, hidden: bool = False):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('STARBOARD_FUNCTIONS', lang)
