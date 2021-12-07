@@ -225,7 +225,7 @@ class AutoRole(Cog):
         if select_component.custom_id != 'autorole_select':
             return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'], hidden=True)
 
-        select_component.disabled = True if status == 'disable' else False
+        select_component.disabled = status == 'disable'
         message_content = content['DROPDOWN_ENABLED_TEXT'] \
             if status == select_component.disabled else content['DROPDOWN_DISABLED_TEXT']
 

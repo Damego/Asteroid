@@ -1,8 +1,11 @@
-def get_content(content_type: str, lang: str):
+from typing import Dict, Union
+
+
+def get_content(content_type: str, lang: str) -> Union[str, Dict[str, str]]:
     return LANGUAGES[lang][content_type]
 
 
-LANGUAGES = {
+LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
     'ru': {
         'ERRORS_DESCRIPTIONS': {
             'COG_DISABLED': 'Эта команда отключена на этом сервере!',
@@ -269,16 +272,21 @@ LANGUAGES = {
             'PLUGINS_TEXT': 'Плагины',
             'SELECT_MODULE_TEXT': 'Выберите плагин'
         },
-        'SET_STARBOARD_CHANNEL_COMMAND': {
-            'CHANNEL_WAS_SETUP_TEXT': 'Канал был установлен!'
-        },
-        'SET_STARBOARD_STARS_LIMIT_COMMAND': {
-            'LIMIT_WAS_SETUP_TEXT': 'Лимит звёзд был установлен до `{limit}`!'
-        },
-        'SET_STARBOARD_STATUS_COMMAND': {
-            'STARBOARD_NOT_SETUP': 'Канал или лимит звёзд не были установлены!',
-            'STARBOARD_ENABLED': 'Starboard был `включен`!',
-            'STARBOARD_DISABLED': 'Starboard был `выключен`!'
+        'STARBOARD_FUNCTIONS': {
+            'CHANNEL_WAS_SETUP_TEXT': 'Канал был установлен!',
+            'LIMIT_WAS_SETUP_TEXT': 'Лимит звёзд был установлен до `{limit}`!',
+            'STARBOARD_NOT_SETUP_TEXT': 'Канал или лимит звёзд не были установлены!',
+            'STARBOARD_ENABLED_TEXT': 'Starboard был `включен`!',
+            'STARBOARD_DISABLED_TEXT': 'Starboard был `выключен`!',
+            'JUMP_TO_ORIGINAL_MESSAGE_TEXT': 'Перейти к сообщению!',
+            'BLACKLIST_NO_OPTIONS_TEXT': 'Должно быть что-то из `member`, `role`, `channel`',
+            'EMPTY_BLACKLIST_TEXT': 'Чёрный список пуст!',
+            'BLACKLIST_ADDED_TEXT': 'Добавлено',
+            'BLACKLIST_REMOVED_TEXT': 'Удалено',
+            'BLACKLIST_TEXT': '⭐Starboard. Чёрный список',
+            'MEMBERS': 'Участники',
+            'CHANNELS': 'Каналы',
+            'ROLES': 'Роли'
         },
         'AUTOROLE_DROPDOWN': {
             'ADDED_ROLES_TEXT': 'Добавлено: ',
@@ -571,16 +579,21 @@ LANGUAGES = {
             'PLUGINS_TEXT': 'Plugins',
             'SELECT_MODULE_TEXT': 'Select Module'
         },
-        'SET_STARBOARD_CHANNEL_COMMAND': {
-            'CHANNEL_WAS_SETUP_TEXT': 'Channel was set up!'
-        },
-        'SET_STARBOARD_STARS_LIMIT_COMMAND': {
-            'LIMIT_WAS_SETUP_TEXT': 'Stars limit was set up to `{limit}`!'
-        },
-        'SET_STARBOARD_STATUS_COMMAND': {
+        'STARBOARD_FUNCTIONS': {
+            'CHANNEL_WAS_SETUP_TEXT': 'Channel was set up!',
+            'LIMIT_WAS_SETUP_TEXT': 'Stars limit was set up to `{limit}`!',
             'STARBOARD_NOT_SETUP': 'Channel or stars limit doesn\'t set up!',
             'STARBOARD_ENABLED': 'Starboard was `enabled`!',
-            'STARBOARD_DISABLED': 'Starboard was `disabled`!'
+            'STARBOARD_DISABLED': 'Starboard was `disabled`!',
+            'JUMP_TO_ORIGINAL_MESSAGE_TEXT': 'Jump to original message!',
+            'BLACKLIST_NO_OPTIONS_TEXT': 'Should be one of `member`, `role`, `channel`',
+            'EMPTY_BLACKLIST_TEXT': 'Blacklist is empty!',
+            'BLACKLIST_ADDED_TEXT': 'Added!',
+            'BLACKLIST_REMOVED_TEXT': 'Removed!',
+            'BLACKLIST_TEXT': '⭐Starboard. Blacklist',
+            'MEMBERS': 'Members',
+            'CHANNELS': 'Channels',
+            'ROLES': 'Roles'
         },
         'AUTOROLE_DROPDOWN': {
             'ADDED_ROLES_TEXT': 'Added Roles: ',
