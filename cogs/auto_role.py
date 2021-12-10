@@ -1,4 +1,4 @@
-from discord import Role, Embed, RawReactionActionEvent, Guild
+from discord import Role, Embed, RawReactionActionEvent, Guild, Member
 from discord_components import Select, SelectOption
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
@@ -11,7 +11,8 @@ from my_utils import (
     Cog,
     bot_owner_or_permissions,
     is_enabled, _is_enabled,
-    CogDisabledOnGuild
+    CogDisabledOnGuild,
+    consts
 )
 
 
@@ -26,6 +27,65 @@ class AutoRole(Cog):
         self.bot = bot
         self.name = 'AutoRole'
         self.emoji = '✨'
+
+    # ON JOIN ROLE
+    @Cog.listener()
+    async def on_member_join(self, member: Member):
+        collection = self.bot.get_guild_configuration_collection(member.guild.id)
+        config = collection.find_one({'_id': 'configuration'})
+        on_join_roles = config.get('on_join_roles')
+        if on_join_roles is None:
+            return
+        guild = member.guild
+        for role_id in on_join_roles:
+            role: Role = guild.get_role(role_id)
+            await member.add_roles(role)
+
+    @slash_subcommand(
+        base='autorole',
+        subcommand_group='on_join',
+        name='add',
+        description='Adds a new on join role'
+    )
+    async def autorole_on_join_add(self, ctx: SlashContext, role: Role):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content: dict = get_content('AUTOROLE_ON_JOIN', lang)
+
+        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection.update_one(
+            {'_id': 'configuration'},
+            {
+                '$push': {
+                    'on_join_roles': role.id
+                }
+            }
+        )
+
+        await ctx.send(content['ROLE_ADDED_TEXT'].format(role=role.mention))
+
+    @slash_subcommand(
+        base='autorole',
+        subcommand_group='on_join',
+        name='remove',
+        description='Removes on join role'
+    )
+    async def autorole_on_join_remove(self, ctx: SlashContext, role: Role):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content: dict = get_content('AUTOROLE_ON_JOIN', lang)
+
+        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection.update_one(
+            {'_id': 'configuration'},
+            {
+                '$pull': {
+                    'on_join_roles': role.id
+                }
+            }
+        )
+
+        await ctx.send(content['ROLE_REMOVED_TEXT'].format(role=role.mention))
+
+    # SELECT ROLE
 
     @Cog.listener()
     async def on_select_option(self, ctx: ComponentContext):
@@ -500,6 +560,29 @@ class AutoRole(Cog):
 
         await ctx.send('✅', hidden=True)
 
+    @slash_subcommand(
+        base='autorole',
+        name='add_role_to_everyone',
+        description='Adds role to everyone member on server'
+    )
+    async def autorole_add_role_to_everyone(self, ctx: SlashContext, role: Role):
+        await ctx.defer()
+        for member in ctx.guild.members:
+            if role not in member.roles:
+                await member.add_roles(role)
+        await ctx.send('☑️')
+
+    @slash_subcommand(
+        base='autorole',
+        name='remove_role_from_everyone',
+        description='Removes role from everyone member on server'
+    )
+    async def autorole_remove_role_from_everyone(self, ctx: SlashContext, role: Role):
+        await ctx.defer()
+        for member in ctx.guild.members:
+            if role in member.roles:
+                await member.remove_roles(role)
+        await ctx.send('☑️')
 
 def setup(bot):
     bot.add_cog(AutoRole(bot))

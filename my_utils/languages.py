@@ -307,6 +307,10 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
             'DROPDOWN_NOT_FOUND': 'Нет меню с таким именем!',
             'DROPDOWN_LOADED_TEXT': 'Меню загружено!',
             'DROPDOWN_LIST': 'Список меню с ролями'
+        },
+        'AUTOROLE_ON_JOIN': {
+            'ROLE_ADDED_TEXT': 'Роль {role} Добавлена!',
+            'ROLE_REMOVED_TEXT': 'Роль {role} Удалена!'
         }
     },
     'en': {
@@ -614,6 +618,10 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
             'DROPDOWN_NOT_FOUND': 'Could not find Dropdown with this name',
             'DROPDOWN_LOADED_TEXT': 'Dropdown loaded!',
             'DROPDOWN_LIST': 'Dropdowns list'
+        },
+        'AUTOROLE_ON_JOIN': {
+            'ROLE_ADDED_TEXT': 'Role {role} Added!',
+            'ROLE_REMOVED_TEXT': 'Role {role} Removed!'
         }
     }
 }
