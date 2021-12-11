@@ -10,9 +10,9 @@ from discord_slash.cog_ext import (
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu
 )
-from discord_components import Button, ButtonStyle, Select, SelectOption
 from discord_slash.utils.manage_commands import create_option, create_choice
 from discord_slash_components_bridge import ComponentContext
+from discord_components import Button, ButtonStyle, Select, SelectOption
 import qrcode
 import requests
 

@@ -89,8 +89,8 @@ class Help(Cog):
                 color=0x2f3136
             )
             embed.set_footer(
-            text=content['REQUIRED_BY_TEXT'].format(user=ctx.author),
-            icon_url=ctx.author.avatar_url
+                text=content['REQUIRED_BY_TEXT'].format(user=ctx.author),
+                icon_url=ctx.author.avatar_url
             )
             embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
