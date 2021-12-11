@@ -24,7 +24,7 @@ class Help(Cog):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('HELP_COMMAND', lang)
 
-        components = self._init_components(content)
+        components = self._init_components(ctx, content)
         embeds = self._init_embeds(ctx, content)
         message = await ctx.send(embed=embeds[0], components=components)
 
@@ -48,12 +48,18 @@ class Help(Cog):
                         break
             await interaction.edit_origin(embed=embed)
 
-    def _init_components(self, content: dict):
+    @staticmethod
+    def _cog_is_private(ctx: SlashContext, cog: Cog):
+        return cog.private_guild_id and ctx.guild_id not in cog.private_guild_id
+
+    def _init_components(self, ctx: SlashContext, content: dict):
         options = [SelectOption(label='Main Page', value='main_page', emoji='🏠')]
 
         for _cog in self.bot.cogs:
             cog = self.bot.cogs[_cog]
             if cog.hidden:
+                continue
+            if self._cog_is_private(ctx, cog):
                 continue
 
             emoji = cog.emoji
@@ -79,7 +85,7 @@ class Help(Cog):
             cog = self.bot.cogs[_cog]
             if cog.hidden:
                 continue
-            if cog.private_guild_id and ctx.guild_id not in cog.private_guild_id:
+            if self._cog_is_private(ctx, cog):
                 continue
 
             embed = Embed(
