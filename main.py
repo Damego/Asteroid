@@ -1,89 +1,48 @@
-import os
+import logging
+from os import listdir, environ, getenv
 from traceback import format_exception
 
-import discord
+from discord import Guild, Intents, Embed
 from discord.ext import commands
-from discord.ext.commands.errors import ExtensionNotLoaded, ExtensionAlreadyLoaded
+from dotenv import load_dotenv
 
-from extensions import _errors
-from mongobot import MongoComponentsBot
-
-
-
-def get_prefix(bot, message):
-    prefix = ['a!']
-    try:
-        collection = bot.get_guild_configuration_collection(message.guild.id)
-        prefix.append(collection.find_one({'_id':'configuration'})['prefix'])
-    except Exception as e:
-        print('cant GET PREFIX! ERROR:', e)
-
-    return prefix
+from my_utils import AsteroidBot, get_content
+from my_utils.errors import *
+from my_utils import slash_override
 
 
-def _load_extensions():
-    for filename in os.listdir('./extensions'):
-        if not filename.startswith('_'):
-            if filename.endswith('.py'):
-                bot.load_extension(f'extensions.{filename[:-3]}')
-            else:
-                bot.load_extension(f'extensions.{filename}')
-
-
-def _reload_extensions():
-    extensions = bot.extensions
-    extensions_amount = len(extensions)
-    content = ''
-    try:
-        for count, extension in enumerate(extensions, start=1):
-            try:
-                bot.reload_extension(extension)
-            except Exception as e:
-                content += f'\n`{count}/{extensions_amount}. {extension} `❌'
-                content += f'\n*Ошибка:* `{e}`'
-            else:
-                content += f'\n`{count}/{extensions_amount}. {extension} `✅'
-    except RuntimeError:
-        pass
-    return content
-
-intents=discord.Intents.default()
-intents.members = True
-
-bot = MongoComponentsBot(command_prefix=get_prefix, intents=intents)
+bot = AsteroidBot(
+    command_prefix='+',
+    intents=Intents.all()
+)
 
 
 # EVENTS
 @bot.event
 async def on_ready():
-    _load_extensions()
-    channel = bot.get_channel(859816092008316928)
+    channel = bot.get_channel(891222610166284368)
     if channel is None:
-        channel = await bot.fetch_channel(859816092008316928)
+        channel = await bot.fetch_channel(891222610166284368)
     await channel.send(f'{bot.user} успешно загружен!')
 
-    print(f'{bot.user} успешно загружен!')
+    print(f'{bot.user} загружен!')
 
 
 @bot.event
-async def on_guild_join(guild):
-    collection = bot.get_guild_main_collection(guild.id)
-    configuration = {
-            'prefix':'a!',
-            'embed_color': '0xFFFFFE'
-    }
-
-    collection['configuration'].update_many(
-        {'_id':'configuration'},
-        {'$set':configuration},
-        upsert=True)
+async def on_guild_join(guild: Guild):
+    collection = bot.get_guild_configuration_collection(guild.id)
+    collection.update_one(
+        {'_id': 'configuration'},
+        {'$set': {'embed_color': '0xFFFFFE'}},
+        upsert=True
+    )
 
 
 @bot.event
-async def on_guild_remove(guild):
+async def on_guild_remove(guild: Guild):
+    return
     guild_id = guild.id
     collections = [
-        bot.get_guild_main_collection(guild_id),
         bot.get_guild_configuration_collection(guild_id),
         bot.get_guild_level_roles_collection(guild_id),
         bot.get_guild_reaction_roles_collection(guild_id),
@@ -95,133 +54,56 @@ async def on_guild_remove(guild):
     for collection in collections:
         collection.drop()
 
-# COMMANDS
-@bot.command(name='load', help='Загрузка плагина', hidden=True)
-@commands.is_owner()
-async def load(ctx, extension):
-    try:
-        bot.load_extension(f'extensions.{extension}')
-    except Exception as e:
-        content = f"""
-        Расширение {extension} не загружено!
-        Ошибка: {e}
-        """
-        await ctx.send(content)
-    else:
-        await ctx.send(f'Плагин {extension} загружен!')
 
-
-@bot.command(name='unload', help='Отключение плагина', hidden=True)
-@commands.is_owner()
-async def unload(ctx, extension):
-    try:
-        bot.unload_extension(f'extensions.{extension}')
-    except ExtensionNotLoaded:
-        await ctx.send(f'Плагин {extension} не загружен')
-    else:
-        await ctx.send(f'Плагин {extension} отключен!')
-
-
-@bot.command(aliases=['r'], name='reload', help='Перезагрузка плагина', hidden=True)
-@commands.is_owner()
-async def reload(ctx, extension):
-    try:
-        bot.reload_extension(f'extensions.{extension}')
-    except Exception as e:
-        content = f"""
-        Расширение {extension} не загружено!
-        Ошибка: {e}
-        """
-        await ctx.send(content)
-    else:
-        await ctx.message.add_reaction('✅')
-
-
-@bot.command(aliases=['ra'], name='reload_all', help='Перезагрузка всех плагинов', hidden=True)
-@commands.is_owner()
-async def reload_all(ctx:commands.Context):
-    content = _reload_extensions()
-    embed = discord.Embed(title='Перезагрузка расширений', description=content, color=0x2f3136)
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='cmd', description='None', help='None')
-@commands.is_owner()
-async def custom_command(ctx, *, cmd):
-    await eval(cmd)
-
-
-@bot.command(name='deploy')
-@commands.is_owner()
-async def git_pull_updates(ctx:commands.Context):
-    embed = discord.Embed(title='Загрузка обновления...', color=0x2f3136)
-    await ctx.send(embed=embed)
-    os.system('git fetch')
-    os.system('git stash')
-    os.system('git pull')
-
-    content = _reload_extensions()
-    embed = discord.Embed(title='Перезагрузка расширений...', description=content, color=0x2f3136)
-    await ctx.send(embed=embed)
-
-
-# ERRORS
 @bot.event
-async def on_command_error(ctx:commands.Context, error):
-    embed = discord.Embed(color=0xED4245)
+async def on_slash_command_error(ctx, error):
+    print(error)
+    embed = Embed(color=0xED4245)
+    lang = bot.get_guild_bot_lang(ctx.guild_id)
+    content = get_content('ERRORS_DESCRIPTIONS', lang)
 
-    if isinstance(error, _errors.TagNotFound):
-        desc = 'Тег не найден!'
-    elif isinstance(error, _errors.ForbiddenTag):
-        desc = 'Этот тег нельзя использовать!'
-    elif isinstance(error, _errors.UIDNotBinded):
-        desc = 'У вас не привязан UID!'
-    elif isinstance(error, _errors.GenshinAccountNotFound):
-        desc = 'Аккаунт с таким UID не найден! Похоже вы ввели неверный UID.'
-    elif isinstance(error, _errors.GenshinDataNotPublic):
-        desc = 'Профиль закрыт! Откройте профиль на [сайте](https://www.hoyolab.com/genshin/accountCenter/gameRecord)'
+    if isinstance(error, CogDisabledOnGuild):
+        desc = content['COG_DISABLED']
+    elif isinstance(error, TagNotFound):
+        desc = content['TAG_NOT_FOUND']
+    elif isinstance(error, ForbiddenTag):
+        desc = content['FORBIDDEN_TAG']
+    elif isinstance(error, NotTagOwner):
+        desc = content['NOT_TAG_OWNER']
+    elif isinstance(error, UIDNotBinded):
+        desc = content['UID_NOT_BINDED']
+    elif isinstance(error, GenshinAccountNotFound):
+        desc = content['GI_ACCOUNT_NOT_FOUND']
+    elif isinstance(error, GenshinDataNotPublic):
+        desc = content['GI_DATA_NOT_PUBLIC']
+    elif isinstance(error, NotConnectedToVoice):
+        desc = content['NOT_CONNECTED_TO_VOICE']
     elif isinstance(error, commands.NotOwner):
-        desc = 'Это команда доступна только владельцу бота!'
-    elif isinstance(error, commands.MissingRequiredArgument):
-        desc=f'**Потерян аргумент**: `{error.param}`'
-    elif isinstance(error, commands.BadArgument):
-        title = f'**Неправильный аргумент!** \n'
-        help = f'`{ctx.prefix}{ctx.command} {ctx.command.help}`'
-        desc = title + help
+        desc = content['NOT_BOT_OWNER']
     elif isinstance(error, commands.BotMissingPermissions):
-        desc = f'**У бота недостаточно прав!**\nНеобходимые права: `{", ".join(error.missing_perms)}`'
+        missing_perms = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
+        desc = f'**Bot don\'t have permission for this!**\nRequired permissions: `{", ".join(missing_perms)}`'
     elif isinstance(error, commands.MissingPermissions):
-        desc = f'**У вас недостаточно прав!**\nНеобходимые права: `{", ".join(error.missing_perms)}`'
-    elif isinstance(error, commands.CommandNotFound):
-        desc = 'Команда не найдена!'
-    elif isinstance(error, discord.Forbidden):
-        desc = 'У бота недостаточно прав!'
+        missing_perms = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
+        desc = f'**You don\'t have permission for this!**\nRequired permissions: `{", ".join(missing_perms)}`'
+    elif isinstance(error, commands.CheckFailure):
+        desc = content['CHECK_FAILURE']
     else:
-        desc = f"""
-Я уже уведомил своего создателя об этой ошибке
-
-*Ошибка:* 
-```python
-{error}
-```
-"""
-        embed.title = f"""
-        ❌ Упс... Произошла непредвиденная ошибка!
-        """
+        desc = content['OTHER_ERRORS_DESCRIPTION'].format(error=error)
+        embed.title = content['OTHER_ERRORS_TITLE']
 
         error_traceback = ''.join(
             format_exception(type(error), error, error.__traceback__)
         )
 
         error_description = f"""
-        **Сервер:** {ctx.guild}
-        **Канал:** {ctx.channel}
-        **Пользователь:** {ctx.author}
-        **Команда:** {ctx.message.content}
-        **Ошибка:**
+        **Guild:** {ctx.guild}
+        **Channel:** {ctx.channel}
+        **User:** {ctx.author}
+        **Error:**
         `{error}`
-        **Лог ошибки:**
-        ```python
+        **Traceback:**
+        ``` \n
         {error_traceback}
         ``` """
 
@@ -241,7 +123,5 @@ async def on_command_error(ctx:commands.Context, error):
         await ctx.send(desc)
 
 
-
-if __name__ == '__main__':
-    bot.run(os.environ['TOKEN'])
-
+load_dotenv()
+bot.run(getenv('BOT_TOKEN'))
