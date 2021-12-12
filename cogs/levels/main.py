@@ -606,7 +606,7 @@ class Levels(Cog):
         name='top',
         description='Shows top members by level',
         options=[],
-        guild_ids=consts.test_global_guilds_ids
+        guild_ids=consts.all_guild_ids
     )
     @is_enabled
     async def levels_top_members(self, ctx: SlashContext):
