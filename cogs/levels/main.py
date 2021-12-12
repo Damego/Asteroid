@@ -621,7 +621,7 @@ class Levels(Cog):
             user_leveling = user_data.get('leveling')
             if user_leveling is None:
                 continue
-            if user_leveling['level'] == 0:
+            if user_leveling['level'] in (0, 1):
                 continue
 
             raw_data[user_data['_id']] = user_leveling['level']
