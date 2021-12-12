@@ -31,6 +31,9 @@ class AutoRole(Cog):
     # ON JOIN ROLE
     @Cog.listener()
     async def on_member_join(self, member: Member):
+        if member.bot:
+            return
+
         collection = self.bot.get_guild_configuration_collection(member.guild.id)
         config = collection.find_one({'_id': 'configuration'})
         on_join_roles = config.get('on_join_roles')
@@ -585,6 +588,7 @@ class AutoRole(Cog):
             if role in member.roles:
                 await member.remove_roles(role)
         await ctx.send('☑️', hidden=True)
+
 
 def setup(bot):
     bot.add_cog(AutoRole(bot))

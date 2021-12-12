@@ -1,9 +1,10 @@
 from asyncio import TimeoutError
 from enum import IntEnum
-from typing import Union, List, Optional
+from typing import Union, List
 
 from discord import Client, Embed
-from discord.ext.commands import Bot, Context
+from discord.ext.commands import Bot
+from discord_slash import SlashContext
 from discord_components import Button, ButtonStyle
 from discord_slash_components_bridge import ComponentContext, ComponentMessage
 
@@ -58,7 +59,7 @@ class PaginatorStyle(IntEnum):
 
 
 class Paginator:
-    def __init__(self, bot: Union[Client, Bot], ctx: Optional[Context], style: int, embeds: List[Embed]) -> None:
+    def __init__(self, bot: Union[Client, Bot], ctx: SlashContext, style: int, embeds: List[Embed]) -> None:
         self.bot = bot
         self.ctx = ctx
         self.style = style
