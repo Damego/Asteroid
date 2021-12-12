@@ -619,7 +619,11 @@ class Levels(Cog):
         for count, user_data in enumerate(users, start=1):
             user: Member = ctx.guild.get_member(user_data['_id'])
             if user is None:
-                user: Member = await ctx.guild.fetch_member(user_data['_id'])
+                try:
+                    user: Member = await ctx.guild.fetch_member(user_data['_id'])
+                except Exception:
+                    continue
+
             user_leveling = user_data.get('leveling')
             if user_leveling is None:
                 continue
