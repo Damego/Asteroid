@@ -627,7 +627,7 @@ class Levels(Cog):
             raw_data[user_data['_id']] = user_leveling['level']
 
         _list = list(raw_data.items())
-        _list.sort(key=lambda i: i[1])
+        _list.sort(key=lambda i: i[1], reverse=True)
         data = dict(_list)
 
         for count, user_data in enumerate(data):
