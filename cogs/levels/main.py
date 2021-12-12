@@ -615,43 +615,53 @@ class Levels(Cog):
         embeds = []
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         users = collection.find({})
-        data = f"Member | Level\n"
-        for count, user_data in enumerate(users, start=1):
-            user: Member = ctx.guild.get_member(user_data['_id'])
-            if user is None:
-                try:
-                    user: Member = await ctx.guild.fetch_member(user_data['_id'])
-                except Exception:
-                    continue
-
+        embed_desc = f"Member | Level\n"
+        raw_data = {}
+        for user_data in users:
             user_leveling = user_data.get('leveling')
             if user_leveling is None:
                 continue
+            if user_leveling['level'] == 0:
+                continue
 
-            data += f"{count}. {user.display_name} | {user_leveling['level']}\n"
+            raw_data[user_data['_id']] = user_leveling['level']
+
+        _list = list(raw_data.items())
+        _list.sort(key=lambda i: i[1])
+        data = dict(_list)
+
+        for count, user_data in enumerate(data):
+            member: Member = ctx.guild.get_member(user_data)
+            if member is None:
+                try:
+                    member: Member = await ctx.guild.fetch_member(user_data)
+                except Exception:
+                    continue
+
+            embed_desc += f"{count}. {member.display_name} | {data[user_data]}\n"
 
             if count % 10 == 0:
                 embeds.append(
                     Embed(
-                        title='Top members by levels',
-                        description=data,
+                        title='Top members by level',
+                        description=embed_desc,
                         color=self.bot.get_embed_color(ctx.guild_id)
                     )
                 )
-                data = f""
+                embed_desc = f""
 
-        if data:
+        if embed_desc:
             embeds.append(
                 Embed(
                     title='Top members by levels',
-                    description=data,
+                    description=embed_desc,
                     color=self.bot.get_embed_color(ctx.guild_id)
                 )
             )
 
         if not embeds:
             return await ctx.send('no top')
-        if len(embeds) == 1:
+        if len(embeds) < 2:
             return await ctx.send(embed=embeds[0])
 
         paginator = Paginator(self.bot, ctx, style=PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds=embeds)
