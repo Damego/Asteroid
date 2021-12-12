@@ -630,7 +630,7 @@ class Levels(Cog):
         _list.sort(key=lambda i: i[1], reverse=True)
         data = dict(_list)
 
-        for count, user_data in enumerate(data):
+        for count, user_data in enumerate(data, start=1):
             member: Member = ctx.guild.get_member(user_data)
             if member is None:
                 try:
