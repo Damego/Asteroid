@@ -1,3 +1,4 @@
+import datetime
 from time import time
 from random import randint
 
@@ -15,6 +16,7 @@ from my_utils import (
     CogDisabledOnGuild,
     Cog,
     consts,
+    get_content
 )
 from my_utils.paginator import Paginator, PaginatorStyle
 from ._levels import update_member, formula_of_experience
@@ -602,62 +604,50 @@ class Levels(Cog):
         await ctx.send('✅', hidden=True)
 
     @slash_subcommand(
-        base='test',
+        base='levels',
         name='top',
         description='Shows top members by level',
-        options=[],
-        guild_ids=consts.all_guild_ids
+        options=[]
     )
     @is_enabled
     async def levels_top_members(self, ctx: SlashContext):
         await ctx.defer()
 
+        content = get_content('LEVELS', lang=self.bot.get_guild_bot_lang(ctx.guild_id))['FUNC_TOP_MEMBERS']
         embeds = []
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         users = collection.find({})
-        embed_desc = f"Member | Level\n"
+        embed_desc = content['TITLES']
         raw_data = {}
+
         for user_data in users:
             user_leveling = user_data.get('leveling')
             if user_leveling is None:
                 continue
             if user_leveling['level'] in (0, 1):
                 continue
-
             raw_data[user_data['_id']] = user_leveling['level']
 
         _list = list(raw_data.items())
         _list.sort(key=lambda i: i[1], reverse=True)
-        data = dict(_list)
+        members_data = dict(_list)
 
-        for count, user_data in enumerate(data, start=1):
-            member: Member = ctx.guild.get_member(user_data)
+        for count, member_id in enumerate(members_data, start=1):
+            member: Member = ctx.guild.get_member(member_id)
             if member is None:
                 try:
-                    member: Member = await ctx.guild.fetch_member(user_data)
+                    member: Member = await ctx.guild.fetch_member(member_id)
                 except Exception:
                     continue
 
-            embed_desc += f"{count}. {member.display_name} | {data[user_data]}\n"
+            embed_desc += f"`{count}` | {member.mention} | `{members_data[member_id]}`\n"
 
             if count % 10 == 0:
-                embeds.append(
-                    Embed(
-                        title='Top members by level',
-                        description=embed_desc,
-                        color=self.bot.get_embed_color(ctx.guild_id)
-                    )
-                )
+                embeds.append(self._get_embed(ctx, embed_desc, content))
                 embed_desc = f""
 
         if embed_desc:
-            embeds.append(
-                Embed(
-                    title='Top members by levels',
-                    description=embed_desc,
-                    color=self.bot.get_embed_color(ctx.guild_id)
-                )
-            )
+            embeds.append(self._get_embed(ctx, embed_desc, content))
 
         if not embeds:
             return await ctx.send('no top')
@@ -667,3 +657,15 @@ class Levels(Cog):
         paginator = Paginator(self.bot, ctx, style=PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds=embeds)
         await paginator.start()
 
+    def _get_embed(self, ctx: SlashContext, embed_desc: str, content: dict):
+        embed = Embed(
+            title=content['TOP_MEMBERS_TEXT'],
+            description=embed_desc,
+            color=self.bot.get_embed_color(ctx.guild_id),
+            timestamp=datetime.datetime.utcnow()
+        )
+        embed.set_footer(
+            text=f'{content["REQUESTED_BY_TEXT"]} {ctx.author.display_name}',
+            icon_url=ctx.author.avatar_url
+        )
+        return embed

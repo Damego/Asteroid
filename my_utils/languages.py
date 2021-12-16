@@ -1,11 +1,8 @@
-from typing import Dict, Union
-
-
-def get_content(content_type: str, lang: str) -> Union[str, Dict[str, str]]:
+def get_content(content_type: str, lang: str):
     return LANGUAGES[lang][content_type]
 
 
-LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
+LANGUAGES = {
     'ru': {
         'ERRORS_DESCRIPTIONS': {
             'COG_DISABLED': 'Эта команда отключена на этом сервере!',
@@ -14,7 +11,8 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
             'NOT_TAG_OWNER': 'Вы не владелец тега!',
             'UID_NOT_BINDED': 'У вас не привязан UID!',
             'GI_ACCOUNT_NOT_FOUND': 'Аккаунт с таким UID не найден!',
-            'GI_DATA_NOT_PUBLIC': 'Профиль закрыт! Откройте профиль на [сайте](https://www.hoyolab.com/genshin/accountCenter/gameRecord)',
+            'GI_DATA_NOT_PUBLIC': 'Профиль закрыт! Откройте профиль на [сайте]('
+                                  'https://www.hoyolab.com/genshin/accountCenter/gameRecord)',
             'NOT_CONNECTED_TO_VOICE': 'You not connected to voice channel!',
             'NOT_BOT_OWNER': 'Это команда доступна только владельцу бота!',
             'BOT_MISS_PERMS': '**У бота недостаточно прав!**\nНеобходимые права: ',
@@ -26,10 +24,10 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
         'FUNC_RANDOM_NUMBER_OUT_CONTENT': 'Рандомное число: `{}`',
         'FUNC_MEMBER_INFO': {
             'MEMBER_STATUS': {
-                'online':'<:s_online:850792217031082051> В сети',
-                'dnd':'<:dnd:850792216943525936> Не беспокоить',
-                'idle':'<:s_afk:850792216732368937> Отошёл',
-                'offline':'<:s_offline:850792217262030969> Не в сети'
+                'online': '<:s_online:850792217031082051> В сети',
+                'dnd': '<:dnd:850792216943525936> Не беспокоить',
+                'idle': '<:s_afk:850792216732368937> Отошёл',
+                'offline': '<:s_offline:850792217262030969> Не в сети'
             },
             'ABOUT_TITLE': 'Информация о {}',
             'GENERAL_INFO_TITLE': 'Общая информация:',
@@ -37,9 +35,9 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
             'BADGES_TEXT': 'Значки:',
             'DISCORD_REGISTRATION_TEXT': 'Дата регистрации в Discord:',
             'JOINED_ON_SERVER_TEXT': 'Дата присоединения на сервер:',
-            'CURRENT_STATUS_TEXT':'Текущий статус:',
+            'CURRENT_STATUS_TEXT': 'Текущий статус:',
             'TOP_ROLE_TEXT': 'Высшая роль:',
-            'ROLES_TEXT':'Роли:',
+            'ROLES_TEXT': 'Роли:',
             'LEVELING': {
                 'CURRENT_LEVEL_TEXT': '<:level:863677232239869964> **Уровень:** `{level}`',
                 'CURRENT_EXP_TEXT': '<:exp:863672576941490176> **Опыт:** `{exp}/{exp_to_next_level}` Всего: `{exp_amount}`',
@@ -77,24 +75,22 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
         'GAME_RPS': {
             'RESULTS_TITLE': '`          ИТОГИ ИГРЫ            `',
             'RESULTS_TEXT': '' \
-                '**Игроки:** {} и {} \n' \
-                '**Количество сыгранных игр:** {} \n' \
-                '**Счёт:** {}:{} \n' \
-                '**Победитель:** {}',
+                            '**Игроки:** {} и {} \n' \
+                            '**Количество сыгранных игр:** {} \n' \
+                            '**Счёт:** {}:{} \n' \
+                            '**Победитель:** {}',
             'RESULTS_GAME_NAME': '**Название игры: Камень ножницы бумага**',
             'RESULTS_TIE': 'Ничья',
             'MADE_MOVE_TEXT': 'Вы сделали свой ход',
             'PLAYERS_TEXT': '**{}** VS **{}**',
             'CURRENT_SCORE_TEXT': '**Счёт:** {}:{}\n' \
-                '**Игра:** {}/{}',
+                                  '**Игра:** {}/{}',
         },
         'GAME_TTT': {
             'GAME_NAME': 'Крестики Нолики',
             'RESULTS_TITLE': '`          ИТОГИ ИГРЫ            `',
             'RESULTS_GAME_NAME': '**Игра: Крестики Нолики**',
-            'RESULTS_TEXT': '' \
-                '**Игроки: {player1} И {player2}**\n' \
-                '**Победитель:** {winner}',
+            'RESULTS_TEXT': '**Игроки: {player1} И {player2}**\n**Победитель:** {winner}',
             'RESULTS_TIE': 'Ничья',
         },
         'FUNC_MODERATION_CHANGE_NICK_TEXT': 'Был изменён ник `{}` на `{}`',
@@ -240,11 +236,11 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
                 'Cryo': '<:Element_Cryo:870989751312846868> `Крио`',
             },
             'GENSHIN_ARTIFACT_TYPE': {
-                'flower':'<:Icon_Flower_of_Life:871372154179059742> Цветок',
-                'feather':'<:Icon_Plume_of_Death:871372154510397470> Перо',
-                'hourglass':'<:Icon_Sands_of_Eon:871372154845933568> Часы',
-                'goblet':'<:Icon_Goblet_of_Eonothem:871372154346827776> Кубок',
-                'crown':'<:Icon_Circlet_of_Logos:871372154212605962> Корона',
+                'flower': '<:Icon_Flower_of_Life:871372154179059742> Цветок',
+                'feather': '<:Icon_Plume_of_Death:871372154510397470> Перо',
+                'hourglass': '<:Icon_Sands_of_Eon:871372154845933568> Часы',
+                'goblet': '<:Icon_Goblet_of_Eonothem:871372154346827776> Кубок',
+                'crown': '<:Icon_Circlet_of_Logos:871372154212605962> Корона',
             }
         },
         'GENSHIN_INFO_COMMAND': {
@@ -263,6 +259,11 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
             'FUNC_UPDATE_MEMBER': {
                 'NOTIFY_GUILD_CHANNEL': '{member} получил `{level}-й` уровень и повышение до {role}',
                 'NOTIFY_DM': 'Вы получили `{level}-й` уровень и повышение до {role}'
+            },
+            'FUNC_TOP_MEMBERS': {
+                'TITLES': '**ID | Участник | Текущий уровень**\n',
+                'TOP_MEMBERS_TEXT': 'Топ участников по уровню',
+                'REQUESTED_BY_TEXT': 'Запрошено'
             }
         },
         'HELP_COMMAND': {
@@ -329,18 +330,18 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
             'CHECK_FAILURE': 'You can\'t use this command!',
             'OTHER_ERRORS_TITLE': '❌ Oops... An unexpected error occurred!',
             'OTHER_ERRORS_DESCRIPTION': 'This bug was sent to owner\n' \
-                '*Error:* \n' \
-                '```python ' \
-                '{error}' \
-               ' ```',
+                                        '*Error:* \n' \
+                                        '```python ' \
+                                        '{error}' \
+                                        ' ```',
         },
         'FUNC_RANDOM_NUMBER_OUT_CONTENT': 'Random number is `{}`',
         'FUNC_MEMBER_INFO': {
             'MEMBER_STATUS': {
-                'online':'<:s_online:850792217031082051> Online',
-                'dnd':'<:dnd:850792216943525936> Do not disturb',
-                'idle':'<:s_afk:850792216732368937> Idle',
-                'offline':'<:s_offline:850792217262030969> Offline'
+                'online': '<:s_online:850792217031082051> Online',
+                'dnd': '<:dnd:850792216943525936> Do not disturb',
+                'idle': '<:s_afk:850792216732368937> Idle',
+                'offline': '<:s_offline:850792217262030969> Offline'
             },
             'ABOUT_TITLE': 'Information about {}',
             'GENERAL_INFO_TITLE': 'General information:',
@@ -348,9 +349,9 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
             'BADGES_TEXT': 'Badges:',
             'DISCORD_REGISTRATION_TEXT': 'Date of registration in Discord:',
             'JOINED_ON_SERVER_TEXT': 'Date of joined in server:',
-            'CURRENT_STATUS_TEXT':'Current status:',
+            'CURRENT_STATUS_TEXT': 'Current status:',
             'TOP_ROLE_TEXT': 'Top role:',
-            'ROLES_TEXT':'Roles:',
+            'ROLES_TEXT': 'Roles:',
             'LEVELING': {
                 'CURRENT_LEVEL_TEXT': '<:level:863677232239869964> **Level:** `{level}`',
                 'CURRENT_EXP_TEXT': '<:exp:863672576941490176> **Exp:** `{exp}/{exp_to_next_level}` Total: `{exp_amount}`',
@@ -388,24 +389,21 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
         'GAME_RPS': {
             'RESULTS_TITLE': '`          Results            `',
             'RESULTS_TEXT': '' \
-                '**Players:** {} vs. {} \n' \
-                '**Rounds played:** {} \n' \
-                '**Score:** {}:{} \n' \
-                '**Winner:** {}',
+                            '**Players:** {} vs. {} \n' \
+                            '**Rounds played:** {} \n' \
+                            '**Score:** {}:{} \n' \
+                            '**Winner:** {}',
             'RESULTS_GAME_NAME': '**Game name: Rock Paper Scissors**',
             'RESULTS_TIE': 'Draw',
             'MADE_MOVE_TEXT': 'You made move',
             'PLAYERS_TEXT': '**{}** vs. **{}**',
-            'CURRENT_SCORE_TEXT': '**Score:** {}:{}\n' \
-                '**Match:** {}/{}',
+            'CURRENT_SCORE_TEXT': '**Score:** {}:{}\n**Match:** {}/{}',
         },
         'GAME_TTT': {
             'GAME_NAME': 'Tic Tac Toe',
             'RESULTS_TITLE': '`          Results            `',
             'RESULTS_GAME_NAME': '**Name: Tic Tac Toe**',
-            'RESULTS_TEXT': '' \
-                '**Players: {player1} and {player2}**\n' \
-                '**Winner:** {winner}',
+            'RESULTS_TEXT': '**Players: {player1} and {player2}**\n**Winner:** {winner}',
             'RESULTS_TIE': 'Draw',
         },
         'FUNC_MODERATION_CHANGE_NICK_TEXT': 'Nick of `{}` was changed to `{}`',
@@ -551,11 +549,11 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
                 'Cryo': '<:Element_Cryo:870989751312846868> `Cryo`',
             },
             'GENSHIN_ARTIFACT_TYPE': {
-                'flower':'<:Icon_Flower_of_Life:871372154179059742> Flower',
-                'feather':'<:Icon_Plume_of_Death:871372154510397470> Feather',
-                'hourglass':'<:Icon_Sands_of_Eon:871372154845933568> Hourglass',
-                'goblet':'<:Icon_Goblet_of_Eonothem:871372154346827776> Goblet',
-                'crown':'<:Icon_Circlet_of_Logos:871372154212605962> Crown',
+                'flower': '<:Icon_Flower_of_Life:871372154179059742> Flower',
+                'feather': '<:Icon_Plume_of_Death:871372154510397470> Feather',
+                'hourglass': '<:Icon_Sands_of_Eon:871372154845933568> Hourglass',
+                'goblet': '<:Icon_Goblet_of_Eonothem:871372154346827776> Goblet',
+                'crown': '<:Icon_Circlet_of_Logos:871372154212605962> Crown',
             }
         },
         'GENSHIN_INFO_COMMAND': {
@@ -574,6 +572,11 @@ LANGUAGES: Dict[str, Dict[str, Union[str, Dict[str, str]]]] = {
             'FUNC_UPDATE_MEMBER': {
                 'NOTIFY_GUILD_CHANNEL': '{member} reached level `{level}` and got role {role}',
                 'NOTIFY_DM': 'You reached level `{level}` and got role {role}'
+            },
+            'FUNC_TOP_MEMBERS': {
+                'TITLES': '**ID | Member | Current Level**\n',
+                'TOP_MEMBERS_TEXT': 'Top members by level',
+                'REQUESTED_BY_TEXT': 'Requested by'
             }
         },
         'HELP_COMMAND': {
