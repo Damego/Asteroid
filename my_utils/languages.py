@@ -348,7 +348,7 @@ LANGUAGES = {
                                         '```python ' \
                                         '{error}' \
                                         ' ```',
-            'BOT_DONT_HAVE_PERMS': 'B**ot don\'t have permission for this!**\nRequired permissions:',
+            'BOT_DONT_HAVE_PERMS': '**Bot don\'t have permission for this!**\nRequired permissions:',
             'DONT_HAVE_PERMS': '**You don\'t have permission for this!**\nRequired permissions:',
             'FORBIDDEN': 'Bot doesn\'t have permission for this!',
             'BAD_ARGUMENT': 'One of arguments is wrong!',

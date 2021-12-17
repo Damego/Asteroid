@@ -81,10 +81,10 @@ async def on_slash_command_error(ctx, error):
         desc = content['NOT_BOT_OWNER']
     elif isinstance(error, commands.BotMissingPermissions):
         missing_perms = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
-        desc = f'**Bot don\'t have permission for this!**\nRequired permissions: `{", ".join(missing_perms)}`'
+        desc = f'{content["BOT_DONT_HAVE_PERMS"]} `{", ".join(missing_perms)}`'
     elif isinstance(error, commands.MissingPermissions):
         missing_perms = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
-        desc = f'**You don\'t have permission for this!**\nRequired permissions: `{", ".join(missing_perms)}`'
+        desc = f'{content["DONT_HAVE_PERMS"]} `{", ".join(missing_perms)}`'
     elif isinstance(error, commands.CheckFailure):
         desc = content['CHECK_FAILURE']
     elif isinstance(error, commands.BadArgument):
