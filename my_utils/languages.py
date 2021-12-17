@@ -93,7 +93,7 @@ LANGUAGES = {
             'RESULTS_TEXT': '**Игроки: {player1} И {player2}**\n**Победитель:** {winner}',
             'RESULTS_TIE': 'Ничья',
         },
-        'FUNC_MODERATION_CHANGE_NICK_TEXT': 'Был изменён ник `{}` на `{}`',
+        'FUNC_MODERATION_CHANGE_NICK_TEXT': 'Был изменён ник {} на `{}`',
         'FUNC_MODERATION_MUTE_MEMBER': {
             'CANNOT_MUTE_BOT_TEXT': 'Вы не можете замутить бота!',
             'WAS_MUTED_TEXT': '{} был отправлен в мут!',
@@ -312,6 +312,16 @@ LANGUAGES = {
         'AUTOROLE_ON_JOIN': {
             'ROLE_ADDED_TEXT': 'Роль {role} Добавлена!',
             'ROLE_REMOVED_TEXT': 'Роль {role} Удалена!'
+        },
+        'TIME_FORMATS': {
+            'с': 'сек.',
+            'м': 'мин.',
+            'ч': 'час.',
+            'д': 'дн.',
+            's': 'сек.',
+            'm': 'мин.',
+            'h': 'час.',
+            'd': 'дн.',
         }
     },
     'en': {
@@ -406,7 +416,7 @@ LANGUAGES = {
             'RESULTS_TEXT': '**Players: {player1} and {player2}**\n**Winner:** {winner}',
             'RESULTS_TIE': 'Draw',
         },
-        'FUNC_MODERATION_CHANGE_NICK_TEXT': 'Nick of `{}` was changed to `{}`',
+        'FUNC_MODERATION_CHANGE_NICK_TEXT': 'Nick of {} was changed to `{}`',
         'FUNC_MODERATION_MUTE_MEMBER': {
             'CANNOT_MUTE_BOT_TEXT': 'You can\'t mute bot!',
             'WAS_MUTED_TEXT': '{} was muted!',
@@ -625,6 +635,16 @@ LANGUAGES = {
         'AUTOROLE_ON_JOIN': {
             'ROLE_ADDED_TEXT': 'Role {role} Added!',
             'ROLE_REMOVED_TEXT': 'Role {role} Removed!'
+        },
+        'TIME_FORMATS': {
+            'с': 'seconds',
+            'м': 'minutes',
+            'ч': 'hours',
+            'д': 'days',
+            's': 'seconds',
+            'm': 'minutes',
+            'h': 'hours',
+            'd': 'days',
         }
     }
 }
