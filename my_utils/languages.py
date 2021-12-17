@@ -19,7 +19,11 @@ LANGUAGES = {
             'MISS_PERMS': '**У вас недостаточно прав!**\nНеобходимые права:',
             'CHECK_FAILURE': 'Вы не можете использовать эту команду!',
             'OTHER_ERRORS_TITLE': '❌ Упс... Произошла непредвиденная ошибка!',
-            'OTHER_ERRORS_DESCRIPTION': 'Этот баг был отправлен создателю\n *Ошибка:* ```\n{error}\n```'
+            'OTHER_ERRORS_DESCRIPTION': 'Этот баг был отправлен создателю\n *Ошибка:* ```\n{error}\n```',
+            'BOT_DONT_HAVE_PERMS': '**У бота недостаточно прав чтобы сделать это!**\nТребуется:',
+            'DONT_HAVE_PERMS': '**У вас недостаточно прав для использования этой команды!**\nТребуется:',
+            'FORBIDDEN': 'У бота недостаточно прав чтобы сделать это',
+            'BAD_ARGUMENT': 'Вы ввели неверно один из аргументов!'
         },
         'FUNC_RANDOM_NUMBER_OUT_CONTENT': 'Рандомное число: `{}`',
         'FUNC_MEMBER_INFO': {
@@ -344,6 +348,10 @@ LANGUAGES = {
                                         '```python ' \
                                         '{error}' \
                                         ' ```',
+            'BOT_DONT_HAVE_PERMS': 'B**ot don\'t have permission for this!**\nRequired permissions:',
+            'DONT_HAVE_PERMS': '**You don\'t have permission for this!**\nRequired permissions:',
+            'FORBIDDEN': 'Bot doesn\'t have permission for this!',
+            'BAD_ARGUMENT': 'One of arguments is wrong!',
         },
         'FUNC_RANDOM_NUMBER_OUT_CONTENT': 'Random number is `{}`',
         'FUNC_MEMBER_INFO': {

@@ -20,7 +20,7 @@ class Moderation(Cog):
         description='Mute member'
     )
     @has_guild_permissions(mute_members=True)
-    @bot_has_guild_permissions(mute_members=True)
+    @bot_has_guild_permissions(manage_roles=True)
     async def mute(self, ctx: SlashContext, member: Member, reason: str = None, timeout: str = None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('FUNC_MODERATION_MUTE_MEMBER', lang)
@@ -52,7 +52,7 @@ class Moderation(Cog):
         description='Creates muted role'
     )
     @has_guild_permissions(mute_members=True)
-    @bot_has_guild_permissions(mute_members=True)
+    @bot_has_guild_permissions(manage_roles=True, manage_channels=True)
     async def create_muted_role(self, ctx: SlashContext, role_name: str):
         await ctx.defer()
         muted_role = await ctx.guild.create_role(name=role_name)

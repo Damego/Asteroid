@@ -1,8 +1,7 @@
-import logging
-from os import listdir, environ, getenv
+from os import getenv
 from traceback import format_exception
 
-from discord import Guild, Intents, Embed
+from discord import Guild, Intents, Embed, Forbidden
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -88,6 +87,10 @@ async def on_slash_command_error(ctx, error):
         desc = f'**You don\'t have permission for this!**\nRequired permissions: `{", ".join(missing_perms)}`'
     elif isinstance(error, commands.CheckFailure):
         desc = content['CHECK_FAILURE']
+    elif isinstance(error, commands.BadArgument):
+        desc = content['BAD_ARGUMENT']
+    elif isinstance(error, Forbidden):
+        desc = content['FORBIDDEN']
     else:
         desc = content['OTHER_ERRORS_DESCRIPTION'].format(error=error)
         embed.title = content['OTHER_ERRORS_TITLE']
