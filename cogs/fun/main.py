@@ -25,7 +25,7 @@ from ._calculator import Calculator
 bored_api_types = ["education", "recreational", "social", "diy", "charity", "cooking", "relaxation", "music",
                    "busywork"]
 discord_activities_list = {
-    'YouTube': '755600276941176913',
+    'YouTube': '880218394199220334',
     'Betrayal.io': '773336526917861400',
     'Fishington.io': '814288819477020702',
     'Poker Night': '755827207812677713',
@@ -229,7 +229,7 @@ class Fun(Cog):
 
         if not channel and not ctx.author.voice:
             return await ctx.send(content['NOT_CONNECTED_TO_CHANNEL_TEXT'])
-        if not isinstance(channel, VoiceChannel):
+        if channel and not isinstance(channel, VoiceChannel):
             return await ctx.send(content['WRONG_CHANNEL_TEXT'])
         if not channel:
             channel = ctx.author.voice.channel
