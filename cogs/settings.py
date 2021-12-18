@@ -77,6 +77,7 @@ class Settings(Cog):
         name='status',
         description='Disable all commands in cogs (if implemented)'
     )
+    @is_administrator_or_bot_owner()
     async def set_cog_status(self, ctx: SlashContext, cog: str, status: bool):
         await ctx.defer()
         cogs_names = [self.bot.cogs[_cog].name for _cog in self.bot.cogs]
