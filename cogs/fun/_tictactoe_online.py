@@ -9,7 +9,7 @@ from discord_slash_components_bridge import (
 from my_utils import AsteroidBot
 
 
-class TicTacToe:
+class TicTacToeOnline:
     def __init__(
         self,
         bot: AsteroidBot,
@@ -17,7 +17,7 @@ class TicTacToe:
         ctx: SlashContext,
         member: Member,
         content: dict
-        ) -> None:
+    ) -> None:
         self.bot = bot
         self.message = message
         self.ctx = ctx
@@ -53,10 +53,8 @@ class TicTacToe:
                 self.game_board[i].insert(j, Button(style=ButtonStyle.gray, label=' ', id=f'{i} {j}'))
                 self.move_board[i].insert(j, 'UNCHOSEN')
 
-
     def _check(self, player_id, interaction):
         return interaction.author_id == player_id and interaction.message.id == self.message.id
-
 
     async def move(self, player_game_name, emoji_id, player):
         style = ButtonStyle.green if player_game_name == 'player_1' else ButtonStyle.red
@@ -81,29 +79,24 @@ class TicTacToe:
             return True
         return False
 
-
     def is_won(self, player):
-        if self.move_board[0][0] == player and self.move_board[0][1] == player and self.move_board[0][2] == player:
-            return True
-        if self.move_board[1][0] == player and self.move_board[1][1] == player and self.move_board[1][2] == player:
-            return True
-        if self.move_board[2][0] == player and self.move_board[2][1] == player and self.move_board[2][2] == player:
-            return True
-        if self.move_board[0][0] == player and self.move_board[1][0] == player and self.move_board[2][0] == player:
-            return True
-        if self.move_board[0][1] == player and self.move_board[1][1] == player and self.move_board[2][1] == player:
-            return True
-        if self.move_board[0][2] == player and self.move_board[1][2] == player and self.move_board[2][2] == player:
-            return True
-        if self.move_board[0][0] == player and self.move_board[1][1] == player and self.move_board[2][2] == player:
-            return True
-        if self.move_board[0][2] == player and self.move_board[1][1] == player and self.move_board[2][0] == player:
+        win_states = [
+            [self.move_board[0][0], self.move_board[0][1], self.move_board[0][2]],
+            [self.move_board[0][0], self.move_board[0][1], self.move_board[0][2]],
+            [self.move_board[1][0], self.move_board[1][1], self.move_board[1][2]],
+            [self.move_board[2][0], self.move_board[2][1], self.move_board[2][2]],
+            [self.move_board[0][0], self.move_board[1][0], self.move_board[2][0]],
+            [self.move_board[0][1], self.move_board[1][1], self.move_board[2][1]],
+            [self.move_board[0][2], self.move_board[1][2], self.move_board[2][2]],
+            [self.move_board[0][0], self.move_board[1][1], self.move_board[2][2]],
+            [self.move_board[0][2], self.move_board[1][1], self.move_board[2][0]]
+        ]
+        if [player, player, player] in win_states:
             return True
         return False
 
     def is_tie(self, player):
         return "UNCHOSEN" not in str(self.move_board) and not self.is_won(player)
-
 
     async def pick_a_winner(self, winner='_draw'):
         if winner == '_draw':

@@ -573,7 +573,6 @@ class Levels(Cog):
     @is_enabled
     @bot_owner_or_permissions(manage_guild=True)
     async def clear_members_stats(self, ctx: SlashContext):
-        members = ctx.guild.members
         guild_configuration_collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         guild_users_collection = self.bot.get_guild_users_collection(ctx.guild_id)
 
@@ -582,7 +581,7 @@ class Levels(Cog):
         if role is None:
             role = ''
 
-        for member in members:
+        for member in ctx.guild.members:
             if member.bot:
                 continue
 

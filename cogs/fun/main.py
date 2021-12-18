@@ -17,7 +17,8 @@ import qrcode
 import requests
 
 from my_utils import AsteroidBot, get_content, Cog, consts
-from ._tictactoe import TicTacToe
+from ._tictactoe_online import TicTacToeOnline
+from ._tictactoe_ai import TicTacToeAI, TicTacToeMode
 from ._rockpaperscissors import RockPaperScissors
 from ._calculator import Calculator
 
@@ -80,21 +81,50 @@ class Fun(Cog):
 
     @slash_subcommand(
         base='game',
-        name='ttt',
-        description='Play a Tic Tac Toe'
+        subcommand_group='ttt',
+        name='online',
+        description='Play a TicTacToe game Online'
     )
     async def tictactoe_cmd(self, ctx: SlashContext, member: Member):
-        await self._start_ttt(ctx, member)
-        
-    @context_menu(
-        target=ContextMenuType.USER,
-        name='Start Tic Tac Toe'
-    )
-    async def tictactoe_menu(self, ctx: MenuContext):
-        member = ctx.target_author
-        await self._start_ttt(ctx, member)
+        await self.start_tictactoe_online(ctx, member)
 
-    async def _start_ttt(self, ctx, member: Member):
+    @slash_subcommand(
+        base='game',
+        subcommand_group='ttt',
+        name='bot',
+        description='Play a TicTacToe game with bot!'
+    )
+    async def ttt_game_ai(self, ctx: SlashContext):
+        components = [
+            [
+                Button(label='Easy', style=ButtonStyle.blue, custom_id='ttt_easy'),
+                Button(label='Impossible', style=ButtonStyle.blue, custom_id='ttt_imp')
+            ]
+        ]
+
+        message = await ctx.send(
+            'Choose a difficult',
+            components=components
+        )
+
+        try:
+            _ctx: ComponentContext = await self.bot.wait_for(
+                'button_click',
+                check=lambda __ctx: __ctx.author_id == ctx.author_id and __ctx.message.id == message.id,
+                timeout=60
+            )
+        except asyncio.TimeoutError:
+            return await message.delete()
+
+        if _ctx.custom_id == 'ttt_easy':
+            mode = TicTacToeMode.easy
+        else:
+            mode = TicTacToeMode.impossible
+
+        ttt = TicTacToeAI(self.bot, _ctx, mode=mode)
+        await ttt.start(edit_origin=True, message=message)
+
+    async def start_tictactoe_online(self, ctx, member: Member):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         invite_content = get_content('FUNC_INVITE_TO_GAME', lang)
         game_content = get_content('GAME_TTT', lang)
@@ -109,7 +139,7 @@ class Fun(Cog):
         if not accept:
             return
 
-        game = TicTacToe(self.bot, message, ctx, member, game_content)
+        game = TicTacToeOnline(self.bot, message, ctx, member, game_content)
         await game.start_game()
 
     async def invite_to_game(self, ctx, member, game_name):
