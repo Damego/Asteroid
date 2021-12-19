@@ -1,14 +1,15 @@
 """
 Origin code for minimax ai was taken from https://github.com/goverfl0w/slash-bot/blob/master/cogs/games/tictactoe.py
 """
-
 from asyncio import TimeoutError, to_thread
 from copy import deepcopy
+from datetime import datetime
 from enum import IntEnum
 from random import choice
 from math import inf
 from typing import List, Union
 
+from discord import Embed
 from discord_components import Button, ButtonStyle
 from discord_slash.context import SlashContext
 from discord_slash_components_bridge import (
@@ -18,6 +19,7 @@ from discord_slash_components_bridge import (
 )
 
 from my_utils import AsteroidBot
+
 
 BoardTemplate = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
@@ -47,6 +49,15 @@ class TicTacToeAI:
         self.board: List[list] = None
         self.emoji_circle = self.bot.get_emoji(850792047698509826)
         self.emoji_cross = self.bot.get_emoji(850792048080060456)
+
+        self.game_embed = Embed(
+            title='Tic Tac Toe Game',
+            description=f"**Player:** {ctx.author.mention}"
+                        f"\n**Difficult:** `{self.difficult}`",
+            color=self.bot.get_embed_color(ctx.guild_id),
+            timestamp=datetime.utcnow()
+        )
+        self.game_embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
     def is_won(self, board: List[list], player: GameState):
         win_states = [
@@ -127,7 +138,7 @@ class TicTacToeAI:
                 components[i].insert(
                     x,
                     Button(
-                        label=" ",
+                        label=" " if not emoji else "",
                         emoji=emoji,
                         style=style,
                         custom_id=f"{i} {x}",
@@ -181,28 +192,30 @@ class TicTacToeAI:
         elif self.is_won(self.board, GameState.ai):
             winner = ctx.bot.user.mention
         elif len(self.get_possible_moves(self.board)) == 0:
-            winner = 'Nobody'
+            winner = 'Draw'
         else:
             winner = None
 
+        if winner:
+            self.game_embed.description += f'\n**Winner:** {winner}'
+
         await ctx.edit_origin(
-            content=f"{ctx.author.mention}'s TicTacToe game\n**Mode:** `{self.difficult}`"
-            if not winner
-            else f"{winner} has won\n**Mode:** `{self.difficult}`",
+            embed=self.game_embed,
             components=self.render_gameboard()
         )
         return winner is not None
 
     async def start(self, *, edit_origin: bool = False, message: Union[SlashMessage, ComponentMessage] = None):
         ctx = self.ctx
+
         if not edit_origin:
             message = await ctx.send(
-                content=f"{ctx.author.mention}'s TicTacToe game\n**Mode:** `{self.difficult}`",
+                embed=self.game_embed,
                 components=self.render_gameboard()
             )
         else:
             await ctx.edit_origin(
-                content=f"{ctx.author.mention}'s TicTacToe game\n**Mode:** `{self.difficult}`",
+                embed=self.game_embed,
                 components=self.render_gameboard()
             )
 

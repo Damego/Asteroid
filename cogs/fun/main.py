@@ -1,5 +1,5 @@
 import asyncio
-import datetime
+from datetime import datetime
 import json
 from os import remove, environ
 from random import choice, randint
@@ -101,9 +101,17 @@ class Fun(Cog):
                 Button(label='Impossible', style=ButtonStyle.blue, custom_id='ttt_imp')
             ]
         ]
-
+        embed = Embed(
+            title='Tic Tac Toe Game',
+            description="**Choose a difficult:**"
+                        "\n`Easy` - Bot random clicks on free cell"
+                        "\n`Impossible` - Bot with minimax AI.",
+            color=self.bot.get_embed_color(ctx.guild_id),
+            timestamp=datetime.utcnow()
+        )
+        embed.set_thumbnail(url=ctx.bot.user.avatar_url)
         message = await ctx.send(
-            'Choose a difficult',
+            embed=embed,
             components=components
         )
 
@@ -284,7 +292,7 @@ class Fun(Cog):
             description=f'[{content["JOIN_TEXT"]}](https://discord.com/invite/{code})\n\n'
                         f'**Activity:** `{activity}`',
             color=self.bot.get_embed_color(ctx.guild_id),
-            timestamp=datetime.datetime.utcnow()
+            timestamp=datetime.utcnow()
         )
         embed.set_footer(
             text=content['REQUESTED_BY_TEXT'].format(ctx.author.name),
@@ -460,7 +468,7 @@ class Fun(Cog):
         embed = Embed(
             title='You bored?',
             color=self.bot.get_embed_color(ctx.guild_id),
-            timestamp=datetime.datetime.utcnow()
+            timestamp=datetime.utcnow()
         )
         embed.description = f'**Activity for you: ** \n{activity}\n\n**Activity type: ** `{type or data["type"]}`\n'
         embed.description += f'**Link:** {data["link"]}' if data.get('link') else ''
