@@ -86,6 +86,12 @@ class Fun(Cog):
         description='Play a TicTacToe game Online',
         options=[
             create_option(
+                name='member',
+                description='Whoever you want to play with',
+                required=True,
+                option_type=6
+            ),
+            create_option(
                 name='mode',
                 description='Choose mode of game (3x3, 4x4, 5x5)',
                 required=False,
