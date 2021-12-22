@@ -17,7 +17,7 @@ import qrcode
 import requests
 
 from my_utils import AsteroidBot, get_content, Cog, consts
-from ._tictactoe_online import TicTacToeOnline
+from ._tictactoe_online import TicTacToeOnline, BoardMode
 from ._tictactoe_ai import TicTacToeAI, TicTacToeMode
 from ._rockpaperscissors import RockPaperScissors
 from ._calculator import Calculator
@@ -83,10 +83,32 @@ class Fun(Cog):
         base='game',
         subcommand_group='ttt',
         name='online',
-        description='Play a TicTacToe game Online'
+        description='Play a TicTacToe game Online',
+        options=[
+            create_option(
+                name='mode',
+                description='Choose mode of game (3x3, 4x4, 5x5)',
+                required=False,
+                option_type=3,
+                choices=[
+                    create_choice(
+                        name='3x3',
+                        value='3x3'
+                    ),
+                    create_choice(
+                        name='4x4',
+                        value='4x4'
+                    ),
+                    create_choice(
+                        name='5x5',
+                        value='5x5'
+                    ),
+                ]
+            )
+        ]
     )
-    async def tictactoe_cmd(self, ctx: SlashContext, member: Member):
-        await self.start_tictactoe_online(ctx, member)
+    async def tictactoe_cmd(self, ctx: SlashContext, member: Member, mode: str = '3x3'):
+        await self.start_tictactoe_online(ctx, member, mode)
 
     @slash_subcommand(
         base='game',
@@ -132,7 +154,7 @@ class Fun(Cog):
         ttt = TicTacToeAI(self.bot, _ctx, mode=mode)
         await ttt.start(edit_origin=True, message=message)
 
-    async def start_tictactoe_online(self, ctx, member: Member):
+    async def start_tictactoe_online(self, ctx, member: Member, mode: str):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         invite_content = get_content('FUNC_INVITE_TO_GAME', lang)
         game_content = get_content('GAME_TTT', lang)
@@ -147,7 +169,14 @@ class Fun(Cog):
         if not accept:
             return
 
-        game = TicTacToeOnline(self.bot, message, ctx, member, game_content)
+        if mode == '3x3':
+            board_mode = BoardMode.x3
+        elif mode == '4x4':
+            board_mode = BoardMode.x4
+        elif mode == '5x5':
+            board_mode = BoardMode.x5
+
+        game = TicTacToeOnline(self.bot, message, ctx, member, game_content, board_mode)
         await game.start_game()
 
     async def invite_to_game(self, ctx, member, game_name):
