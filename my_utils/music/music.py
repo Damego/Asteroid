@@ -53,7 +53,6 @@ class MusicPlayer:
             self.ffmpeg_opts = {"options": "-vn", "before_options": "-nostdin"}
 
     def _check_queue(self):
-        previous_song = None
         print('in _check_queue')
         try:
             current_song = self.music.queue[self.guild_id][0]
@@ -62,19 +61,21 @@ class MusicPlayer:
         if not current_song.is_looping:
             print('is not looping')
             try:
-                previous_song = self.music.queue[self.guild_id].pop(0)
+                print('deleting track')
+                self._previous_song = self.music.queue[self.guild_id].pop(0)
+                print('deleted', self._previous_song.name)
                 current_song = self.music.queue[self.guild_id][0]
             except IndexError:
                 print('index error')
                 return
             if self.music.queue[self.guild_id]:
-                print('creating task')
-                self.loop.create_task(self._dispatch_on_error_event(previous_song, current_song))
+                print('playing...')
                 self._play_track()
+                #  self.loop.create_task(self._dispatch_on_error_event(previous_song, current_song))
         else:
             print('is looping')
-            self.loop.create_task(self._dispatch_on_error_event(previous_song, current_song))
             self._play_track()
+            #  self.loop.create_task(self._dispatch_on_error_event(previous_song, current_song))
 
     async def _dispatch_on_error_event(self, previous_song, current_song):
         print('dispatching')
@@ -82,12 +83,14 @@ class MusicPlayer:
         print('dispatched')
 
     def _play_track(self):
+        print([track.name for track in self.music.queue[self.guild_id]])
         if self._previous_song == self.music.queue[self.guild_id][0]:
+            print(self._previous_song.name, self.music.queue[self.guild_id][0].name)
             self._previous_song = None
             del self.music.queue[self.guild_id][0]
-
         source = discord.PCMVolumeTransformer(
-            discord.FFmpegPCMAudio(self.music.queue[self.guild_id][0].source, **self.ffmpeg_opts))
+            discord.FFmpegPCMAudio(self.music.queue[self.guild_id][0].source, **self.ffmpeg_opts)
+        )
         self.voice.play(source, after=lambda error: self._check_queue())
         self.is_playing = True
         song = self.music.queue[self.guild_id][0]
@@ -113,7 +116,7 @@ class MusicPlayer:
 
         current_song = self.music.queue[self.guild_id][0]
         current_song.is_looping = False
-        self._previous_song = current_song
+        #  self._previous_song = current_song
         self.voice.stop()
         try:
             new_song = self.music.queue[self.guild_id][1]

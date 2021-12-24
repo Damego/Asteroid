@@ -3,9 +3,8 @@ from discord_components import Button, ButtonStyle
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash_components_bridge import ComponentContext
-from DiscordUtils import Music as _Music
 
-from my_utils import AsteroidBot, get_content, NotConnectedToVoice, Cog
+from my_utils import AsteroidBot, get_content, NotConnectedToVoice, Cog, music
 
 
 class Music(Cog):
@@ -13,7 +12,7 @@ class Music(Cog):
         self.bot = bot
         self.emoji = '🎵'
         self.name = 'Music'
-        self.music = _Music()
+        self.music = music.Music(bot)
         self.track_queue = {}
         self.players = {}
 
@@ -108,10 +107,10 @@ class Music(Cog):
             await voice_channel.connect()
             self.track_queue[str(ctx.guild_id)] = {}
 
-        player = self.music.get_player(guild_id=ctx.guild.id)
+        player = self.music.get_player(guild_id=ctx.guild_id)
         if player is None:
             player = self.music.create_player(ctx, ffmpeg_error_betterfix=True)
-        track = await player.queue(query, search=True)
+        track = await player.add_to_queue(query, search=True)
 
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('MUSIC_PLAY_COMMAND', lang)
