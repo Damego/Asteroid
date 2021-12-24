@@ -25,7 +25,7 @@ class Tags(Cog):
         name='open',
         description='Open tag'
     )
-    async def open_tag(self, ctx: SlashContext, tag_name: str, hidden: bool = True):
+    async def open_tag(self, ctx: SlashContext, tag_name: str, hidden: bool = False):
         tag_name = self.convert_tag_name(tag_name)
 
         collection = self.bot.get_guild_tags_collection(ctx.guild_id)
