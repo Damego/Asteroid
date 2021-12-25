@@ -1,17 +1,17 @@
 import os
+from typing import Union
 
 import aiohttp
 from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter
-from discord_components import Button, ButtonStyle
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu
 )
+from discord_components import Button, ButtonStyle
 
-from my_utils import AsteroidBot, get_content, Cog, _is_enabled, CogDisabledOnGuild
-from my_utils.paginator import Paginator, PaginatorStyle
+from my_utils import AsteroidBot, get_content, Cog, _is_enabled, CogDisabledOnGuild, is_enabled
 from my_utils.consts import test_guild_id
 from .levels._levels import formula_of_experience
 
@@ -76,35 +76,36 @@ class Misc(Cog):
         embed = self._get_embed_member_info(ctx, member)
         await ctx.send(embed=embed)
 
-    def _get_embed_member_info(self, ctx: SlashContext, member: Member) -> Embed:
+    def _get_embed_member_info(self, ctx: Union[SlashContext, MenuContext], member: Member) -> Embed:
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_MEMBER_INFO', lang=lang)
 
         status = content['MEMBER_STATUS']
         about_text = content['ABOUT_TITLE'].format(member.display_name)
         general_info_title_text = content['GENERAL_INFO_TITLE']
-        is_bot = '<:discord_bot_badge:904659785180401694>' if member.bot else ''
+
+        is_bot = '<:discord_bot_badge:924198977367318548>' if member.bot else ""
         user_badges = self._get_user_badges(member.public_flags)
+        badges_text = f"**{content['BADGES_TEXT']}** {user_badges}" if user_badges else ""
+        member_status = status.get(str(member.status))
+
+        member_roles = [role.mention for role in member.roles if role.name != "@everyone"][::-1]
+        member_roles = ', '.join(member_roles)
+        role_content = f"**{content['TOP_ROLE_TEXT']}** {member.top_role.mention}" \
+                       f"\n**{content['ROLES_TEXT']}** {member_roles}" if member_roles else ""
 
         embed = Embed(title=about_text, color=self.bot.get_embed_color(ctx.guild_id))
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(text=f'{ctx.author.name}', icon_url=ctx.author.avatar_url)
-
-        member_roles = [role.mention for role in member.roles if role.name != "@everyone"][::-1]
-        member_roles = ', '.join(member_roles)
-        member_status = str(member.status)
-
         embed.add_field(
             name=general_info_title_text,
             value=f"""
                 **{content['FULL_NAME_TEXT']}** {member} {is_bot}
-                **{content['BADGES_TEXT']}** {user_badges}
-    
+                {badges_text}
                 **{content['DISCORD_REGISTRATION_TEXT']}** <t:{int(member.created_at.timestamp())}:F>
                 **{content['JOINED_ON_SERVER_TEXT']}** <t:{int(member.joined_at.timestamp())}:F>
-                **{content['CURRENT_STATUS_TEXT']}** {status.get(member_status)}
-                **{content['TOP_ROLE_TEXT']}** {member.top_role.mention}
-                **{content['ROLES_TEXT']}** {member_roles}
+                **{content['CURRENT_STATUS_TEXT']}** {member_status}
+                {role_content}
                 """,
             inline=False
         )
@@ -245,9 +246,11 @@ class Misc(Cog):
 
         components = [
             [
-                Button(style=ButtonStyle.URL, label=content['INVITE_BUTTON_NO_PERMS'], url=self.bot.no_perms_invite_link),
+                Button(style=ButtonStyle.URL, label=content['INVITE_BUTTON_NO_PERMS'],
+                       url=self.bot.no_perms_invite_link),
                 Button(style=ButtonStyle.URL, label=content['INVITE_BUTTON_ADMIN'], url=self.bot.admin_invite_link),
-                Button(style=ButtonStyle.URL, label=content['INVITE_BUTTON_RECOMMENDED'], url=self.bot.recommended_invite_link)
+                Button(style=ButtonStyle.URL, label=content['INVITE_BUTTON_RECOMMENDED'],
+                       url=self.bot.recommended_invite_link)
             ]
         ]
 
