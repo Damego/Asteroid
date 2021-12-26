@@ -4,9 +4,9 @@ class Song:
         self.url: str = "https://www.youtube.com/watch?v=" + data["id"]
         self.title: str = data["title"]
         self.name = self.title
-        self.description: str = data["description"] if 'description' in data else None
-        self.likes = data["like_count"] if 'like_count' in data else None
-        self.dislikes = data["dislike_count"] if 'dislike_count' in data else None
+        self.description: str = data.get("description")
+        self.likes = data.get("like_count")
+        self.dislikes = data.get("dislike_count")
         self.views = data["view_count"]
         self.duration = data["duration"]
         self.thumbnail = data["thumbnail"]
