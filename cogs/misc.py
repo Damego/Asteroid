@@ -2,7 +2,7 @@ import os
 from typing import Union
 
 import aiohttp
-from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter
+from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter, errors
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
@@ -11,7 +11,7 @@ from discord_slash.cog_ext import (
 )
 from discord_components import Button, ButtonStyle
 
-from my_utils import AsteroidBot, get_content, Cog, _is_enabled, CogDisabledOnGuild, is_enabled
+from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled
 from my_utils.consts import test_guild_id
 from .levels._levels import formula_of_experience
 
@@ -61,6 +61,7 @@ class Misc(Cog):
         name='info',
         description='Out information about guild member'
     )
+    @is_enabled()
     async def get_member_information_slash(self, ctx: SlashContext, member: Member = None):
         if member is None:
             member = ctx.author
@@ -71,6 +72,7 @@ class Misc(Cog):
         name='Get information',
         target=ContextMenuType.USER
     )
+    @is_enabled()
     async def get_member_information_context(self, ctx: MenuContext):
         member = ctx.target_author
         embed = self._get_embed_member_info(ctx, member)
@@ -114,7 +116,7 @@ class Misc(Cog):
             levels_enabled = False
         else:
             try:
-                levels_enabled = _is_enabled(self.bot.get_cog('Levels'), ctx.guild_id)
+                levels_enabled = _cog_is_enabled(self.bot.get_cog('Levels'), ctx.guild_id)
             except CogDisabledOnGuild:
                 levels_enabled = False
 
@@ -193,6 +195,7 @@ class Misc(Cog):
         name='ping',
         description='Show bot latency'
     )
+    @is_enabled()
     async def ping(self, ctx: SlashContext):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_PING', lang=lang)
@@ -223,6 +226,7 @@ class Misc(Cog):
         base='server',
         name='role_perms'
     )
+    @is_enabled()
     async def guild_role_permissions(self, ctx: SlashContext, role: Role):
         description = ''.join(
             f'✅ {permission[0]}\n' if permission[1] else f'❌ {permission[0]}\n'
@@ -241,6 +245,7 @@ class Misc(Cog):
         name='invite',
         description='Send\'s bot invite link'
     )
+    @is_enabled()
     async def invite_bot(self, ctx: SlashContext):
         content = get_content('INVITE_COMMAND', lang=self.bot.get_guild_bot_lang(ctx.guild_id))
 

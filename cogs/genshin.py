@@ -2,9 +2,7 @@ import discord
 import genshinstats as gs
 from genshinstats.errors import DataNotPublic, AccountNotFound
 from discord_slash import SlashContext
-from discord_slash.cog_ext import (
-    cog_subcommand as slash_subcommand,
-)
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
 from my_utils import (
     UIDNotBinded,
@@ -12,7 +10,8 @@ from my_utils import (
     GenshinDataNotPublic,
     AsteroidBot,
     get_content,
-    Cog
+    Cog,
+    is_enabled
 )
 from my_utils.paginator import (
     PaginatorStyle,
@@ -26,12 +25,12 @@ class GenshinStats(Cog):
         self.emoji = 863429526632923136
         self.name = 'GenshinStats'
 
-
     @slash_subcommand(
         base='genshin',
         name='bind',
         description='Bind Hoyolab UID to your account'
     )
+    @is_enabled()
     async def bind_uid(self, ctx: SlashContext, hoyolab_uid:int):
         self._get_cookie()
         uid = gs.get_uid_from_hoyolab_uid(hoyolab_uid)
@@ -50,12 +49,12 @@ class GenshinStats(Cog):
         content = get_content('GENSHIN_BIND_COMMAND', lang)
         await ctx.send(content)
 
-
     @slash_subcommand(
         base='genshin',
         name='statistics',
         description='Show your statistics of Genshin Impact'
     )
+    @is_enabled()
     async def statistics(self, ctx: SlashContext, uid: int=None):
         await ctx.defer()
         if uid is None:
@@ -117,12 +116,12 @@ class GenshinStats(Cog):
         embed.add_field(name=content['MISC_INFO'], value=misc_content, inline=False)
         await ctx.send(embed=embed)
 
-
     @slash_subcommand(
         base='genshin',
         name='characters_list',
         description='Show your characters list of Genshin Impact'
     )
+    @is_enabled()
     async def characters(self, ctx: SlashContext, uid: int=None):
         await ctx.defer()
         if uid is None:
@@ -160,6 +159,7 @@ class GenshinStats(Cog):
         name='characters',
         description='Show your characters of Genshin Impact'
     )
+    @is_enabled()
     async def chars(self, ctx: SlashContext, uid: int=None):
         await ctx.defer()
         if uid is None:
@@ -197,6 +197,7 @@ class GenshinStats(Cog):
         name='info',
         description='Show account information'
     )
+    @is_enabled()
     async def info(self, ctx: SlashContext, hoyolab_uid: int=None):
         await ctx.defer()
         if hoyolab_uid is None:
@@ -222,7 +223,6 @@ class GenshinStats(Cog):
         embed = discord.Embed(title=content['PLAYER_INFO_TEXT'], description=description, color=self.bot.get_embed_color(ctx.guild.id))
         embed.set_footer(text=f'Hoyolab UID: {hoyolab_uid}')
         await ctx.send(embed=embed)
-
 
     def _get_cookie(self):
         gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
@@ -275,7 +275,6 @@ class GenshinStats(Cog):
                 """
 
         return embed
-
 
 
 def setup(bot):

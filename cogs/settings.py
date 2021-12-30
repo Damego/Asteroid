@@ -39,8 +39,8 @@ class Settings(Cog):
 
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         collection.update_one(
-            {'_id':'configuration'},
-            {'$set':{'lang':lang}},
+            {'_id': 'configuration'},
+            {'$set': {'lang': lang}},
             upsert=True)
 
         await ctx.send(f'Language was set up to `{lang}`')
@@ -89,7 +89,7 @@ class Settings(Cog):
             {'_id': 'cogs_status'},
             {'$set': {
                 cog: status
-                }
+            }
             },
             upsert=True
         )
@@ -252,5 +252,3 @@ class Settings(Cog):
 
 def setup(bot):
     bot.add_cog(Settings(bot))
-
-

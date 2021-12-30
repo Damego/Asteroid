@@ -6,6 +6,7 @@ LANGUAGES = {
     'ru': {
         'ERRORS_DESCRIPTIONS': {
             'COG_DISABLED': 'Эта команда отключена на этом сервере!',
+            'COMMAND_DISABLED': 'Эта команда или группа команд была отключена на этом сервере!',
             'TAG_NOT_FOUND': 'Тег не найден!',
             'FORBIDDEN_TAG': 'Этот тег нельзя использовать!',
             'NOT_TAG_OWNER': 'Вы не владелец тега!',
@@ -326,11 +327,16 @@ LANGUAGES = {
             'm': 'мин.',
             'h': 'час.',
             'd': 'дн.',
+        },
+        'COMMAND_CONTROL': {
+            'COMMAND_DISABLED': 'Команда `{command_name}` была выключена!',
+            'COMMAND_ENABLED': 'Команда `{command_name}` была включена!'
         }
     },
     'en': {
         'ERRORS_DESCRIPTIONS': {
             'COG_DISABLED': 'This command disabled on this server!',
+            'COMMAND_DISABLED': 'This command or group of commands was disabled on this server!',
             'TAG_NOT_FOUND': 'Tag not found!',
             'FORBIDDEN_TAG': 'This tag cannot be used!',
             'NOT_TAG_OWNER': 'You not owner of this tag!',
@@ -653,6 +659,10 @@ LANGUAGES = {
             'm': 'minutes',
             'h': 'hours',
             'd': 'days',
+        },
+        'COMMAND_CONTROL': {
+            'COMMAND_DISABLED': 'Command `{}` was disabled!',
+            'COMMAND_ENABLED': 'Command `{}` was enabled!'
         }
     }
 }

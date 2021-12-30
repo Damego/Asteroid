@@ -10,9 +10,8 @@ from my_utils import (
     get_content,
     Cog,
     bot_owner_or_permissions,
-    is_enabled, _is_enabled,
+    is_enabled, _cog_is_enabled,
     CogDisabledOnGuild,
-    consts
 )
 
 
@@ -50,6 +49,7 @@ class AutoRole(Cog):
         name='add',
         description='Adds a new on join role'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_on_join_add(self, ctx: SlashContext, role: Role):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -73,6 +73,7 @@ class AutoRole(Cog):
         name='remove',
         description='Removes on join role'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_on_join_remove(self, ctx: SlashContext, role: Role):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -126,6 +127,7 @@ class AutoRole(Cog):
         name='create',
         description='Creating new dropdown'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_create_dropdown(
             self,
@@ -155,6 +157,7 @@ class AutoRole(Cog):
         name='add_role',
         description='Adding role to dropdown'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_add_role(
             self,
@@ -216,6 +219,7 @@ class AutoRole(Cog):
         name='remove_role',
         description='Removing role from dropdown'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_remove_role(
             self,
@@ -273,6 +277,7 @@ class AutoRole(Cog):
             )
         ]
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_set_status(
             self,
@@ -303,6 +308,7 @@ class AutoRole(Cog):
         name='save',
         description='Save dropdown to database'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_save(
             self,
@@ -345,6 +351,7 @@ class AutoRole(Cog):
         name='load',
         description='Load dropdown from database and send this'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_load(self, ctx: SlashContext, name: str):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -369,6 +376,7 @@ class AutoRole(Cog):
         name='list',
         description='Show list of saved dropdowns'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_list(self, ctx: SlashContext):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -397,7 +405,7 @@ class AutoRole(Cog):
         if payload.member.bot:
             return
         try:
-            _is_enabled(self, payload.guild_id)
+            _cog_is_enabled(self, payload.guild_id)
         except CogDisabledOnGuild:
             return
 
@@ -421,7 +429,7 @@ class AutoRole(Cog):
     @Cog.listener()
     async def on_raw_reaction_remove(self, payload: RawReactionActionEvent):
         try:
-            _is_enabled(self, payload.guild_id)
+            _cog_is_enabled(self, payload.guild_id)
         except CogDisabledOnGuild:
             return
 
@@ -460,7 +468,7 @@ class AutoRole(Cog):
             )
         ]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def add_post(self, ctx, message_id):
         collection = self.bot.get_guild_reaction_roles_collection(ctx.guild.id)
@@ -494,7 +502,7 @@ class AutoRole(Cog):
             ),
         ]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def add_emoji_role(self, ctx, message_id, emoji, role: Role):
         if emoji[0] == '<':
@@ -524,7 +532,7 @@ class AutoRole(Cog):
         ]
     )
     @bot_owner_or_permissions(manage_roles=True)
-    @is_enabled
+    @is_enabled()
     async def remove_post(self, ctx, message_id):
         collection = self.bot.get_guild_reaction_roles_collection(ctx.guild.id)
         collection.delete_one({'_id': message_id})
@@ -552,7 +560,7 @@ class AutoRole(Cog):
         ]
     )
     @bot_owner_or_permissions(manage_roles=True)
-    @is_enabled
+    @is_enabled()
     async def remove_role(self, ctx, message_id, emoji):
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>', '')

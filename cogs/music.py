@@ -4,7 +4,7 @@ from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash_components_bridge import ComponentContext
 
-from my_utils import AsteroidBot, get_content, NotConnectedToVoice, Cog, music
+from my_utils import AsteroidBot, get_content, NotConnectedToVoice, Cog, music, is_enabled
 
 
 class Music(Cog):
@@ -30,6 +30,7 @@ class Music(Cog):
         name='play',
         description='Start playing music'
     )
+    @is_enabled()
     async def play_music(self, ctx: SlashContext, *, query: str):
         await ctx.defer()
         await self._play_music(ctx, False, query)
@@ -39,6 +40,7 @@ class Music(Cog):
         name='nplay',
         description='Start playing music'
     )
+    @is_enabled()
     async def button_play_music(self, ctx: SlashContext, *, query: str):
         await ctx.defer()
         await self._play_music(ctx, True, query)
@@ -48,6 +50,7 @@ class Music(Cog):
         name='stop',
         description='Stop playing music'
     )
+    @is_enabled()
     async def stop_music(self, ctx: SlashContext):
         await self._stop_music(ctx)
 
@@ -56,6 +59,7 @@ class Music(Cog):
         name='pause',
         description='Pause playing music'
     )
+    @is_enabled()
     async def pause_music(self, ctx: SlashContext):
         await self._pause_music(ctx)
 
@@ -64,6 +68,7 @@ class Music(Cog):
         name='resume',
         description='Resume playing music'
     )
+    @is_enabled()
     async def resume_music(self, ctx: SlashContext):
         await self._resume_music(ctx)
 
@@ -72,6 +77,7 @@ class Music(Cog):
         name='repeat',
         description='Toggle music repeat'
     )
+    @is_enabled()
     async def repeat_music(self, ctx: SlashContext):
         await self._repeat_music(ctx)
 
@@ -80,6 +86,7 @@ class Music(Cog):
         name='skip',
         description='Skip music'
     )
+    @is_enabled()
     async def skip_music(self, ctx: SlashContext):
         await self._skip_music(ctx)
 

@@ -16,7 +16,7 @@ from discord_components import Button, ButtonStyle, Select, SelectOption
 import qrcode
 import requests
 
-from my_utils import AsteroidBot, get_content, Cog, consts
+from my_utils import AsteroidBot, get_content, Cog, is_enabled
 from ._tictactoe_online import TicTacToeOnline, BoardMode
 from ._tictactoe_ai import TicTacToeAI, TicTacToeMode
 from ._rockpaperscissors import RockPaperScissors
@@ -52,6 +52,7 @@ class Fun(Cog):
         name='rps',
         description='Start play a Rock Paper Scissors'
     )
+    @is_enabled()
     async def rockpaperscissors_cmd(self, ctx: SlashContext, member: Member, total_rounds: int=3):
         await self._start_rps(ctx, member, total_rounds)
 
@@ -59,6 +60,7 @@ class Fun(Cog):
         target=ContextMenuType.USER,
         name='Start Rock Paper Scissors'
     )
+    @is_enabled()
     async def rockpaperscissors_contex(self, ctx: MenuContext):
         member = ctx.target_author
         await self._start_rps(ctx, member, 3)
@@ -113,6 +115,7 @@ class Fun(Cog):
             )
         ]
     )
+    @is_enabled()
     async def tictactoe_cmd(self, ctx: SlashContext, member: Member, mode: str = '3x3'):
         await self.start_tictactoe_online(ctx, member, mode)
 
@@ -122,6 +125,7 @@ class Fun(Cog):
         name='bot',
         description='Play a TicTacToe game with bot!'
     )
+    @is_enabled()
     async def ttt_game_ai(self, ctx: SlashContext):
         components = [
             [
@@ -245,6 +249,7 @@ class Fun(Cog):
         name='random_num',
         description='Generate random number'
     )
+    @is_enabled()
     async def random_num(self, ctx: SlashContext, _from: int, _to: int):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('FUNC_RANDOM_NUMBER_OUT_CONTENT', lang)
@@ -257,6 +262,7 @@ class Fun(Cog):
         name='qr',
         description='Create a QR-code'
     )
+    @is_enabled()
     async def create_qr(self, ctx: SlashContext, *, text):
         qr = qrcode.QRCode(
             version=None,
@@ -295,6 +301,7 @@ class Fun(Cog):
             )
         ]
     )
+    @is_enabled()
     async def start_activity(self, ctx: SlashContext, activity: str, channel: VoiceChannel = None):
         await ctx.defer()
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -353,6 +360,7 @@ class Fun(Cog):
         name='item',
         description='Random item in Phasmophobia'
     )
+    @is_enabled()
     async def phasmophobia_random_item(self, ctx: SlashContext):
         await self._start_random(ctx)
 
@@ -361,6 +369,7 @@ class Fun(Cog):
         name='map',
         description='Random map in Phasmophobia'
     )
+    @is_enabled()
     async def phasmophobia_random_map(self, ctx: SlashContext):
         maps_list = [
             'Bleasdale Farmhouse',
@@ -381,6 +390,7 @@ class Fun(Cog):
         name='random_item',
         description='Random item. To split your items use `,`'
     )
+    @is_enabled()
     async def fun_random_item(self, ctx: SlashContext, items: str):
         pre_items_list = ''.join(items.split(' ')).split(',')
         items_list = [item for item in pre_items_list if item]
@@ -491,6 +501,7 @@ class Fun(Cog):
             )
         ]
     )
+    @is_enabled()
     async def bored_api(self, ctx: SlashContext, type: str = None):
         await ctx.defer()
         if type:
@@ -516,6 +527,7 @@ class Fun(Cog):
         name='calculator',
         description='Open calculator (based on calculator by Polsulpicien#5020)'
     )
+    @is_enabled()
     async def start_calculator(self, ctx: SlashContext):
         calculator = Calculator(self.bot)
         await calculator.start(ctx)

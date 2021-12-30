@@ -2,15 +2,12 @@ import asyncio
 
 from discord import Embed, Message
 from discord_slash import SlashContext
-from discord_slash.cog_ext import (
-    cog_slash as slash_command,
-    cog_subcommand as slash_subcommand
-)
-from discord_components import Button, ButtonStyle
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash_components_bridge import ComponentMessage, ComponentContext
+from discord_components import Button, ButtonStyle
 from pymongo.collection import Collection
 
-from my_utils import AsteroidBot, is_administrator_or_bot_owner, get_content, Cog
+from my_utils import AsteroidBot, is_administrator_or_bot_owner, get_content, Cog, is_enabled
 from my_utils.errors import TagNotFound, NotTagOwner
 
 
@@ -25,6 +22,7 @@ class Tags(Cog):
         name='open',
         description='Open tag'
     )
+    @is_enabled()
     async def open_tag(self, ctx: SlashContext, tag_name: str, hidden: bool = False):
         tag_name = self.convert_tag_name(tag_name)
 
@@ -51,6 +49,7 @@ class Tags(Cog):
         name='add',
         description='Create new tag'
     )
+    @is_enabled()
     async def create_new_tag(self, ctx: SlashContext, tag_name: str, *, tag_content: str):
         tag_name = self.convert_tag_name(tag_name)
 
@@ -84,6 +83,7 @@ class Tags(Cog):
         name='remove',
         description='Removes tag'
     )
+    @is_enabled()
     async def tag_remove(self, ctx: SlashContext, tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
         collection = self.bot.get_guild_tags_collection(ctx.guild_id)
@@ -101,6 +101,7 @@ class Tags(Cog):
         name='list',
         description='Shows list of exists tags'
     )
+    @is_enabled()
     async def tag_list(self, ctx: SlashContext):
         description = ''
         collection = self.bot.get_guild_tags_collection(ctx.guild_id)
@@ -126,6 +127,7 @@ class Tags(Cog):
         name='rename',
         description='Renames tag\'s name'
     )
+    @is_enabled()
     async def rename(self, ctx: SlashContext, tag_name: str, new_tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
         new_tag_name = self.convert_tag_name(new_tag_name)
@@ -173,6 +175,7 @@ class Tags(Cog):
         name='raw',
         description='Show raw tag description'
     )
+    @is_enabled()
     async def raw(self, ctx: SlashContext, tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
         collection = self.bot.get_guild_tags_collection(ctx.guild_id)
@@ -190,6 +193,7 @@ class Tags(Cog):
         name='tags',
         description='Allows or disallows everyone to use tags'
     )
+    @is_enabled()
     @is_administrator_or_bot_owner()
     async def allow_public_tags(self, ctx: SlashContext):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -217,6 +221,7 @@ class Tags(Cog):
         name='embed',
         description='Open embed control tag menu'
     )
+    @is_enabled()
     async def tag_embed(self, ctx: SlashContext, tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
         collection = self.bot.get_guild_tags_collection(ctx.guild_id)

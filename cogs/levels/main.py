@@ -12,7 +12,7 @@ from my_utils import (
     AsteroidBot,
     bot_owner_or_permissions,
     is_enabled,
-    _is_enabled,
+    _cog_is_enabled,
     CogDisabledOnGuild,
     Cog,
     consts,
@@ -45,7 +45,7 @@ class Levels(Cog):
         if member.bot:
             return
         try:
-            _is_enabled(self, member.guild.id)
+            _cog_is_enabled(self, member.guild.id)
         except CogDisabledOnGuild:
             return
         await self.add_member(member)
@@ -55,7 +55,7 @@ class Levels(Cog):
         if member.bot:
             return
         try:
-            _is_enabled(self, member.guild.id)
+            _cog_is_enabled(self, member.guild.id)
         except CogDisabledOnGuild:
             return
         collection = self.bot.get_guild_users_collection(member.guild.id)
@@ -64,7 +64,7 @@ class Levels(Cog):
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
         try:
-            _is_enabled(self, member.guild.id)
+            _cog_is_enabled(self, member.guild.id)
         except CogDisabledOnGuild:
             return
         if member.bot:
@@ -206,7 +206,7 @@ class Levels(Cog):
             )
         ]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def reset_member_statistics(self, ctx: SlashContext, member: Member):
         user_id = str(member.id)
@@ -258,7 +258,7 @@ class Levels(Cog):
             )
         ]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def levels_add_xp(self, ctx: SlashContext, member: Member, exp: int):
         await ctx.defer(hidden=True)
@@ -284,7 +284,7 @@ class Levels(Cog):
             )
         ]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def add_level_role(self, ctx: SlashContext, level: int, role: Role):
         collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
@@ -307,7 +307,7 @@ class Levels(Cog):
             )
         ]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def remove_level_role(self, ctx: SlashContext, level: str):
         level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
@@ -336,7 +336,7 @@ class Levels(Cog):
             )
         ]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def replace_level_role(self, ctx: SlashContext, old_level: str, new_level: str):
         level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
@@ -353,7 +353,7 @@ class Levels(Cog):
         description='Reset levels in server',
         options=[]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def reset_levels(self, ctx: SlashContext):
         level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
@@ -366,7 +366,7 @@ class Levels(Cog):
         description='Show list of levels in server',
         options=[]
     )
-    @is_enabled
+    @is_enabled()
     async def send_levels_list(self, ctx: SlashContext):
         collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
         dict_levels = collection.find()
@@ -407,7 +407,7 @@ class Levels(Cog):
             )
         ]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_role_to_member(self, ctx: SlashContext, member: Member, role: Role):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
@@ -441,7 +441,7 @@ class Levels(Cog):
             )
         ]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_time_to_member(self, ctx: SlashContext, member: Member, time: int):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
@@ -475,7 +475,7 @@ class Levels(Cog):
             )
         ]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_level_to_member(self, ctx: SlashContext, member: Member, level: int):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
@@ -502,7 +502,7 @@ class Levels(Cog):
             )
         ]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_on_join_role(self, ctx: SlashContext, role: Role):
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
@@ -519,7 +519,7 @@ class Levels(Cog):
         description='Remove on join role',
         options=[]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_on_join_role_remove(self, ctx: SlashContext):
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
@@ -535,7 +535,7 @@ class Levels(Cog):
         description='Add to everyone start role of guild',
         options=[]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def add_start_role(self, ctx: SlashContext):
         guild_configuration_collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
@@ -570,7 +570,7 @@ class Levels(Cog):
         name='clear_members_stats',
         options=[]
     )
-    @is_enabled
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def clear_members_stats(self, ctx: SlashContext):
         guild_configuration_collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
@@ -608,7 +608,7 @@ class Levels(Cog):
         description='Shows top members by level',
         options=[]
     )
-    @is_enabled
+    @is_enabled()
     async def levels_top_members(self, ctx: SlashContext):
         await ctx.defer()
 

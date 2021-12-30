@@ -63,6 +63,8 @@ async def on_slash_command_error(ctx, error):
 
     if isinstance(error, CogDisabledOnGuild):
         desc = content['COG_DISABLED']
+    elif isinstance(error, CommandDisabled):
+        desc = content['COMMAND_DISABLED']
     elif isinstance(error, TagNotFound):
         desc = content['TAG_NOT_FOUND']
     elif isinstance(error, ForbiddenTag):

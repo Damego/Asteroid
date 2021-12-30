@@ -6,7 +6,7 @@ from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 from pymongo.collection import Collection
 
-from my_utils import AsteroidBot, Cog, bot_owner_or_permissions, get_content, consts
+from my_utils import AsteroidBot, Cog, bot_owner_or_permissions, get_content, is_enabled
 
 
 class Utilities(Cog):
@@ -15,6 +15,7 @@ class Utilities(Cog):
         self.emoji = '🧰'
         self.name = 'Utilities'
 
+    # STARBOARD
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: RawReactionActionEvent):
         if payload.member.bot:
@@ -162,6 +163,7 @@ class Utilities(Cog):
         name='channel',
         description='Starboard channel setting'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_channel(self, ctx: SlashContext, channel: TextChannel):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -191,6 +193,7 @@ class Utilities(Cog):
         name='limit',
         description='Limit setting'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_stars_limit(self, ctx: SlashContext, limit: int):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -227,6 +230,7 @@ class Utilities(Cog):
             )
         ]
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_status(self, ctx: SlashContext, status: str):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -260,6 +264,7 @@ class Utilities(Cog):
         name='add',
         description='Adds member, role or channel in blacklist'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def starboard_blacklist_add(
         self,
@@ -314,6 +319,7 @@ class Utilities(Cog):
         name='remove',
         description='Removes member/role/channel from blacklist'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def starboard_blacklist_remove(
         self,
@@ -363,6 +369,7 @@ class Utilities(Cog):
         name='list',
         description='Shows blacklist'
     )
+    @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def starboard_blacklist_list(self, ctx: SlashContext, hidden: bool = False):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -406,6 +413,48 @@ class Utilities(Cog):
             )
 
         await ctx.send(embed=embed, hidden=hidden)
+
+    #  TURN OFF/ON COMMANDS/GROUP OF COMMANDS
+    @slash_subcommand(
+        base='command',
+        name='disable',
+        description='Disable command/base/group for your server'
+    )
+    async def disable_cmd(self, ctx: SlashContext, command_name: str):
+        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        content = get_content("COMMAND_CONTROL", lang=self.bot.get_guild_bot_lang(ctx.guild_id))
+
+        collection.update_one(
+            {'_id': 'configuration'},
+            {
+                '$push': {
+                    'disabled_commands': command_name
+                }
+            },
+            upsert=True
+        )
+
+        await ctx.send(content['COMMAND_DISABLED'].format(command_name))
+
+    @slash_subcommand(
+        base='command',
+        name='enable',
+        description='Enable command/base/group for your server'
+    )
+    async def enable_cmd(self, ctx: SlashContext, command_name: str):
+        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        content = get_content("COMMAND_CONTROL", lang=self.bot.get_guild_bot_lang(ctx.guild_id))
+
+        collection.update_one(
+            {'_id': 'configuration'},
+            {
+                '$pull': {
+                    'disabled_commands': command_name
+                }
+            },
+            upsert=True
+        )
+        await ctx.send(content['COMMAND_ENABLED'].format(command_name))
 
 
 def setup(bot):
