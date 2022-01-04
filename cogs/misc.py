@@ -156,7 +156,7 @@ class Misc(Cog):
             exp_amount=user_exp_amount
         )
         user_voice_time_count = content['TOTAL_VOICE_TIME'].format(
-            voice_time=user_voice_time
+            voice_time=user_voice_time / 60
         )
 
         embed.add_field(
