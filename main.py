@@ -5,7 +5,7 @@ from discord import Guild, Intents, Embed, Forbidden
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from my_utils import AsteroidBot, get_content
+from my_utils import AsteroidBot, get_content, transform_permission
 from my_utils.errors import *
 from my_utils import slash_override
 
@@ -82,10 +82,10 @@ async def on_slash_command_error(ctx, error):
     elif isinstance(error, commands.NotOwner):
         desc = content['NOT_BOT_OWNER']
     elif isinstance(error, commands.BotMissingPermissions):
-        missing_perms = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
+        missing_perms = [transform_permission(perm) for perm in error.missing_perms]
         desc = f'{content["BOT_DONT_HAVE_PERMS"]} `{", ".join(missing_perms)}`'
     elif isinstance(error, commands.MissingPermissions):
-        missing_perms = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
+        missing_perms = [transform_permission(perm) for perm in error.missing_perms]
         desc = f'{content["DONT_HAVE_PERMS"]} `{", ".join(missing_perms)}`'
     elif isinstance(error, commands.CheckFailure):
         desc = content['CHECK_FAILURE']

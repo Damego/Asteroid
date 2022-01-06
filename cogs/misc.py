@@ -13,7 +13,7 @@ from discord_slash.cog_ext import (
 from discord_components import Button, ButtonStyle
 from discord_slash_components_bridge import ComponentContext, ComponentMessage
 
-from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled
+from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled, transform_permission
 from my_utils.consts import test_guild_id
 from .levels._levels import formula_of_experience
 
@@ -227,12 +227,15 @@ class Misc(Cog):
 
     @slash_subcommand(
         base='server',
-        name='role_perms'
+        name='role_perms',
+        description='Shows a role permissions in the server'
     )
     @is_enabled()
     async def guild_role_permissions(self, ctx: SlashContext, role: Role):
         description = ''.join(
-            f'✅ {permission[0]}\n' if permission[1] else f'❌ {permission[0]}\n'
+            f"✅ {transform_permission(permission[0])}\n" 
+            if permission[1]
+            else f"❌ {transform_permission(permission[0])}\n"
             for permission in role.permissions
         )
 
