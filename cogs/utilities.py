@@ -262,7 +262,7 @@ class Utilities(Cog):
         base='starboard',
         subcommand_group='blacklist',
         name='add',
-        description='Adds member, role or channel in blacklist'
+        description='Adds a member, role or channel in blacklist'
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
@@ -367,7 +367,7 @@ class Utilities(Cog):
         base='starboard',
         subcommand_group='blacklist',
         name='list',
-        description='Shows blacklist'
+        description='Shows starboard blacklist'
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
@@ -420,6 +420,7 @@ class Utilities(Cog):
         name='disable',
         description='Disable command/base/group for your server'
     )
+    @bot_owner_or_permissions(manage_guild=True)
     async def disable_cmd(self, ctx: SlashContext, command_name: str):
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         content = get_content("COMMAND_CONTROL", lang=self.bot.get_guild_bot_lang(ctx.guild_id))
@@ -441,6 +442,7 @@ class Utilities(Cog):
         name='enable',
         description='Enable command/base/group for your server'
     )
+    @bot_owner_or_permissions(manage_guild=True)
     async def enable_cmd(self, ctx: SlashContext, command_name: str):
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         content = get_content("COMMAND_CONTROL", lang=self.bot.get_guild_bot_lang(ctx.guild_id))

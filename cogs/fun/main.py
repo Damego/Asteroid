@@ -1,4 +1,4 @@
-import asyncio
+from asyncio import TimeoutError
 from datetime import datetime
 import json
 from os import remove, environ
@@ -153,7 +153,7 @@ class Fun(Cog):
                 check=lambda __ctx: __ctx.author_id == ctx.author_id and __ctx.message.id == message.id,
                 timeout=60
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return await message.delete()
 
         if _ctx.custom_id == 'ttt_easy':
@@ -427,7 +427,7 @@ class Fun(Cog):
         while True:
             try:
                 interaction = await self._get_interaction(ctx, message, message_for_update)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return
 
             if isinstance(interaction.component, Select):
@@ -479,10 +479,10 @@ class Fun(Cog):
                 check=lambda inter: inter.author_id == ctx.author_id and inter.message.id == message.id,
                 timeout=3600
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             await message.delete()
             await message_for_update.delete()
-            raise asyncio.TimeoutError
+            raise TimeoutError
         else:
             await interaction.defer(edit_origin=True)
             return interaction

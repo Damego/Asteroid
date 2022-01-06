@@ -1,3 +1,4 @@
+from asyncio import TimeoutError
 import os
 from typing import Union
 
@@ -10,6 +11,7 @@ from discord_slash.cog_ext import (
     cog_context_menu as context_menu
 )
 from discord_components import Button, ButtonStyle
+from discord_slash_components_bridge import ComponentContext, ComponentMessage
 
 from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled
 from my_utils.consts import test_guild_id
@@ -25,7 +27,10 @@ class Misc(Cog):
 
     async def send_guilds_update_webhooks(self, embed: Embed):
         async with aiohttp.ClientSession() as session:
-            webhook = Webhook.from_url(os.getenv('WEBHOOK_GUILDS_UPDATE'), adapter=AsyncWebhookAdapter(session))
+            webhook = Webhook.from_url(
+                os.getenv('WEBHOOK_GUILDS_UPDATE'),
+                adapter=AsyncWebhookAdapter(session)
+            )
             await webhook.send(embed=embed, username='Asteroid | Servers Information')
 
     @Cog.listener()
@@ -59,17 +64,15 @@ class Misc(Cog):
 
     @slash_command(
         name='info',
-        description='Out information about guild member'
+        description='Shows information about guild member'
     )
     @is_enabled()
     async def get_member_information_slash(self, ctx: SlashContext, member: Member = None):
-        if member is None:
-            member = ctx.author
-        embed = self._get_embed_member_info(ctx, member)
+        embed = self._get_embed_member_info(ctx, member or ctx.author)
         await ctx.send(embed=embed)
 
     @context_menu(
-        name='Get information',
+        name='Profile',
         target=ContextMenuType.USER
     )
     @is_enabled()
@@ -260,6 +263,144 @@ class Misc(Cog):
         ]
 
         await ctx.send(content['CLICK_TO_INVITE_TEXT'], components=components)
+
+    @slash_subcommand(
+        base='test',
+        name='info',
+        guild_ids=test_guild_id
+    )
+    async def info_command(self, ctx: SlashContext, member: Member = None):
+        member_roles_embed = None
+        member_other_info_embed = None
+        components = [
+            [
+                Button(
+                    label='General', 
+                    style=ButtonStyle.blue, 
+                    custom_id='general'
+                )
+            ]
+        ]
+
+        general_info_embed = self._get_general_member_info(member or ctx.author)
+        if member.roles:
+            member_roles_embed = self._get_member_roles_info(member or ctx.author)
+            components[0].append(
+                Button(
+                    label='Roles/Perms.',
+                    style=ButtonStyle.blue,
+                    custom_id='roles&perms'
+                )
+            )
+
+        member_other_info_embed = self._get_member_other_info(member)
+        if member_other_info_embed:
+            components[0].append(
+                Button(
+                    label='Other Info',
+                    style=ButtonStyle.blue,
+                    custom_id='other'
+                )
+            )
+
+        message: ComponentMessage = await ctx.send(
+            embed=general_info_embed,
+            components=components if len(components) > 1 else []
+        )
+
+        if not components:
+            return
+
+        while True:
+            try:
+                button_ctx: ComponentContext = await self.bot.wait_for(
+                    'button_click',
+                    check=lambda _ctx: _ctx.author_id == ctx.author_id and _ctx.message.id == message.id,
+                    timeout=60
+                )
+            except TimeoutError:
+                return await message.disable_components()
+
+            if button_ctx.custom_id == 'general':
+                await button_ctx.edit_origin(embed=general_info_embed)
+            elif button_ctx.custom_id == 'roles&perms':
+                await button_ctx.edit_origin(embed=member_roles_embed)
+            elif button_ctx.custom_id == 'other':
+                await button_ctx.edit_origin(embed=member_other_info_embed)
+
+    def _get_general_member_info(self, member: Member):
+        embed = Embed(
+            title=f'Information about {member.display_name}',
+            color = self.bot.get_embed_color(member.guild.id)
+        )
+        user_badges = self._get_user_badges(member.public_flags)
+        badges = f"\n**Badges:** {user_badges}" if user_badges else ''
+        
+        if member.activity:
+            member_activities = ", ".join([activity.name for activity in member.activities])
+            activities_text = "\n**Activity:**" if len(member_activities) < 2 else "\n**Activities:**"
+            activities = f"{activities_text} {member_activities}"
+        else:
+            activities = ''
+
+        embed.add_field(
+            name="General information",
+            value=f"**Full nickname:** {member.author.name}#{member.author.discriminator}"
+                  f"\n**Mention:** {member.author.mention}"
+                  f"{badges}"
+                  f"\n**Created at:** <t:{int(member.created_at.timestamp())}:F>"
+                  f"\n**Joined at:** <t:{int(member.joined_at.timestamp())}:F>"
+                  f"\n**Status:** {member.status}"
+                  f"{activities}",
+            inline=False
+        )
+
+        return embed
+
+    def _get_member_roles_info(self, member: Member):
+        embed = Embed(
+            title=f'Information about {member.display_name}',
+            color=self.bot.get_embed_color(member.guild.id)
+        )
+        member_roles = ', '.join(
+            [role.mention for role in member.roles if role.name != "@everyone"][::-1]
+        )
+        embed.add_field(
+            inline=False,
+            name='Roles and Permissions',
+            value=f"**Roles:** {member_roles}"
+                  f"\n**Top Role:** {member.top_role}"
+        )
+        embed.add_field(
+            inline=False,
+            name='Permission in server',
+            value=''.join(
+            f'✅ {permission[0]}\n' if permission[1] else f'❌ {permission[0]}\n'
+            for permission in member.guild_permissions
+            )
+        )
+
+        return embed
+
+    def _get_member_other_info(self, member: Member):
+        collection = self.bot.get_guild_users_collection(member.guild.id)
+        member_info = collection.find_one({'_id': member.id})
+        member_leveling = member_info.get('leveling')
+        
+        embed = Embed(
+            title=f'Information about {member.display_name}',
+            color=self.bot.get_embed_color(member.guild.id)
+        )
+        embed.add_field(
+            name="Level system",
+            value=f"**Current Level:** {member_leveling['level']}"
+                  f"/n**Experience:** {member_leveling['xp']}/{formula_of_experience(member_leveling['level'])}"
+                  f"/n**Total Experience:** {member_leveling['xp_amount']}"
+                  f"/n**Time in Voice Channel:**"
+        )
+
+        return embed
+
 
 
 def setup(bot):

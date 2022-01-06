@@ -1,4 +1,4 @@
-import asyncio
+from asyncio import TimeoutError
 import datetime
 
 from discord import Embed
@@ -35,7 +35,7 @@ class Help(Cog):
                     check=lambda inter: inter.author_id == ctx.author_id and inter.message.id == message.id,
                     timeout=60
                     )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return await message.edit(components=[])
 
             value = interaction.values[0]
