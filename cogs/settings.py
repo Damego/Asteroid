@@ -190,11 +190,7 @@ class Settings(Cog):
         ]
 
         preresult = await self.run_shell('git pull')
-        if preresult == '':
-            result = 'NO DATA'
-        else:
-            result = '\n'.join(preresult)
-
+        result = 'NO DATA' if preresult == '' else '\n'.join(preresult)
         content = f'```\n{result}\n```'
         embed = Embed(title='Git Sync', description=content, color=0x2f3136)
 

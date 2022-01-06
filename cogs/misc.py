@@ -264,11 +264,11 @@ class Misc(Cog):
 
         await ctx.send(content['CLICK_TO_INVITE_TEXT'], components=components)
 
-    @slash_subcommand(
-        base='test',
-        name='info',
-        guild_ids=test_guild_id
-    )
+    #@slash_subcommand(
+    #    base='test',
+    #    name='info',
+    #    guild_ids=test_guild_id
+    #)
     async def info_command(self, ctx: SlashContext, member: Member = None):
         member_roles_embed = None
         member_other_info_embed = None
