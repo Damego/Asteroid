@@ -9,13 +9,14 @@ from discord_slash.cog_ext import (
     cog_slash as slash_command,
     cog_subcommand as slash_subcommand
 )
+from discord_slash.utils.manage_commands import create_option, create_choice
 from discord_components import Select, SelectOption, Button, ButtonStyle
 from discord_slash_components_bridge import ComponentContext
 
 from my_utils import (
     AsteroidBot,
     get_content,
-    is_administrator_or_bot_owner,
+    bot_owner_or_permissions,
     Cog
 )
 from my_utils.consts import LANGUAGES_LIST
@@ -30,27 +31,39 @@ class Settings(Cog):
     @slash_subcommand(
         base='set',
         name='lang',
-        description='Changes bot\'s language on your server [ru, en]'
+        description='Changes bot\'s language on your server.',
+        options=[
+            create_option(
+                name='language',
+                description='Language',
+                option_type=3,
+                required=True,
+                choices=[
+                    create_choice(
+                        name=language,
+                        value=language
+                    )
+                    for language in LANGUAGES_LIST
+                ]
+            )
+        ]
     )
-    @is_administrator_or_bot_owner()
-    async def set_bot_language(self, ctx: SlashContext, lang: str):
-        if lang not in LANGUAGES_LIST:
-            return await ctx.send('Wrong language', hidden=True)
-
+    @bot_owner_or_permissions(manage_roles=True)
+    async def set_bot_language(self, ctx: SlashContext, language: str):
         collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'configuration'},
-            {'$set': {'lang': lang}},
+            {'$set': {'lang': language}},
             upsert=True)
 
-        await ctx.send(f'Language was set up to `{lang}`')
+        await ctx.send(f'Language was set up to `{language}`')
 
     @slash_subcommand(
         base='set',
         name='color',
         description='Set color for embeds'
     )
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_roles=True)
     async def set_embed_color(self, ctx: SlashContext, color: str):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('SET_EMBED_COLOR_COMMAND', lang)
@@ -77,7 +90,7 @@ class Settings(Cog):
         name='status',
         description='Disable all commands in cogs (if implemented)'
     )
-    @is_administrator_or_bot_owner()
+    @bot_owner_or_permissions(manage_roles=True)
     async def set_cog_status(self, ctx: SlashContext, cog: str, status: bool):
         await ctx.defer()
         cogs_names = [self.bot.cogs[_cog].name for _cog in self.bot.cogs]
