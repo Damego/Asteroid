@@ -60,21 +60,23 @@ class GenshinStats(Cog):
         if uid is None:
             uid = self._get_UID('', ctx.guild_id, ctx.author_id)
 
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('GENSHIN_STATISTICS_COMMAND', lang)
+        genshin_data_lang = 'ru-ru' if lang == 'ru' else 'en-us'
+
         self._get_cookie()
         try:
-            user_data = gs.get_user_stats(uid)
+            user_data = gs.get_user_stats(uid, lang=genshin_data_lang)
         except DataNotPublic:
             raise GenshinDataNotPublic
         except AccountNotFound:
             raise GenshinAccountNotFound
-
-        user_explorations = user_data['explorations']
+        user_explorations = reversed(user_data['explorations'])
         user_stats = user_data['stats']
 
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('GENSHIN_STATISTICS_COMMAND', lang)
-
-        embed = discord.Embed(title=content['EMBED_WORLD_EXPLORATION_TITLE'], color=self.bot.get_embed_color(ctx.guild.id))
+        embed = discord.Embed(
+            title=content['EMBED_WORLD_EXPLORATION_TITLE'], color=self.bot.get_embed_color(ctx.guild_id)
+        )
         embed.set_footer(text=f'UID: {uid}')
 
         for region in user_explorations:
@@ -82,11 +84,11 @@ class GenshinStats(Cog):
                 continue
 
             description = f'{content["EXPLORED_TEXT"]}: `{region["explored"]}%`'
-            if region['name'] == 'Dragonspine':
+            if region['name'] == content['Dragonspine']:
                 description += content['FROSTBEARING_TREE_LEVEL_TEXT'].format(level=region["level"])
-            else:
-                if region['name'] == 'Inazuma':
-                    description += content['SACRED_SAKURA_LEVEL_TEXT'].format(level=region["offerings"][0]["level"])
+            elif region['name'] == content['Inazuma']:
+                description += content['SACRED_SAKURA_LEVEL_TEXT'].format(level=region["offerings"][0]["level"])
+            if region['type'] == 'Reputation':
                 description += content['REPUTATION_LEVEL_TEXT'].format(level=region["level"])
             
             embed.add_field(name=region['name'], value=description)
@@ -109,8 +111,8 @@ class GenshinStats(Cog):
         embed.add_field(name=content['CHESTS_OPENED'], value=chests_opened, inline=False)
 
         misc_content = f"""
-        <:teleport:871385272376504341> {content['UNLOCKED_TELEPORTS']}: `{user_stats['unlocked_waypoints']}/160`
-        <:domains:871370995192193034> {content['UNLOCKED_DOMAINS']}: `{user_stats['unlocked_domains']}/31`
+        <:teleport:871385272376504341> {content['UNLOCKED_TELEPORTS']}: `{user_stats['unlocked_waypoints']}/168`
+        <:domains:871370995192193034> {content['UNLOCKED_DOMAINS']}: `{user_stats['unlocked_domains']}/33`
         """
 
         embed.add_field(name=content['MISC_INFO'], value=misc_content, inline=False)

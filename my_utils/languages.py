@@ -191,6 +191,8 @@ LANGUAGES = {
         'GENSHIN_STATISTICS_COMMAND': {
             'EMBED_WORLD_EXPLORATION_TITLE': 'Genshin Impact. Статистика мира',
             'EXPLORED_TEXT': 'Исследовано',
+            'Inazuma': 'Инадзума',
+            'Dragonspine': 'Драконий хребет',
             'FROSTBEARING_TREE_LEVEL_TEXT': '\nУровень Дерева Вечной Мерзлоты: `{level}`',
             'SACRED_SAKURA_LEVEL_TEXT': '\nУровень Благосклонности сакуры: `{level}`',
             'REPUTATION_LEVEL_TEXT': '\nУровень репутации: `{level}`',
@@ -523,6 +525,8 @@ LANGUAGES = {
         'GENSHIN_STATISTICS_COMMAND': {
             'EMBED_WORLD_EXPLORATION_TITLE': 'Genshin Impact. World exploration',
             'EXPLORED_TEXT': 'Explored',
+            'Inazuma': 'Inazuma',
+            'Dragonspine': 'Dragonspine',
             'FROSTBEARING_TREE_LEVEL_TEXT': '\nLevel of Frostbearing Tree: `{level}`',
             'SACRED_SAKURA_LEVEL_TEXT': '\nLevel of Sacred Sakura\'s Favor: `{level}`',
             'REPUTATION_LEVEL_TEXT': '\nReputation level: `{level}`',
