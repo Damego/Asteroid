@@ -109,8 +109,8 @@ class GenshinStats(Cog):
         embed.add_field(name=content['CHESTS_OPENED'], value=chests_opened, inline=False)
 
         misc_content = f"""
-        <:teleport:871385272376504341> {content['UNLOCKED_TELEPORTS']}: `{user_stats['unlocked_waypoints']}/120`
-        <:domains:871370995192193034> {content['UNLOCKED_DOMAINS']}: `{user_stats['unlocked_domains']}/30`
+        <:teleport:871385272376504341> {content['UNLOCKED_TELEPORTS']}: `{user_stats['unlocked_waypoints']}/160`
+        <:domains:871370995192193034> {content['UNLOCKED_DOMAINS']}: `{user_stats['unlocked_domains']}/31`
         """
 
         embed.add_field(name=content['MISC_INFO'], value=misc_content, inline=False)
