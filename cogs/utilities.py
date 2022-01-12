@@ -435,7 +435,7 @@ class Utilities(Cog):
             upsert=True
         )
 
-        await ctx.send(content['COMMAND_DISABLED'].format(command_name))
+        await ctx.send(content['COMMAND_DISABLED'].format(command_name=command_name))
 
     @slash_subcommand(
         base='command',
@@ -456,7 +456,7 @@ class Utilities(Cog):
             },
             upsert=True
         )
-        await ctx.send(content['COMMAND_ENABLED'].format(command_name))
+        await ctx.send(content['COMMAND_ENABLED'].format(command_name=command_name))
 
 
 def setup(bot):

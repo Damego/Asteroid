@@ -665,8 +665,8 @@ LANGUAGES = {
             'd': 'days',
         },
         'COMMAND_CONTROL': {
-            'COMMAND_DISABLED': 'Command `{}` was disabled!',
-            'COMMAND_ENABLED': 'Command `{}` was enabled!'
+            'COMMAND_DISABLED': 'Command `{command_name}` was disabled!',
+            'COMMAND_ENABLED': 'Command `{command_name}` was enabled!'
         }
     }
 }
