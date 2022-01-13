@@ -128,7 +128,7 @@ class Moderation(Cog):
 
         await member.kick(reason=reason)
         was_kicked_text = content['WAS_KICKED_TEXT'].format(member=member)
-        kick_reason_text = content['REASON_TEXT'].format(member=member)
+        kick_reason_text = content['REASON_TEXT'].format(reason=reason)
         embed = Embed(
             title=was_kicked_text,
             description=kick_reason_text,
