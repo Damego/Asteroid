@@ -1,6 +1,6 @@
 import asyncio
 
-from discord import Member, Embed, Role
+from discord import Member, Embed, Role, Forbidden
 from discord.ext.commands import has_guild_permissions, BadArgument, bot_has_guild_permissions
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
@@ -111,7 +111,10 @@ class Moderation(Cog):
         )
         await ctx.send(embed=embed)
         embed.description += content['SERVER'].format(guild=ctx.guild)
-        await member.send(embed=embed)
+        try:
+            await member.send(embed=embed)
+        except Forbidden:
+            return
 
     @slash_subcommand(
         base='mod',
@@ -136,7 +139,10 @@ class Moderation(Cog):
         )
         await ctx.send(embed=embed)
         embed.description += content['SERVER'].format(guild=ctx.guild)
-        await member.send(embed=embed)
+        try:
+            await member.send(embed=embed)
+        except Forbidden:
+            return
 
     @slash_subcommand(
         base='mod',
