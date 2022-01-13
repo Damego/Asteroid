@@ -103,7 +103,7 @@ class Moderation(Cog):
 
         await member.ban(reason=reason)
         was_banned_text = content['WAS_BANNED_TEXT'].format(member=member)
-        ban_reason_text = content['REASON_TEXT'].format(member=member)
+        ban_reason_text = content['REASON_TEXT'].format(reason=reason)
         embed = Embed(
             title=was_banned_text,
             description=ban_reason_text,
