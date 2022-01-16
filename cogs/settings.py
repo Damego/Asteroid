@@ -50,7 +50,7 @@ class Settings(Cog):
     )
     @bot_owner_or_permissions(manage_roles=True)
     async def set_bot_language(self, ctx: SlashContext, language: str):
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'configuration'},
             {'$set': {'lang': language}},
@@ -75,7 +75,7 @@ class Settings(Cog):
             return
         newcolor = '0x' + color
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild.id)
+        collection = self.bot.get_guild_main_collection(ctx.guild.id)
         collection.update_one(
             {'_id': 'configuration'},
             {'$set': {'embed_color': newcolor}},
@@ -97,7 +97,7 @@ class Settings(Cog):
         if cog not in cogs_names:
             return await ctx.send('Cog not found!')
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'cogs_status'},
             {'$set': {

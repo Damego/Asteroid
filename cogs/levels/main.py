@@ -32,7 +32,7 @@ class Levels(Cog):
         self.time_factor = 10
 
     def _get_guild_start_role(self, guild_id: int):
-        guild_configuration_collection = self.bot.get_guild_configuration_collection(guild_id)
+        guild_configuration_collection = self.bot.get_guild_main_collection(guild_id)
         guild_configuration = guild_configuration_collection.find_one({'_id': 'configuration'})
 
         if 'on_join_role' in guild_configuration:
@@ -287,10 +287,10 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def add_level_role(self, ctx: SlashContext, level: int, role: Role):
-        collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
-            {'_id': str(level)},
-            {'$set': {'role_id': role.id}},
+            {'_id': 'roles_by_level'},
+            {'$set': {f'{level}': role.id}},
             upsert=True)
         await ctx.send('✅', hidden=True)
 
@@ -302,17 +302,22 @@ class Levels(Cog):
             create_option(
                 name='level',
                 description='level',
-                option_type=3,
+                option_type=5,
                 required=True
             )
         ]
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def remove_level_role(self, ctx: SlashContext, level: str):
-        level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
+    async def remove_level_role(self, ctx: SlashContext, level: int):
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         try:
-            level_roles_collection.delete_one({'_id': level})
+            collection.update_one(
+                {'_id': 'roles_by_level'},
+                {
+                    '$unset': {str(level): ""}
+                }
+            )
             await ctx.send('✅', hidden=True)
         except Exception:
             await ctx.send('❌', hidden=True)
@@ -325,26 +330,37 @@ class Levels(Cog):
             create_option(
                 name='current_level',
                 description='current_level',
-                option_type=3,
+                option_type=4,
                 required=True
             ),
             create_option(
                 name='new_level',
                 description='new_level',
-                option_type=3,
+                option_type=4,
                 required=True
             )
         ]
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def replace_level_role(self, ctx: SlashContext, old_level: str, new_level: str):
-        level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
-        role = level_roles_collection.find_one_and_delete({'_id': old_level})['role_id']
-        level_roles_collection.update_one(
-            {'_id': new_level},
-            {'$set': {'role_id': role}},
-            upsert=True)
+    async def replace_level_role(self, ctx: SlashContext, old_level: int, new_level: int):
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        roles = collection.find_one(
+            {'_id': 'roles_by_level'}
+        )
+        if not roles:
+            return await ctx.send('❌', hidden=True)
+        role = roles.get(str(old_level))
+        if not role:
+            return await ctx.send('❌', hidden=True)
+        collection.update_one(
+            {'_id': 'roles_by_level'},
+            {
+                '$unset': {str(old_level): ""},
+                '$set': {str(new_level): role}
+            },
+            upsert=True
+        )
         await ctx.send('✅', hidden=True)
 
     @slash_subcommand(
@@ -356,8 +372,8 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def reset_levels(self, ctx: SlashContext):
-        level_roles_collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
-        level_roles_collection.drop_indexes()
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        collection.delete_one({'_id': 'roles_by_level'})
         await ctx.send('✅', hidden=True)
 
     @slash_subcommand(
@@ -368,21 +384,22 @@ class Levels(Cog):
     )
     @is_enabled()
     async def send_levels_list(self, ctx: SlashContext):
-        collection = self.bot.get_guild_level_roles_collection(ctx.guild_id)
-        dict_levels = collection.find()
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        roles = collection.find_one({'_id': 'roles_by_level'})
+        if not roles:
+            return await ctx.send('No level roles')
 
         content = ''
-        
-        for level in dict_levels:
+        for level, role in roles.items():
+            if level == '_id':
+                continue
+
             xp_amount = 0
-            role = ctx.guild.get_role(level['role_id'])
-            for _level in range(1, int(level['_id'])):
+            role = ctx.guild.get_role(role)
+            for _level in range(1, int(level)):
                 exp = formula_of_experience(_level)
                 xp_amount += exp
-            content += f'{level["_id"]} — {role.mention} | EXP: {xp_amount}\n'
-
-        if content == '':
-            content = 'No levels roles!'
+            content += f'{level} — {role.mention} | EXP: {xp_amount}\n'
 
         embed = Embed(description=content, color=self.bot.get_embed_color(ctx.guild_id))
         await ctx.send(embed=embed)
@@ -505,7 +522,7 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_on_join_role(self, ctx: SlashContext, role: Role):
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'configuration'},
             {'$set': {'on_join_role': role.id}},
@@ -522,7 +539,7 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_on_join_role_remove(self, ctx: SlashContext):
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'configuration'},
             {'$unset': 'on_join_role'},
@@ -538,7 +555,7 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def add_start_role(self, ctx: SlashContext):
-        guild_configuration_collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        guild_configuration_collection = self.bot.get_guild_main_collection(ctx.guild_id)
         try:
             role_id = guild_configuration_collection.find_one({'_id': 'configuration'})['on_join_role']
             role = ctx.guild.get_role(role_id)
@@ -573,7 +590,7 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def clear_members_stats(self, ctx: SlashContext):
-        guild_configuration_collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        guild_configuration_collection = self.bot.get_guild_main_collection(ctx.guild_id)
         guild_users_collection = self.bot.get_guild_users_collection(ctx.guild_id)
 
         configuration = guild_configuration_collection.find_one({'_id': 'configuration'})

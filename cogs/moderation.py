@@ -59,7 +59,7 @@ class Moderation(Cog):
         for channel in ctx.guild.channels:
             await channel.set_permissions(muted_role, speak=False, send_messages=False)
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'configuration'},
             {
@@ -73,7 +73,7 @@ class Moderation(Cog):
         await ctx.send(content['MUTED_ROLE_CREATED_TEXT'.format(role_name=muted_role.name)])
 
     def get_muted_role(self, ctx: SlashContext):
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         guild_data = collection.find_one({'_id': 'configuration'})
         return ctx.guild.get_role(guild_data.get('muted_role'))
 

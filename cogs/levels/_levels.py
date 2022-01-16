@@ -1,24 +1,21 @@
 from time import time
 from typing import Union
 
-import discord
 from discord import Member, Message, Guild, Role
 
 from my_utils import AsteroidBot
 from my_utils.languages import get_content
 
-
-
 last_user_message = {}
+
 
 async def update_member(
     bot: AsteroidBot,
     member_or_message: Union[Member, Message],
     exp: int
-    ):
+):
     guild = member_or_message.guild
-    guild_id = str(guild.id)
-    message = None
+    guild_id = guild.id
 
     if isinstance(member_or_message, Message):
         message = member_or_message
@@ -29,43 +26,43 @@ async def update_member(
         member = member_or_message
 
     guild_users_collection = bot.get_guild_users_collection(guild_id)
-    member_stats = guild_users_collection.find_one({'_id':str(member.id)})['leveling']
+    member_stats = guild_users_collection.find_one({'_id': str(member.id)})['leveling']
 
     xp = member_stats['xp'] + exp
     xp_amount = member_stats['xp_amount'] + exp
     level = member_stats['level']
 
     guild_users_collection.update_one(
-            {'_id':str(member.id)},
-            {'$set':{
-                'leveling.xp':xp,
-                'leveling.xp_amount':xp_amount
-                }
-            }
-        )
+        {'_id': str(member.id)},
+        {'$set': {
+            'leveling.xp': xp,
+            'leveling.xp_amount': xp_amount
+        }
+        }
+    )
 
     exp_to_next_level = formula_of_experience(member_stats['level'])
     while xp > exp_to_next_level:
-        level +=  1
+        level += 1
         xp -= exp_to_next_level
 
         guild_users_collection.update_one(
-            {'_id':str(member.id)},
-            {'$set':{
-                'leveling.level':level,
-                'leveling.xp':xp
-                }
+            {'_id': str(member.id)},
+            {'$set': {
+                'leveling.level': level,
+                'leveling.xp': xp
+            }
             }
         )
 
         exp_to_next_level = formula_of_experience(level)
 
-        guild_level_roles_collection = bot.get_guild_level_roles_collection(guild_id)
-        level_document = guild_level_roles_collection.find_one({'_id':(str(level))})
-        if level_document is None:
+        main_collection = bot.get_guild_main_collection(guild_id)
+        roles = main_collection.find_one({'_id': 'roles_by_level'})
+        if roles is None:
             continue
 
-        role_id = level_document.get('role_id')
+        role_id = roles.get(str(level))
         new_role = guild.get_role(role_id)
         if new_role is not None:
             lang = bot.get_guild_bot_lang(guild_id)
@@ -75,7 +72,7 @@ async def update_member(
 
 
 def formula_of_experience(level: int):
-    return int(((level+1) * 100) + (((level+1) * 20) ** 1.4))
+    return int(((level + 1) * 100) + (((level + 1) * 20) ** 1.4))
 
 
 def check_timeout(guild_id: int, member: Member):
@@ -97,7 +94,7 @@ def check_timeout(guild_id: int, member: Member):
 
 async def update_member_role(bot: AsteroidBot, guild_id: int, member: Member, new_role: Role):
     guild_users_collection = bot.get_guild_users_collection(guild_id)
-    member_stats = guild_users_collection.find_one({'_id':str(member.id)})['leveling']
+    member_stats = guild_users_collection.find_one({'_id': str(member.id)})['leveling']
     old_role = member_stats['role']
 
     for role in member.roles:
@@ -106,17 +103,24 @@ async def update_member_role(bot: AsteroidBot, guild_id: int, member: Member, ne
             break
     await member.add_roles(new_role, reason='Adding new role')
     guild_users_collection.update_one(
-        {'_id':str(member.id)},
-        {'$set':{'leveling.role':new_role.id}}
-        )
+        {'_id': str(member.id)},
+        {'$set': {'leveling.role': new_role.id}}
+    )
 
 
-async def notify_member(content, guild: Guild, member: Member, new_level: int, new_role: Role=None, message: Message=None):
+async def notify_member(
+    content,
+    guild: Guild,
+    member: Member,
+    new_level: int,
+    new_role: Role = None,
+    message: Message = None
+):
     desc = content['NOTIFY_GUILD_CHANNEL'].format(
-                member=member.mention,
-                level=new_level,
-                role=new_role
-            )
+        member=member.mention,
+        level=new_level,
+        role=new_role
+    )
 
     system_channel = guild.system_channel
     if message is not None:
@@ -125,8 +129,8 @@ async def notify_member(content, guild: Guild, member: Member, new_level: int, n
         await system_channel.send(desc, delete_after=15)
     else:
         desc = content['NOTIFY_DM'].format(
-                member=member.mention,
-                level=new_level,
-                role=new_role
-            )
+            member=member.mention,
+            level=new_level,
+            role=new_role
+        )
         await member.send(desc, delete_after=15)

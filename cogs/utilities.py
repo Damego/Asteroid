@@ -23,7 +23,7 @@ class Utilities(Cog):
         if str(payload.emoji) != '⭐':
             return
 
-        collection = self.bot.get_guild_configuration_collection(payload.guild_id)
+        collection = self.bot.get_guild_main_collection(payload.guild_id)
         starboard_data = collection.find_one({'_id': 'starboard'})
         if starboard_data is None:
             return
@@ -63,7 +63,7 @@ class Utilities(Cog):
         if str(payload.emoji) != '⭐':
             return
 
-        collection = self.bot.get_guild_configuration_collection(payload.guild_id)
+        collection = self.bot.get_guild_main_collection(payload.guild_id)
         starboard_data = collection.find_one({'_id': 'starboard'})
         if starboard_data is None:
             return
@@ -169,7 +169,7 @@ class Utilities(Cog):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('STARBOARD_FUNCTIONS', lang)
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         starboard_data = collection.find_one({'_id': 'starboard'})
         if starboard_data is None:
             data = {
@@ -199,7 +199,7 @@ class Utilities(Cog):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('STARBOARD_FUNCTIONS', lang)
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'starboard'},
             {'$set': {'limit': limit}},
@@ -237,7 +237,7 @@ class Utilities(Cog):
         content = get_content('STARBOARD_FUNCTIONS', lang)
 
         _status = status == 'enable'
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         starboard_data = collection.find_one({'_id': 'starboard'})
         if (
             starboard_data is None
@@ -279,7 +279,7 @@ class Utilities(Cog):
         if not member and not role and not channel:
             return await ctx.send(content['BLACKLIST_NO_OPTIONS_TEXT'], hidden=True)
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         starboard_data = collection.find_one({'_id': 'starboard'})
         if starboard_data is None:
             return await ctx.send(content['STARBOARD_NOT_SETUP_TEXT'], hidden=True)
@@ -334,7 +334,7 @@ class Utilities(Cog):
         if not member and not role and not channel:
             return await ctx.send(content['BLACKLIST_NO_OPTIONS_TEXT'])
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         starboard_data = collection.find_one({'_id': 'starboard'})
         if starboard_data is None:
             return await ctx.send(content['STARBOARD_NOT_SETUP_TEXT'], hidden=True)
@@ -375,7 +375,7 @@ class Utilities(Cog):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('STARBOARD_FUNCTIONS', lang)
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         starboard_data = collection.find_one({'_id': 'starboard'})
         if starboard_data is None:
             return await ctx.send(content['STARBOARD_NOT_SETUP_TEXT'], hidden=True)
@@ -422,7 +422,7 @@ class Utilities(Cog):
     )
     @bot_owner_or_permissions(manage_guild=True)
     async def disable_cmd(self, ctx: SlashContext, command_name: str):
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         content = get_content("COMMAND_CONTROL", lang=self.bot.get_guild_bot_lang(ctx.guild_id))
 
         collection.update_one(
@@ -444,7 +444,7 @@ class Utilities(Cog):
     )
     @bot_owner_or_permissions(manage_guild=True)
     async def enable_cmd(self, ctx: SlashContext, command_name: str):
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         content = get_content("COMMAND_CONTROL", lang=self.bot.get_guild_bot_lang(ctx.guild_id))
 
         collection.update_one(

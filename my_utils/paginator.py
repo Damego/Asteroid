@@ -1,4 +1,5 @@
 from asyncio import TimeoutError
+from copy import deepcopy
 from enum import IntEnum
 from typing import Union, List
 
@@ -63,7 +64,7 @@ class Paginator:
         self.bot = bot
         self.ctx = ctx
         self.style = style
-        self.components = components[self.style]
+        self.components = deepcopy(components[self.style])
         self.embeds = embeds
         self.pages = len(embeds)
         self.current_page = 1

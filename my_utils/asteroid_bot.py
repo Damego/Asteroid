@@ -39,7 +39,7 @@ class AsteroidBot(Bot):
             else:
                 self.load_extension(f'cogs.{filename}')
 
-    def get_guild_configuration_collection(self, guild_id:int):
+    def get_guild_main_collection(self, guild_id:int):
         return self.mongo.connection[str(guild_id)]['configuration']
 
     def get_guild_users_collection(self, guild_id:int):
@@ -50,9 +50,6 @@ class AsteroidBot(Bot):
 
     def get_guild_voice_time_collection(self, guild_id:int):
         return self.mongo.connection[str(guild_id)]['voice_time']
-
-    def get_guild_level_roles_collection(self, guild_id:int):
-        return self.mongo.connection[str(guild_id)]['roles_by_level']
 
     def get_guild_reaction_roles_collection(self, guild_id:int):
         return self.mongo.connection[str(guild_id)]['reaction_roles']
@@ -67,8 +64,8 @@ class AsteroidBot(Bot):
         return self.mongo.connection[str(guild_id)]['cogs_config']
 
     def _extract_from_guild_collection(self, guild_id: int, key: str):
-        collection = self.get_guild_configuration_collection(guild_id)
-        value = collection.find_one({'_id':'configuration'}).get(key)
+        collection = self.get_guild_main_collection(guild_id)
+        value = collection.find_one({'_id': 'configuration'}).get(key)
         if value is not None:
             return value
 
@@ -101,4 +98,3 @@ class AsteroidBot(Bot):
         elif ctx.subcommand_name:
             command_name = f"{ctx.name} {ctx.subcommand_name}"
         return command_name
-

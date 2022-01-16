@@ -1,9 +1,10 @@
 from discord import Role, Embed, RawReactionActionEvent, Guild, Member
-from discord_slash import SlashContext
+from discord_slash import AutoCompleteContext, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
-from discord_components import Select, SelectOption
+from discord_components import Select, SelectOption, Button, ButtonStyle
 from discord_slash_components_bridge import ComponentContext, ComponentMessage
+from pymongo.collection import Collection
 
 from my_utils import (
     AsteroidBot,
@@ -12,6 +13,7 @@ from my_utils import (
     bot_owner_or_permissions,
     is_enabled, _cog_is_enabled,
     CogDisabledOnGuild,
+    consts
 )
 
 
@@ -33,7 +35,7 @@ class AutoRole(Cog):
         if member.bot:
             return
 
-        collection = self.bot.get_guild_configuration_collection(member.guild.id)
+        collection = self.bot.get_guild_main_collection(member.guild.id)
         config = collection.find_one({'_id': 'configuration'})
         on_join_roles = config.get('on_join_roles')
         if on_join_roles is None:
@@ -55,7 +57,7 @@ class AutoRole(Cog):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_ON_JOIN', lang)
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'configuration'},
             {
@@ -79,7 +81,7 @@ class AutoRole(Cog):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_ON_JOIN', lang)
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'configuration'},
             {
@@ -125,15 +127,16 @@ class AutoRole(Cog):
         base='autorole',
         subcommand_group='dropdown',
         name='create',
-        description='Creating new dropdown'
+        description='Creating new dropdown',
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_create_dropdown(
-            self,
-            ctx: SlashContext,
-            message_content: str,
-            placeholder: str = None
+        self,
+        ctx: SlashContext,
+        name: str,
+        message_content: str,
+        placeholder: str = None
     ):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_DROPDOWN', lang)
@@ -148,28 +151,81 @@ class AutoRole(Cog):
             )
         ]
 
-        await ctx.channel.send(content=message_content, components=components)
+        message = await ctx.channel.send(content=message_content, components=components)
         await ctx.send(content['CREATED_DROPDOWN_TEXT'], hidden=True)
+
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        collection.update_one(
+            {'_id': 'autorole'},
+            {
+                '$set': {
+                    name: {
+                        'content': message_content,
+                        'message_id': message.id,
+                        'component': components[0].to_dict()
+                    }
+                }
+            },
+            upsert=True
+        )
 
     @slash_subcommand(
         base='autorole',
         subcommand_group='dropdown',
-        name='add_role',
-        description='Adding role to dropdown'
+        name='add_option',
+        description='Adding role to dropdown',
+        options=[
+            create_option(
+                name='name',
+                description='The name of dropdown',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            ),
+            create_option(
+                name='option_name',
+                description='The name of option',
+                option_type=3,
+                required=True
+            ),
+            create_option(
+                name='role',
+                description='Role for option',
+                option_type=8,
+                required=True
+            ),
+            create_option(
+                name='emoji',
+                description='The emoji for option',
+                option_type=3,
+                required=False
+            ),
+            create_option(
+                name='description',
+                description='The description of option',
+                option_type=3,
+                required=False
+            )
+        ]
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_dropdown_add_role(
-            self,
-            ctx: SlashContext,
-            message_id: str,
-            title: str,
-            role: Role,
-            emoji: str = None,
-            description: str = None
+    async def autorole_dropdown_add_option(
+        self,
+        ctx: SlashContext,
+        name: str,
+        option_name: str,
+        role: Role,
+        emoji: str = None,
+        description: str = None
     ):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_DROPDOWN', lang)
+
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        autoroles = collection.find_one({'_id': 'autorole'})
+        message_id = autoroles.get(name)['message_id']
+
         original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
         if not original_message.components:
             return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'], hidden=True)
@@ -190,7 +246,7 @@ class AutoRole(Cog):
         if select_component.options[0].label == 'None':
             select_component.options = [
                 SelectOption(
-                    label=title,
+                    label=option_name,
                     value=f'{role.id}',
                     emoji=emoji,
                     description=description
@@ -199,7 +255,7 @@ class AutoRole(Cog):
         else:
             select_component.options.append(
                 SelectOption(
-                    label=title,
+                    label=option_name,
                     value=f'{role.id}',
                     emoji=emoji,
                     description=description
@@ -213,22 +269,45 @@ class AutoRole(Cog):
         await original_message.edit(components=[select_component])
         await ctx.send(content['ROLE_ADDED_TEXT'], hidden=True)
 
+        self._update_db_select(collection, name, select_component)
+
     @slash_subcommand(
         base='autorole',
         subcommand_group='dropdown',
-        name='remove_role',
-        description='Removing role from dropdown'
+        name='remove_option',
+        description='Removing role from dropdown',
+        options=[
+            create_option(
+                name='name',
+                description='The name of dropdown',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            ),
+            create_option(
+                name='option',
+                description='Option of dropdown',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            )
+        ],
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_remove_role(
-            self,
-            ctx: SlashContext,
-            message_id: str,
-            title: str
+        self,
+        ctx: SlashContext,
+        name: str,
+        option: str
     ):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_DROPDOWN', lang)
+
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        autoroles = collection.find_one({'_id': 'autorole'})
+        message_id = autoroles[name]['message_id']
+
         original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
         if not original_message.components:
             return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'])
@@ -238,9 +317,9 @@ class AutoRole(Cog):
             return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'], hidden=True)
 
         select_options = select_component.options
-        for option in select_options:
-            if option.label == title:
-                option_index = select_options.index(option)
+        for _option in select_options:
+            if _option.label == option:
+                option_index = select_options.index(_option)
                 del select_options[option_index]
                 break
         else:
@@ -253,6 +332,41 @@ class AutoRole(Cog):
         await original_message.edit(components=[select_component])
         await ctx.send(content['ROLE_REMOVED_TEXT'], hidden=True)
 
+        self._update_db_select(collection, name, select_component)
+
+    def _update_db_select(self, collection: Collection, name: str, select_component: Select):
+        collection.update_one(
+            {'_id': 'autorole'},
+            {
+                '$set': {
+                    f'{name}.component': select_component.to_dict()
+                }
+            }
+        )
+
+    @Cog.listener(name='on_autocomplete')
+    async def autorole_select_autocomplete(self, ctx: AutoCompleteContext, **kwargs):
+        command_name = self.bot.get_transformed_command_name(ctx)
+        if command_name != 'autorole':
+            return
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        autoroles = collection.find_one({'_id': 'autorole'})
+        del autoroles['_id']
+
+        if ctx.focused_option == 'name':
+            choices = [
+                create_choice(name=name, value=name) for name in autoroles if name.startswith(ctx.user_input)
+            ]
+        elif ctx.focused_option == 'option':
+            autorole_data = autoroles.get(kwargs.get('name'))
+            select_options = [
+                option["label"] for option in autorole_data['component']['options']
+            ]
+            choices = [
+                create_choice(name=name, value=name) for name in select_options if name.startswith(ctx.user_input)
+            ]
+        await ctx.populate(choices)
+
     @slash_subcommand(
         base='autorole',
         subcommand_group='dropdown',
@@ -260,10 +374,11 @@ class AutoRole(Cog):
         description='Set up status on dropdown',
         options=[
             create_option(
-                name='message_id',
-                description='ID of message with dropdown',
+                name='name',
+                description='The name of dropdown',
                 required=True,
-                option_type=3
+                option_type=3,
+                autocomplete=True
             ),
             create_option(
                 name='status',
@@ -280,10 +395,10 @@ class AutoRole(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_set_status(
-            self,
-            ctx: SlashContext,
-            message_id: str,
-            status: str
+        self,
+        ctx: SlashContext,
+        message_id: str,
+        status: str
     ):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_DROPDOWN', lang)
@@ -305,51 +420,8 @@ class AutoRole(Cog):
     @slash_subcommand(
         base='autorole',
         subcommand_group='dropdown',
-        name='save',
-        description='Save dropdown to database'
-    )
-    @is_enabled()
-    @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_dropdown_save(
-            self,
-            ctx: SlashContext,
-            message_id: str,
-            name: str
-    ):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content('AUTOROLE_DROPDOWN', lang)
-
-        original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
-        if not original_message.components:
-            return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'], hidden=True)
-
-        select_component: Select = original_message.components[0].components[0]
-        if select_component.custom_id != 'autorole_select':
-            return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'], hidden=True)
-
-        data = {
-            'content': original_message.content,
-            'component': select_component.to_dict()
-        }
-
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
-        collection.update_one(
-            {'_id': 'autorole'},
-            {
-                '$set': {
-                    name: data
-                }
-            },
-            upsert=True
-        )
-
-        await ctx.send(content['DROPDOWN_SAVED_TEXT'], hidden=True)
-
-    @slash_subcommand(
-        base='autorole',
-        subcommand_group='dropdown',
         name='load',
-        description='Load dropdown from database and send this'
+        description='Load dropdown from database'
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
@@ -357,7 +429,7 @@ class AutoRole(Cog):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_DROPDOWN', lang)
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         autorole_data = collection.find_one({'_id': 'autorole'})
         if autorole_data is None:
             return await ctx.send(content['NOT_SAVED_DROPDOWNS'])
@@ -382,7 +454,7 @@ class AutoRole(Cog):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_DROPDOWN', lang)
 
-        collection = self.bot.get_guild_configuration_collection(ctx.guild_id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         autorole_data = collection.find_one({'_id': 'autorole'})
         if autorole_data is None:
             return await ctx.send(content['NOT_SAVED_DROPDOWNS'])
