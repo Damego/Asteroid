@@ -3,9 +3,9 @@ from time import time
 from random import randint
 
 from discord import Member, Message, VoiceState, Role, Embed
-from discord_slash.utils.manage_commands import create_option
+from discord_slash.utils.manage_commands import create_option, create_choice
 from pymongo.collection import Collection
-from discord_slash import SlashContext
+from discord_slash import SlashContext, AutoCompleteContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
 from my_utils import (
@@ -323,7 +323,8 @@ class Levels(Cog):
             await ctx.send('❌', hidden=True)
 
     @slash_subcommand(
-        base='levels',
+        base='levels1',
+        guild_ids=consts.test_guild_id,
         name='replace',
         description='Replace level to another',
         options=[
@@ -331,7 +332,8 @@ class Levels(Cog):
                 name='current_level',
                 description='current_level',
                 option_type=4,
-                required=True
+                required=True,
+                autocomplete=True
             ),
             create_option(
                 name='new_level',
@@ -343,25 +345,40 @@ class Levels(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def replace_level_role(self, ctx: SlashContext, old_level: int, new_level: int):
+    async def replace_level_role(self, ctx: SlashContext, current_level: int, new_level: int):
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         roles = collection.find_one(
             {'_id': 'roles_by_level'}
         )
         if not roles:
             return await ctx.send('❌', hidden=True)
-        role = roles.get(str(old_level))
+        role = roles.get(str(current_level))
         if not role:
             return await ctx.send('❌', hidden=True)
         collection.update_one(
             {'_id': 'roles_by_level'},
             {
-                '$unset': {str(old_level): ""},
+                '$unset': {str(current_level): ""},
                 '$set': {str(new_level): role}
             },
             upsert=True
         )
         await ctx.send('✅', hidden=True)
+
+    @Cog.listener(name='on_autocomplete')
+    async def level_autocomplete(self, ctx: AutoCompleteContext, **kwargs):
+        if self.bot.get_transformed_command_name(ctx) != 'levels':
+            return
+        if ctx.focused_option in ['current_level', 'remove']:
+            collection = self.bot.get_guild_main_collection(ctx.guild_id)
+            level_roles = collection.find_one({'_id': 'roles_by_level'})
+            if not level_roles:
+                return
+            del level_roles['_id']
+            choices = [
+                create_choice(name=level, value=int(level)) for level in level_roles
+            ]
+            await ctx.populate(choices)
 
     @slash_subcommand(
         base='levels',

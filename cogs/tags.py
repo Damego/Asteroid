@@ -1,8 +1,9 @@
 import asyncio
 
 from discord import Embed, Message
-from discord_slash import SlashContext
+from discord_slash import SlashContext, AutoCompleteContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
+from discord_slash.utils.manage_commands import create_option, create_choice
 from discord_slash_components_bridge import ComponentMessage, ComponentContext
 from discord_components import Button, ButtonStyle
 from pymongo.collection import Collection
@@ -17,13 +18,37 @@ class Tags(Cog):
         self.hidden = False
         self.name = 'Tags'
 
+    @Cog.listener(name='on_autocomplete')
+    async def tag_autocomplete(self, ctx: AutoCompleteContext, **kwargs):
+        if self.bot.get_transformed_command_name(ctx) != 'tag':
+            return
+        if ctx.focused_option != 'tag_name':
+            return
+
+        collection = self.bot.get_guild_tags_collection(ctx.guild_id)
+        tags = collection.find()
+        choices = [
+            create_choice(name=tag['_id'], value=tag['_id']) for tag in tags if tag.startswith(ctx.user_input)
+        ][:25]
+
+        await ctx.populate(choices)
+
     @slash_subcommand(
         base='tag',
         name='open',
-        description='Open tag'
+        description='Open tag',
+        options=[
+            create_option(
+                name='tag_name',
+                description='The name of tag',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            )
+        ]
     )
     @is_enabled()
-    async def open_tag(self, ctx: SlashContext, tag_name: str, hidden: bool = False):
+    async def open_tag(self, ctx: SlashContext, tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
 
         collection = self.bot.get_guild_tags_collection(ctx.guild_id)
@@ -39,10 +64,8 @@ class Tags(Cog):
             description=tag['description'],
             color=self.bot.get_embed_color(ctx.guild_id)
         )
-        if not hidden:
-            return await ctx.send(embed=embed)
-        await ctx.send('✅', hidden=True)
-        await ctx.channel.send(embed=embed)
+
+        await ctx.send(embed=embed)
 
     @slash_subcommand(
         base='tag',
@@ -50,7 +73,7 @@ class Tags(Cog):
         description='Create new tag'
     )
     @is_enabled()
-    async def create_new_tag(self, ctx: SlashContext, tag_name: str, *, tag_content: str):
+    async def create_new_tag(self, ctx: SlashContext, tag_name: str, tag_content: str):
         tag_name = self.convert_tag_name(tag_name)
 
         self._is_can_manage_tags(ctx)
@@ -81,7 +104,16 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='remove',
-        description='Removes tag'
+        description='Removes tag',
+        options=[
+            create_option(
+                name='tag_name',
+                description='The name of tag',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            )
+        ]
     )
     @is_enabled()
     async def tag_remove(self, ctx: SlashContext, tag_name: str):
@@ -125,7 +157,22 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='rename',
-        description='Renames tag\'s name'
+        description='Renames tag\'s name',
+        options=[
+            create_option(
+                name='tag_name',
+                description='The name of tag',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            ),
+            create_option(
+                name='new_tag_name',
+                description='New name of tag',
+                option_type=3,
+                required=True
+            )
+        ]
     )
     @is_enabled()
     async def rename(self, ctx: SlashContext, tag_name: str, new_tag_name: str):
@@ -173,7 +220,16 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='raw',
-        description='Show raw tag description'
+        description='Show raw tag description',
+        options=[
+            create_option(
+                name='tag_name',
+                description='The name of tag',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            )
+        ]
     )
     @is_enabled()
     async def raw(self, ctx: SlashContext, tag_name: str):
@@ -219,7 +275,16 @@ class Tags(Cog):
     @slash_subcommand(
         base='tag',
         name='embed',
-        description='Open embed control tag menu'
+        description='Open embed control tag menu',
+        options=[
+            create_option(
+                name='tag_name',
+                description='The name of tag',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            )
+        ]
     )
     @is_enabled()
     async def tag_embed(self, ctx: SlashContext, tag_name: str):
