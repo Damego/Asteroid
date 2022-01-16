@@ -323,8 +323,7 @@ class Levels(Cog):
             await ctx.send('❌', hidden=True)
 
     @slash_subcommand(
-        base='levels1',
-        guild_ids=consts.test_guild_id,
+        base='levels',
         name='replace',
         description='Replace level to another',
         options=[
