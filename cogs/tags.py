@@ -28,7 +28,7 @@ class Tags(Cog):
         collection = self.bot.get_guild_tags_collection(ctx.guild_id)
         tags = collection.find()
         choices = [
-            create_choice(name=tag['_id'], value=tag['_id']) for tag in tags if tag.startswith(ctx.user_input)
+            create_choice(name=tag['_id'], value=tag['_id']) for tag in tags if tag['_id'].startswith(ctx.user_input)
         ][:25]
 
         await ctx.populate(choices)
