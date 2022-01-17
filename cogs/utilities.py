@@ -27,11 +27,13 @@ class Utilities(Cog):
         starboard_data = collection.find_one({'_id': 'starboard'})
         if not starboard_data:
             return
-        if blacklist_data := starboard_data.get('blacklist') is None:
+        if starboard_data.get('blacklist') is None:
             return
+        blacklist_data = starboard_data['blacklist']
 
         if ctx.focused_option == 'channel':
-            if channel_ids := blacklist_data.get('channels') is not None:
+            channel_ids = blacklist_data.get('channels')
+            if not channel_ids:
                 return
             channels: List[TextChannel] = [
                 ctx.guild.get_channel(channel_id) for channel_id in channel_ids
@@ -41,23 +43,27 @@ class Utilities(Cog):
                 for channel in channels if channel.name.startswith(ctx.user_input)
             ][:25]
         elif ctx.focused_option == 'member':
-            if member_ids := blacklist_data.get('members') is not None:
-                members: List[Member] = [
-                    ctx.guild.get_member(member_id) for member_id in member_ids
-                ]
-                choices = [
-                    create_choice(name=member.dispay_name, value=str(member.id))
-                    for member in members if member.display_name.startswith(ctx.user_input)
-                ][:25]
+            member_ids = blacklist_data.get('members')
+            if not member_ids:
+                return
+            members: List[Member] = [
+                ctx.guild.get_member(member_id) for member_id in member_ids
+            ]
+            choices = [
+                create_choice(name=member.dispay_name, value=str(member.id))
+                for member in members if member.display_name.startswith(ctx.user_input)
+            ][:25]
         elif ctx.focused_option == 'role':
-            if role_ids := blacklist_data.get('roles') is not None:
-                roles: List[Role] = [
-                    ctx.guild.get_role(role_id) for role_id in role_ids
-                ]
-                choices = [
-                    create_choice(name=role.name, value=str(role.id))
-                    for role in roles if role.name.startswith(ctx.user_input)
-                ][:25]
+            role_ids = blacklist_data.get('roles')
+            if not role_ids:
+                return
+            roles: List[Role] = [
+                ctx.guild.get_role(role_id) for role_id in role_ids
+            ]
+            choices = [
+                create_choice(name=role.name, value=str(role.id))
+                for role in roles if role.name.startswith(ctx.user_input)
+            ][:25]
 
         await ctx.populate(choices)
 

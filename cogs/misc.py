@@ -3,7 +3,7 @@ import os
 from typing import Union
 
 import aiohttp
-from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter, errors
+from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
@@ -14,7 +14,6 @@ from discord_components import Button, ButtonStyle
 from discord_slash_components_bridge import ComponentContext, ComponentMessage
 
 from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled, transform_permission
-from my_utils.consts import test_guild_id
 from .levels._levels import formula_of_experience
 
 
@@ -403,7 +402,6 @@ class Misc(Cog):
         )
 
         return embed
-
 
 
 def setup(bot):
