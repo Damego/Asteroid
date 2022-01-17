@@ -50,7 +50,7 @@ class Utilities(Cog):
                 ctx.guild.get_member(member_id) for member_id in member_ids
             ]
             choices = [
-                create_choice(name=member.dispay_name, value=str(member.id))
+                create_choice(name=member.display_name, value=str(member.id))
                 for member in members if member.display_name.startswith(ctx.user_input)
             ][:25]
         elif ctx.focused_option == 'role':
