@@ -374,21 +374,21 @@ class Utilities(Cog):
                 name='member',
                 description='member',
                 option_type=3,
-                required=True,
+                required=False,
                 autocomplete=True
             ),
             create_option(
                 name='role',
                 description='Role',
                 option_type=3,
-                required=True,
+                required=False,
                 autocomplete=True
             ),
             create_option(
                 name='channel',
                 description='Text channel',
                 option_type=3,
-                required=True,
+                required=False,
                 autocomplete=True
             ),
         ]
