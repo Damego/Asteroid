@@ -757,6 +757,5 @@ class AutoRole(Cog):
         await ctx.send('role added', hidden=True)
 
 
-
 def setup(bot):
     bot.add_cog(AutoRole(bot))

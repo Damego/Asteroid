@@ -130,28 +130,25 @@ class Levels(Cog):
                 await self.check_time(after_members[0], voice_collection)
 
     async def check_time(self, member: Member, voice_collection: Collection):
-        try:
-            voice_user = voice_collection.find_one({'_id': str(member.id)})
-            sit_time = int(time()) - voice_user['voice_time']
-            voice_collection.delete_one({'_id': str(member.id)})
-            exp = (sit_time // 60) * self.time_factor
-            await update_member(self.bot, member, exp)
+        voice_user = voice_collection.find_one({'_id': str(member.id)})
+        sit_time = int(time()) - voice_user['voice_time']
+        voice_collection.delete_one({'_id': str(member.id)})
+        exp = (sit_time // 60) * self.time_factor
+        await update_member(self.bot, member, exp)
 
-            collection = self.bot.get_guild_users_collection(member.guild.id)
-            user_data = collection.find_one({'_id': str(member.id)})
+        collection = self.bot.get_guild_users_collection(member.guild.id)
+        user_data = collection.find_one({'_id': str(member.id)})
 
-            if user_data.get('voice_time_count') is None:
-                collection.update_one(
-                    {'_id': str(member.id)},
-                    {'$set': {'voice_time_count': 0}},
-                    upsert=True
-                )
+        if user_data.get('voice_time_count') is None:
             collection.update_one(
                 {'_id': str(member.id)},
-                {'$inc': {'voice_time_count': (sit_time // 60)}}
+                {'$set': {'voice_time_count': 0}},
+                upsert=True
             )
-        except Exception as e:
-            print('[LEVELS ERROR]', e)
+        collection.update_one(
+            {'_id': str(member.id)},
+            {'$inc': {'voice_time_count': (sit_time // 60)}}
+        )
 
     @Cog.listener()
     async def on_message(self, message: Message):
