@@ -1,11 +1,22 @@
 from asyncio import AbstractEventLoop
 from typing import List, Dict
+import logging
 
 import discord
 
 from .errors import NotConnectedToVoice, NotPlaying, EmptyQueue
 from .utils import get_video_data
 from .models import Song
+
+
+logger = logging.getLogger('music')
+handler_formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s'"
+)
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+handler.setFormatter(handler_formatter)
+logger.addHandler(handler)
 
 
 class Music:
@@ -53,39 +64,34 @@ class MusicPlayer:
             self.ffmpeg_opts = {"options": "-vn", "before_options": "-nostdin"}
 
     def _check_queue(self):
-        print('in _check_queue')
         try:
             current_song = self.music.queue[self.guild_id][0]
         except IndexError:
             return
         if not current_song.is_looping:
-            print('is not looping')
             try:
-                print('deleting track')
+                logger.info(f"{self.guild_id}: Deleting track {self.music.queue[self.guild_id]}")
                 self._previous_song = self.music.queue[self.guild_id].pop(0)
-                print('deleted', self._previous_song.name)
+                logger.info(f"{self.guild_id}: Deleted track {self._previous_song.name}")
                 current_song = self.music.queue[self.guild_id][0]
             except IndexError:
-                print('index error')
+                logger.info(f"{self.guild_id}: Index Error")
                 return
             if self.music.queue[self.guild_id]:
-                print('playing...')
                 self._play_track()
-                #  self.loop.create_task(self._dispatch_on_error_event(previous_song, current_song))
+                self._dispatch_on_error_event(current_song)
         else:
-            print('is looping')
             self._play_track()
-            #  self.loop.create_task(self._dispatch_on_error_event(previous_song, current_song))
+            self._dispatch_on_error_event(current_song)
 
-    async def _dispatch_on_error_event(self, previous_song, current_song):
-        print('dispatching')
-        await self.bot.dispatch('music_error', previous_song, current_song)
-        print('dispatched')
+    async def _dispatch_on_error_event(self, current_song):
+        await self.bot.dispatch('music_error', self._previous_song, current_song)
+        logger.info(f"{self.guild_id}: Error event dispatched")
 
     def _play_track(self):
+        logger.info(f"{self.guild_id}: Start playing track: {self.music.queue[self.guild_id]}")
         print([track.name for track in self.music.queue[self.guild_id]])
-        if self._previous_song == self.music.queue[self.guild_id][0]:
-            print(self._previous_song.name, self.music.queue[self.guild_id][0].name)
+        if self._previous_song == self.music.queue[self.guild_id][0] and not self.music.queue[self.guild_id][0].is_looping:
             self._previous_song = None
             del self.music.queue[self.guild_id][0]
         source = discord.PCMVolumeTransformer(
@@ -130,13 +136,16 @@ class MusicPlayer:
             self.music.queue[self.guild_id] = []
             self.voice.stop()
             self.music.players.remove(self)
+            logger.info(f"{self.guild_id}: Stop playing track: {self.music.queue[self.guild_id]}")
         except ValueError:
             raise NotPlaying("Cannot loop because nothing is being played")
 
     async def pause(self):
+
         try:
             self.voice.pause()
             song = self.music.queue[self.guild_id][0]
+            logger.info(f"{self.guild_id}: Pause playing track: {self.music.queue[self.guild_id]}")
         except IndexError:
             raise NotPlaying("Cannot pause because nothing is being played")
         return song
@@ -145,6 +154,7 @@ class MusicPlayer:
         try:
             self.voice.resume()
             song = self.music.queue[self.guild_id][0]
+            logger.info(f"{self.guild_id}: Resume playing track: {self.music.queue[self.guild_id]}")
         except (KeyError, IndexError):
             raise NotPlaying("Cannot resume because nothing is being played")
         return song
