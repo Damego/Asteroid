@@ -57,7 +57,8 @@ class AutoRole(Cog):
             del autoroles['_id']
 
             choices = [
-                create_choice(name=name, value=name) for name in autoroles if name.startswith(ctx.user_input)
+                create_choice(name=autorole_name, value=autorole_name)
+                for autorole_name in autoroles if autorole_name.startswith(ctx.user_input)
             ][:25]
         elif ctx.focused_option == 'option':
             autoroles = collection.find_one({'_id': 'autorole'})
@@ -66,13 +67,14 @@ class AutoRole(Cog):
                 option["label"] for option in autorole_data['component']['options']
             ]
             choices = [
-                create_choice(name=name, value=name) for name in select_options if name.startswith(ctx.user_input)
+                create_choice(name=option_name, value=option_name)
+                for option_name in select_options if option_name.startswith(ctx.user_input)
             ][:25]
         elif ctx.focused_option == 'role_id':
             configuration_data = collection.find_one({'_id': 'configuration'})
             on_join_roles = [ctx.guild.get_role(role_id) for role_id in configuration_data.get('on_join_roles')]
             choices = [
-                create_choice(name=role, value=str(role.id))
+                create_choice(name=role.name, value=str(role.id))
                 for role in on_join_roles if role.name.startswith(ctx.user_input)
             ][:25]
         await ctx.populate(choices)
