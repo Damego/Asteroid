@@ -70,12 +70,12 @@ class MusicPlayer:
             return
         if not current_song.is_looping:
             try:
-                logger.info(f"{self.guild_id}: Deleting track {self.music.queue[self.guild_id]}")
+                logger.warning(f"{self.guild_id}: Deleting track {self.music.queue[self.guild_id][0].name}")
                 self._previous_song = self.music.queue[self.guild_id].pop(0)
-                logger.info(f"{self.guild_id}: Deleted track {self._previous_song.name}")
+                logger.warning(f"{self.guild_id}: Deleted track {self._previous_song.name}")
                 current_song = self.music.queue[self.guild_id][0]
             except IndexError:
-                logger.info(f"{self.guild_id}: Index Error")
+                logger.warning(f"{self.guild_id}: Index Error")
                 return
             if self.music.queue[self.guild_id]:
                 self._play_track()
@@ -86,11 +86,10 @@ class MusicPlayer:
 
     async def _dispatch_on_error_event(self, current_song):
         await self.bot.dispatch('music_error', self._previous_song, current_song)
-        logger.info(f"{self.guild_id}: Error event dispatched")
+        logger.warning(f"{self.guild_id}: Error event dispatched")
 
     def _play_track(self):
-        logger.info(f"{self.guild_id}: Start playing track: {self.music.queue[self.guild_id]}")
-        print([track.name for track in self.music.queue[self.guild_id]])
+        logger.warning(f"{self.guild_id}: Start playing track: {self.music.queue[self.guild_id][0].name}")
         if self._previous_song == self.music.queue[self.guild_id][0] and not self.music.queue[self.guild_id][0].is_looping:
             self._previous_song = None
             del self.music.queue[self.guild_id][0]
@@ -108,6 +107,7 @@ class MusicPlayer:
     async def add_to_queue(self, url, search: bool = False, bettersearch: bool = False):
         song = await get_video_data(url, search, bettersearch, self.loop)
         self.music.queue[self.guild_id].append(song)
+        logger.warning(f"{self.guild_id}: Added to queue: {song.name}")
         return song
 
     async def play(self):
@@ -127,6 +127,7 @@ class MusicPlayer:
         try:
             new_song = self.music.queue[self.guild_id][1]
             await self.play()
+            logger.warning(f"{self.guild_id}: Skipped track: {current_song.name}")
             return new_song
         except IndexError:
             return current_song
@@ -136,7 +137,7 @@ class MusicPlayer:
             self.music.queue[self.guild_id] = []
             self.voice.stop()
             self.music.players.remove(self)
-            logger.info(f"{self.guild_id}: Stop playing track: {self.music.queue[self.guild_id]}")
+            logger.warning(f"{self.guild_id}: Stop playing track: {self.music.queue[self.guild_id][0].name}")
         except ValueError:
             raise NotPlaying("Cannot loop because nothing is being played")
 
@@ -145,7 +146,7 @@ class MusicPlayer:
         try:
             self.voice.pause()
             song = self.music.queue[self.guild_id][0]
-            logger.info(f"{self.guild_id}: Pause playing track: {self.music.queue[self.guild_id]}")
+            logger.warning(f"{self.guild_id}: Pause playing track: {self.music.queue[self.guild_id][0].name}")
         except IndexError:
             raise NotPlaying("Cannot pause because nothing is being played")
         return song
@@ -154,7 +155,7 @@ class MusicPlayer:
         try:
             self.voice.resume()
             song = self.music.queue[self.guild_id][0]
-            logger.info(f"{self.guild_id}: Resume playing track: {self.music.queue[self.guild_id]}")
+            logger.warning(f"{self.guild_id}: Resume playing track: {self.music.queue[self.guild_id][0].name}")
         except (KeyError, IndexError):
             raise NotPlaying("Cannot resume because nothing is being played")
         return song
