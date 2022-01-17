@@ -45,6 +45,38 @@ class AutoRole(Cog):
             role: Role = guild.get_role(role_id)
             await member.add_roles(role)
 
+    @Cog.listener(name='on_autocomplete')
+    async def autorole_select_autocomplete(self, ctx: AutoCompleteContext, **kwargs):
+        command_name = self.bot.get_transformed_command_name(ctx)
+        if command_name != 'autorole':
+            return
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+
+        if ctx.focused_option == 'name':
+            autoroles = collection.find_one({'_id': 'autorole'})
+            del autoroles['_id']
+
+            choices = [
+                create_choice(name=name, value=name) for name in autoroles if name.startswith(ctx.user_input)
+            ][:25]
+        elif ctx.focused_option == 'option':
+            autoroles = collection.find_one({'_id': 'autorole'})
+            autorole_data = autoroles.get(kwargs.get('name'))
+            select_options = [
+                option["label"] for option in autorole_data['component']['options']
+            ]
+            choices = [
+                create_choice(name=name, value=name) for name in select_options if name.startswith(ctx.user_input)
+            ][:25]
+        elif ctx.focused_option == 'role_id':
+            configuration_data = collection.find_one({'_id': 'configuration'})
+            on_join_roles = [ctx.guild.get_role(role_id) for role_id in configuration_data.get('on_join_roles')]
+            choices = [
+                create_choice(name=role, value=str(role.id))
+                for role in on_join_roles if role.name.startswith(ctx.user_input)
+            ][:25]
+        await ctx.populate(choices)
+
     @slash_subcommand(
         base='autorole',
         subcommand_group='on_join',
@@ -73,13 +105,24 @@ class AutoRole(Cog):
         base='autorole',
         subcommand_group='on_join',
         name='remove',
-        description='Removes on join role'
+        description='Removes on join role',
+        options=[
+            create_option(
+                name='role_id',
+                description='The ID of role',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            )
+        ]
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_on_join_remove(self, ctx: SlashContext, role: Role):
+    async def autorole_on_join_remove(self, ctx: SlashContext, role_id: str):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_ON_JOIN', lang)
+
+        role = ctx.guild.get_role(int(role_id))
 
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
@@ -343,29 +386,6 @@ class AutoRole(Cog):
                 }
             }
         )
-
-    @Cog.listener(name='on_autocomplete')
-    async def autorole_select_autocomplete(self, ctx: AutoCompleteContext, **kwargs):
-        command_name = self.bot.get_transformed_command_name(ctx)
-        if command_name != 'autorole':
-            return
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        autoroles = collection.find_one({'_id': 'autorole'})
-        del autoroles['_id']
-
-        if ctx.focused_option == 'name':
-            choices = [
-                create_choice(name=name, value=name) for name in autoroles if name.startswith(ctx.user_input)
-            ]
-        elif ctx.focused_option == 'option':
-            autorole_data = autoroles.get(kwargs.get('name'))
-            select_options = [
-                option["label"] for option in autorole_data['component']['options']
-            ]
-            choices = [
-                create_choice(name=name, value=name) for name in select_options if name.startswith(ctx.user_input)
-            ]
-        await ctx.populate(choices)
 
     @slash_subcommand(
         base='autorole',
@@ -668,6 +688,72 @@ class AutoRole(Cog):
             if role in member.roles:
                 await member.remove_roles(role)
         await ctx.send('☑️', hidden=True)
+
+    # Button AutoRole
+    @Cog.listener()
+    async def on_button_click(self, ctx: ComponentContext):
+        if not ctx.custom_id.startswith('autorole_button'):
+            return
+        role_id = ctx.custom_id.split('|')[1]
+        role = ctx.guild.get_role(int(role_id))
+        if role in ctx.author.roles:
+            await ctx.author.remove_roles(role)
+        else:
+            await ctx.author.add_roles(role)
+
+        await ctx.send('added', hidden=True)
+
+    @slash_subcommand(
+        base='test_autorole',
+        subcommand_group='button',
+        name='create'
+    )
+    async def autorole_button_create(self, ctx: SlashContext, message_content: str):
+        await ctx.send('Created', hidden=True)
+        await ctx.channel.send(message_content)
+
+    @slash_subcommand(
+        base='test_autorole',
+        subcommand_group='button',
+        name='add_role'
+    )
+    async def autorole_button_add_role(
+        self,
+        ctx: SlashContext,
+        message_id: str,
+        role: Role,
+        label: str = None,
+        style: int = None,
+        emoji: str = None
+    ):
+        await ctx.defer()
+        if not message_id.isdigit():
+            return await ctx.send('NO ID')
+        if style not in range(1, 5):
+            return await ctx.send('Style should be in range [1, 4]')
+
+        button = Button(
+            label=label,
+            emoji=emoji,
+            style=style,
+            custom_id=f"autorole_button|{role.id}"
+        )
+        original_message = await ctx.channel.fetch_message(int(message_id))
+        original_components = original_message.components
+        if not original_components:
+            original_components = [button]
+        else:
+            for row in original_components:
+                if len(row) < 5:
+                    row.append(button)
+                    break
+            else:
+                if len(original_components) == 5:
+                    return await ctx.send('Limit 25 buttons')
+
+        await original_message.edit(components=original_components)
+        await ctx.send('role added', hidden=True)
+
 
 
 def setup(bot):

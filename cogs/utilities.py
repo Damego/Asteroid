@@ -1,7 +1,8 @@
 import datetime
+from typing import List
 
 from discord import Embed, TextChannel, RawReactionActionEvent, Guild, Message, Member, Role
-from discord_slash import SlashContext
+from discord_slash import SlashContext, AutoCompleteContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 from pymongo.collection import Collection
@@ -16,6 +17,50 @@ class Utilities(Cog):
         self.name = 'Utilities'
 
     # STARBOARD
+
+    @Cog.listener('on_autocomplete')
+    async def starboard_autocomplete(self, ctx: AutoCompleteContext, **kwargs):
+        if ctx.name != 'starboard':
+            return
+
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        starboard_data = collection.find_one({'_id': 'starboard'})
+        if not starboard_data:
+            return
+        if blacklist_data := starboard_data.get('blacklist') is None:
+            return
+
+        if ctx.focused_option == 'channel':
+            if channel_ids := blacklist_data.get('channels') is not None:
+                return
+            channels: List[TextChannel] = [
+                ctx.guild.get_channel(channel_id) for channel_id in channel_ids
+            ]
+            choices = [
+                create_choice(name=channel.name, value=str(channel.id))
+                for channel in channels if channel.name.startswith(ctx.user_input)
+            ][:25]
+        elif ctx.focused_option == 'member':
+            if member_ids := blacklist_data.get('members') is not None:
+                members: List[Member] = [
+                    ctx.guild.get_member(member_id) for member_id in member_ids
+                ]
+                choices = [
+                    create_choice(name=member.dispay_name, value=str(member.id))
+                    for member in members if member.display_name.startswith(ctx.user_input)
+                ][:25]
+        elif ctx.focused_option == 'role':
+            if role_ids := blacklist_data.get('roles') is not None:
+                roles: List[Role] = [
+                    ctx.guild.get_role(role_id) for role_id in role_ids
+                ]
+                choices = [
+                    create_choice(name=role.name, value=str(role.id))
+                    for role in roles if role.name.startswith(ctx.user_input)
+                ][:25]
+
+        await ctx.populate(choices)
+
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: RawReactionActionEvent):
         if payload.member.bot:
@@ -317,16 +362,39 @@ class Utilities(Cog):
         base='starboard',
         subcommand_group='blacklist',
         name='remove',
-        description='Removes member/role/channel from blacklist'
+        description='Removes member/role/channel from blacklist',
+        options=[
+            create_option(
+                name='member',
+                description='member',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            ),
+            create_option(
+                name='role',
+                description='Role',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            ),
+            create_option(
+                name='channel',
+                description='Text channel',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            ),
+        ]
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def starboard_blacklist_remove(
         self,
         ctx: SlashContext,
-        member: Member = None,
-        role: Role = None,
-        channel: TextChannel = None
+        member: str = None,
+        role: str = None,
+        channel: str = None
     ):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('STARBOARD_FUNCTIONS', lang)
@@ -344,12 +412,18 @@ class Utilities(Cog):
             return await ctx.send(content['EMPTY_BLACKLIST_TEXT'], hidden=True)
 
         blacklist = starboard_data['blacklist']
-        if member and member.id in blacklist['members']:
-            data['members'] = member.id
-        if role and role.id in blacklist['roles']:
-            data['roles'] = role.id
-        if channel and channel.id in blacklist['channels']:
-            data['channels'] = channel.id
+        if member:
+            member = ctx.guild.get_member(int(member))
+            if member.id in blacklist['members']:
+                data['members'] = member.id
+        if role:
+            role = ctx.guild.get_role(int(role))
+            if role.id in blacklist['roles']:
+                data['roles'] = role.id
+        if channel:
+            channel = ctx.guild.get_channel(int(channel))
+            if channel.id in blacklist['channels']:
+                data['channels'] = channel.id
 
         to_send = {f'blacklist.{key}': value for key, value in data.items()}
 
@@ -415,6 +489,21 @@ class Utilities(Cog):
         await ctx.send(embed=embed, hidden=hidden)
 
     #  TURN OFF/ON COMMANDS/GROUP OF COMMANDS
+
+    @Cog.listener(name='on_autocomplete')
+    async def command_autocomplete(self, ctx: AutoCompleteContext, **kwargs):
+        if self.bot.get_transformed_command_name(ctx) != 'command':
+            return
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        configuration_data = collection.find_one({'_id': 'configuration'})
+        disabled_commands = configuration_data.get('disabled_commands')
+        if disabled_commands:
+            choices = [
+                create_choice(name=command_name, value=command_name)
+                for command_name in disabled_commands if command_name.startswith(ctx.user_input)
+            ][:25]
+            await ctx.populate(choices)
+
     @slash_subcommand(
         base='command',
         name='disable',
@@ -440,7 +529,16 @@ class Utilities(Cog):
     @slash_subcommand(
         base='command',
         name='enable',
-        description='Enable command/base/group for your server'
+        description='Enable command/base/group for your server',
+        options=[
+            create_option(
+                name='command_name',
+                description='The name of command',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            )
+        ]
     )
     @bot_owner_or_permissions(manage_guild=True)
     async def enable_cmd(self, ctx: SlashContext, command_name: str):
