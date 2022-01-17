@@ -126,18 +126,18 @@ class MusicPlayer:
         self.voice.stop()
         try:
             new_song = self.music.queue[self.guild_id][1]
-            await self.play()
             logger.warning(f"{self.guild_id}: Skipped track: {current_song.name}")
+            await self.play()
             return new_song
         except IndexError:
             return current_song
 
     async def stop(self):
         try:
+            logger.warning(f"{self.guild_id}: Stop playing track: {self.music.queue[self.guild_id][0].name}")
             self.music.queue[self.guild_id] = []
             self.voice.stop()
             self.music.players.remove(self)
-            logger.warning(f"{self.guild_id}: Stop playing track: {self.music.queue[self.guild_id][0].name}")
         except ValueError:
             raise NotPlaying("Cannot loop because nothing is being played")
 
@@ -146,7 +146,7 @@ class MusicPlayer:
         try:
             self.voice.pause()
             song = self.music.queue[self.guild_id][0]
-            logger.warning(f"{self.guild_id}: Pause playing track: {self.music.queue[self.guild_id][0].name}")
+            logger.warning(f"{self.guild_id}: Pause playing track: {song.name}")
         except IndexError:
             raise NotPlaying("Cannot pause because nothing is being played")
         return song

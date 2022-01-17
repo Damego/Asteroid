@@ -131,6 +131,8 @@ class Levels(Cog):
 
     async def check_time(self, member: Member, voice_collection: Collection):
         voice_user = voice_collection.find_one({'_id': str(member.id)})
+        if voice_user is None:
+            return
         sit_time = int(time()) - voice_user['voice_time']
         voice_collection.delete_one({'_id': str(member.id)})
         exp = (sit_time // 60) * self.time_factor
