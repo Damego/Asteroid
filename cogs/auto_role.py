@@ -17,12 +17,6 @@ from my_utils import (
 )
 
 
-def get_emoji_role(collection, message_id: int, emoji):
-    emoji_role = collection.find_one({'_id': str(message_id)})
-
-    return emoji_role[str(emoji)]
-
-
 class AutoRole(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
@@ -494,6 +488,7 @@ class AutoRole(Cog):
         await ctx.send(embed=embed, hidden=True)
 
     # REACTION ROLE COMMANDS AND EVENTS
+
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: RawReactionActionEvent):
         if payload.member.bot:
@@ -503,8 +498,9 @@ class AutoRole(Cog):
         except CogDisabledOnGuild:
             return
 
-        collection = self.bot.get_guild_reaction_roles_collection(payload.guild_id)
-        post = collection.find_one({'_id': str(payload.message_id)})
+        collection = self.bot.get_guild_main_collection(payload.guild_id)
+        message_ids = collection.find_one({'_id': 'reaction_roles'})
+        post = message_ids.get(str(payload.message_id))
         if post is None:
             return
         emoji = payload.emoji.id
@@ -515,7 +511,9 @@ class AutoRole(Cog):
         if guild is None:
             guild = await self.bot.fetch_guild(payload.guild_id)
 
-        emoji_role = get_emoji_role(collection, payload.message_id, emoji)
+        emoji_role = self.get_emoji_role(collection, payload.message_id, emoji)
+        if emoji_role is None:
+            return
         role = guild.get_role(emoji_role)
 
         await payload.member.add_roles(role)
@@ -527,8 +525,9 @@ class AutoRole(Cog):
         except CogDisabledOnGuild:
             return
 
-        collection = self.bot.get_guild_reaction_roles_collection(payload.guild_id)
-        post = collection.find_one({'_id': str(payload.message_id)})
+        collection = self.bot.get_guild_main_collection(payload.guild_id)
+        message_ids = collection.find_one({'_id': 'reaction_roles'})
+        post = message_ids.get(str(payload.message_id))
         if post is None:
             return
 
@@ -540,13 +539,22 @@ class AutoRole(Cog):
         if guild is None:
             guild = await self.bot.fetch_guild(payload.guild_id)
 
-        emoji_role = get_emoji_role(collection, payload.message_id, emoji)
+        emoji_role = self.get_emoji_role(collection, payload.message_id, emoji)
+        if emoji_role is None:
+            return
         role = guild.get_role(emoji_role)
 
         member = guild.get_member(payload.user_id)
         if member is None:
             member = guild.fetch_member(payload.user_id)
         await member.remove_roles(role)
+
+    def get_emoji_role(self, collection, message_id: int, emoji):
+        message_ids = collection.find_one({'_id': 'reaction_roles'})
+        message_roles = message_ids.get(str(message_id))
+        emoji_role = message_roles.get(str(emoji))
+
+        return emoji_role
 
     @slash_subcommand(
         base='reactionrole',
@@ -564,9 +572,18 @@ class AutoRole(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def add_post(self, ctx, message_id):
-        collection = self.bot.get_guild_reaction_roles_collection(ctx.guild.id)
-        collection.insert_one({'_id': message_id})
+    async def add_post(self, ctx: SlashContext, message_id: str):
+        collection = self.bot.get_guild_main_collection(ctx.guild.id)
+        collection.update_one(
+            {'_id': 'reaction_roles'},
+            {
+                '$set': {
+                    message_id: {
+                    }
+                }
+            },
+            upsert=True
+        )
 
         await ctx.send('✅', hidden=True)
 
@@ -598,14 +615,17 @@ class AutoRole(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def add_emoji_role(self, ctx, message_id, emoji, role: Role):
+    async def add_emoji_role(self, ctx: SlashContext, message_id, emoji, role: Role):
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>', '')
 
-        collection = self.bot.get_guild_reaction_roles_collection(ctx.guild.id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
-            {'_id': message_id},
-            {'$set': {emoji: role.id}},
+            {'_id': 'reaction_roles'},
+            {'$set': {
+                f"{message_id}.{emoji}": role.id
+            }
+            },
             upsert=True
         )
 
@@ -615,7 +635,7 @@ class AutoRole(Cog):
         base='reactionrole',
         subcommand_group='remove',
         name='post',
-        description='Remove\'s message to react',
+        description="Remove's reaction roles message from database. Doesn't delete message.",
         options=[
             create_option(
                 name='message_id',
@@ -627,9 +647,16 @@ class AutoRole(Cog):
     )
     @bot_owner_or_permissions(manage_roles=True)
     @is_enabled()
-    async def remove_post(self, ctx, message_id):
-        collection = self.bot.get_guild_reaction_roles_collection(ctx.guild.id)
-        collection.delete_one({'_id': message_id})
+    async def remove_post(self, ctx: SlashContext, message_id: str):
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        collection.update_one(
+            {'_id': 'reaction_roles'},
+            {
+                '$set': {
+                    message_id: ""
+                }
+            }
+        )
 
         await ctx.send('✅', hidden=True)
 
@@ -655,14 +682,18 @@ class AutoRole(Cog):
     )
     @bot_owner_or_permissions(manage_roles=True)
     @is_enabled()
-    async def remove_role(self, ctx, message_id, emoji):
+    async def remove_role(self, ctx: SlashContext, message_id: str, emoji: str):
         if emoji[0] == '<':
             emoji = emoji.split(':')[2].replace('>', '')
 
-        collection = self.bot.get_guild_reaction_roles_collection(ctx.guild.id)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
-            {'_id': message_id},
-            {'$unset': {emoji: ''}}
+            {'_id': 'reaction_roles'},
+            {
+                '$unset': {
+                    f'{message_id}.{emoji}': ""
+                }
+            }
         )
 
         await ctx.send('✅', hidden=True)
