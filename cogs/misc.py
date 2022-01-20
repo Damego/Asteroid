@@ -430,6 +430,8 @@ class Misc(Cog):
             await channel.send(message)
         except Forbidden:
             await ctx.send('Unable send message to this channel!')
+        else:
+            await ctx.send('Successfully sent!')
 
     @slash_subcommand(
         base='staff',
@@ -444,6 +446,19 @@ class Misc(Cog):
         channels: List[TextChannel] = guild.channels
         channels_data = "\n".join([f"{channel.name} | {channel.id}" for channel in channels])
         embed = Embed(title=f'Channels of {guild.name}', description=channels_data)
+        await ctx.send(embed=embed)
+
+    @slash_subcommand(
+        base='staff',
+        name='get_guilds',
+        guild_ids=consts.test_global_guilds_ids
+    )
+    async def get_guilds(self, ctx: SlashContext):
+        guilds = self.bot.guilds
+        embed = Embed(
+            title='All bot guilds',
+            description='\n'.join([f"{guild.name} | {guild.id}" for guild in guilds])
+        )
         await ctx.send(embed=embed)
 
 
