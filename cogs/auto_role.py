@@ -834,7 +834,7 @@ class AutoRole(Cog):
             original_components = [button]
         else:
             for row in original_components:
-                if len(row) < 5:
+                if len(row) < 5 and not isinstance(row[0], Select):
                     row.append(button)
                     break
             else:
