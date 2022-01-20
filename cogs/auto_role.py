@@ -277,10 +277,7 @@ class AutoRole(Cog):
             return await ctx.send(content['OPTIONS_OVERKILL_TEXT'], hidden=True)
 
         if emoji:
-            _emoji = emoji.split(':')
-            if len(_emoji) == 3:
-                _emoji = _emoji[-1].replace('>', '')
-                emoji = self.bot.get_emoji(int(_emoji))
+            emoji = self.get_emoji(emoji)
 
         if select_component.options[0].label == 'None':
             select_component.options = [
@@ -737,41 +734,95 @@ class AutoRole(Cog):
         await ctx.send('added', hidden=True)
 
     @slash_subcommand(
-        base='test_autorole',
+        base='autorole',
         subcommand_group='button',
         name='create'
     )
-    async def autorole_button_create(self, ctx: SlashContext, message_content: str):
+    async def autorole_button_create(self, ctx: SlashContext, name: str, message_content: str):
         await ctx.send('Created', hidden=True)
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        collection.update_one(
+            {'_id': 'autorole'},
+            {
+                '$set': {
+                    name: {
+                        'content': message_content,
+                        'type': 'button'
+                    }
+                }
+            },
+            upsert=True
+        )
         await ctx.channel.send(message_content)
 
     @slash_subcommand(
-        base='test_autorole',
+        base='autorole',
         subcommand_group='button',
-        name='add_role'
+        name='add_role',
+        options=[
+            create_option(
+                name='name',
+                description='The name of group of buttons',
+                option_type=3,
+                required=True,
+                autocomplete=True
+            ),
+            create_option(
+                name='role',
+                description='Role',
+                option_type=8,
+                required=True
+            ),
+            create_option(
+                name='label',
+                description='The label of button',
+                option_type=3,
+                required=False
+            ),
+            create_option(
+                name='style',
+                description='The style or color of button',
+                option_type=4,
+                required=False,
+                choices=[
+                    create_choice(name='Blue', value=ButtonStyle.blue.value),
+                    create_choice(name='Gray', value=ButtonStyle.gray.value),
+                    create_choice(name='Green', value=ButtonStyle.green.value),
+                    create_choice(name='Red', value=ButtonStyle.red.value),
+                ]
+            ),
+            create_option(
+                name='emoji',
+                description='The emoji of button',
+                option_type=3,
+                required=False
+            )
+        ]
     )
     async def autorole_button_add_role(
         self,
         ctx: SlashContext,
-        message_id: str,
+        name: str,
         role: Role,
         label: str = None,
         style: int = None,
         emoji: str = None
     ):
         await ctx.defer()
-        if not message_id.isdigit():
-            return await ctx.send('NO ID')
-        if style not in range(1, 5):
-            return await ctx.send('Style should be in range [1, 4]')
+        if not label and not emoji:
+            return await ctx.send('Should be one of label and emoji')
+
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        autoroles = collection.find_one({"_id": "autorole"})
+        autorole = autoroles.get(name)
 
         button = Button(
             label=label,
-            emoji=emoji,
+            emoji=self.get_emoji(emoji),
             style=style,
             custom_id=f"autorole_button|{role.id}"
         )
-        original_message = await ctx.channel.fetch_message(int(message_id))
+        original_message = await ctx.channel.fetch_message(int(autorole["message_id"]))
         original_components = original_message.components
         if not original_components:
             original_components = [button]
@@ -783,9 +834,28 @@ class AutoRole(Cog):
             else:
                 if len(original_components) == 5:
                     return await ctx.send('Limit 25 buttons')
+                else:
+                    original_components.append(
+                        [button]
+                    )
 
         await original_message.edit(components=original_components)
         await ctx.send('role added', hidden=True)
+
+        collection.update_one(
+            {"_id": "autorole"},
+            {
+                "$set": {
+                    f"{name}.component": [actionrow.to_dict() for actionrow in original_components]
+                }
+            }
+        )
+
+    def get_emoji(self, emoji: str):
+        if emoji.startswith('<'):
+            _emoji = emoji.split(':')[-1].replace('>', '')
+            emoji = self.bot.get_emoji(int(_emoji))
+        return emoji
 
 
 def setup(bot):
