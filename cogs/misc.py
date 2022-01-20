@@ -1,9 +1,10 @@
 from asyncio import TimeoutError
+from datetime import datetime
 import os
 from typing import Union
 
 import aiohttp
-from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter
+from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter, TextChannel
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
@@ -23,6 +24,8 @@ class Misc(Cog):
         self.hidden = False
         self.emoji = '💡'
         self.name = 'Misc'
+
+        self.slash_use_channel: TextChannel = None
 
     async def send_guilds_update_webhooks(self, embed: Embed):
         async with aiohttp.ClientSession() as session:
@@ -60,6 +63,15 @@ class Misc(Cog):
         )
         embed.set_thumbnail(url=guild.icon_url)
         await self.send_guilds_update_webhooks(embed)
+
+    @Cog.listener()
+    async def on_slash_command(self, ctx: SlashContext):
+        if self.slash_use_channel is None:
+            self.slash_use_channel = self.bot.get_channel(933755239583080448)
+        await self.slash_use_channel.send(
+            f"{datetime.utcnow()} | **{ctx.guild.name}** | {ctx.guild_id} | **{ctx.author.display_name}**\n" \
+            f"`/{self.bot.get_transformed_command_name(ctx)} {ctx.kwargs}`"
+        )
 
     @slash_command(
         name='info',
