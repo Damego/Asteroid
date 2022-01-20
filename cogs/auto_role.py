@@ -825,7 +825,7 @@ class AutoRole(Cog):
         button = Button(
             label=label,
             emoji=self.get_emoji(emoji) if emoji else None,
-            style=style,
+            style=style or ButtonStyle.gray,
             custom_id=f"autorole_button|{role.id}"
         )
         original_message = await ctx.channel.fetch_message(int(autorole["message_id"]))
