@@ -23,7 +23,10 @@ class Music(Cog):
             if len(members) == 1 and members[0].bot:
                 await self.stop_on_leave(member.guild)
         elif member.bot and after.channel is None:
-            await self.stop_on_leave(member.guild)
+            try:
+                await self.stop_on_leave(member.guild)
+            except AttributeError:
+                pass
 
     @slash_subcommand(
         base='music',
