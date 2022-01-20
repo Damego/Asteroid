@@ -87,7 +87,6 @@ LANGUAGES = {
             "STARBOARD_BLACKLIST_ADD": "Добавляет участника/роль/канал в чёрный список",
             "STARBOARD_BLACKLIST_LIST": "Показывает чёрный список",
             "STARBOARD_BLACKLIST_REMOVE": "Удаляет участника/роль/канал из чёрного списка",
-
         },
         'ERRORS_DESCRIPTIONS': {
             'COG_DISABLED': 'Эта команда отключена на этом сервере!',

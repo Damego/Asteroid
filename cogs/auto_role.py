@@ -739,7 +739,8 @@ class AutoRole(Cog):
         name='create'
     )
     async def autorole_button_create(self, ctx: SlashContext, name: str, message_content: str):
-        await ctx.send('Created', hidden=True)
+        await ctx.defer()
+        message = await ctx.channel.send(message_content)
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
             {'_id': 'autorole'},
@@ -747,13 +748,15 @@ class AutoRole(Cog):
                 '$set': {
                     name: {
                         'content': message_content,
-                        'type': 'button'
+                        'type': 'button',
+                        'message_id': message.id
                     }
                 }
             },
             upsert=True
         )
-        await ctx.channel.send(message_content)
+
+        await ctx.send('Created', hidden=True)
 
     @slash_subcommand(
         base='autorole',
