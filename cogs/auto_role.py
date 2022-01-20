@@ -410,11 +410,16 @@ class AutoRole(Cog):
     async def autorole_dropdown_set_status(
         self,
         ctx: SlashContext,
-        message_id: str,
+        name: str,
         status: str
     ):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_DROPDOWN', lang)
+
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        autoroles = collection.find_one({'_id': 'autorole'})
+
+        message_id = autoroles[name]['message_id']
         original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
         if not original_message.components:
             return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'], hidden=True)
