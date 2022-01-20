@@ -134,3 +134,14 @@ desktop.files.json
 
 # vscode's files
 .vscode
+
+# other files
+*.exe
+*.jar
+
+# logs files
+*.gz
+
+# Test files/folders
+/test
+test.*
