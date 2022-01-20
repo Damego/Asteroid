@@ -399,7 +399,8 @@ LANGUAGES = {
             'NOT_SAVED_DROPDOWNS': 'Нет сохранённих меню!',
             'DROPDOWN_NOT_FOUND': 'Нет меню с таким именем!',
             'DROPDOWN_LOADED_TEXT': 'Меню загружено!',
-            'DROPDOWN_LIST': 'Список меню с ролями'
+            'DROPDOWN_LIST': 'Список меню с ролями',
+            "DROPDOWN_NOT_FOUND": "Меню с этим именем не найдено!"
         },
         'AUTOROLE_ON_JOIN': {
             'ROLE_ADDED_TEXT': 'Роль {role} Добавлена!',
@@ -740,7 +741,8 @@ LANGUAGES = {
             'NOT_SAVED_DROPDOWNS': 'No dropdowns saved!',
             'DROPDOWN_NOT_FOUND': 'Could not find Dropdown with this name',
             'DROPDOWN_LOADED_TEXT': 'Dropdown loaded!',
-            'DROPDOWN_LIST': 'Dropdowns list'
+            'DROPDOWN_LIST': 'Dropdowns list',
+            "DROPDOWN_NOT_FOUND": "Dropdown with this name not found!"
         },
         'AUTOROLE_ON_JOIN': {
             'ROLE_ADDED_TEXT': 'Role {role} Added!',

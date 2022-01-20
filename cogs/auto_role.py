@@ -263,7 +263,10 @@ class AutoRole(Cog):
 
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         autoroles = collection.find_one({'_id': 'autorole'})
-        message_id = autoroles.get(name)['message_id']
+        autorole_data = autoroles.get(name)
+        if autorole_data is None:
+            return await ctx.send(content["DROPDOWN_NOT_FOUND"])
+        message_id = autorole_data['message_id']
 
         original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
         if not original_message.components:
@@ -342,7 +345,10 @@ class AutoRole(Cog):
 
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         autoroles = collection.find_one({'_id': 'autorole'})
-        message_id = autoroles[name]['message_id']
+        autorole_data = autoroles.get(name)
+        if autorole_data is None:
+            return await ctx.send(content["DROPDOWN_NOT_FOUND"])
+        message_id = autorole_data['message_id']
 
         original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
         if not original_message.components:
@@ -418,8 +424,11 @@ class AutoRole(Cog):
 
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         autoroles = collection.find_one({'_id': 'autorole'})
+        autorole_data = autoroles.get(name)
+        if autorole_data is None:
+            return await ctx.send(content["DROPDOWN_NOT_FOUND"])
+        message_id = autorole_data['message_id']
 
-        message_id = autoroles[name]['message_id']
         original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
         if not original_message.components:
             return await ctx.send(content['MESSAGE_WITHOUT_DROPDOWN_TEXT'], hidden=True)
