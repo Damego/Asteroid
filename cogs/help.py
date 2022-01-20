@@ -21,11 +21,13 @@ class Help(Cog):
         description='Show all bot\'s commands'
     )
     async def help_command(self, ctx: SlashContext):
+        await ctx.defer()
+
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content('HELP_COMMAND', lang)
 
         components = self._init_components(ctx, content)
-        embeds = self._init_embeds(ctx, content)
+        embeds = self._init_embeds(ctx, content, lang)
         message = await ctx.send(embed=embeds[0], components=components)
 
         while True:
@@ -77,7 +79,10 @@ class Help(Cog):
             )
         ]
 
-    def _init_embeds(self, ctx: SlashContext, content: dict):
+    def _init_embeds(self, ctx: SlashContext, content: dict, guild_language: str):
+        translated_commands = None
+        if guild_language != 'en':
+            translated_commands = get_content('TRANSLATED_COMMANDS', guild_language)
         commands_data = self._get_commands_data()
         embeds = [self._get_main_menu(ctx, content)]
 
@@ -106,15 +111,19 @@ class Help(Cog):
                     if _group == 'command_description':
                         continue
                     group = base_command[_group]
-                    is_group = group.get('has_subcommand_group')
-                    if is_group is None:
+                    if group.get('has_subcommand_group') is None:
                         for _command_name in group:
                             command = group[_command_name]
                             option_line = self.get_options(command)
-                            embed.description += f"`/{_base_command} {_group} {_command_name}{option_line}`\n *description:* {command['description']} \n"
+                            print(_command_name, command['description'])
+                            command_description = translated_commands.get(f"{_base_command}_{_group}_{_command_name}".upper(), command['description'])
+                            embed.description += f"`/{_base_command} {_group} {_command_name}{option_line}`\n " \
+                                f"*{content['DESCRIPTION_TEXT']}* {command_description} \n"
                     else:
                         option_line = self.get_options(group)
-                        embed.description += f"`/{_base_command} {_group}{option_line}`\n *description:* {group['description']} \n"
+                        command_description = translated_commands.get(f"{_base_command}_{_group}".upper(), group['description']) 
+                        embed.description += f"`/{_base_command} {_group}{option_line}`\n " \
+                            f"*{content['DESCRIPTION_TEXT']}* {command_description} \n"
             embeds.append(embed)
         return embeds
 
