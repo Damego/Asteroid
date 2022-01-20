@@ -824,7 +824,7 @@ class AutoRole(Cog):
 
         button = Button(
             label=label,
-            emoji=self.get_emoji(emoji),
+            emoji=self.get_emoji(emoji) if emoji else None,
             style=style,
             custom_id=f"autorole_button|{role.id}"
         )
