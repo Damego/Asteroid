@@ -1,10 +1,11 @@
 from asyncio import TimeoutError
 from datetime import datetime
 import os
-from typing import Union
+from typing import Union, List
 
 import aiohttp
-from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter, TextChannel
+from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter, TextChannel, Forbidden
+from discord.ext.commands import is_owner
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
@@ -14,7 +15,7 @@ from discord_slash.cog_ext import (
 from discord_components import Button, ButtonStyle
 from discord_slash_components_bridge import ComponentContext, ComponentMessage
 
-from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled, transform_permission
+from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled, transform_permission, consts
 from .levels._levels import formula_of_experience
 
 
@@ -414,6 +415,36 @@ class Misc(Cog):
         )
 
         return embed
+
+    @slash_subcommand(
+        base='staff',
+        name='send_message',
+        guild_ids=consts.test_global_guilds_ids
+    )
+    @is_owner()
+    async def send_message(self, ctx: SlashContext, channel_id: str, message: str):
+        if not channel_id.isdigit():
+            return await ctx.send('INPUT NUMBER', hidden=True)
+        channel: TextChannel = self.bot.get_channel(int(channel_id))
+        try:
+            await channel.send(message)
+        except Forbidden:
+            await ctx.send('Unable send message to this channel!')
+
+    @slash_subcommand(
+        base='staff',
+        name='get_guild_channels',
+        guild_ids=consts.test_global_guilds_ids
+    )
+    @is_owner()
+    async def get_guilds_channels(self, ctx: SlashContext, guild_id: str):
+        if not guild_id.isdigit():
+            return await ctx.send('INPUT NUMBER', hidden=True)
+        guild: Guild = self.bot.get_guild(int(guild_id))
+        channels: List[TextChannel] = guild.channels
+        channels_data = "\n".join([f"{channel.name} | {channel.id}" for channel in channels])
+        embed = Embed(title=f'Channels of {guild.name}', description=channels_data)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
