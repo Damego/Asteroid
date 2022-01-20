@@ -724,14 +724,15 @@ class AutoRole(Cog):
     async def on_button_click(self, ctx: ComponentContext):
         if not ctx.custom_id.startswith('autorole_button'):
             return
+        content = get_content('AUTOROLE_BUTTON', lang=self.bot.get_guild_bot_lang(ctx.guild_id))
         role_id = ctx.custom_id.split('|')[1]
         role = ctx.guild.get_role(int(role_id))
         if role in ctx.author.roles:
             await ctx.author.remove_roles(role)
+            await ctx.send(content['EVENT_REMOVED_ROLE_TEXT'].format(role.mention), hidden=True)
         else:
             await ctx.author.add_roles(role)
-
-        await ctx.send('added', hidden=True)
+            await ctx.send(content['EVENT_ADDED_ROLE_TEXT'].format(role.mention), hidden=True)
 
     @slash_subcommand(
         base='autorole',
@@ -739,7 +740,8 @@ class AutoRole(Cog):
         name='create'
     )
     async def autorole_button_create(self, ctx: SlashContext, name: str, message_content: str):
-        await ctx.defer()
+        await ctx.defer(hidden=True)
+
         message = await ctx.channel.send(message_content)
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
@@ -814,6 +816,7 @@ class AutoRole(Cog):
         await ctx.defer()
         if not label and not emoji:
             return await ctx.send('Should be one of label and emoji')
+        content = get_content("AUTOROLE_BUTTON", self.bot.get_guild_bot_lang(ctx.guild_id))
 
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         autoroles = collection.find_one({"_id": "autorole"})
@@ -836,14 +839,14 @@ class AutoRole(Cog):
                     break
             else:
                 if len(original_components) == 5:
-                    return await ctx.send('Limit 25 buttons')
+                    return await ctx.send(content['LIMIT_25_BUTTONS'])
                 else:
                     original_components.append(
                         [button]
                     )
 
         await original_message.edit(components=original_components)
-        await ctx.send('role added', hidden=True)
+        await ctx.send(content['COMMAND_ROLE_ADDED_TEXT'], hidden=True)
 
         collection.update_one(
             {"_id": "autorole"},

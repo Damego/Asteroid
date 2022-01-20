@@ -418,7 +418,13 @@ LANGUAGES = {
         'COMMAND_CONTROL': {
             'COMMAND_DISABLED': 'Команда `{command_name}` была выключена!',
             'COMMAND_ENABLED': 'Команда `{command_name}` была включена!'
-        }
+        },
+        'AUTOROLE_BUTTON': {
+            "EVENT_REMOVED_ROLE_TEXT": "Удалено: `{}`",
+            "EVENT_ADDED_ROLE_TEXT": "Добавлено: `{}`",
+            "LIMIT_25_BUTTONS": "Достигнут лимит в 25 кнопок!",
+            "COMMAND_ROLE_ADDED_TEXT": "Роль добавлена"
+        },
     },
     'en': {
         'ERRORS_DESCRIPTIONS': {
@@ -753,6 +759,12 @@ LANGUAGES = {
         'COMMAND_CONTROL': {
             'COMMAND_DISABLED': 'Command `{command_name}` was disabled!',
             'COMMAND_ENABLED': 'Command `{command_name}` was enabled!'
-        }
+        },
+        'AUTOROLE_BUTTON': {
+            "EVENT_REMOVED_ROLE_TEXT": "Removed: `{}`",
+            "EVENT_ADDED_ROLE_TEXT": "Added: `{}`",
+            "LIMIT_25_BUTTONS": "You have reached limit in 25 buttons",
+            "COMMAND_ROLE_ADDED_TEXT": "Role added"
+        },
     }
 }
