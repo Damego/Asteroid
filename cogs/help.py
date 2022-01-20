@@ -115,13 +115,14 @@ class Help(Cog):
                         for _command_name in group:
                             command = group[_command_name]
                             option_line = self.get_options(command)
-                            print(_command_name, command['description'])
-                            command_description = translated_commands.get(f"{_base_command}_{_group}_{_command_name}".upper(), command['description'])
+                            command_description = translated_commands.get(f"{_base_command}_{_group}_{_command_name}".upper(), command['description']) \
+                                if translated_commands else command['description']
                             embed.description += f"`/{_base_command} {_group} {_command_name}{option_line}`\n " \
                                 f"*{content['DESCRIPTION_TEXT']}* {command_description} \n"
                     else:
                         option_line = self.get_options(group)
-                        command_description = translated_commands.get(f"{_base_command}_{_group}".upper(), group['description']) 
+                        command_description = translated_commands.get(f"{_base_command}_{_group}".upper(), group['description']) \
+                            if translated_commands else group['description']
                         embed.description += f"`/{_base_command} {_group}{option_line}`\n " \
                             f"*{content['DESCRIPTION_TEXT']}* {command_description} \n"
             embeds.append(embed)
