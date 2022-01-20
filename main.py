@@ -3,6 +3,7 @@ from traceback import format_exception
 
 from discord import Guild, Intents, Embed, Forbidden
 from discord.ext import commands
+from discord_slash import SlashContext
 from dotenv import load_dotenv
 
 from my_utils import AsteroidBot, get_content, transform_permission
@@ -53,9 +54,8 @@ async def on_guild_remove(guild: Guild):
     for collection in collections:
         collection.drop()
 
-
 @bot.event
-async def on_slash_command_error(ctx, error):
+async def on_slash_command_error(ctx: SlashContext, error):
     print(error)
     embed = Embed(color=0xED4245)
     lang = bot.get_guild_bot_lang(ctx.guild_id)
