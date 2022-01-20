@@ -1,8 +1,9 @@
 from os import listdir
+from typing import Union
 
 from aiohttp import ClientSession, ClientResponse
 from discord.ext.commands import Bot
-from discord_slash import SlashContext
+from discord_slash import SlashContext, MenuContext
 from discord_slash_components_bridge import SlashCommand
 
 from my_utils.mongo import Mongo
@@ -90,7 +91,10 @@ class AsteroidBot(Bot):
                 data = await response.json()
         return data
 
-    def get_transformed_command_name(self, ctx: SlashContext):
+    def get_transformed_command_name(self, ctx: Union[SlashContext, MenuContext]):
+        if isinstance(ctx, MenuContext):
+            return ctx.name
+
         if not ctx.subcommand_name and not ctx.subcommand_group:
             command_name = ctx.name
         elif ctx.subcommand_name and ctx.subcommand_group:
