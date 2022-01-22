@@ -11,10 +11,20 @@ from discord_slash.cog_ext import (
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu
 )
+from discord_slash.utils.manage_commands import create_option, create_choice, SlashCommandOptionType
 from discord_components import Button, ButtonStyle
 from discord_slash_components_bridge import ComponentContext, ComponentMessage
 
-from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled, transform_permission
+from my_utils import (
+    AsteroidBot,
+    get_content,
+    Cog,
+    CogDisabledOnGuild,
+    is_enabled,
+    _cog_is_enabled,
+    transform_permission,
+    consts
+)
 from .levels._levels import formula_of_experience
 
 
@@ -414,6 +424,56 @@ class Misc(Cog):
         )
 
         return embed
+
+    @slash_subcommand(
+        base='rofl',
+        name='ban',
+        guild_ids=consts.test_global_guilds_ids,
+        options=[
+            create_option(
+                name="member",
+                description="Участник",
+                option_type=SlashCommandOptionType.USER,
+                required=True
+            ),
+            create_option(
+                name="button_label",
+                description="Название кнопки",
+                option_type=SlashCommandOptionType.STRING,
+                required=True
+            ),
+            create_option(
+                name="button_color",
+                description="Цвет кнопки",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                choices=[
+                    create_choice(name='Синий', value=ButtonStyle.blue.value),
+                    create_choice(name='Серый', value=ButtonStyle.gray.value),
+                    create_choice(name='Зелёный', value=ButtonStyle.green.value),
+                    create_choice(name='Красный', value=ButtonStyle.red.value),
+                ]
+            )
+        ]
+    )
+    async def rofl_ban(self, ctx: SlashContext, member: Member, button_label: str, button_color: int):
+        components = [
+            Button(
+                label=button_label,
+                style=button_color,
+                custom_id=f"rofl_ban_button|{member.id}"
+            )
+        ]
+        await ctx.send("Создано", hidden=True)
+        await ctx.channel.send(f"НАЖМИ НА КНОПКУ, ЧТОБЫ ЗАБАНИТЬ {member.display_name}", components=components)
+
+    @Cog.listener()
+    async def on_button_click(self, ctx: ComponentContext):
+        if not ctx.custom_id.startswith("rofl_ban_button"):
+            return
+        member_id = ctx.custom_id.split("|")[1]
+        await ctx.send(f"<@!{member_id}> ЗАБАНЕН!")
+        await ctx.message.disable_components()
 
 
 def setup(bot):
