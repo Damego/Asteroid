@@ -473,7 +473,7 @@ class Misc(Cog):
         guild_roles = guild.roles[::-1][:25]
         description = f""
         for role in guild_roles:
-            description += f"{role.name} | {role.id}"
+            description += f"{role.name} | {role.id} \n"
         
         embed = Embed(
             title=f'Roles of {guild.name} server',
