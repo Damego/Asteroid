@@ -472,9 +472,9 @@ class Misc(Cog):
         if not ctx.custom_id.startswith("rofl_ban_button"):
             return
         member_id = ctx.custom_id.split("|")[1]
-        await ctx.send(f"<@!{member_id}> ЗАБАНЕН!")
+        await ctx.channel.send(f"<@!{member_id}> ЗАБАНЕН!")
         ctx.component.disabled = True
-        await ctx.message.edit(components=ctx.message.components)
+        await ctx.edit_origin(components=ctx.message.components)
 
 
 def setup(bot):
