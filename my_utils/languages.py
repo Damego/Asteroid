@@ -30,6 +30,8 @@ LANGUAGES = {
             "AUTOROLE_ON_JOIN_ADD": "Добавляет роль, которая выдаётся при заходе на сервер",
             "AUTOROLE_ON_JOIN_REMOVE": "Удаляет роль, которая выдаётся при заходе на сервер",
             "AUTOROLE_REMOVE_ROLE_FROM_EVERYONE": "Удаляет роль у всех участников сервера",
+            "AUTOROLE_BUTTON_CREATE": "Создаёт сообщение для последующего прикрепления кнопок с ролями",
+            "AUTOROLE_BUTTON_ADD_ROLE": "Добавляет новую кнопку с ролью к сообщению",
             "GENSHIN_BIND": "Привязывает Hoyolab UID к вашему аккаунту",
             "GENSHIN_CHARACTERS_LIST": "Показывает список персонажей",
             "GENSHIN_CHARACTERS": "Показывает подробный список персонажей",
