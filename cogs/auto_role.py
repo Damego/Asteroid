@@ -40,9 +40,9 @@ class AutoRole(Cog):
             await member.add_roles(role)
 
     @Cog.listener(name='on_autocomplete')
-    async def autorole_select_autocomplete(self, ctx: AutoCompleteContext, **kwargs):
+    async def autorole_select_autocomplete(self, ctx: AutoCompleteContext):
         command_name = self.bot.get_transformed_command_name(ctx)
-        if command_name != 'autorole':
+        if not command_name.startswith('autorole'):
             return
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
 
@@ -56,7 +56,7 @@ class AutoRole(Cog):
             ][:25]
         elif ctx.focused_option == 'option':
             autoroles = collection.find_one({'_id': 'autorole'})
-            autorole_data = autoroles.get(kwargs.get('name'))
+            autorole_data = autoroles.get(ctx.options.get('name'))
             select_options = [
                 option["label"] for option in autorole_data['component']['options']
             ]
@@ -64,7 +64,7 @@ class AutoRole(Cog):
                 create_choice(name=option_name, value=option_name)
                 for option_name in select_options if option_name.startswith(ctx.user_input)
             ][:25]
-        elif ctx.focused_option == 'role_id':
+        elif ctx.focused_option == 'role':
             configuration_data = collection.find_one({'_id': 'configuration'})
             on_join_roles = [ctx.guild.get_role(role_id) for role_id in configuration_data.get('on_join_roles')]
             choices = [
@@ -104,8 +104,8 @@ class AutoRole(Cog):
         description='Removes on join role',
         options=[
             create_option(
-                name='role_id',
-                description='The ID of role',
+                name='role',
+                description='Role which gives when member has joined to server',
                 option_type=3,
                 required=True,
                 autocomplete=True
@@ -114,11 +114,11 @@ class AutoRole(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_on_join_remove(self, ctx: SlashContext, role_id: str):
+    async def autorole_on_join_remove(self, ctx: SlashContext, role: str):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('AUTOROLE_ON_JOIN', lang)
 
-        role = ctx.guild.get_role(int(role_id))
+        role = ctx.guild.get_role(int(role))
 
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         collection.update_one(
@@ -127,7 +127,8 @@ class AutoRole(Cog):
                 '$pull': {
                     'on_join_roles': role.id
                 }
-            }
+            },
+            upsert=True
         )
 
         await ctx.send(content['ROLE_REMOVED_TEXT'].format(role=role.mention))
@@ -201,6 +202,7 @@ class AutoRole(Cog):
                     name: {
                         'content': message_content,
                         'message_id': message.id,
+                        'autorole_type': 'select_menu',
                         'component': components[0].to_dict()
                     }
                 }
@@ -383,7 +385,8 @@ class AutoRole(Cog):
                 '$set': {
                     f'{name}.component': select_component.to_dict()
                 }
-            }
+            },
+            upsert=True
         )
 
     @slash_subcommand(
@@ -563,9 +566,7 @@ class AutoRole(Cog):
     def get_emoji_role(self, collection, message_id: int, emoji):
         message_ids = collection.find_one({'_id': 'reaction_roles'})
         message_roles = message_ids.get(str(message_id))
-        emoji_role = message_roles.get(str(emoji))
-
-        return emoji_role
+        return message_roles.get(str(emoji))
 
     @slash_subcommand(
         base='reactionrole',
@@ -751,7 +752,8 @@ class AutoRole(Cog):
     @slash_subcommand(
         base='autorole',
         subcommand_group='button',
-        name='create'
+        name='create',
+        description="Send a message for adding buttons"
     )
     async def autorole_button_create(self, ctx: SlashContext, name: str, message_content: str):
         await ctx.defer(hidden=True)
@@ -764,20 +766,21 @@ class AutoRole(Cog):
                 '$set': {
                     name: {
                         'content': message_content,
-                        'type': 'button',
+                        'autorole_type': 'buttons',
                         'message_id': message.id
                     }
                 }
             },
             upsert=True
         )
-
-        await ctx.send('Created', hidden=True)
+        content = get_content("AUTOROLE_BUTTON", self.bot.get_guild_bot_lang(ctx.guild_id))
+        await ctx.send(content["AUTOROLE_CREATED"], hidden=True)
 
     @slash_subcommand(
         base='autorole',
         subcommand_group='button',
         name='add_role',
+        description="Adds a new button with role",
         options=[
             create_option(
                 name='name',
@@ -827,14 +830,16 @@ class AutoRole(Cog):
         style: int = None,
         emoji: str = None
     ):
-        await ctx.defer()
-        if not label and not emoji:
-            return await ctx.send('Should be one of label and emoji')
+        await ctx.defer(hidden=True)
         content = get_content("AUTOROLE_BUTTON", self.bot.get_guild_bot_lang(ctx.guild_id))
+        if not label and not emoji:
+            return await ctx.send(content['AT_LEAST_LABEL_EMOJI_TEXT'])
 
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         autoroles = collection.find_one({"_id": "autorole"})
         autorole = autoroles.get(name)
+        if autorole["autorole_type"] != 'buttons':
+            return await ctx.send(content["NOT_BUTTONS_AUTOROLE"])
 
         button = Button(
             label=label,
@@ -868,7 +873,8 @@ class AutoRole(Cog):
                 "$set": {
                     f"{name}.component": [actionrow.to_dict() for actionrow in original_components]
                 }
-            }
+            },
+            upsert=True
         )
 
     def get_emoji(self, emoji: str):
