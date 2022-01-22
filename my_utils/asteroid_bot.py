@@ -66,7 +66,13 @@ class AsteroidBot(Bot):
 
     def _extract_from_guild_collection(self, guild_id: int, key: str):
         collection = self.get_guild_main_collection(guild_id)
-        value = collection.find_one({'_id': 'configuration'}).get(key)
+        try:
+            value = collection.find_one({'_id': 'configuration'}).get(key)
+        except AttributeError:
+            value = None
+        except Exception as e:
+            print(e)
+            value = None
         if value is not None:
             return value
 
