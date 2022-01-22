@@ -1,11 +1,10 @@
 from asyncio import TimeoutError
 from datetime import datetime
 import os
-from typing import Union, List
+from typing import Union
 
-import aiohttp
-from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter, TextChannel, Forbidden
-from discord.ext.commands import is_owner
+from aiohttp import ClientSession
+from discord import Member, Embed, Role, Guild, PublicUserFlags, Webhook, AsyncWebhookAdapter, TextChannel
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
@@ -15,7 +14,7 @@ from discord_slash.cog_ext import (
 from discord_components import Button, ButtonStyle
 from discord_slash_components_bridge import ComponentContext, ComponentMessage
 
-from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled, transform_permission, consts, paginator
+from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled, transform_permission
 from .levels._levels import formula_of_experience
 
 
@@ -29,7 +28,7 @@ class Misc(Cog):
         self.slash_use_channel: TextChannel = None
 
     async def send_guilds_update_webhooks(self, embed: Embed):
-        async with aiohttp.ClientSession() as session:
+        async with ClientSession() as session:
             webhook = Webhook.from_url(
                 os.getenv('WEBHOOK_GUILDS_UPDATE'),
                 adapter=AsyncWebhookAdapter(session)
@@ -415,129 +414,6 @@ class Misc(Cog):
         )
 
         return embed
-
-    @slash_subcommand(
-        base='staff',
-        name='send_message',
-        guild_ids=consts.test_global_guilds_ids
-    )
-    @is_owner()
-    async def send_message(self, ctx: SlashContext, channel_id: str, message: str):
-        if not channel_id.isdigit():
-            return await ctx.send('INPUT NUMBER', hidden=True)
-        channel: TextChannel = self.bot.get_channel(int(channel_id))
-        try:
-            await channel.send(message)
-        except Forbidden:
-            await ctx.send('Unable send message to this channel!')
-        else:
-            await ctx.send('Successfully sent!')
-
-    @slash_subcommand(
-        base='staff',
-        name='get_guild_channels',
-        guild_ids=consts.test_global_guilds_ids
-    )
-    @is_owner()
-    async def get_guilds_channels(self, ctx: SlashContext, guild_id: str):
-        if not guild_id.isdigit():
-            return await ctx.send('INPUT NUMBER', hidden=True)
-        guild: Guild = self.bot.get_guild(int(guild_id))
-        channels: List[TextChannel] = guild.channels
-        channels_data = "\n".join([f"{channel.name} | {channel.id}" for channel in channels])
-        embed = Embed(title=f'Channels of {guild.name}', description=channels_data)
-        await ctx.send(embed=embed)
-
-    @slash_subcommand(
-        base='staff',
-        name='get_guilds',
-        guild_ids=consts.test_global_guilds_ids
-    )
-    async def get_guilds(self, ctx: SlashContext):
-        guilds = self.bot.guilds
-        embed = Embed(
-            title='All bot guilds',
-            description='\n'.join([f"{guild.name} | {guild.id}" for guild in guilds])
-        )
-        await ctx.send(embed=embed)
-
-    @slash_subcommand(
-        base="staff",
-        name="get_guild_roles",
-        guild_ids=consts.test_global_guilds_ids
-    )
-    async def get_guild_roles(self, ctx: SlashContext, guild_id: str):
-        if not guild_id.isdigit():
-            return await ctx.send('INPUT NUMBER', hidden=True)
-        guild: Guild = self.bot.get_guild(int(guild_id))
-        guild_roles = guild.roles[::-1]
-        embeds = []
-        for count, role in enumerate(guild_roles, start=1):
-            if count == 1:
-                embed = Embed(
-                    title=f'Roles of {guild.name} server',
-                    description=''
-                )
-            if count % 25 == 0:
-                embeds.append(embed)
-                embed = Embed(
-                    title=f'Roles of {guild.name} server',
-                    description=''
-                )
-            embed.description += f"{role.name} | {role.id} \n"
-
-        _paginator = paginator.Paginator(self.bot, ctx, paginator.PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds)
-        await _paginator.start()
-
-    @slash_subcommand(
-        base="staff",
-        name="get_guild_bot_info",
-        guild_ids=consts.test_global_guilds_ids
-    )
-    async def get_guild_bot_info(self, ctx: SlashContext, guild_id: str):
-        if not guild_id.isdigit():
-            return await ctx.send('INPUT NUMBER', hidden=True)
-
-        guild: Guild = self.bot.get_guild(int(guild_id))
-        bot: Member = guild.get_member(ctx.bot.user.id)
-        embed = Embed(
-            title=f"Bot information on {guild.name} server"
-        )
-        embed.add_field(
-            name="Roles",
-            value=', '.join([f"`{role.name}`" for role in bot.roles]),
-            inline=False,
-        )
-
-        server_info = f"**Bot's amount:** `{len([member for member in guild.members if member.bot])}`\n" \
-                      f"**Total members:** `{guild.member_count}`"
-        embed.add_field(
-            name="Server info",
-            value=server_info,
-            inline=False
-        )
-
-        bot_perms = ''.join(
-            f"✅ {transform_permission(permission[0])}\n" 
-            if permission[1]
-            else f"❌ {transform_permission(permission[0])}\n"
-            for permission in bot.guild_permissions
-        )
-
-        embed.add_field(
-            name="Permissions",
-            value=bot_perms
-        )
-        try:
-            server_invites = await guild.invites()
-        except Forbidden:
-            pass
-        else:
-            embed.add_field(
-                name="Invites",
-                value="/n".join([f"{invite}" for invite in server_invites])
-            )
-        await ctx.send(embed=embed)
 
 
 def setup(bot):
