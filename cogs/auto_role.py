@@ -514,6 +514,9 @@ class AutoRole(Cog):
 
         collection = self.bot.get_guild_main_collection(payload.guild_id)
         message_ids = collection.find_one({'_id': 'reaction_roles'})
+        if message_ids is None:
+            return
+
         post = message_ids.get(str(payload.message_id))
         if post is None:
             return
@@ -541,6 +544,9 @@ class AutoRole(Cog):
 
         collection = self.bot.get_guild_main_collection(payload.guild_id)
         message_ids = collection.find_one({'_id': 'reaction_roles'})
+        if message_ids is None:
+            return
+
         post = message_ids.get(str(payload.message_id))
         if post is None:
             return
