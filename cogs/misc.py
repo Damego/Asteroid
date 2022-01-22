@@ -119,7 +119,7 @@ class Misc(Cog):
         member_roles = [role.mention for role in member.roles if role.name != "@everyone"][::-1]
         member_roles = ', '.join(member_roles)
         role_content = f"**{content['TOP_ROLE_TEXT']}** {member.top_role.mention}" \
-                       f"\n**{content['ROLES_TEXT']}** {member_roles}" if member_roles else ""
+                       f"\n**{content['ROLES_TEXT']}** {member_roles}" if member_roles and len(member_roles) < 1024 else ""
 
         embed = Embed(title=about_text, color=self.bot.get_embed_color(ctx.guild_id))
         embed.set_thumbnail(url=member.avatar_url)
