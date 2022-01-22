@@ -445,7 +445,7 @@ class Misc(Cog):
             create_option(
                 name="button_color",
                 description="Цвет кнопки",
-                option_type=SlashCommandOptionType.STRING,
+                option_type=SlashCommandOptionType.INTEGER,
                 required=True,
                 choices=[
                     create_choice(name='Синий', value=ButtonStyle.blue.value),
