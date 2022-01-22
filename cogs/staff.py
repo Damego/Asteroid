@@ -163,6 +163,25 @@ class Staff(Cog):
         else:
             await ctx.send("Successfully")
 
+    @slash_subcommand(
+        base="staff",
+        name="move_to",
+        guild_ids=consts.test_global_guilds_ids
+    )
+    async def move_member_to(self, ctx: SlashContext, guild_id: str, member_id: str, channel_id: str):
+        if not guild_id.isdigit() or not member_id.isdigit() or not channel_id.isdigit():
+            return await ctx.send('INPUT NUMBER', hidden=True)
+
+        guild: Guild = self.bot.get_guild(int(guild_id))
+        member: Member = guild.get_member(int(member_id))
+        channel = guild.get_channel(int(channel_id))
+        try:
+            await member.move_to(channel)
+        except Forbidden:
+            await ctx.send("Cannot move member")
+        else:
+            await ctx.send("Successfully")
+
 
 def setup(bot: AsteroidBot):
     bot.add_cog(Staff(bot))
