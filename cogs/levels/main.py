@@ -35,7 +35,7 @@ class Levels(Cog):
         guild_configuration_collection = self.bot.get_guild_main_collection(guild_id)
         guild_configuration = guild_configuration_collection.find_one({'_id': 'configuration'})
 
-        if 'on_join_role' in guild_configuration:
+        if guild_configuration and guild_configuration.get('on_join_role'):
             return guild_configuration.get('on_join_role')
         else:
             return ''

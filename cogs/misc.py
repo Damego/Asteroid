@@ -499,7 +499,7 @@ class Misc(Cog):
             value=f", ".join([f"`{role.name}`" for role in bot.roles]),
             inline=False
         )
-        server_info = f"**Bot's amount:** `{len([member for member in guild.members if member.bot])}`" \
+        server_info = f"**Bot's amount:** `{len([member for member in guild.members if member.bot])}`\n" \
                       f"**Total members:** `{guild.member_count}`"
         embed.add_field(
             name="Server info",
