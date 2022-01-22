@@ -503,7 +503,7 @@ class Misc(Cog):
             f"✅ {transform_permission(permission[0])}\n" 
             if permission[1]
             else f"❌ {transform_permission(permission[0])}\n"
-            for permission in bot.permissions
+            for permission in bot.guild_permissions
         )
 
         embed.add_field(
