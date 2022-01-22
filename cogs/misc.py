@@ -473,7 +473,8 @@ class Misc(Cog):
             return
         member_id = ctx.custom_id.split("|")[1]
         await ctx.send(f"<@!{member_id}> ЗАБАНЕН!")
-        await ctx.message.edit(components=[row.disable_components() for row in ctx.message.components])
+        ctx.component.disabled = True
+        await ctx.message.edit(components=ctx.message.components)
 
 
 def setup(bot):
