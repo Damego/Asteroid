@@ -461,6 +461,57 @@ class Misc(Cog):
         )
         await ctx.send(embed=embed)
 
+    @slash_subcommand(
+        base="staff",
+        name="get_guild_roles",
+        guild_ids=consts.test_global_guilds_ids
+    )
+    async def get_guild_roles(self, ctx: SlashContext, guild_id: str):
+        if not guild_id.isdigit():
+            return await ctx.send('INPUT NUMBER', hidden=True)
+        guild = self.bot.get_guild(int(guild_id))
+        description = f""
+        for role in guild.roles:
+            description += f"{role.name} | {role.id}"
+        
+        embed = Embed(
+            title=f'Roles of {guild.name} server',
+            description=description
+        )
+        await ctx.send(embed=embed)
+
+    @slash_subcommand(
+        base="staff",
+        name="get_guild_bot_info",
+        guild_ids=consts.test_global_guilds_ids
+    )
+    async def get_guild_bot_info(self, ctx: SlashContext, guild_id: str):
+        if not guild_id.isdigit():
+            return await ctx.send('INPUT NUMBER', hidden=True)
+
+        guild: Guild = self.bot.get_guild(int(guild_id))
+        bot: Member = guild.get_member(ctx.bot.user.id)
+        embed = Embed(
+            title=f"Bot information on {guild.name} server"
+        )
+        embed.add_field(
+            name="Roles",
+            value=f", ".join([f"`{role.name}`" for role in bot.roles])
+        )
+
+        bot_perms = ''.join(
+            f"✅ {transform_permission(permission[0])}\n" 
+            if permission[1]
+            else f"❌ {transform_permission(permission[0])}\n"
+            for permission in bot.permissions
+        )
+
+        embed.add_field(
+            name="Permissions",
+            value=bot_perms
+        )
+        await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Misc(bot))
