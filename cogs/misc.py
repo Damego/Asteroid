@@ -469,9 +469,10 @@ class Misc(Cog):
     async def get_guild_roles(self, ctx: SlashContext, guild_id: str):
         if not guild_id.isdigit():
             return await ctx.send('INPUT NUMBER', hidden=True)
-        guild = self.bot.get_guild(int(guild_id))
+        guild: Guild = self.bot.get_guild(int(guild_id))
+        guild_roles = guild.roles[::-1][:25]
         description = f""
-        for role in guild.roles:
+        for role in guild_roles:
             description += f"{role.name} | {role.id}"
         
         embed = Embed(
@@ -496,9 +497,10 @@ class Misc(Cog):
         )
         embed.add_field(
             name="Roles",
-            value=f", ".join([f"`{role.name}`" for role in bot.roles]),
-            inline=False
+            value=', '.join([f"`{role.name}`" for role in bot.roles]),
+            inline=False,
         )
+
         server_info = f"**Bot's amount:** `{len([member for member in guild.members if member.bot])}`\n" \
                       f"**Total members:** `{guild.member_count}`"
         embed.add_field(
@@ -518,6 +520,15 @@ class Misc(Cog):
             name="Permissions",
             value=bot_perms
         )
+        try:
+            server_invites = await guild.invites()
+        except Forbidden:
+            pass
+        else:
+            embed.add_field(
+                name="Invites",
+                value="/n".join([f"{invite}" for invite in server_invites])
+            )
         await ctx.send(embed=embed)
 
 
