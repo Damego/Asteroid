@@ -31,14 +31,17 @@ class AsteroidBot(Bot):
 
     def _load_extensions(self):
         for filename in listdir('./cogs'):
-            if filename.startswith('_'):
-                continue
-            if filename.endswith('.py'):
-                self.load_extension(f'cogs.{filename[:-3]}')
-            elif '.' in filename:
-                continue
-            else:
-                self.load_extension(f'cogs.{filename}')
+            try:
+                if filename.startswith('_'):
+                    continue
+                if filename.endswith('.py'):
+                    self.load_extension(f'cogs.{filename[:-3]}')
+                elif '.' in filename:
+                    continue
+                else:
+                    self.load_extension(f'cogs.{filename}')
+            except Exception as e:
+                print(f"Extension {filename} not loaded!\nError: {e}")
 
     def get_guild_main_collection(self, guild_id:int):
         return self.mongo.connection[str(guild_id)]['configuration']

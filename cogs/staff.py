@@ -162,3 +162,7 @@ class Staff(Cog):
             await ctx.send("Forbidden")
         else:
             await ctx.send("Successfully")
+
+
+def setup(bot: AsteroidBot):
+    bot.add_cog(Staff(bot))
