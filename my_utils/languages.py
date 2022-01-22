@@ -424,7 +424,9 @@ LANGUAGES = {
             "EVENT_REMOVED_ROLE_TEXT": "Удалено: {}",
             "EVENT_ADDED_ROLE_TEXT": "Добавлено: {}",
             "LIMIT_25_BUTTONS": "Достигнут лимит в 25 кнопок!",
-            "COMMAND_ROLE_ADDED_TEXT": "Роль добавлена"
+            "COMMAND_ROLE_ADDED_TEXT": "Роль добавлена",
+            "AT_LEAST_LABEL_EMOJI_TEXT": "Должно быть хотя бы название кнопки(label) или эмодзи(emoji)",
+            "NOT_BUTTONS_AUTOROLE": "Название не соответствует автороли для кнопок!"
         },
     },
     'en': {
@@ -766,7 +768,9 @@ LANGUAGES = {
             "EVENT_REMOVED_ROLE_TEXT": "Removed: {}",
             "EVENT_ADDED_ROLE_TEXT": "Added: {}",
             "LIMIT_25_BUTTONS": "You have reached limit in 25 buttons",
-            "COMMAND_ROLE_ADDED_TEXT": "Role added"
+            "COMMAND_ROLE_ADDED_TEXT": "Role added",
+            "AT_LEAST_LABEL_EMOJI_TEXT": "Should be at least label or emoji",
+            "NOT_BUTTONS_AUTOROLE": "That's not autorole name for buttons!"
         },
     }
 }
