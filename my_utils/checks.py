@@ -51,9 +51,10 @@ def is_enabled():
             return True
         if base in disabled_commands:
             raise CommandDisabled
-        if group:
-            if f"{base} {group}" in disabled_commands:
-                raise CommandDisabled
+        if group and f"{base} {group}" in disabled_commands:
+            raise CommandDisabled
+        if name and f"{base} {group} {name}" in disabled_commands:
+            raise CommandDisabled
 
         return True
     return check(predicate)
