@@ -30,7 +30,7 @@ async def on_ready():
 
 @bot.event
 async def on_guild_join(guild: Guild):
-    collection = bot.get_guild_configuration_collection(guild.id)
+    collection = bot.get_guild_main_collection(guild.id)
     collection.update_one(
         {'_id': 'configuration'},
         {'$set': {'embed_color': '0xFFFFFE'}},
