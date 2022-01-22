@@ -98,7 +98,7 @@ class AsteroidBot(Bot):
         if not ctx.subcommand_name and not ctx.subcommand_group:
             command_name = ctx.name
         elif ctx.subcommand_name and ctx.subcommand_group:
-            command_name = f"{ctx.name} {ctx.subcommand_name} {ctx.subcommand_group}"
+            command_name = f"{ctx.name} {ctx.subcommand_group} {ctx.subcommand_name}"
         elif ctx.subcommand_name:
             command_name = f"{ctx.name} {ctx.subcommand_name}"
         return command_name
