@@ -89,6 +89,8 @@ class Staff(Cog):
                     description=''
                 )
             embed.description += f"{role.name} | {role.id} \n"
+        if embed.description:
+            embeds.append(embed)
 
         _paginator = paginator.Paginator(self.bot, ctx, paginator.PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds)
         await _paginator.start()
