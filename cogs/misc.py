@@ -496,7 +496,15 @@ class Misc(Cog):
         )
         embed.add_field(
             name="Roles",
-            value=f", ".join([f"`{role.name}`" for role in bot.roles])
+            value=f", ".join([f"`{role.name}`" for role in bot.roles]),
+            inline=False
+        )
+        server_info = f"**Bot's amount:** `{len([member for member in guild.members if member.bot])}`" \
+                      f"**Total members:** `{guild.member_count}`"
+        embed.add_field(
+            name="Server info",
+            value=server_info,
+            inline=False
         )
 
         bot_perms = ''.join(
