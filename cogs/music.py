@@ -98,8 +98,10 @@ class Music(Cog):
         player = self.music.get_player(guild_id=guild.id)
         voice_client: VoiceProtocol = guild.voice_client
         try:
-            await player.stop()
-            await voice_client.disconnect(force=True)
+            if player is not None:
+                await player.stop()
+            if voice_client is not None:
+                await voice_client.disconnect(force=True)
             button_player = self.players.get(str(guild.id))
             if button_player is not None:
                 message = button_player['message']
