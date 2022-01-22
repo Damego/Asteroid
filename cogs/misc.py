@@ -465,7 +465,7 @@ class Misc(Cog):
             )
         ]
         await ctx.send("Создано", hidden=True)
-        await ctx.channel.send(f"НАЖМИ НА КНОПКУ, ЧТОБЫ ЗАБАНИТЬ {member.display_name}", components=components)
+        await ctx.channel.send(f"НАЖМИ НА КНОПКУ, ЧТОБЫ ЗАБАНИТЬ {member.mention}", components=components)
 
     @Cog.listener()
     async def on_button_click(self, ctx: ComponentContext):
@@ -473,7 +473,7 @@ class Misc(Cog):
             return
         member_id = ctx.custom_id.split("|")[1]
         await ctx.send(f"<@!{member_id}> ЗАБАНЕН!")
-        await ctx.message.disable_components()
+        await ctx.message.edit(components=[row.disable_components() for row in ctx.message.components])
 
 
 def setup(bot):
