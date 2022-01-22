@@ -15,7 +15,7 @@ from discord_slash.cog_ext import (
 from discord_components import Button, ButtonStyle
 from discord_slash_components_bridge import ComponentContext, ComponentMessage
 
-from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled, transform_permission, consts
+from my_utils import AsteroidBot, get_content, Cog, CogDisabledOnGuild, is_enabled, _cog_is_enabled, transform_permission, consts, paginator
 from .levels._levels import formula_of_experience
 
 
@@ -470,16 +470,24 @@ class Misc(Cog):
         if not guild_id.isdigit():
             return await ctx.send('INPUT NUMBER', hidden=True)
         guild: Guild = self.bot.get_guild(int(guild_id))
-        guild_roles = guild.roles[::-1][:25]
-        description = f""
-        for role in guild_roles:
-            description += f"{role.name} | {role.id} \n"
-        
-        embed = Embed(
-            title=f'Roles of {guild.name} server',
-            description=description
-        )
-        await ctx.send(embed=embed)
+        guild_roles = guild.roles[::-1]
+        embeds = []
+        for count, role in enumerate(guild_roles, start=1):
+            if count == 1:
+                embed = Embed(
+                    title=f'Roles of {guild.name} server',
+                    description=''
+                )
+            if count % 25 == 0:
+                embeds.append(embed)
+                embed = Embed(
+                    title=f'Roles of {guild.name} server',
+                    description=''
+                )
+            embed.description += f"{role.name} | {role.id} \n"
+
+        _paginator = paginator.Paginator(self.bot, ctx, paginator.PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds)
+        await _paginator.start()
 
     @slash_subcommand(
         base="staff",
