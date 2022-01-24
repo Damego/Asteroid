@@ -428,7 +428,8 @@ LANGUAGES = {
             "LIMIT_25_BUTTONS": "Достигнут лимит в 25 кнопок!",
             "COMMAND_ROLE_ADDED_TEXT": "Роль добавлена",
             "AT_LEAST_LABEL_EMOJI_TEXT": "Должно быть хотя бы название кнопки(label) или эмодзи(emoji)",
-            "NOT_BUTTONS_AUTOROLE": "Название не соответствует автороли для кнопок!"
+            "NOT_BUTTONS_AUTOROLE": "Название не соответствует автороли для кнопок!",
+            "AUTOROLE_CREATED": "Создано!"
         },
     },
     'en': {
@@ -772,7 +773,8 @@ LANGUAGES = {
             "LIMIT_25_BUTTONS": "You have reached limit in 25 buttons",
             "COMMAND_ROLE_ADDED_TEXT": "Role added",
             "AT_LEAST_LABEL_EMOJI_TEXT": "Should be at least label or emoji",
-            "NOT_BUTTONS_AUTOROLE": "That's not autorole name for buttons!"
+            "NOT_BUTTONS_AUTOROLE": "That's not autorole name for buttons!",
+            "AUTOROLE_CREATED": "Created!"
         },
     }
 }
