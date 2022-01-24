@@ -118,14 +118,17 @@ class Music(Cog):
         if not ctx.voice_client:
             await voice_channel.connect()
             self.track_queue[str(ctx.guild_id)] = {}
+        
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content('MUSIC_PLAY_COMMAND', lang)
 
         player = self.music.get_player(guild_id=ctx.guild_id)
         if player is None:
             player = self.music.create_player(ctx, ffmpeg_error_betterfix=True)
-        track = await player.add_to_queue(query, search=True)
-
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('MUSIC_PLAY_COMMAND', lang)
+        try:
+            track = await player.add_to_queue(query, search=True)
+        except music.NotFound:
+            return await ctx.send(content["NOT_FOUND_TEXT"])
 
         if ctx.voice_client.is_playing():
             self.track_queue[str(ctx.guild_id)][track.name] = {'track': track, 'requester_msg': ctx.author}

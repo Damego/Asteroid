@@ -8,3 +8,6 @@ class NotConnectedToVoice(Exception):
 
 class NotPlaying(Exception):
     """Cannot <do something> because nothing is being played"""
+
+class NotFound(Exception):
+    """Video has not found"""

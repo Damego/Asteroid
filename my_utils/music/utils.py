@@ -54,8 +54,8 @@ async def get_video_data(
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
         try:
             data = data["entries"][0]
-        except KeyError or TypeError:
-            pass
+        except Exception:
+            return
         del ytdl
     else:
         data = await loop.run_in_executor(None, lambda: ydl.extract_info(url, download=False))

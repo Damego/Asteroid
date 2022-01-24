@@ -106,6 +106,8 @@ class MusicPlayer:
 
     async def add_to_queue(self, url, search: bool = False, bettersearch: bool = False):
         song = await get_video_data(url, search, bettersearch, self.loop)
+        if song is None:
+            raise NotFound
         self.music.queue[self.guild_id].append(song)
         logger.warning(f"{self.guild_id}: Added to queue: {song.name}")
         return song

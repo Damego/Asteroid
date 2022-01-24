@@ -252,7 +252,8 @@ LANGUAGES = {
             'DURATION_TEXT': 'Продолжительность:',
             'LIVE_TEXT': 'Прямая трансляция',
             'WHO_ADDED_TEXT': 'Добавлено {}',
-            'SUCCESSFULLY': 'Успешно!'
+            'SUCCESSFULLY': 'Успешно!',
+            "NOT_FOUND_TEXT": "Не найдено"
         },
         'FUNC_RANDOM_ITEMS': {
             'ITEMS_LIST': [
@@ -597,7 +598,8 @@ LANGUAGES = {
             'DURATION_TEXT': 'Duration:',
             'LIVE_TEXT': 'Live',
             'WHO_ADDED_TEXT': 'Added {}',
-            'SUCCESSFULLY': 'Successfully!'
+            'SUCCESSFULLY': 'Successfully!',
+            "NOT_FOUND_TEXT": "Not found"
         },
         'FUNC_RANDOM_ITEMS': {
             'ITEMS_LIST': [
