@@ -4,7 +4,7 @@ import logging
 
 import discord
 
-from .errors import NotConnectedToVoice, NotPlaying, EmptyQueue
+from .errors import NotConnectedToVoice, NotPlaying, EmptyQueue, NotFound
 from .utils import get_video_data
 from .models import Song
 

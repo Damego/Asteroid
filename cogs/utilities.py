@@ -2,9 +2,11 @@ import datetime
 from typing import List
 
 from discord import Embed, TextChannel, RawReactionActionEvent, Guild, Message, Member, Role
+from discord_components import Select, SelectOption, Button, ButtonStyle
 from discord_slash import SlashContext, AutoCompleteContext
-from discord_slash.cog_ext import cog_subcommand as slash_subcommand
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand, cog_slash as slash_command
 from discord_slash.utils.manage_commands import create_option, create_choice
+from discord_slash_components_bridge import ComponentContext, ComponentMessage
 from pymongo.collection import Collection
 
 from my_utils import AsteroidBot, Cog, bot_owner_or_permissions, get_content, is_enabled
@@ -15,6 +17,11 @@ class Utilities(Cog):
         self.bot = bot
         self.emoji = '🧰'
         self.name = 'Utilities'
+
+    @Cog.listener()
+    async def on_guild_join(self, guild: Guild):
+        ...
+
 
     # STARBOARD
 
