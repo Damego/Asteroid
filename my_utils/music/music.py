@@ -50,6 +50,7 @@ class MusicPlayer:
         self.loop: AbstractEventLoop = ctx.bot.loop
         self.is_playing = False
         self._previous_song = None
+        self.is_skipped = False
 
         if self.guild_id not in self.music.queue:
             self.music.queue[self.guild_id] = []
@@ -70,6 +71,8 @@ class MusicPlayer:
             return
         if not current_song.is_looping:
             try:
+                if self.is_skipped:
+                    return
                 logger.warning(f"{self.guild_id}: Deleting track {self.music.queue[self.guild_id][0].name}")
                 self._previous_song = self.music.queue[self.guild_id].pop(0)
                 logger.warning(f"{self.guild_id}: Deleted track {self._previous_song.name}")
@@ -84,19 +87,27 @@ class MusicPlayer:
             self._play_track()
             self._dispatch_on_error_event(current_song)
 
-    async def _dispatch_on_error_event(self, current_song):
-        await self.bot.dispatch('music_error', self._previous_song, current_song)
+    def _dispatch_on_error_event(self, current_song):
+        self.bot.dispatch('music_error', self._previous_song, current_song)
         logger.warning(f"{self.guild_id}: Error event dispatched")
 
     def _play_track(self):
-        logger.warning(f"{self.guild_id}: Start playing track: {self.music.queue[self.guild_id][0].name}")
+        print(self._previous_song)
         if self._previous_song == self.music.queue[self.guild_id][0] and not self.music.queue[self.guild_id][0].is_looping:
             self._previous_song = None
             del self.music.queue[self.guild_id][0]
+
+        logger.warning(f"{self.guild_id}: Start playing track: {self.music.queue[self.guild_id][0].name}")
+        if self.is_playing:
+            self.voice.stop()
+            self.is_playing = False
+
         source = discord.PCMVolumeTransformer(
             discord.FFmpegPCMAudio(self.music.queue[self.guild_id][0].source, **self.ffmpeg_opts)
         )
+        print('====================')
         self.voice.play(source, after=lambda error: self._check_queue())
+        print('====================')
         self.is_playing = True
         song = self.music.queue[self.guild_id][0]
         return song
@@ -116,25 +127,28 @@ class MusicPlayer:
         song = self._play_track()
         return song
 
-    async def skip(self, force=False):
+    def skip(self, force=False):
         if not self.music.queue[self.guild_id]:
             raise NotPlaying("Cannot loop because nothing is being played")
         elif len(self.music.queue[self.guild_id]) == 1 and not force:
             raise EmptyQueue("Cannot skip because queue is empty")
 
-        current_song = self.music.queue[self.guild_id][0]
+        current_song = self.music.queue[self.guild_id].pop(0)
+        self.is_skipped = True
         current_song.is_looping = False
         #  self._previous_song = current_song
         self.voice.stop()
+        self.is_playing = False
         try:
             new_song = self.music.queue[self.guild_id][1]
             logger.warning(f"{self.guild_id}: Skipped track: {current_song.name}")
-            await self.play()
+            self._play_track()
+            self.is_skipped = False
             return new_song
         except IndexError:
             return current_song
 
-    async def stop(self):
+    def stop(self):
         try:
             logger.warning(f"{self.guild_id}: Stop playing track: {self.music.queue[self.guild_id][0].name}")
             self.music.queue[self.guild_id] = []
@@ -143,7 +157,7 @@ class MusicPlayer:
         except ValueError:
             raise NotPlaying("Cannot loop because nothing is being played")
 
-    async def pause(self):
+    def pause(self):
 
         try:
             self.voice.pause()
@@ -153,7 +167,7 @@ class MusicPlayer:
             raise NotPlaying("Cannot pause because nothing is being played")
         return song
 
-    async def resume(self):
+    def resume(self):
         try:
             self.voice.resume()
             song = self.music.queue[self.guild_id][0]
@@ -182,21 +196,21 @@ class MusicPlayer:
         song.is_looping = not song.is_looping
         return song
 
-    async def change_volume(self, vol: int):
+    def change_volume(self, vol: int):
         self.voice.source.volume = vol
         try:
             self.music.queue[self.guild_id][0]
         except IndexError:
             raise NotPlaying("Cannot loop because nothing is being played")
 
-    async def remove_from_queue(self, index: int):
+    def remove_from_queue(self, index: int):
         try:
             song = self.music.queue[self.guild_id].pop(index)
         except IndexError:
             raise NotPlaying("Cannot loop because nothing is being played")
 
         if index == 0:
-            await self.skip(force=True)
+            self.skip(force=True)
         return song
 
     def delete(self):
