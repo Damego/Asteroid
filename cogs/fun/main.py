@@ -5,7 +5,7 @@ from os import remove, environ
 from random import choice, randint
 
 from discord import Embed, Member, Forbidden, File, VoiceChannel
-from discord_slash import SlashContext, ContextMenuType, MenuContext
+from discord_slash import SlashContext, ContextMenuType, MenuContext, SlashCommandOptionType
 from discord_slash.cog_ext import (
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu
@@ -91,13 +91,13 @@ class Fun(Cog):
                 name='member',
                 description='Whoever you want to play with',
                 required=True,
-                option_type=6
+                option_type=SlashCommandOptionType.USER
             ),
             create_option(
                 name='mode',
                 description='Choose mode of game (3x3, 4x4, 5x5)',
                 required=False,
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 choices=[
                     create_choice(
                         name='3x3',
@@ -285,7 +285,7 @@ class Fun(Cog):
             create_option(
                 name='activity',
                 description='Choose discord activity',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 choices=[create_choice(
                     name=activity,
@@ -297,7 +297,7 @@ class Fun(Cog):
                 name='channel',
                 description='Choose voice channel',
                 required=False,
-                option_type=7
+                option_type=SlashCommandOptionType.CHANNEL
             )
         ]
     )
@@ -494,7 +494,7 @@ class Fun(Cog):
         options=[
             create_option(
                 name='type',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=False,
                 description=f'Types: {", ".join([bored_type for bored_type in bored_api_types])}',
                 choices=[create_choice(name=bored_type, value=bored_type) for bored_type in bored_api_types]

@@ -2,11 +2,9 @@ import datetime
 from typing import List
 
 from discord import Embed, TextChannel, RawReactionActionEvent, Guild, Message, Member, Role
-from discord_components import Select, SelectOption, Button, ButtonStyle
-from discord_slash import SlashContext, AutoCompleteContext
-from discord_slash.cog_ext import cog_subcommand as slash_subcommand, cog_slash as slash_command
+from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
-from discord_slash_components_bridge import ComponentContext, ComponentMessage
 from pymongo.collection import Collection
 
 from my_utils import AsteroidBot, Cog, bot_owner_or_permissions, get_content, is_enabled
@@ -273,7 +271,7 @@ class Utilities(Cog):
             create_option(
                 name='status',
                 description='enable or disable starboard',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 choices=[
                     create_choice(
@@ -380,21 +378,21 @@ class Utilities(Cog):
             create_option(
                 name='member',
                 description='member',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=False,
                 autocomplete=True
             ),
             create_option(
                 name='role',
                 description='Role',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=False,
                 autocomplete=True
             ),
             create_option(
                 name='channel',
                 description='Text channel',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=False,
                 autocomplete=True
             ),
@@ -547,7 +545,7 @@ class Utilities(Cog):
             create_option(
                 name='command_name',
                 description='The name of command',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True
             )

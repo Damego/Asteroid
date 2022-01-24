@@ -4,7 +4,7 @@ import sys
 
 from discord import Embed
 from discord.ext import commands
-from discord_slash import SlashContext
+from discord_slash import SlashContext, SlashCommandOptionType
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
     cog_subcommand as slash_subcommand
@@ -36,7 +36,7 @@ class Settings(Cog):
             create_option(
                 name='language',
                 description='Language',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 choices=[
                     create_choice(

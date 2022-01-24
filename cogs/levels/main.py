@@ -3,10 +3,10 @@ from time import time
 from random import randint
 
 from discord import Member, Message, VoiceState, Role, Embed
+from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 from pymongo.collection import Collection
-from discord_slash import SlashContext, AutoCompleteContext
-from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
 from my_utils import (
     AsteroidBot,
@@ -252,7 +252,7 @@ class Levels(Cog):
             create_option(
                 name='exp',
                 description='Exp to add',
-                option_type=4,
+                option_type=SlashCommandOptionType.INTEGER,
                 required=True
             )
         ]
@@ -272,7 +272,7 @@ class Levels(Cog):
             create_option(
                 name='level',
                 description='level',
-                option_type=4,
+                option_type=SlashCommandOptionType.INTEGER,
                 required=True
             ),
             create_option(
@@ -329,14 +329,14 @@ class Levels(Cog):
             create_option(
                 name='current_level',
                 description='current_level',
-                option_type=4,
+                option_type=SlashCommandOptionType.INTEGER,
                 required=True,
                 autocomplete=True
             ),
             create_option(
                 name='new_level',
                 description='new_level',
-                option_type=4,
+                option_type=SlashCommandOptionType.INTEGER,
                 required=True
             )
         ]
@@ -468,7 +468,7 @@ class Levels(Cog):
             create_option(
                 name='time',
                 description='time in voice channel',
-                option_type=4,
+                option_type=SlashCommandOptionType.INTEGER,
                 required=True
             )
         ]
@@ -502,7 +502,7 @@ class Levels(Cog):
             create_option(
                 name='level',
                 description='Level',
-                option_type=4,
+                option_type=SlashCommandOptionType.INTEGER,
                 required=True
             )
         ]

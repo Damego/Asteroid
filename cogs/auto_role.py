@@ -1,5 +1,5 @@
 from discord import Role, Embed, RawReactionActionEvent, Guild, Member
-from discord_slash import AutoCompleteContext, SlashContext
+from discord_slash import AutoCompleteContext, SlashContext, SlashCommandOptionType
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 from discord_components import Select, SelectOption, Button, ButtonStyle
@@ -106,7 +106,7 @@ class AutoRole(Cog):
             create_option(
                 name='role',
                 description='Role which gives when member has joined to server',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True
             )
@@ -219,14 +219,14 @@ class AutoRole(Cog):
             create_option(
                 name='name',
                 description='The name of dropdown',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True
             ),
             create_option(
                 name='option_name',
                 description='The name of option',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True
             ),
             create_option(
@@ -238,13 +238,13 @@ class AutoRole(Cog):
             create_option(
                 name='emoji',
                 description='The emoji for option',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=False
             ),
             create_option(
                 name='description',
                 description='The description of option',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=False
             )
         ]
@@ -321,14 +321,14 @@ class AutoRole(Cog):
             create_option(
                 name='name',
                 description='The name of dropdown',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True
             ),
             create_option(
                 name='option',
                 description='Option of dropdown',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True
             )
@@ -399,14 +399,14 @@ class AutoRole(Cog):
                 name='name',
                 description='The name of dropdown',
                 required=True,
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 autocomplete=True
             ),
             create_option(
                 name='status',
                 description='status of dropdown',
                 required=True,
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 choices=[
                     create_choice(name='enable', value='enable'),
                     create_choice(name='disable', value='disable')
@@ -451,7 +451,16 @@ class AutoRole(Cog):
         base='autorole',
         subcommand_group='dropdown',
         name='load',
-        description='Load dropdown from database'
+        description='Load dropdown from database',
+        options=[
+            create_option(
+                name='name',
+                description='The name of dropdown',
+                required=True,
+                option_type=SlashCommandOptionType.STRING,
+                autocomplete=True
+            )
+        ]
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
@@ -583,7 +592,7 @@ class AutoRole(Cog):
             create_option(
                 name='message_id',
                 description='Message id',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True
             )
         ]
@@ -614,13 +623,13 @@ class AutoRole(Cog):
             create_option(
                 name='message_id',
                 description='Message id',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True
             ),
             create_option(
                 name='emoji',
                 description='emoji or emoji id',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True
             ),
             create_option(
@@ -658,7 +667,7 @@ class AutoRole(Cog):
             create_option(
                 name='message_id',
                 description='Message id',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True
             ),
         ]
@@ -687,13 +696,13 @@ class AutoRole(Cog):
             create_option(
                 name='message_id',
                 description='Message id',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True
             ),
             create_option(
                 name='emoji',
                 description='emoji or emoji id',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True
             )
         ]
@@ -791,7 +800,7 @@ class AutoRole(Cog):
             create_option(
                 name='name',
                 description='The name of group of buttons',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True
             ),
@@ -804,13 +813,13 @@ class AutoRole(Cog):
             create_option(
                 name='label',
                 description='The label of button',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=False
             ),
             create_option(
                 name='style',
                 description='The style or color of button',
-                option_type=4,
+                option_type=SlashCommandOptionType.INTEGER,
                 required=False,
                 choices=[
                     create_choice(name='Blue', value=ButtonStyle.blue.value),
@@ -822,7 +831,7 @@ class AutoRole(Cog):
             create_option(
                 name='emoji',
                 description='The emoji of button',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=False
             )
         ]

@@ -1,7 +1,7 @@
 import asyncio
 
 from discord import Embed, Message
-from discord_slash import SlashContext, AutoCompleteContext
+from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 from discord_slash_components_bridge import ComponentMessage, ComponentContext
@@ -41,7 +41,7 @@ class Tags(Cog):
             create_option(
                 name='tag_name',
                 description='The name of tag',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True
             )
@@ -109,7 +109,7 @@ class Tags(Cog):
             create_option(
                 name='tag_name',
                 description='The name of tag',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True
             )
@@ -162,14 +162,14 @@ class Tags(Cog):
             create_option(
                 name='tag_name',
                 description='The name of tag',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True
             ),
             create_option(
                 name='new_tag_name',
                 description='New name of tag',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True
             )
         ]
@@ -225,7 +225,7 @@ class Tags(Cog):
             create_option(
                 name='tag_name',
                 description='The name of tag',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True
             )
@@ -280,7 +280,7 @@ class Tags(Cog):
             create_option(
                 name='tag_name',
                 description='The name of tag',
-                option_type=3,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True
             )
