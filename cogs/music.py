@@ -99,7 +99,7 @@ class Music(Cog):
         voice_client: VoiceProtocol = guild.voice_client
         try:
             if player is not None:
-                await player.stop()
+                player.stop()
             if voice_client is not None:
                 await voice_client.disconnect(force=True)
             button_player = self.players.get(str(guild.id))
@@ -134,7 +134,7 @@ class Music(Cog):
             self.track_queue[str(ctx.guild_id)][track.name] = {'track': track, 'requester_msg': ctx.author}
             return await ctx.send(content['ADDED_IN_QUEUE_TEXT'].format(track.name))
 
-        await player.play()
+        player.play()
         if from_nplay:
             message, components = await self._send_message(ctx, content, track, True)
             self.players[str(ctx.guild.id)] = {'message': message}
@@ -258,7 +258,7 @@ class Music(Cog):
     async def _stop_music(self, ctx: SlashContext, *, from_button: bool = False, message: Message = None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if ctx.voice_client.is_playing():
-            await player.stop()
+            player.stop()
             await ctx.voice_client.disconnect()
         if from_button:
             await message.edit(components=[])
@@ -276,7 +276,7 @@ class Music(Cog):
     ):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if ctx.voice_client.is_playing():
-            await player.pause()
+            player.pause()
             if from_button:
                 try:
                     components[0][0] = Button(
@@ -301,7 +301,7 @@ class Music(Cog):
     ):
         player = self.music.get_player(guild_id=ctx.guild.id)
         if not ctx.voice_client.is_playing():
-            await player.resume()
+            player.resume()
             if from_button:
                 components[0][0] = Button(
                     style=ButtonStyle.gray, label=content['PAUSE_BUTTON'], id='pause')
@@ -319,7 +319,7 @@ class Music(Cog):
             components: list = None
     ):
         player = self.music.get_player(guild_id=ctx.guild.id)
-        song = await player.toggle_song_loop()
+        song = player.toggle_song_loop()
 
         if not from_button:
             return await ctx.send('✔️', hidden=True)
@@ -335,7 +335,7 @@ class Music(Cog):
     async def _skip_music(self, ctx: SlashContext, *, from_button: bool = False, message: Message = None):
         player = self.music.get_player(guild_id=ctx.guild.id)
         try:
-            new_track = await player.skip(force=True)
+            new_track = player.skip(force=True)
             if not from_button:
                 return await ctx.send('✔️', hidden=True)
             await self._update_msg(ctx, message, new_track)

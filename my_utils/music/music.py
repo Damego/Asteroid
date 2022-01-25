@@ -123,9 +123,8 @@ class MusicPlayer:
         logger.warning(f"{self.guild_id}: Added to queue: {song.name}")
         return song
 
-    async def play(self):
-        song = self._play_track()
-        return song
+    def play(self):
+        return self._play_track()
 
     def skip(self, force=False):
         if not self.music.queue[self.guild_id]:
