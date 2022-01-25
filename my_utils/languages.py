@@ -205,6 +205,9 @@ LANGUAGES = {
             'SERVER': '\n**Сервер:** {guild}'
         },
         'FUNC_MODERATION_CLEAR_MESSAGES': 'Успешно удалено `{}` сообщений!',
+        "MOD_COMMANDS_CONTENT": {
+            "NOT_VOICE_CHANNEL_TEXT": "Данный канал не является голосовым!"
+        },
         'PUBLIC_TAGS_COMMAND': {
             'TAGS_PUBLIC': 'Теги теперь доступны всем!',
             'TAGS_FOR_ADMINS': 'Теги теперь могут создавать только те, у кого есть право `Управлять сервером`!'
@@ -551,6 +554,9 @@ LANGUAGES = {
             'SERVER': '\n**Server:** {guild}'
         },
         'FUNC_MODERATION_CLEAR_MESSAGES': 'Successfully deleted `{}` messages!',
+        "MOD_COMMANDS_CONTENT": {
+            "NOT_VOICE_CHANNEL_TEXT": "This channel is not voice channel!"
+        },
         'PUBLIC_TAGS_COMMAND': {
             'TAGS_PUBLIC': 'Tags for now public!',
             'TAGS_FOR_ADMINS': 'For now tags only for roles with `Manage Server` permission!'

@@ -1,6 +1,6 @@
 import asyncio
 
-from discord import Member, Embed, Role, Forbidden
+from discord import Member, Embed, Role, Forbidden, VoiceChannel
 from discord.ext.commands import has_guild_permissions, BadArgument, bot_has_guild_permissions
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
@@ -206,6 +206,20 @@ class Moderation(Cog):
         if amount.isdigit() and time_format in ['д', 'ч', 'м', 'с', 'd', 'h', 'm', 's']:
             return int(amount), time_format
         raise BadArgument
+
+    @slash_subcommand(
+        base="mod",
+        name="move_to",
+        description="Moves member to certain channel"
+    )
+    async def move_member_to(self, ctx: SlashContext, member: Member, voice_channel: VoiceChannel):
+        content = get_content("MOD_COMMANDS_CONTENT", lang=self.bot.get_guild_bot_lang(ctx.guild_id))
+
+        if not isinstance(voice_channel, VoiceChannel):
+            return await ctx.send(content["NOT_VOICE_CHANNEL_TEXT"])
+        await member.move_to(voice_channel)
+
+        await ctx.send(":white_check_mark:", hidden=True)
 
 
 def setup(bot):
