@@ -1,11 +1,11 @@
 import asyncio
 
 from discord import Member, Embed, Role, Forbidden, VoiceChannel
-from discord.ext.commands import has_guild_permissions, BadArgument, bot_has_guild_permissions
+from discord.ext.commands import BadArgument, bot_has_guild_permissions
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
-from my_utils import AsteroidBot, get_content, Cog, multiplier
+from my_utils import AsteroidBot, get_content, Cog, multiplier, bot_owner_or_permissions
 
 
 class Moderation(Cog):
@@ -19,7 +19,7 @@ class Moderation(Cog):
         name='mute',
         description='Mute member'
     )
-    @has_guild_permissions(mute_members=True)
+    @bot_owner_or_permissions(mute_members=True)
     @bot_has_guild_permissions(manage_roles=True)
     async def mute(self, ctx: SlashContext, member: Member, reason: str = None, timeout: str = None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -51,7 +51,7 @@ class Moderation(Cog):
         name='create_muted_role',
         description='Creates muted role'
     )
-    @has_guild_permissions(mute_members=True)
+    @bot_owner_or_permissions(mute_members=True)
     @bot_has_guild_permissions(manage_roles=True, manage_channels=True)
     async def create_muted_role(self, ctx: SlashContext, role_name: str):
         await ctx.defer()
@@ -82,7 +82,7 @@ class Moderation(Cog):
         name='unmute',
         description='Unmute members'
     )
-    @has_guild_permissions(mute_members=True)
+    @bot_owner_or_permissions(mute_members=True)
     @bot_has_guild_permissions(mute_members=True)
     async def unmute(self, ctx: SlashContext, member: Member):
         muted_role = self.get_muted_role(ctx)
@@ -94,7 +94,7 @@ class Moderation(Cog):
         name='ban',
         description='Ban member'
     )
-    @has_guild_permissions(ban_members=True)
+    @bot_owner_or_permissions(ban_members=True)
     async def ban(self, ctx: SlashContext, member: Member, reason: str = None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content('FUNC_MODERATION_BAN_MEMBER', lang)
@@ -121,7 +121,7 @@ class Moderation(Cog):
         name='kick',
         description='Kick member'
     )
-    @has_guild_permissions(kick_members=True)
+    @bot_owner_or_permissions(kick_members=True)
     @bot_has_guild_permissions(kick_members=True)
     async def kick(self, ctx: SlashContext, member: Member, reason: str = None):
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -149,7 +149,7 @@ class Moderation(Cog):
         name='remove_role',
         description='Remove role of member'
     )
-    @has_guild_permissions(manage_roles=True)
+    @bot_owner_or_permissions(manage_roles=True)
     @bot_has_guild_permissions(manage_roles=True)
     async def remove_role(self, ctx: SlashContext, member: Member, role: Role):
         await member.remove_roles(role)
@@ -160,13 +160,13 @@ class Moderation(Cog):
         name='add_role',
         description='Add role to member'
     )
-    @has_guild_permissions(manage_roles=True)
+    @bot_owner_or_permissions(manage_roles=True)
     @bot_has_guild_permissions(manage_roles=True)
     async def add_role(self, ctx: SlashContext, member: Member, role: Role):
         await member.add_roles(role)
         await ctx.send('✅', hidden=True)
 
-    @has_guild_permissions(manage_nicknames=True)
+    @bot_owner_or_permissions(manage_nicknames=True)
     @bot_has_guild_permissions(manage_nicknames=True)
     @slash_subcommand(
         base='mod',
@@ -187,7 +187,7 @@ class Moderation(Cog):
         name='clear',
         description='Deletes messages in channel'
     )
-    @has_guild_permissions(manage_messages=True)
+    @bot_owner_or_permissions(manage_messages=True)
     @bot_has_guild_permissions(manage_messages=True)
     async def clear(self, ctx: SlashContext, amount: int, member: Member = None):
         def check(message):
@@ -212,6 +212,8 @@ class Moderation(Cog):
         name="move_to",
         description="Moves member to certain channel"
     )
+    @bot_owner_or_permissions(move_members=True)
+    @bot_has_guild_permissions(move_members=True)
     async def move_member_to(self, ctx: SlashContext, member: Member, voice_channel: VoiceChannel):
         content = get_content("MOD_COMMANDS_CONTENT", lang=self.bot.get_guild_bot_lang(ctx.guild_id))
 
