@@ -34,6 +34,8 @@ class GenshinStats(Cog):
     async def bind_uid(self, ctx: SlashContext, hoyolab_uid:int):
         self._get_cookie()
         uid = gs.get_uid_from_hoyolab_uid(hoyolab_uid)
+        if uid is None:
+            raise GenshinAccountNotFound
 
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         collection.update_one(
@@ -71,6 +73,7 @@ class GenshinStats(Cog):
             raise GenshinDataNotPublic
         except AccountNotFound:
             raise GenshinAccountNotFound
+
         user_explorations = reversed(user_data['explorations'])
         user_stats = user_data['stats']
 
@@ -207,6 +210,9 @@ class GenshinStats(Cog):
 
         self._get_cookie()
         card = gs.get_record_card(hoyolab_uid)
+        if card is None:
+            raise GenshinAccountNotFound
+
         user_data = gs.get_user_stats(int(card['game_role_id']))
         user_stats = user_data['stats']
 
