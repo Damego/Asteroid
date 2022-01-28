@@ -445,12 +445,10 @@ class Tags(Cog):
             return
 
         cogs_collection = self.bot.get_guild_cogs_collection(ctx.guild_id)
-        try:
-            is_public_tags = cogs_collection.find_one('tags').get('is_public')
-        except KeyError:
+        tags_data = cogs_collection.find_one('tags')
+        if tags_data is None:
             raise NotTagOwner
-
-        if not is_public_tags:
+        if not tags_data.get('is_public'):
             raise NotTagOwner
 
         if tag_data is None:
