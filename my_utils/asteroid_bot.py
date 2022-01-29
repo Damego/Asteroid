@@ -55,15 +55,6 @@ class AsteroidBot(Bot):
     def get_guild_voice_time_collection(self, guild_id:int):
         return self.mongo.connection[str(guild_id)]['voice_time']
 
-    def get_guild_reaction_roles_collection(self, guild_id:int):
-        return self.mongo.connection[str(guild_id)]['reaction_roles']
-
-    def get_guild_giveaways_collection(self, guild_id:int):
-        return self.mongo.connection[str(guild_id)]['giveaways']
-
-    def get_guild_auto_role_collection(self, guild_id:int):
-        return self.mongo.connection[str(guild_id)]['auto_role']
-
     def get_guild_cogs_collection(self, guild_id: int):
         return self.mongo.connection[str(guild_id)]['cogs_config']
 
@@ -80,7 +71,7 @@ class AsteroidBot(Bot):
             return value
 
         if key == 'embed_color':
-            value = '0x000001'
+            value = '0x5865F2'
         elif key == 'lang':
             value = 'en'
         else:

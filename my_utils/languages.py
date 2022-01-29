@@ -241,22 +241,22 @@ LANGUAGES = {
         'TAG_RENAME_TAG': {
             'TAG_RENAMED_TEXT': 'Тег `{tag_name}` переименован в `{new_tag_name}`!'
         },
-        'MUSIC_PLAY_COMMAND': {
-            'ADDED_IN_QUEUE_TEXT': '`{}` Было добавлено о очередь',
-            'NOT_CONNECTED_TO_VOICE': 'Подключитесь к голосовому каналу с ботом!',
-            'PAUSE_BUTTON': 'Пауза',
-            'RESUME_BUTTON': 'Продолжить',
-            'STOP_BUTTON': 'Стоп',
-            'SKIP_BUTTON': 'Пропустить',
-            'TOGGLE_OFF_BUTTON': 'Выкл. повтор',
-            'TOGGLE_ON_BUTTON': 'Вкл. повтор',
+        'MUSIC_COMMANDS': {
+            'ADDED_IN_QUEUE_TEXT': '`{}` Было добавлено в очередь',
+            'BOT_NOT_CONNECTED': "Бот не присоединён к голосовому каналу!",
+            'NOT_CONNECTED_TO_VOICE_TEXT': 'Присоединитесь к голосовому каналу с ботом!',
+            "NOT_PLAYING": "Музыка не играет!",
+            "DISCONNECTED_TEXT": "Успешно остановлено и отключено!",
+            "PAUSED_TEXT": "Воспроизведение музыки поставлено на паузу!",
+            "RESUMED_TEXT": "Пауза снята!",
+            "TRACK_SKIPPED_TEXT": "Музыка была пропущена",
             'PLAYING_TEXT': 'Сейчас играет',
             'NAME_TEXT': 'Название:',
             'DURATION_TEXT': 'Продолжительность:',
             'LIVE_TEXT': 'Прямая трансляция',
-            'WHO_ADDED_TEXT': 'Добавлено {}',
-            'SUCCESSFULLY': 'Успешно!',
-            "NOT_FOUND_TEXT": "Не найдено"
+            'REQUESTED_BY_TEXT': 'Запрошено {}',
+            "MUSIC_NOT_FOUND_TEXT": "Музыка с таким названием/ссылкой не найдено!",
+            "PLAYLIST_IS_EMPTY_TEXT": "Плейлист пуст!"
         },
         'FUNC_RANDOM_ITEMS': {
             'ITEMS_LIST': [
@@ -590,22 +590,22 @@ LANGUAGES = {
             'TAGS_LIST_TEXT': 'Tags list on {server}',
             'NO_TAGS_TEXT': 'No tags in this server!'
         },
-        'MUSIC_PLAY_COMMAND': {
+        'MUSIC_COMMANDS': {
             'ADDED_IN_QUEUE_TEXT': '`{}` was added in queue',
-            'NOT_CONNECTED_TO_VOICE': 'Connect to voice channel with a bot',
-            'PAUSE_BUTTON': 'Pause',
-            'RESUME_BUTTON': 'Resume',
-            'STOP_BUTTON': 'Stop',
-            'SKIP_BUTTON': 'Skip',
-            'TOGGLE_OFF_BUTTON': 'Disable repeat',
-            'TOGGLE_ON_BUTTON': 'Enable repeat',
+            'BOT_NOT_CONNECTED': "Bot doesn't connected to a voice channel!",
+            'NOT_CONNECTED_TO_VOICE_TEXT': 'Connect to voice channel with a bot',
+            "NOT_PLAYING": "Music not playing!",
+            "DISCONNECTED_TEXT": "Successfully stopped and disconnected!",
+            "PAUSED_TEXT": "Paused!",
+            "RESUMED_TEXT": "Resumed!",
+            "TRACK_SKIPPED_TEXT": "Track skipped",
             'PLAYING_TEXT': 'Now playing',
             'NAME_TEXT': 'Name:',
             'DURATION_TEXT': 'Duration:',
             'LIVE_TEXT': 'Live',
-            'WHO_ADDED_TEXT': 'Added {}',
-            'SUCCESSFULLY': 'Successfully!',
-            "NOT_FOUND_TEXT": "Not found"
+            'REQUESTED_BY_TEXT': 'Requested by {}',
+            "MUSIC_NOT_FOUND_TEXT": "Music with this name/url not found",
+            "PLAYLIST_IS_EMPTY_TEXT": "Playlist is empty!"
         },
         'FUNC_RANDOM_ITEMS': {
             'ITEMS_LIST': [

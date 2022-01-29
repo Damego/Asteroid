@@ -1,10 +1,72 @@
-from discord import VoiceProtocol, Member, Message, Embed, VoiceState, Guild
-from discord_components import Button, ButtonStyle
+from re import compile
+from typing import Union
+
+from discord import VoiceClient, Member, Message, Embed, VoiceState, Guild, Client, VoiceChannel
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
-from discord_slash_components_bridge import ComponentContext
+import lavalink
 
-from my_utils import AsteroidBot, get_content, NotConnectedToVoice, Cog, music, is_enabled
+from my_utils import AsteroidBot, get_content, NotConnectedToVoice, Cog, is_enabled
+
+
+url_rx = compile(r'https?://(?:www\.)?.+')
+
+
+class LavalinkVoiceClient(VoiceClient):
+    """
+    This is the preferred way to handle external voice sending
+    This client will be created via a cls in the connect method of the channel
+    see the following documentation:
+    """
+
+    def __init__(self, client, channel: VoiceChannel):
+        self.client = client
+        self.channel = channel
+
+        if not hasattr(self.client, 'lavalink'):
+            self.client.lavalink = lavalink.Client(client.user.id)
+            self.client.lavalink.add_node(
+                'localhost',
+                3678,
+                'testpassword',
+                'us',
+                'default-node'
+            )
+        self.lavalink = self.client.lavalink
+
+    async def on_voice_server_update(self, data):
+        lavalink_data = {
+            't': 'VOICE_SERVER_UPDATE',
+            'd': data
+        }
+        await self.lavalink.voice_update_handler(lavalink_data)
+
+    async def on_voice_state_update(self, data):
+        lavalink_data = {
+            't': 'VOICE_STATE_UPDATE',
+            'd': data
+        }
+        await self.lavalink.voice_update_handler(lavalink_data)
+
+    async def connect(self, *, timeout: float, reconnect: bool) -> None:
+        """
+        Connect the bot to the voice channel and create a player_manager
+        if it doesn't exist yet.
+        """
+        self.lavalink.player_manager.create(guild_id=self.channel.guild.id)
+        await self.channel.guild.change_voice_state(channel=self.channel)
+
+    async def disconnect(self, *, force: bool) -> None:
+        """
+        Handles the disconnect.
+        Cleans up running player and leaves the voice client.
+        """
+        player = self.lavalink.player_manager.get(self.channel.guild.id)
+        if not force and not player.is_connected:
+            return
+        await self.channel.guild.change_voice_state(channel=None)
+        player.channel_id = None
+        self.cleanup()
 
 
 class Music(Cog):
@@ -12,22 +74,24 @@ class Music(Cog):
         self.bot = bot
         self.emoji = '🎵'
         self.name = 'Music'
-        self.music = music.Music(bot)
-        self.track_queue = {}
-        self.players = {}
+
+    @Cog.listener()
+    async def on_ready(self):
+        self.bot.lavalink = lavalink.Client(self.bot.user.id)
+        self.bot.lavalink.add_node('127.0.0.1', 3678, 'testpassword', 'ru', 'default-node')
 
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
-        if not member.bot and after.channel is None:
-            members = before.channel.members
-            if len(members) == 1 and members[0].bot:
-                await self.stop_on_leave(member.guild)
-        elif member.bot and after.channel is None:
-            try:
-                await self.stop_on_leave(member.guild)
-            except AttributeError:
-                pass
+        if member.bot and member.id == self.bot.user.id and after.channel is None:
+            return await self._stop_on_leave(member.guild.id)
+        if (
+            before.channel is not None
+            and 0 < len(before.channel.members) < 2
+            and before.channel.members[0].id == self.bot.user.id
+        ):
+            return await self._stop_on_leave(member.guild.id)
 
+        
     @slash_subcommand(
         base='music',
         name='play',
@@ -36,17 +100,7 @@ class Music(Cog):
     @is_enabled()
     async def play_music(self, ctx: SlashContext, *, query: str):
         await ctx.defer()
-        await self._play_music(ctx, False, query)
-
-    @slash_subcommand(
-        base='music',
-        name='nplay',
-        description='Start playing music'
-    )
-    @is_enabled()
-    async def button_play_music(self, ctx: SlashContext, *, query: str):
-        await ctx.defer()
-        await self._play_music(ctx, True, query)
+        await self._play_music(ctx, query)
 
     @slash_subcommand(
         base='music',
@@ -55,6 +109,7 @@ class Music(Cog):
     )
     @is_enabled()
     async def stop_music(self, ctx: SlashContext):
+        await ctx.defer()
         await self._stop_music(ctx)
 
     @slash_subcommand(
@@ -64,6 +119,7 @@ class Music(Cog):
     )
     @is_enabled()
     async def pause_music(self, ctx: SlashContext):
+        await ctx.defer()
         await self._pause_music(ctx)
 
     @slash_subcommand(
@@ -73,6 +129,7 @@ class Music(Cog):
     )
     @is_enabled()
     async def resume_music(self, ctx: SlashContext):
+        await ctx.defer()
         await self._resume_music(ctx)
 
     @slash_subcommand(
@@ -82,6 +139,7 @@ class Music(Cog):
     )
     @is_enabled()
     async def repeat_music(self, ctx: SlashContext):
+        await ctx.defer()
         await self._repeat_music(ctx)
 
     @slash_subcommand(
@@ -91,152 +149,68 @@ class Music(Cog):
     )
     @is_enabled()
     async def skip_music(self, ctx: SlashContext):
+        await ctx.defer()
         await self._skip_music(ctx)
 
-    # * METHODS
-    async def stop_on_leave(self, guild: Guild):
-        player = self.music.get_player(guild_id=guild.id)
-        voice_client: VoiceProtocol = guild.voice_client
-        try:
-            if player is not None:
-                player.stop()
-            if voice_client is not None:
-                await voice_client.disconnect(force=True)
-            button_player = self.players.get(str(guild.id))
-            if button_player is not None:
-                message = button_player['message']
-                await message.edit(components=[])
-                del self.players[str(guild.id)]
-        except KeyError:
-            pass
+    @slash_subcommand(
+        base='music',
+        name='queue',
+        description='Show current queue'
+    )
+    @is_enabled()
+    async def queue_music(self, ctx: SlashContext):
+        await ctx.defer()
+        await self._queue_music(ctx)
 
-    async def _play_music(self, ctx: SlashContext, from_nplay: bool, query: str):
+    # * METHODS
+    async def _stop_on_leave(self, guild: Guild):
+        player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(guild.id)
+        if player is not None:
+            player.queue.clear()
+            await player.stop()
+        if guild.voice_client is not None:
+            await guild.voice_client.disconnect(force=True)
+
+    async def _play_music(self, ctx: SlashContext, query: str):
         if not ctx.author.voice:
             raise NotConnectedToVoice
-
-        voice_channel = ctx.author.voice.channel
-        if not ctx.voice_client:
-            await voice_channel.connect()
-            self.track_queue[str(ctx.guild_id)] = {}
-        
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('MUSIC_PLAY_COMMAND', lang)
+        content = get_content('MUSIC_COMMANDS', lang)
 
-        player = self.music.get_player(guild_id=ctx.guild_id)
+        player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild_id)
         if player is None:
-            player = self.music.create_player(ctx, ffmpeg_error_betterfix=True)
-        try:
-            track = await player.add_to_queue(query, search=True)
-        except music.NotFound:
-            return await ctx.send(content["NOT_FOUND_TEXT"])
+            player = self.bot.lavalink.player_manager.create(ctx.guild_id, endpoint=str(ctx.guild.region))
+        
+        if not ctx.voice_client:
+            player.store('channel', ctx.channel.id)
+            await ctx.author.voice.channel.connect(cls=LavalinkVoiceClient)
 
-        if ctx.voice_client.is_playing():
-            self.track_queue[str(ctx.guild_id)][track.name] = {'track': track, 'requester_msg': ctx.author}
-            return await ctx.send(content['ADDED_IN_QUEUE_TEXT'].format(track.name))
+        if not url_rx.match(query):
+            query = f'ytsearch:{query}'
+        results = await player.node.get_tracks(query)
+        if not results or not results['tracks']:
+            return await ctx.send(content['MUSIC_NOT_FOUND_TEXT'])
 
-        player.play()
-        if from_nplay:
-            message, components = await self._send_message(ctx, content, track, True)
-            self.players[str(ctx.guild.id)] = {'message': message}
-            await self._wait_button_click(ctx, content, message, components)
+        if results['loadType'] == 'PLAYLIST_LOADED':
+            tracks = results['tracks']
+            for track_data in tracks:
+                player.add(requester=ctx.author, track=track_data)
+                await self._added_to_queue(ctx, content, tracks)
         else:
-            await self._send_message(ctx, content, track)
+            track = lavalink.models.AudioTrack(results['tracks'][0], ctx.author, recommended=True)
+            player.add(requester=ctx.author, track=results['tracks'][0])
 
-    async def _wait_button_click(self, ctx: SlashContext, content: dict, message: Message, components: list):
-        async def check(interaction):
-            member: Member = ctx.guild.get_member(interaction.author_id)
-            if member.guild_permissions.move_members:
-                return True
+        if not player.is_playing:
+            await player.play()
+        await self._send_message(ctx, track, content)
 
-            if member.voice is None:
-                return False
-            channel = member.voice.channel
-            if channel is None:
-                return False
+    async def _send_message(self, ctx: SlashContext, track: lavalink.AudioTrack, content: dict):
+        embed = await self._get_music_info(ctx, track, content)
+        await ctx.send(embed=embed)
 
-            members = member.voice.channel.members
-            for member in members:
-                if member.id == 833349109347778591:
-                    return True
-
-        while True:
-            interaction: ComponentContext = await self.bot.wait_for(
-                "button_click",
-                check=lambda inter: inter.message.id == message.id
-            )
-            is_in_channel = await check(interaction)
-            if not is_in_channel:
-                await interaction.send(content=content['NOT_CONNECTED_TO_VOICE'])
-                continue
-            await interaction.defer(edit_origin=True)
-
-            button_id = interaction.custom_id
-            try:
-                if button_id == 'pause':
-                    await self._pause_music(
-                        ctx,
-                        content=content,
-                        from_button=True,
-                        message=message,
-                        components=components
-                    )
-                elif button_id == 'stop':
-                    await self._stop_music(ctx, from_button=True, message=message)
-                    del self.players[str(ctx.guild_id)]
-                    del self.track_queue[str(ctx.guild_id)]
-                    return
-                elif button_id == 'skip':
-                    await self._skip_music(ctx, from_button=True, message=message)
-                elif button_id == 'resume':
-                    await self._resume_music(
-                        ctx,
-                        content=content,
-                        from_button=True,
-                        message=message,
-                        components=components
-                    )
-                elif button_id == 'toggle_loop':
-                    await self._repeat_music(
-                        ctx,
-                        content=content,
-                        from_button=True,
-                        message=message,
-                        components=components
-                    )
-            except Exception as e:
-                print(e)
-
-    async def _send_message(self, ctx, content, track, from_nplay: bool = False):
-        embed = self._get_music_info(ctx, content, track)
-
-        if from_nplay:
-            components = [
-                [
-                    Button(style=ButtonStyle.gray, label=content['PAUSE_BUTTON'], id='pause'),
-                    Button(style=ButtonStyle.red, label=content['STOP_BUTTON'], id='stop'),
-                    Button(style=ButtonStyle.blue, label=content['SKIP_BUTTON'], id='skip'),
-                    Button(style=ButtonStyle.blue, label=content['TOGGLE_ON_BUTTON'], id='toggle_loop')
-                ]
-            ]
-
-            message = await ctx.send(embed=embed, components=components)
-            return message, components
-        return await ctx.send(embed=embed)
-
-    async def _update_msg(self, ctx: SlashContext, message: Message, track):
-        music_requester = self.track_queue[str(ctx.guild_id)].get(track.name)["requester_msg"]
-        embed = self._get_music_info(ctx, track, music_requester=music_requester)
-        await message.edit(embed=embed)
-
-    def _get_music_info(self, ctx, content, track, music_requester=None) -> Embed:
-        if music_requester is None:
-            music_requester = ctx.author
-            music_requester_avatar = ctx.author.avatar_url
-        else:
-            music_requester_avatar = music_requester.avatar_url
-
-        duration = track.duration
-        if duration != 0.0:
+    async def _get_music_info(self, ctx: SlashContext, track: lavalink.AudioTrack, content: dict) -> Embed:
+        duration = track.duration // 1000
+        if not track.stream:
             duration_hours = duration // 3600
             duration_minutes = (duration // 60) % 60
             duration_seconds = duration % 60
@@ -247,100 +221,83 @@ class Music(Cog):
         embed = Embed(title=content['PLAYING_TEXT'],
                               color=self.bot.get_embed_color(ctx.guild.id))
         embed.add_field(name=content['NAME_TEXT'],
-                        value=f'[{track.name}]({track.url})', inline=False)
+                        value=f'[{track.title}]({track.uri})', inline=False)
         embed.add_field(name=content['DURATION_TEXT'],
                         value=duration, inline=False)
-        embed.set_footer(text=content['WHO_ADDED_TEXT'].format(music_requester), icon_url=music_requester_avatar)
-        embed.set_thumbnail(url=track.thumbnail)
+        embed.set_footer(text=content['REQUESTED_BY_TEXT'].format(ctx.author.display_name), icon_url=ctx.author.avatar_url)
+        embed.set_thumbnail(url=f"https://i.ytimg.com/vi/{track.identifier}/maxresdefault.jpg")
 
         return embed
 
-    async def _stop_music(self, ctx: SlashContext, *, from_button: bool = False, message: Message = None):
-        player = self.music.get_player(guild_id=ctx.guild.id)
-        if ctx.voice_client.is_playing():
-            player.stop()
-            await ctx.voice_client.disconnect()
-        if from_button:
-            await message.edit(components=[])
+    async def __check_music_status(self, ctx: SlashContext, player: lavalink.DefaultPlayer ,content: dict):
+        if not player.is_connected:
+            return await ctx.send(content["BOT_NOT_CONNECTED"])
+        if not ctx.author.voice or ctx.author.voice.channel.id != int(player.channel_id):
+            return await ctx.send(content["NOT_CONNECTED_TO_VOICE_TEXT"])
+        if not player.is_playing:
+            return await ctx.send(content["NOT_PLAYING"])
+        return "PASSED"
+
+
+    async def _stop_music(self, ctx: SlashContext):
+        player = self.bot.lavalink.player_manager.get(ctx.guild_id)
+        content: dict = get_content("MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id))
+        print('passing')
+        status = await self.__check_music_status(ctx, player, content)
+        if status != "PASSED":
+            return
+
+        player.queue.clear()
+        await player.stop()
+        await ctx.voice_client.disconnect(force=True)
+        await ctx.send(content["DISCONNECTED_TEXT"])
+
+    async def _pause_music(self, ctx: SlashContext):
+        player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild_id)
+        content: dict = get_content("MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id))
+
+        status = await self.__check_music_status(ctx, player, content)
+        if status != "PASSED":
+            return
+
+        await player.set_pause(True)
+        await ctx.send(content["PAUSED_TEXT"])
+
+    async def _resume_music(self, ctx: SlashContext):
+        player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild_id)
+        content: dict = get_content("MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id))
+
+        status = await self.__check_music_status(ctx, player, content)
+        if status != "PASSED":
+            return
+
+        await player.set_pause(False)
+        await ctx.send(content["RESUMED_TEXT"])
+
+    async def _repeat_music(self, ctx: SlashContext,):
+        player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild_id)
+        content: dict = get_content("MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id))
+
+        status = await self.__check_music_status(ctx, player, content)
+        if status != "PASSED":
+            return
+
+        await player.set_repeat(not player.repeat)
+        if not player.repeat:
+            await ctx.send(content["REPEAT_OFF_TEXT"])
         else:
-            await ctx.send('✔️', hidden=True)
+            await ctx.send(content["REPEAT_ON_TEXT"])
 
-    async def _pause_music(
-            self,
-            ctx: SlashContext,
-            *,
-            content=None,
-            from_button: bool = False,
-            message: Message = None,
-            components: list = None
-    ):
-        player = self.music.get_player(guild_id=ctx.guild.id)
-        if ctx.voice_client.is_playing():
-            player.pause()
-            if from_button:
-                try:
-                    components[0][0] = Button(
-                        style=ButtonStyle.green, label=content['RESUME_BUTTON'], id='resume')
-                    await message.edit(components=components)
-                except Exception as e:
-                    print('IN PAUSE', e)
-            else:
-                await ctx.send('✔️', hidden=True)
-        else:
-            embed = Embed(title='Music not playing!', color=self.bot.get_embed_color(ctx.guild.id))
-            await ctx.send(embed=embed, delete_after=10)
+    async def _skip_music(self, ctx: SlashContext):
+        player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild_id)
+        content: dict = get_content("MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id))
 
-    async def _resume_music(
-            self,
-            ctx: SlashContext,
-            *,
-            content=None,
-            from_button: bool = False,
-            message: Message = None,
-            components: list = None
-    ):
-        player = self.music.get_player(guild_id=ctx.guild.id)
-        if not ctx.voice_client.is_playing():
-            player.resume()
-            if from_button:
-                components[0][0] = Button(
-                    style=ButtonStyle.gray, label=content['PAUSE_BUTTON'], id='pause')
-                await message.edit(components=components)
-            else:
-                await ctx.send('✔️', hidden=True)
+        status = await self.__check_music_status(ctx, player, content)
+        if status != "PASSED":
+            return
 
-    async def _repeat_music(
-            self,
-            ctx: SlashContext,
-            *,
-            content=None,
-            from_button: bool = False,
-            message: Message = None,
-            components: list = None
-    ):
-        player = self.music.get_player(guild_id=ctx.guild.id)
-        song = player.toggle_song_loop()
-
-        if not from_button:
-            return await ctx.send('✔️', hidden=True)
-
-        label = content['TOGGLE_OFF_BUTTON'] if song.is_looping else content['TOGGLE_ON_BUTTON']
-        components[0][3] = Button(
-                style=ButtonStyle.blue,
-                label=label,
-                id='toggle_loop'
-        )
-        await message.edit(components=components)
-
-    async def _skip_music(self, ctx: SlashContext, *, from_button: bool = False, message: Message = None):
-        player = self.music.get_player(guild_id=ctx.guild.id)
-        try:
-            new_track = player.skip(force=True)
-            if not from_button:
-                return await ctx.send('✔️', hidden=True)
-            await self._update_msg(ctx, message, new_track)
-        except Exception:
-            await ctx.send('**Playlist is empty!**', delete_after=15)
+        await player.skip()
+        await ctx.send(content["TRACK_SKIPPED_TEXT"])
 
 
 def setup(bot):
