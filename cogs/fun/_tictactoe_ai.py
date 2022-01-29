@@ -15,7 +15,7 @@ from discord_slash.context import SlashContext
 from discord_slash_components_bridge import (
     ComponentContext,
     ComponentMessage,
-    SlashMessage
+    SlashMessage,
 )
 
 from my_utils import AsteroidBot
@@ -40,22 +40,22 @@ class TicTacToeAI:
         self,
         bot: AsteroidBot,
         ctx: Union[SlashContext, ComponentContext],
-        mode: TicTacToeMode
+        mode: TicTacToeMode,
     ):
         self.bot = bot
         self.ctx = ctx
-        self.difficult = 'Easy' if mode == 2 else 'Impossible'
+        self.difficult = "Easy" if mode == 2 else "Impossible"
         self.mode = mode
         self.board: List[list] = None
         self.emoji_circle = self.bot.get_emoji(850792047698509826)
         self.emoji_cross = self.bot.get_emoji(850792048080060456)
 
         self.game_embed = Embed(
-            title='Tic Tac Toe Game',
+            title="Tic Tac Toe Game",
             description=f"**Player:** {ctx.author.mention}"
-                        f"\n**Difficult:** `{self.difficult}`",
+            f"\n**Difficult:** `{self.difficult}`",
             color=self.bot.get_embed_color(ctx.guild_id),
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
         self.game_embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
@@ -142,8 +142,8 @@ class TicTacToeAI:
                         emoji=emoji,
                         style=style,
                         custom_id=f"{i} {x}",
-                        disabled=disable if disable else style != ButtonStyle.gray
-                    )
+                        disabled=disable if disable else style != ButtonStyle.gray,
+                    ),
                 )
 
         return components
@@ -164,10 +164,7 @@ class TicTacToeAI:
         depth = len(self.get_possible_moves(self.board))
         if depth != 0:
             ai_move = await to_thread(
-                self.minimax,
-                deepcopy(self.board),
-                depth,
-                GameState.ai
+                self.minimax, deepcopy(self.board), depth, GameState.ai
             )
             return ai_move
 
@@ -192,39 +189,40 @@ class TicTacToeAI:
         elif self.is_won(self.board, GameState.ai):
             winner = ctx.bot.user.mention
         elif len(self.get_possible_moves(self.board)) == 0:
-            winner = 'Draw'
+            winner = "Draw"
         else:
             winner = None
 
         if winner:
-            self.game_embed.description += f'\n**Winner:** {winner}'
+            self.game_embed.description += f"\n**Winner:** {winner}"
 
-        await ctx.edit_origin(
-            embed=self.game_embed,
-            components=self.render_gameboard()
-        )
+        await ctx.edit_origin(embed=self.game_embed, components=self.render_gameboard())
         return winner is not None
 
-    async def start(self, *, edit_origin: bool = False, message: Union[SlashMessage, ComponentMessage] = None):
+    async def start(
+        self,
+        *,
+        edit_origin: bool = False,
+        message: Union[SlashMessage, ComponentMessage] = None,
+    ):
         ctx = self.ctx
 
         if not edit_origin:
             message = await ctx.send(
-                embed=self.game_embed,
-                components=self.render_gameboard()
+                embed=self.game_embed, components=self.render_gameboard()
             )
         else:
             await ctx.edit_origin(
-                embed=self.game_embed,
-                components=self.render_gameboard()
+                embed=self.game_embed, components=self.render_gameboard()
             )
 
         while True:
             try:
                 comp_ctx: ComponentContext = await self.bot.wait_for(
-                    'button_click',
-                    check=lambda _ctx: ctx.author_id == _ctx.author_id and message.id == _ctx.message.id,
-                    timeout=180
+                    "button_click",
+                    check=lambda _ctx: ctx.author_id == _ctx.author_id
+                    and message.id == _ctx.message.id,
+                    timeout=180,
                 )
             except TimeoutError:
                 components = self.render_gameboard(disable=True)

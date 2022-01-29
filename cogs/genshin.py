@@ -11,27 +11,22 @@ from my_utils import (
     AsteroidBot,
     get_content,
     Cog,
-    is_enabled
+    is_enabled,
 )
-from my_utils.paginator import (
-    PaginatorStyle,
-    Paginator
-)
+from my_utils.paginator import PaginatorStyle, Paginator
 
 
 class GenshinStats(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.emoji = 863429526632923136
-        self.name = 'GenshinStats'
+        self.name = "GenshinStats"
 
     @slash_subcommand(
-        base='genshin',
-        name='bind',
-        description='Bind Hoyolab UID to your account'
+        base="genshin", name="bind", description="Bind Hoyolab UID to your account"
     )
     @is_enabled()
-    async def bind_uid(self, ctx: SlashContext, hoyolab_uid:int):
+    async def bind_uid(self, ctx: SlashContext, hoyolab_uid: int):
         self._get_cookie()
         uid = gs.get_uid_from_hoyolab_uid(hoyolab_uid)
         if uid is None:
@@ -39,32 +34,28 @@ class GenshinStats(Cog):
 
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         collection.update_one(
-            {'_id':str(ctx.author_id)},
-            {'$set':{
-                'genshin.hoyolab_uid':hoyolab_uid,
-                'genshin.uid':uid
-                }
-            },
-            upsert=True
+            {"_id": str(ctx.author_id)},
+            {"$set": {"genshin.hoyolab_uid": hoyolab_uid, "genshin.uid": uid}},
+            upsert=True,
         )
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('GENSHIN_BIND_COMMAND', lang)
+        content = get_content("GENSHIN_BIND_COMMAND", lang)
         await ctx.send(content)
 
     @slash_subcommand(
-        base='genshin',
-        name='statistics',
-        description='Show your statistics of Genshin Impact'
+        base="genshin",
+        name="statistics",
+        description="Show your statistics of Genshin Impact",
     )
     @is_enabled()
-    async def statistics(self, ctx: SlashContext, uid: int=None):
+    async def statistics(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
-            uid = self._get_UID('', ctx.guild_id, ctx.author_id)
+            uid = self._get_UID("", ctx.guild_id, ctx.author_id)
 
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('GENSHIN_STATISTICS_COMMAND', lang)
-        genshin_data_lang = 'ru-ru' if lang == 'ru' else 'en-us'
+        content = get_content("GENSHIN_STATISTICS_COMMAND", lang)
+        genshin_data_lang = "ru-ru" if lang == "ru" else "en-us"
 
         self._get_cookie()
         try:
@@ -74,27 +65,34 @@ class GenshinStats(Cog):
         except AccountNotFound:
             raise GenshinAccountNotFound
 
-        user_explorations = reversed(user_data['explorations'])
-        user_stats = user_data['stats']
+        user_explorations = reversed(user_data["explorations"])
+        user_stats = user_data["stats"]
 
         embed = discord.Embed(
-            title=content['EMBED_WORLD_EXPLORATION_TITLE'], color=self.bot.get_embed_color(ctx.guild_id)
+            title=content["EMBED_WORLD_EXPLORATION_TITLE"],
+            color=self.bot.get_embed_color(ctx.guild_id),
         )
-        embed.set_footer(text=f'UID: {uid}')
+        embed.set_footer(text=f"UID: {uid}")
 
         for region in user_explorations:
             if region["explored"] == 0.0:
                 continue
 
             description = f'{content["EXPLORED_TEXT"]}: `{region["explored"]}%`'
-            if region['name'] == content['Dragonspine']:
-                description += content['FROSTBEARING_TREE_LEVEL_TEXT'].format(level=region["level"])
-            elif region['name'] == content['Inazuma']:
-                description += content['SACRED_SAKURA_LEVEL_TEXT'].format(level=region["offerings"][0]["level"])
-            if region['type'] == 'Reputation':
-                description += content['REPUTATION_LEVEL_TEXT'].format(level=region["level"])
-            
-            embed.add_field(name=region['name'], value=description)
+            if region["name"] == content["Dragonspine"]:
+                description += content["FROSTBEARING_TREE_LEVEL_TEXT"].format(
+                    level=region["level"]
+                )
+            elif region["name"] == content["Inazuma"]:
+                description += content["SACRED_SAKURA_LEVEL_TEXT"].format(
+                    level=region["offerings"][0]["level"]
+                )
+            if region["type"] == "Reputation":
+                description += content["REPUTATION_LEVEL_TEXT"].format(
+                    level=region["level"]
+                )
+
+            embed.add_field(name=region["name"], value=description)
 
         oculus_content = f"""
         <:Item_Anemoculus:870989767960059944> {content['ANEMOCULUS']}: `{user_stats['anemoculi']}/66`
@@ -102,7 +100,9 @@ class GenshinStats(Cog):
         <:Item_Electroculus:870989768387878912> {content['ELECTROCULUS']}: `{user_stats['electroculi']}/181`
         """
 
-        embed.add_field(name=content['COLLECTED_OCULUS_TEXT'], value=oculus_content, inline=False)
+        embed.add_field(
+            name=content["COLLECTED_OCULUS_TEXT"], value=oculus_content, inline=False
+        )
 
         chests_opened = f"""
         {content['COMMON_CHEST']}: `{user_stats['common_chests']}`
@@ -111,31 +111,35 @@ class GenshinStats(Cog):
         {content['LUXURIOUS_CHEST']}: `{user_stats['luxurious_chests']}`
         """
 
-        embed.add_field(name=content['CHESTS_OPENED'], value=chests_opened, inline=False)
+        embed.add_field(
+            name=content["CHESTS_OPENED"], value=chests_opened, inline=False
+        )
 
         misc_content = f"""
         <:teleport:871385272376504341> {content['UNLOCKED_TELEPORTS']}: `{user_stats['unlocked_waypoints']}/168`
         <:domains:871370995192193034> {content['UNLOCKED_DOMAINS']}: `{user_stats['unlocked_domains']}/33`
         """
 
-        embed.add_field(name=content['MISC_INFO'], value=misc_content, inline=False)
+        embed.add_field(name=content["MISC_INFO"], value=misc_content, inline=False)
         await ctx.send(embed=embed)
 
     @slash_subcommand(
-        base='genshin',
-        name='characters_list',
-        description='Show your characters list of Genshin Impact'
+        base="genshin",
+        name="characters_list",
+        description="Show your characters list of Genshin Impact",
     )
     @is_enabled()
-    async def characters(self, ctx: SlashContext, uid: int=None):
+    async def characters(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
-            uid = self._get_UID('', ctx.guild.id, ctx.author.id)
+            uid = self._get_UID("", ctx.guild.id, ctx.author.id)
 
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('GENSHIN_CHARACTERS_LIST_COMMAND', lang)
-        chars_vision_content = get_content('GENSHIN_CHARACTERS_COMMAND', lang)['GENSHIN_CHARACTER_VISION']
-        _lang = 'ru-ru' if lang == 'ru' else 'en-us'
+        content = get_content("GENSHIN_CHARACTERS_LIST_COMMAND", lang)
+        chars_vision_content = get_content("GENSHIN_CHARACTERS_COMMAND", lang)[
+            "GENSHIN_CHARACTER_VISION"
+        ]
+        _lang = "ru-ru" if lang == "ru" else "en-us"
 
         self._get_cookie()
         try:
@@ -145,36 +149,40 @@ class GenshinStats(Cog):
         except AccountNotFound:
             raise GenshinAccountNotFound
 
-        embed = discord.Embed(title=content['EMBED_GENSHIN_CHARACTERS_LIST_TITLE'], color=self.bot.get_embed_color(ctx.guild.id))
-        embed.set_footer(text=f'UID: {uid}')
+        embed = discord.Embed(
+            title=content["EMBED_GENSHIN_CHARACTERS_LIST_TITLE"],
+            color=self.bot.get_embed_color(ctx.guild.id),
+        )
+        embed.set_footer(text=f"UID: {uid}")
 
         for character in characters:
-            embed.add_field(name=f'{character["name"]} {"⭐" * character["rarity"]}',
-            value=f"""
+            embed.add_field(
+                name=f'{character["name"]} {"⭐" * character["rarity"]}',
+                value=f"""
             ┕ {content['CHARACTER_LEVEL']}: `{character['level']}`
             ┕ {content['CHARACTER_CONSTELLATION']}: `C{character['constellation']}`
             ┕ {content['CHARACTER_VISION']}: {chars_vision_content[character['element']]}
             ┕ {content['CHARACTER_WEAPON']}: `{character['weapon']['name']} {"⭐" * character['weapon']['rarity']}`
-            """)
+            """,
+            )
         await ctx.send(embed=embed)
 
-
     @slash_subcommand(
-        base='genshin',
-        name='characters',
-        description='Show your characters of Genshin Impact'
+        base="genshin",
+        name="characters",
+        description="Show your characters of Genshin Impact",
     )
     @is_enabled()
-    async def chars(self, ctx: SlashContext, uid: int=None):
+    async def chars(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
-            uid = self._get_UID('', ctx.guild.id, ctx.author.id)
-            
+            uid = self._get_UID("", ctx.guild.id, ctx.author.id)
+
         self._get_cookie()
 
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('GENSHIN_CHARACTERS_COMMAND', lang)
-        _lang = 'ru-ru' if lang == 'ru' else 'en-us'
+        content = get_content("GENSHIN_CHARACTERS_COMMAND", lang)
+        _lang = "ru-ru" if lang == "ru" else "en-us"
 
         try:
             characters = gs.get_characters(uid, lang=_lang)
@@ -182,42 +190,44 @@ class GenshinStats(Cog):
             raise GenshinDataNotPublic
         except AccountNotFound:
             raise GenshinAccountNotFound
-        
+
         embeds = []
         pages = len(characters)
 
         for _page, character in enumerate(characters, start=1):
-            embed = discord.Embed(title=f'{character["name"]} {"⭐" * character["rarity"]}',
-            color=self.bot.get_embed_color(ctx.guild.id))
-            embed.set_thumbnail(url=character['icon'])
-            embed.set_footer(text=f'UID: {uid}. {_page}/{pages}')
+            embed = discord.Embed(
+                title=f'{character["name"]} {"⭐" * character["rarity"]}',
+                color=self.bot.get_embed_color(ctx.guild.id),
+            )
+            embed.set_thumbnail(url=character["icon"])
+            embed.set_footer(text=f"UID: {uid}. {_page}/{pages}")
             embed = self.get_character_info(content, embed, character)
             embeds.append(embed)
 
-        paginator = Paginator(self.bot, ctx, PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds)
+        paginator = Paginator(
+            self.bot, ctx, PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds
+        )
         await paginator.start()
 
     @slash_subcommand(
-        base='genshin',
-        name='info',
-        description='Show account information'
+        base="genshin", name="info", description="Show account information"
     )
     @is_enabled()
-    async def info(self, ctx: SlashContext, hoyolab_uid: int=None):
+    async def info(self, ctx: SlashContext, hoyolab_uid: int = None):
         await ctx.defer()
         if hoyolab_uid is None:
-            hoyolab_uid = self._get_UID('hoyolab', ctx.guild_id, ctx.author_id)
+            hoyolab_uid = self._get_UID("hoyolab", ctx.guild_id, ctx.author_id)
 
         self._get_cookie()
         card = gs.get_record_card(hoyolab_uid)
         if card is None:
             raise GenshinAccountNotFound
 
-        user_data = gs.get_user_stats(int(card['game_role_id']))
-        user_stats = user_data['stats']
+        user_data = gs.get_user_stats(int(card["game_role_id"]))
+        user_stats = user_data["stats"]
 
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('GENSHIN_INFO_COMMAND', lang)
+        content = get_content("GENSHIN_INFO_COMMAND", lang)
 
         description = f"""
         **{content['ADVENTURE_RANK_TEXT']}: {card['nickname']}**
@@ -228,27 +238,33 @@ class GenshinStats(Cog):
         <:spiral_abyss:871370970600968233> {content['SPIRAL_ABYSS_TEXT']}: `{user_stats['spiral_abyss']}`
         """
 
-        embed = discord.Embed(title=content['PLAYER_INFO_TEXT'], description=description, color=self.bot.get_embed_color(ctx.guild.id))
-        embed.set_footer(text=f'Hoyolab UID: {hoyolab_uid}')
+        embed = discord.Embed(
+            title=content["PLAYER_INFO_TEXT"],
+            description=description,
+            color=self.bot.get_embed_color(ctx.guild.id),
+        )
+        embed.set_footer(text=f"Hoyolab UID: {hoyolab_uid}")
         await ctx.send(embed=embed)
 
     def _get_cookie(self):
-        gs.set_cookie(ltuid=147861638, ltoken='3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU')
+        gs.set_cookie(
+            ltuid=147861638, ltoken="3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU"
+        )
 
-    def _get_UID(self, uid_type:str, guild_id: int, author_id: int):
+    def _get_UID(self, uid_type: str, guild_id: int, author_id: int):
         collection = self.bot.get_guild_users_collection(guild_id)
-        user_stats = collection.find_one({'_id':str(author_id)})
+        user_stats = collection.find_one({"_id": str(author_id)})
 
         if user_stats is None:
             raise UIDNotBinded
-        user_genshin = user_stats.get('genshin')
+        user_genshin = user_stats.get("genshin")
         if user_genshin is None:
             raise UIDNotBinded
 
-        if uid_type == 'hoyolab':
-            uid = user_genshin.get('hoyolab_uid')
+        if uid_type == "hoyolab":
+            uid = user_genshin.get("hoyolab_uid")
         else:
-            uid = user_genshin.get('uid')
+            uid = user_genshin.get("uid")
 
         if uid is None:
             raise UIDNotBinded
@@ -272,9 +288,9 @@ class GenshinStats(Cog):
 
             """
 
-        if character['artifacts']:
-            embed.description += content['ARTIFACTS_TEXT']
-            for artifact in character['artifacts']:
+        if character["artifacts"]:
+            embed.description += content["ARTIFACTS_TEXT"]
+            for artifact in character["artifacts"]:
                 embed.description += f"""
                 ・*{content['GENSHIN_ARTIFACT_TYPE'][artifact['pos_name']]}*
                 » {content['ARTIFACT_NAME']}: `{artifact['name']}`

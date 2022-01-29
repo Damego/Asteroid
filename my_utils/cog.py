@@ -6,5 +6,5 @@ class Cog(_Cog):
     name: str = None
     hidden: bool = False
     description: str = None
-    emoji: Union[str, int] = '❓'
+    emoji: Union[str, int] = "❓"
     private_guild_id: List[int] = None

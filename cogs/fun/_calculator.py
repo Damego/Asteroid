@@ -226,7 +226,9 @@ class Calculator:
                 )
 
             if interaction.custom_id == "Exit":
-                embed = self._get_embed(ctx.author, interaction.message.embeds[0].description)
+                embed = self._get_embed(
+                    ctx.author, interaction.message.embeds[0].description
+                )
                 return await interaction.edit_origin(
                     embed=embed,
                     components=[

@@ -11,10 +11,7 @@ from my_utils.errors import *
 from my_utils import slash_override
 
 
-bot = AsteroidBot(
-    command_prefix='+',
-    intents=Intents.all()
-)
+bot = AsteroidBot(command_prefix="+", intents=Intents.all())
 
 
 # EVENTS
@@ -23,18 +20,16 @@ async def on_ready():
     channel = bot.get_channel(891222610166284368)
     if channel is None:
         channel = await bot.fetch_channel(891222610166284368)
-    await channel.send(f'{bot.user} успешно загружен!')
+    await channel.send(f"{bot.user} успешно загружен!")
 
-    print(f'{bot.user} загружен!')
+    print(f"{bot.user} загружен!")
 
 
 @bot.event
 async def on_guild_join(guild: Guild):
     collection = bot.get_guild_main_collection(guild.id)
     collection.update_one(
-        {'_id': 'configuration'},
-        {'$set': {'embed_color': '0xFFFFFE'}},
-        upsert=True
+        {"_id": "configuration"}, {"$set": {"embed_color": "0xFFFFFE"}}, upsert=True
     )
 
 
@@ -54,33 +49,34 @@ async def on_guild_remove(guild: Guild):
     for collection in collections:
         collection.drop()
 
+
 @bot.event
 async def on_slash_command_error(ctx: SlashContext, error):
     print(error)
     embed = Embed(color=0xED4245)
     lang = bot.get_guild_bot_lang(ctx.guild_id)
-    content = get_content('ERRORS_DESCRIPTIONS', lang)
+    content = get_content("ERRORS_DESCRIPTIONS", lang)
 
     if isinstance(error, CogDisabledOnGuild):
-        desc = content['COG_DISABLED']
+        desc = content["COG_DISABLED"]
     elif isinstance(error, CommandDisabled):
-        desc = content['COMMAND_DISABLED']
+        desc = content["COMMAND_DISABLED"]
     elif isinstance(error, TagNotFound):
-        desc = content['TAG_NOT_FOUND']
+        desc = content["TAG_NOT_FOUND"]
     elif isinstance(error, ForbiddenTag):
-        desc = content['FORBIDDEN_TAG']
+        desc = content["FORBIDDEN_TAG"]
     elif isinstance(error, NotTagOwner):
-        desc = content['NOT_TAG_OWNER']
+        desc = content["NOT_TAG_OWNER"]
     elif isinstance(error, UIDNotBinded):
-        desc = content['UID_NOT_BINDED']
+        desc = content["UID_NOT_BINDED"]
     elif isinstance(error, GenshinAccountNotFound):
-        desc = content['GI_ACCOUNT_NOT_FOUND']
+        desc = content["GI_ACCOUNT_NOT_FOUND"]
     elif isinstance(error, GenshinDataNotPublic):
-        desc = content['GI_DATA_NOT_PUBLIC']
+        desc = content["GI_DATA_NOT_PUBLIC"]
     elif isinstance(error, NotConnectedToVoice):
-        desc = content['NOT_CONNECTED_TO_VOICE']
+        desc = content["NOT_CONNECTED_TO_VOICE"]
     elif isinstance(error, commands.NotOwner):
-        desc = content['NOT_BOT_OWNER']
+        desc = content["NOT_BOT_OWNER"]
     elif isinstance(error, commands.BotMissingPermissions):
         missing_perms = [transform_permission(perm) for perm in error.missing_perms]
         desc = f'{content["BOT_DONT_HAVE_PERMS"]} `{", ".join(missing_perms)}`'
@@ -88,16 +84,16 @@ async def on_slash_command_error(ctx: SlashContext, error):
         missing_perms = [transform_permission(perm) for perm in error.missing_perms]
         desc = f'{content["DONT_HAVE_PERMS"]} `{", ".join(missing_perms)}`'
     elif isinstance(error, commands.CheckFailure):
-        desc = content['CHECK_FAILURE']
+        desc = content["CHECK_FAILURE"]
     elif isinstance(error, commands.BadArgument):
-        desc = content['BAD_ARGUMENT']
+        desc = content["BAD_ARGUMENT"]
     elif isinstance(error, Forbidden):
-        desc = content['FORBIDDEN']
+        desc = content["FORBIDDEN"]
     else:
-        desc = content['OTHER_ERRORS_DESCRIPTION'].format(error=error)
-        embed.title = content['OTHER_ERRORS_TITLE']
+        desc = content["OTHER_ERRORS_DESCRIPTION"].format(error=error)
+        embed.title = content["OTHER_ERRORS_TITLE"]
 
-        error_traceback = ''.join(
+        error_traceback = "".join(
             format_exception(type(error), error, error.__traceback__)
         )
 
@@ -118,7 +114,7 @@ async def on_slash_command_error(ctx: SlashContext, error):
         try:
             await channel.send(error_description)
         except Exception:
-            await channel.send('Произошла ошибка! Чекни логи!')
+            await channel.send("Произошла ошибка! Чекни логи!")
             print(error_description)
 
     embed.description = desc
@@ -129,4 +125,4 @@ async def on_slash_command_error(ctx: SlashContext, error):
 
 
 load_dotenv()
-bot.run(getenv('BOT_TOKEN'))
+bot.run(getenv("BOT_TOKEN"))

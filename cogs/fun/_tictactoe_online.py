@@ -5,10 +5,7 @@ from typing import List
 from discord import Embed, Member
 from discord_components import Button, ButtonStyle
 from discord_slash.context import SlashContext
-from discord_slash_components_bridge import (
-    ComponentMessage,
-    ComponentContext
-)
+from discord_slash_components_bridge import ComponentMessage, ComponentContext
 
 from my_utils import AsteroidBot
 
@@ -16,7 +13,13 @@ from my_utils import AsteroidBot
 board_template = {
     3: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
     4: [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-    5: [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+    5: [
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+    ],
 }
 
 
@@ -40,7 +43,7 @@ class TicTacToeOnline:
         ctx: SlashContext,
         member: Member,
         content: dict,
-        board_mode: BoardMode
+        board_mode: BoardMode,
     ) -> None:
         self.bot = bot
         self.message = message
@@ -53,7 +56,9 @@ class TicTacToeOnline:
         self.emoji_cross = self.bot.get_emoji(850792048080060456)
 
     async def start_game(self):
-        await self.message.edit(content=self.content['GAME_NAME'], components=self.render_gameboard())
+        await self.message.edit(
+            content=self.content["GAME_NAME"], components=self.render_gameboard()
+        )
 
         player_1_move = True
         result = False
@@ -86,8 +91,8 @@ class TicTacToeOnline:
                         emoji=emoji,
                         style=style,
                         custom_id=f"{i} {x}",
-                        disabled=disable if disable else style != ButtonStyle.gray
-                    )
+                        disabled=disable if disable else style != ButtonStyle.gray,
+                    ),
                 )
 
         return components
@@ -103,12 +108,15 @@ class TicTacToeOnline:
                     self.board[i][j] = GameState.enemy
 
     def _check(self, player_id, interaction):
-        return interaction.author_id == player_id and interaction.message.id == self.message.id
+        return (
+            interaction.author_id == player_id
+            and interaction.message.id == self.message.id
+        )
 
     async def move(self, player: GameState, player_user: Member):
         ctx: ComponentContext = await self.bot.wait_for(
-            'button_click',
-            check=lambda interaction: self._check(player_user.id, interaction)
+            "button_click",
+            check=lambda interaction: self._check(player_user.id, interaction),
         )
         await ctx.defer(edit_origin=True)
 
@@ -145,7 +153,7 @@ class TicTacToeOnline:
             [self.board[0][1], self.board[1][1], self.board[2][1]],
             [self.board[0][2], self.board[1][2], self.board[2][2]],
             [self.board[0][0], self.board[1][1], self.board[2][2]],
-            [self.board[0][2], self.board[1][1], self.board[2][0]]
+            [self.board[0][2], self.board[1][1], self.board[2][0]],
         ]
 
     def get_win_states_x4(self):
@@ -171,7 +179,7 @@ class TicTacToeOnline:
             [self.board[0][2], self.board[1][1], self.board[2][0]],
             [self.board[0][3], self.board[1][2], self.board[2][1]],
             [self.board[1][3], self.board[2][2], self.board[3][1]],
-            [self.board[1][0], self.board[2][1], self.board[3][2]]
+            [self.board[1][0], self.board[2][1], self.board[3][2]],
         ]
 
     def get_win_states_x5(self):
@@ -223,26 +231,29 @@ class TicTacToeOnline:
             [self.board[2][2], self.board[3][3], self.board[4][4]],
             [self.board[1][0], self.board[2][1], self.board[3][2]],
             [self.board[2][3], self.board[3][3], self.board[4][3]],
-            [self.board[2][0], self.board[3][1], self.board[4][2]]
+            [self.board[2][0], self.board[3][1], self.board[4][2]],
         ]
 
     def is_tie(self, player: GameState):
         return str(GameState.empty) not in str(self.board) and not self.is_won(player)
 
-    async def pick_a_winner(self, winner='_draw'):
-        if winner == '_draw':
-            winner = self.content['RESULTS_TIE']
+    async def pick_a_winner(self, winner="_draw"):
+        if winner == "_draw":
+            winner = self.content["RESULTS_TIE"]
 
         embed = Embed(
-            title=self.content['RESULTS_TITLE'],
-            color=self.bot.get_embed_color(self.ctx.guild_id))
+            title=self.content["RESULTS_TITLE"],
+            color=self.bot.get_embed_color(self.ctx.guild_id),
+        )
         embed.add_field(
-            name=self.content['RESULTS_GAME_NAME'],
-            value=self.content['RESULTS_TEXT'].format(
+            name=self.content["RESULTS_GAME_NAME"],
+            value=self.content["RESULTS_TEXT"].format(
                 player1=self.member.display_name,
                 player2=self.ctx.author.display_name,
-                winner=winner
-            )
+                winner=winner,
+            ),
         )
 
-        await self.message.edit(embed=embed, components=self.render_gameboard(disable=True))
+        await self.message.edit(
+            embed=embed, components=self.render_gameboard(disable=True)
+        )

@@ -14,17 +14,14 @@ class Help(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.hidden = True
-        self.name = 'Help'
+        self.name = "Help"
 
-    @slash_command(
-        name='help',
-        description='Show all bot\'s commands'
-    )
+    @slash_command(name="help", description="Show all bot's commands")
     async def help_command(self, ctx: SlashContext):
         await ctx.defer()
 
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content('HELP_COMMAND', lang)
+        content = get_content("HELP_COMMAND", lang)
 
         components = self._init_components(ctx, content)
         embeds = self._init_embeds(ctx, content, lang)
@@ -33,16 +30,17 @@ class Help(Cog):
         while True:
             try:
                 interaction: ComponentContext = await self.bot.wait_for(
-                    'select_option',
-                    check=lambda inter: inter.author_id == ctx.author_id and inter.message.id == message.id,
-                    timeout=60
-                    )
+                    "select_option",
+                    check=lambda inter: inter.author_id == ctx.author_id
+                    and inter.message.id == message.id,
+                    timeout=60,
+                )
             except TimeoutError:
                 return await message.edit(components=[])
 
             value = interaction.values[0]
 
-            if value == 'main_page':
+            if value == "main_page":
                 embed = embeds[0]
             else:
                 for embed in embeds:
@@ -55,7 +53,7 @@ class Help(Cog):
         return cog.private_guild_id and ctx.guild_id not in cog.private_guild_id
 
     def _init_components(self, ctx: SlashContext, content: dict):
-        options = [SelectOption(label='Main Page', value='main_page', emoji='🏠')]
+        options = [SelectOption(label="Main Page", value="main_page", emoji="🏠")]
 
         for _cog in self.bot.cogs:
             cog = self.bot.cogs[_cog]
@@ -68,21 +66,14 @@ class Help(Cog):
             if isinstance(emoji, int):
                 emoji = self.bot.get_emoji(emoji)
 
-            options.append(
-                SelectOption(label=_cog, value=_cog, emoji=emoji)
-            )
+            options.append(SelectOption(label=_cog, value=_cog, emoji=emoji))
 
-        return [
-            Select(
-                placeholder=content['SELECT_MODULE_TEXT'],
-                options=options
-            )
-        ]
+        return [Select(placeholder=content["SELECT_MODULE_TEXT"], options=options)]
 
     def _init_embeds(self, ctx: SlashContext, content: dict, guild_language: str):
         translated_commands = None
-        if guild_language != 'en':
-            translated_commands = get_content('TRANSLATED_COMMANDS', guild_language)
+        if guild_language != "en":
+            translated_commands = get_content("TRANSLATED_COMMANDS", guild_language)
         commands_data = self._get_commands_data()
         embeds = [self._get_main_menu(ctx, content)]
 
@@ -94,85 +85,103 @@ class Help(Cog):
                 continue
 
             embed = Embed(
-                title=f'{_cog} | Asteroid Bot',
-                description='',
+                title=f"{_cog} | Asteroid Bot",
+                description="",
                 timestamp=datetime.datetime.utcnow(),
-                color=0x2f3136
+                color=0x2F3136,
             )
             embed.set_footer(
-                text=content['REQUIRED_BY_TEXT'].format(user=ctx.author),
-                icon_url=ctx.author.avatar_url
+                text=content["REQUIRED_BY_TEXT"].format(user=ctx.author),
+                icon_url=ctx.author.avatar_url,
             )
             embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
             for _base_command in commands_data[_cog]:
                 base_command = commands_data[_cog][_base_command]
                 for _group in base_command:
-                    if _group == 'command_description':
+                    if _group == "command_description":
                         continue
                     group = base_command[_group]
-                    if group.get('has_subcommand_group') is None:
+                    if group.get("has_subcommand_group") is None:
                         for _command_name in group:
                             command = group[_command_name]
                             option_line = self.get_options(command)
-                            command_description = translated_commands.get(f"{_base_command}_{_group}_{_command_name}".upper(), command['description']) \
-                                if translated_commands else command['description']
-                            embed.description += f"`/{_base_command} {_group} {_command_name}{option_line}`\n " \
+                            command_description = (
+                                translated_commands.get(
+                                    f"{_base_command}_{_group}_{_command_name}".upper(),
+                                    command["description"],
+                                )
+                                if translated_commands
+                                else command["description"]
+                            )
+                            embed.description += (
+                                f"`/{_base_command} {_group} {_command_name}{option_line}`\n "
                                 f"*{content['DESCRIPTION_TEXT']}* {command_description} \n"
+                            )
                     else:
                         option_line = self.get_options(group)
-                        command_description = translated_commands.get(f"{_base_command}_{_group}".upper(), group['description']) \
-                            if translated_commands else group['description']
-                        embed.description += f"`/{_base_command} {_group}{option_line}`\n " \
+                        command_description = (
+                            translated_commands.get(
+                                f"{_base_command}_{_group}".upper(),
+                                group["description"],
+                            )
+                            if translated_commands
+                            else group["description"]
+                        )
+                        embed.description += (
+                            f"`/{_base_command} {_group}{option_line}`\n "
                             f"*{content['DESCRIPTION_TEXT']}* {command_description} \n"
+                        )
             embeds.append(embed)
         return embeds
 
     def _get_main_menu(self, ctx: SlashContext, content: dict) -> Embed:
         embed = Embed(
-            title='Help | Asteroid Bot',
+            title="Help | Asteroid Bot",
             timestamp=datetime.datetime.utcnow(),
-            color=0x2f3136
+            color=0x2F3136,
         )
         embed.add_field(
-            name=content['INFORMATION_TEXT'],
-            value=content['INFORMATION_CONTENT_TEXT'],
-            inline=False
+            name=content["INFORMATION_TEXT"],
+            value=content["INFORMATION_CONTENT_TEXT"],
+            inline=False,
         )
         embed.set_thumbnail(url=ctx.bot.user.avatar_url)
         embed.set_footer(
-            text=content['REQUIRED_BY_TEXT'].format(user=ctx.author),
-            icon_url=ctx.author.avatar_url
+            text=content["REQUIRED_BY_TEXT"].format(user=ctx.author),
+            icon_url=ctx.author.avatar_url,
         )
 
-        cogs = ''
+        cogs = ""
         for _cog in self.bot.cogs:
             cog = self.bot.cogs[_cog]
             if cog.hidden:
                 continue
             if cog.private_guild_id and ctx.guild_id not in cog.private_guild_id:
                 continue
-            cogs += f'**» {_cog}**\n'
+            cogs += f"**» {_cog}**\n"
 
-        embed.add_field(name=content['PLUGINS_TEXT'], value=cogs)
+        embed.add_field(name=content["PLUGINS_TEXT"], value=cogs)
         return embed
 
     @staticmethod
     def get_options(command) -> str:
-        options = command['options']
-        option_line = ''
+        options = command["options"]
+        option_line = ""
         if options is None:
             return option_line
         for _option in options:
-            option_name = _option['name']
-            option_line += f' [{option_name}]' if _option['required'] else f' ({option_name})'
+            option_name = _option["name"]
+            option_line += (
+                f" [{option_name}]" if _option["required"] else f" ({option_name})"
+            )
         return option_line
 
     def _get_commands_data(self) -> dict:
         commands_data = self._get_subcommands_data()
         _commands = self.bot.slash.commands
         for _command in _commands:
-            if _command == 'context':
+            if _command == "context":
                 continue
             command = _commands[_command]
             cog = command.cog.name
@@ -180,9 +189,7 @@ class Help(Cog):
                 commands_data[cog] = {}
             if _command in commands_data[cog]:
                 continue
-            commands_data[cog][_command] = {
-                'command_description': command.description
-            }
+            commands_data[cog][_command] = {"command_description": command.description}
 
         return commands_data
 
@@ -214,14 +221,14 @@ class Help(Cog):
             if command.subcommand_group not in commands_data[cog][command.base]:
                 commands_data[cog][command.base][command.subcommand_group] = {}
             commands_data[cog][command.base][command.subcommand_group][command.name] = {
-                    'description': command.description,
-                    'options': command.options
+                "description": command.description,
+                "options": command.options,
             }
         else:
             commands_data[cog][command.base][command.name] = {
-                    'has_subcommand_group': False,
-                    'description': command.description,
-                    'options': command.options
+                "has_subcommand_group": False,
+                "description": command.description,
+                "options": command.options,
             }
 
 

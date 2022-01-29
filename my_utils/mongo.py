@@ -10,7 +10,9 @@ load_dotenv()
 
 class Mongo:
     def __init__(self) -> None:
-        self._connection = MongoClient(getenv('MONGODB_URL'), tlsCAFile=certifi.where())['guilds']
+        self._connection = MongoClient(
+            getenv("MONGODB_URL"), tlsCAFile=certifi.where()
+        )["guilds"]
 
     def add_guild(self, guild_id: int):
         ...
@@ -27,16 +29,12 @@ class Mongo:
         - data: dict -- data for update
         """
 
-        collection = self._connection[str(guild_id)]['users']
-        collection.update_one(
-            {'_id': str(user_id)},
-            {update_type: data},
-            upsert=True
-        )
+        collection = self._connection[str(guild_id)]["users"]
+        collection.update_one({"_id": str(user_id)}, {update_type: data}, upsert=True)
 
     def get_user_data(self, guild_id: int, user_id: int) -> dict:
-        collection = self._connection[str(guild_id)]['users']
-        return collection.find_one({'_id': str(user_id)})
+        collection = self._connection[str(guild_id)]["users"]
+        return collection.find_one({"_id": str(user_id)})
 
     def remove_user(self, guild_id: int, user_id: int):
         ...
@@ -44,4 +42,3 @@ class Mongo:
     @property
     def connection(self):
         return self._connection
-    
