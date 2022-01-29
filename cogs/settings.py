@@ -5,10 +5,7 @@ import sys
 from discord import Embed, Forbidden
 from discord.ext.commands import is_owner
 from discord_slash import SlashContext, SlashCommandOptionType
-from discord_slash.cog_ext import (
-    cog_slash as slash_command,
-    cog_subcommand as slash_subcommand,
-)
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 from discord_components import Select, SelectOption, Button, ButtonStyle
 from discord_slash_components_bridge import ComponentContext
@@ -181,7 +178,7 @@ class Settings(Cog):
             stderr = ""
         return stdout, stderr
 
-    @slash_command(base="staff", name="sync_commands")
+    @slash_subcommand(base="staff", name="sync_commands")
     async def sync_commands(self, ctx: SlashContext):
         await ctx.defer()
         try:
