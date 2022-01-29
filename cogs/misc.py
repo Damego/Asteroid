@@ -1,7 +1,7 @@
-from asyncio import TimeoutError
 from datetime import datetime
 import os
 from typing import Union, List
+from re import compile
 
 from aiohttp import ClientSession
 from discord import (
@@ -20,13 +20,7 @@ from discord_slash.cog_ext import (
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu,
 )
-from discord_slash.utils.manage_commands import (
-    create_option,
-    create_choice,
-    SlashCommandOptionType,
-)
 from discord_components import Button, ButtonStyle
-from discord_slash_components_bridge import ComponentContext, ComponentMessage
 
 from my_utils import (
     AsteroidBot,
@@ -36,10 +30,12 @@ from my_utils import (
     is_enabled,
     _cog_is_enabled,
     transform_permission,
-    consts,
-    paginator,
+    paginator
 )
 from .levels._levels import formula_of_experience
+
+
+url_rx = compile(r"https?://(?:www\.)?.+")
 
 
 class Misc(Cog):
@@ -327,59 +323,16 @@ class Misc(Cog):
             await ctx.send(embed=embeds[0])
 
     @slash_subcommand(
-        base="rofl",
-        name="ban",
-        guild_ids=consts.test_global_guilds_ids,
-        options=[
-            create_option(
-                name="member",
-                description="Участник",
-                option_type=SlashCommandOptionType.USER,
-                required=True,
-            ),
-            create_option(
-                name="button_label",
-                description="Название кнопки",
-                option_type=SlashCommandOptionType.STRING,
-                required=True,
-            ),
-            create_option(
-                name="button_color",
-                description="Цвет кнопки",
-                option_type=SlashCommandOptionType.INTEGER,
-                required=True,
-                choices=[
-                    create_choice(name="Синий", value=ButtonStyle.blue.value),
-                    create_choice(name="Серый", value=ButtonStyle.gray.value),
-                    create_choice(name="Зелёный", value=ButtonStyle.green.value),
-                    create_choice(name="Красный", value=ButtonStyle.red.value),
-                ],
-            ),
-        ],
+        base="misc",
+        name="send_image"
     )
-    async def rofl_ban(
-        self, ctx: SlashContext, member: Member, button_label: str, button_color: int
-    ):
-        components = [
-            Button(
-                label=button_label,
-                style=button_color,
-                custom_id=f"rofl_ban_button|{member.id}",
-            )
-        ]
-        await ctx.send("Создано", hidden=True)
-        await ctx.channel.send(
-            f"НАЖМИ НА КНОПКУ, ЧТОБЫ ЗАБАНИТЬ {member.mention}", components=components
-        )
+    async def send_image(self, ctx: SlashContext, url: str):
+        if not url_rx.match(url):
+            return await ctx.send("Not link", hidden=True)
 
-    @Cog.listener()
-    async def on_button_click(self, ctx: ComponentContext):
-        if not ctx.custom_id.startswith("rofl_ban_button"):
-            return
-        member_id = ctx.custom_id.split("|")[1]
-        await ctx.channel.send(f"<@!{member_id}> ЗАБАНЕН!")
-        ctx.component.disabled = True
-        await ctx.edit_origin(components=ctx.message.components)
+        embed = Embed(title="Image")
+        embed.set_image(url=url)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
