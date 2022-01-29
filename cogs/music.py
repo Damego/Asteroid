@@ -152,16 +152,6 @@ class Music(Cog):
         await ctx.defer()
         await self._skip_music(ctx)
 
-    @slash_subcommand(
-        base='music',
-        name='queue',
-        description='Show current queue'
-    )
-    @is_enabled()
-    async def queue_music(self, ctx: SlashContext):
-        await ctx.defer()
-        await self._queue_music(ctx)
-
     # * METHODS
     async def _stop_on_leave(self, guild: Guild):
         player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(guild.id)
