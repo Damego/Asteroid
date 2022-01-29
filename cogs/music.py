@@ -83,13 +83,13 @@ class Music(Cog):
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
         if member.bot and member.id == self.bot.user.id and after.channel is None:
-            return await self._stop_on_leave(member.guild.id)
+            return await self._stop_on_leave(member.guild)
         if (
             before.channel is not None
             and 0 < len(before.channel.members) < 2
             and before.channel.members[0].id == self.bot.user.id
         ):
-            return await self._stop_on_leave(member.guild.id)
+            return await self._stop_on_leave(member.guild)
 
         
     @slash_subcommand(
