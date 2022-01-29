@@ -197,7 +197,7 @@ class Settings(Cog):
     @is_owner()
     async def pip_manage(self, ctx: SlashContext, command: str):
         await ctx.defer()
-        response = await self.run_shell(f"pip {command}")
+        response = await self.run_shell(f"python3.9 -m pip {command}")
         format_response = "\n".join(response)
         if len(format_response) > 2 << 11:
             format_response = response[-3:]
