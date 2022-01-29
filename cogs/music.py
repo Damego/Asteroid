@@ -232,7 +232,6 @@ class Music(Cog):
     async def _stop_music(self, ctx: SlashContext):
         player = self.bot.lavalink.player_manager.get(ctx.guild_id)
         content: dict = get_content("MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id))
-        print('passing')
         status = await self.__check_music_status(ctx, player, content)
         if status != "PASSED":
             return
