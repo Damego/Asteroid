@@ -2,8 +2,8 @@ import asyncio
 import os
 import sys
 
-from discord import Embed
-from discord.ext import commands
+from discord import Embed, Forbidden
+from discord.ext.commands import is_owner
 from discord_slash import SlashContext, SlashCommandOptionType
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
@@ -88,8 +88,8 @@ class Settings(Cog):
         )
         await ctx.send("Changed!")
 
-    @slash_subcommand(base="ext", name="load", description="Load extension")
-    @commands.is_owner()
+    @slash_subcommand(base="staff", subcommand_group="ext", name="load", description="Load extension")
+    @is_owner()
     async def _load_extension(self, ctx: SlashContext, extension):
         try:
             self.bot.load_extension(f"cogs.{extension}")
@@ -102,8 +102,8 @@ class Settings(Cog):
         else:
             await ctx.send(f"Плагин {extension} загружен!")
 
-    @slash_subcommand(base="ext", name="unload", description="Unload extension")
-    @commands.is_owner()
+    @slash_subcommand(base="staff", subcommand_group="ext", name="unload", description="Unload extension")
+    @is_owner()
     async def _unload_extension(self, ctx: SlashContext, extension):
         try:
             self.bot.unload_extension(f"cogs.{extension}")
@@ -112,8 +112,8 @@ class Settings(Cog):
         else:
             await ctx.send(f"Плагин {extension} отключен!")
 
-    @slash_subcommand(base="ext", name="reload", description="reload extension")
-    @commands.is_owner()
+    @slash_subcommand(base="staff", subcommand_group="ext", name="reload", description="reload extension")
+    @is_owner()
     async def _reload_extension(self, ctx: SlashContext, extension):
         try:
             self.bot.reload_extension(f"cogs.{extension}")
@@ -126,9 +126,9 @@ class Settings(Cog):
         await ctx.send(content)
 
     @slash_subcommand(
-        base="ext", name="reload_all", description="Reload all extensions"
+        base="staff", subcommand_group="ext", name="reload_all", description="Reload all extensions"
     )
-    @commands.is_owner()
+    @is_owner()
     async def _reload_all_extensions(self, ctx: SlashContext):
         extensions = self.bot.extensions
         extensions_amount = len(extensions)
@@ -150,10 +150,66 @@ class Settings(Cog):
         )
         await ctx.send(embed=embed)
 
-    @slash_command(name="deploy", description="Deploy update from GIT")
-    @commands.is_owner()
+    @slash_subcommand(
+        base="staff",
+        name="deploy",
+        description="Deploy update from GIT"
+    )
+    @is_owner()
     async def git_pull_updates(self, ctx: SlashContext):
-        components = [
+        preresult = await self.run_shell("git pull")
+        result = "NO DATA" if preresult == "" else "\n".join(preresult)
+        content = f"```\n{result}\n```"
+        embed = Embed(title="Git Sync", description=content, color=0x2F3136)
+
+        message = await ctx.send(embed=embed, components=self._get_bot_menu_components())
+        await self._run_bot_menu(ctx, message)
+
+    @staticmethod
+    async def run_shell(command: str):
+        process = await asyncio.create_subprocess_shell(
+            command, stderr=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await process.communicate()
+        try:
+            stdout = stdout.decode(encoding="UTF-8")
+        except UnicodeDecodeError:
+            stdout = ""
+        try:
+            stderr = stderr.decode(encoding="UTF-8")
+        except UnicodeDecodeError:
+            stderr = ""
+        return stdout, stderr
+
+    @slash_command(base="staff", name="sync_commands")
+    async def sync_commands(self, ctx: SlashContext):
+        await ctx.defer()
+        try:
+            await self.bot.slash.sync_all_commands()
+        except Forbidden:
+            await ctx.send("Cannot sync slash commands!")
+        else:
+            await ctx.send("Slash commands were synced!")
+
+    @slash_subcommand(
+        base="staff",
+        name="pip",
+        description="This command allows use pip to manage python libraries"
+    )
+    @is_owner()
+    async def pip_manage(self, ctx: SlashContext, command: str):
+        response = await self.run_shell(f"pip {command}")
+        format_response = "\n".join(response)
+        if len(format_response) > 2 << 11:
+            format_response = response[-3:]
+        content = f"```\n{format_response}\n```"
+
+        embed = Embed(title="PIP", description=content, color=0x2F3136)
+        message = await ctx.send(embed=embed, components=self._get_bot_menu_components())
+        await self._run_bot_menu(ctx, message)
+
+    def _get_bot_menu_components(self):
+        return [
             Select(
                 placeholder="Reload extensions",
                 custom_id="select_reload_extensions",
@@ -178,13 +234,7 @@ class Settings(Cog):
             ],
         ]
 
-        preresult = await self.run_shell("git pull")
-        result = "NO DATA" if preresult == "" else "\n".join(preresult)
-        content = f"```\n{result}\n```"
-        embed = Embed(title="Git Sync", description=content, color=0x2F3136)
-
-        message = await ctx.send(embed=embed, components=components)
-
+    async def _run_bot_menu(self, ctx: SlashContext, message):
         while True:
             interaction: ComponentContext = await self.bot.wait_for(
                 "component",
@@ -208,27 +258,6 @@ class Settings(Cog):
                 await interaction.defer(edit_origin=True)
                 await interaction.message.disable_components()
                 return
-
-    @staticmethod
-    async def run_shell(command: str):
-        process = await asyncio.create_subprocess_shell(
-            command, stderr=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
-        )
-        stdout, stderr = await process.communicate()
-        try:
-            stdout = stdout.decode(encoding="UTF-8")
-        except UnicodeDecodeError:
-            stdout = ""
-        try:
-            stderr = stderr.decode(encoding="UTF-8")
-        except UnicodeDecodeError:
-            stderr = ""
-        return stdout, stderr
-
-    @slash_command(name="sync_commands", guild_ids=[422989643634442240])
-    async def _sync_commands(self, ctx: SlashContext):
-        await self.bot.slash.sync_all_commands()
-        await ctx.send("Синхронизировано!")
 
 
 def setup(bot):

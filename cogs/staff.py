@@ -15,7 +15,7 @@ class Staff(Cog):
         self.private_guild_id = [consts.test_global_guilds_ids]
 
     @slash_subcommand(
-        base="staff", name="send_message", guild_ids=consts.test_global_guilds_ids
+        base="staff_1", name="send_message", guild_ids=consts.test_global_guilds_ids
     )
     @is_owner()
     async def send_message(self, ctx: SlashContext, channel_id: str, message: str):
@@ -30,7 +30,7 @@ class Staff(Cog):
             await ctx.send("Successfully sent!")
 
     @slash_subcommand(
-        base="staff", name="get_guild_channels", guild_ids=consts.test_global_guilds_ids
+        base="staff_1", name="get_guild_channels", guild_ids=consts.test_global_guilds_ids
     )
     @is_owner()
     async def get_guilds_channels(self, ctx: SlashContext, guild_id: str):
@@ -45,7 +45,7 @@ class Staff(Cog):
         await ctx.send(embed=embed)
 
     @slash_subcommand(
-        base="staff", name="get_guilds", guild_ids=consts.test_global_guilds_ids
+        base="staff_1", name="get_guilds", guild_ids=consts.test_global_guilds_ids
     )
     async def get_guilds(self, ctx: SlashContext):
         guilds = self.bot.guilds
@@ -56,7 +56,7 @@ class Staff(Cog):
         await ctx.send(embed=embed)
 
     @slash_subcommand(
-        base="staff", name="get_guild_roles", guild_ids=consts.test_global_guilds_ids
+        base="staff_1", name="get_guild_roles", guild_ids=consts.test_global_guilds_ids
     )
     async def get_guild_roles(self, ctx: SlashContext, guild_id: str):
         if not guild_id.isdigit():
@@ -80,7 +80,7 @@ class Staff(Cog):
         await _paginator.start()
 
     @slash_subcommand(
-        base="staff", name="get_guild_bot_info", guild_ids=consts.test_global_guilds_ids
+        base="staff_1", name="get_guild_bot_info", guild_ids=consts.test_global_guilds_ids
     )
     async def get_guild_bot_info(self, ctx: SlashContext, guild_id: str):
         if not guild_id.isdigit():
@@ -121,7 +121,7 @@ class Staff(Cog):
         await ctx.send(embed=embed)
 
     @slash_subcommand(
-        base="staff", name="give_role", guild_ids=consts.test_global_guilds_ids
+        base="staff_1", name="give_role", guild_ids=consts.test_global_guilds_ids
     )
     async def give_role(
         self, ctx: SlashContext, guild_id: str, member_id: str, role_id: str
@@ -141,7 +141,7 @@ class Staff(Cog):
             await ctx.send("Successfully")
 
     @slash_subcommand(
-        base="staff", name="move_to", guild_ids=consts.test_global_guilds_ids
+        base="staff_1", name="move_to", guild_ids=consts.test_global_guilds_ids
     )
     async def move_member_to(
         self, ctx: SlashContext, guild_id: str, member_id: str, channel_id: str
