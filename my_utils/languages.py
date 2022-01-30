@@ -448,6 +448,7 @@ LANGUAGES = {
             "TODO_CREATED_TEXT": "**Создано To Do:** ```\n{todo_content}\n```",
             "TODO_DELETED": "To Do удалено!",
             "USER_TODO_LIST": "To Do {}",
+            "JUMP_TO": "Перейти к сообщению"
         },
     },
     "en": {
@@ -814,6 +815,7 @@ LANGUAGES = {
             "TODO_CREATED_TEXT": "**To Do created:** ```\n{todo_content}\n```",
             "TODO_DELETED": "To Do deleted!",
             "USER_TODO_LIST": "To Do {}",
+            "JUMP_TO": "Jump To Message"
         },
     },
 }

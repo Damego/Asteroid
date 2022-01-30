@@ -667,7 +667,7 @@ class Utilities(Cog):
         for count, todo_data in enumerate(user_todo_list, start=1):
             embed.add_field(
                 name=f"{count}. *(<t:{int(todo_data['created_at_timestamp'])}:R>)*",
-                value=f" ```{todo_data['content']}```",
+                value=f" ```{todo_data['content']}``` [{content['JUMP_TO']}]({todo_data['jump_url']})",
                 inline=False,
             )
 
