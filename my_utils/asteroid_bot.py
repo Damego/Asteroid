@@ -14,7 +14,7 @@ class AsteroidBot(Bot):
         super().__init__(*args, **kwargs)
         self.__default_invite_link = None
         self.mongo = Mongo()
-        self.slash = SlashCommand(self, sync_commands=True, sync_on_cog_reload=False)
+        self.slash = SlashCommand(self, sync_commands=False, sync_on_cog_reload=False)
 
         self.add_listener(self.on_ready, "on_ready")
         self._load_extensions()

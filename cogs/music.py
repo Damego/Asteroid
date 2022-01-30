@@ -15,7 +15,15 @@ from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 import lavalink
 
-from my_utils import AsteroidBot, get_content, NotConnectedToVoice, Cog, is_enabled
+from my_utils import (
+    AsteroidBot,
+    get_content,
+    Cog,
+    is_enabled,
+    BotNotConnectedToVoice,
+    NotConnectedToVoice,
+    NotPlaying,
+)
 
 
 url_rx = compile(r"https?://(?:www\.)?.+")
@@ -215,27 +223,22 @@ class Music(Cog):
 
         return embed
 
-    async def __check_music_status(
-        self, ctx: SlashContext, player: lavalink.DefaultPlayer, content: dict
-    ):
+    def __check_music_status(self, ctx: SlashContext, player: lavalink.DefaultPlayer):
         if not player.is_connected:
-            return await ctx.send(content["BOT_NOT_CONNECTED"])
+            raise BotNotConnectedToVoice
         if not ctx.author.voice or ctx.author.voice.channel.id != int(
             player.channel_id
         ):
-            return await ctx.send(content["NOT_CONNECTED_TO_VOICE_TEXT"])
+            raise NotConnectedToVoice
         if not player.is_playing:
-            return await ctx.send(content["NOT_PLAYING"])
-        return "PASSED"
+            raise NotPlaying
 
     async def _stop_music(self, ctx: SlashContext):
         player = self.bot.lavalink.player_manager.get(ctx.guild_id)
         content: dict = get_content(
             "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
         )
-        status = await self.__check_music_status(ctx, player, content)
-        if status != "PASSED":
-            return
+        self.__check_music_status(ctx, player)
 
         player.queue.clear()
         await player.stop()
@@ -250,9 +253,7 @@ class Music(Cog):
             "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
         )
 
-        status = await self.__check_music_status(ctx, player, content)
-        if status != "PASSED":
-            return
+        self.__check_music_status(ctx, player)
 
         await player.set_pause(True)
         await ctx.send(content["PAUSED_TEXT"])
@@ -265,9 +266,7 @@ class Music(Cog):
             "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
         )
 
-        status = await self.__check_music_status(ctx, player, content)
-        if status != "PASSED":
-            return
+        self.__check_music_status(ctx, player)
 
         await player.set_pause(False)
         await ctx.send(content["RESUMED_TEXT"])
@@ -283,9 +282,7 @@ class Music(Cog):
             "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
         )
 
-        status = await self.__check_music_status(ctx, player, content)
-        if status != "PASSED":
-            return
+        self.__check_music_status(ctx, player)
 
         await player.set_repeat(not player.repeat)
         if not player.repeat:
@@ -301,9 +298,7 @@ class Music(Cog):
             "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
         )
 
-        status = await self.__check_music_status(ctx, player, content)
-        if status != "PASSED":
-            return
+        self.__check_music_status(ctx, player)
 
         await player.skip()
         await ctx.send(content["TRACK_SKIPPED_TEXT"])

@@ -1,3 +1,4 @@
+import asyncio
 from os import getenv
 from traceback import format_exception
 
@@ -61,6 +62,8 @@ async def on_slash_command_error(ctx: SlashContext, error):
         desc = content["COG_DISABLED"]
     elif isinstance(error, CommandDisabled):
         desc = content["COMMAND_DISABLED"]
+    elif isinstance(error, NoData):
+        desc = content["NO_DATA_FOUND"]
     elif isinstance(error, TagNotFound):
         desc = content["TAG_NOT_FOUND"]
     elif isinstance(error, ForbiddenTag):
@@ -73,8 +76,12 @@ async def on_slash_command_error(ctx: SlashContext, error):
         desc = content["GI_ACCOUNT_NOT_FOUND"]
     elif isinstance(error, GenshinDataNotPublic):
         desc = content["GI_DATA_NOT_PUBLIC"]
+    elif isinstance(error, BotNotConnectedToVoice):
+        desc = content["BOT_NOT_CONNECTED"]
     elif isinstance(error, NotConnectedToVoice):
-        desc = content["NOT_CONNECTED_TO_VOICE"]
+        desc = content["NOT_CONNECTED_TO_VOICE_TEXT"]
+    elif isinstance(error, NotPlaying):
+        desc = content["NOT_PLAYING"]
     elif isinstance(error, commands.NotOwner):
         desc = content["NOT_BOT_OWNER"]
     elif isinstance(error, commands.BotMissingPermissions):

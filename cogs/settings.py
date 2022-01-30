@@ -85,7 +85,9 @@ class Settings(Cog):
         )
         await ctx.send("Changed!")
 
-    @slash_subcommand(base="staff", subcommand_group="ext", name="load", description="Load extension")
+    @slash_subcommand(
+        base="staff", subcommand_group="ext", name="load", description="Load extension"
+    )
     @is_owner()
     async def _load_extension(self, ctx: SlashContext, extension):
         try:
@@ -99,7 +101,12 @@ class Settings(Cog):
         else:
             await ctx.send(f"Плагин {extension} загружен!")
 
-    @slash_subcommand(base="staff", subcommand_group="ext", name="unload", description="Unload extension")
+    @slash_subcommand(
+        base="staff",
+        subcommand_group="ext",
+        name="unload",
+        description="Unload extension",
+    )
     @is_owner()
     async def _unload_extension(self, ctx: SlashContext, extension):
         try:
@@ -109,7 +116,12 @@ class Settings(Cog):
         else:
             await ctx.send(f"Плагин {extension} отключен!")
 
-    @slash_subcommand(base="staff", subcommand_group="ext", name="reload", description="reload extension")
+    @slash_subcommand(
+        base="staff",
+        subcommand_group="ext",
+        name="reload",
+        description="reload extension",
+    )
     @is_owner()
     async def _reload_extension(self, ctx: SlashContext, extension):
         try:
@@ -123,7 +135,10 @@ class Settings(Cog):
         await ctx.send(content)
 
     @slash_subcommand(
-        base="staff", subcommand_group="ext", name="reload_all", description="Reload all extensions"
+        base="staff",
+        subcommand_group="ext",
+        name="reload_all",
+        description="Reload all extensions",
     )
     @is_owner()
     async def _reload_all_extensions(self, ctx: SlashContext):
@@ -147,11 +162,7 @@ class Settings(Cog):
         )
         await ctx.send(embed=embed)
 
-    @slash_subcommand(
-        base="staff",
-        name="deploy",
-        description="Deploy update from GIT"
-    )
+    @slash_subcommand(base="staff", name="deploy", description="Deploy update from GIT")
     @is_owner()
     async def git_pull_updates(self, ctx: SlashContext):
         await ctx.defer()
@@ -160,7 +171,9 @@ class Settings(Cog):
         content = f"```\n{result}\n```"
         embed = Embed(title="Git Sync", description=content, color=0x2F3136)
 
-        message = await ctx.send(embed=embed, components=self._get_bot_menu_components())
+        message = await ctx.send(
+            embed=embed, components=self._get_bot_menu_components()
+        )
         await self._run_bot_menu(ctx, message)
 
     @staticmethod
@@ -192,7 +205,7 @@ class Settings(Cog):
     @slash_subcommand(
         base="staff",
         name="pip",
-        description="This command allows use pip to manage python libraries"
+        description="This command allows use pip to manage python libraries",
     )
     @is_owner()
     async def pip_manage(self, ctx: SlashContext, command: str):
@@ -204,7 +217,9 @@ class Settings(Cog):
         content = f"```\n{format_response}\n```"
 
         embed = Embed(title="PIP", description=content, color=0x2F3136)
-        message = await ctx.send(embed=embed, components=self._get_bot_menu_components())
+        message = await ctx.send(
+            embed=embed, components=self._get_bot_menu_components()
+        )
         await self._run_bot_menu(ctx, message)
 
     def _get_bot_menu_components(self):
@@ -235,27 +250,28 @@ class Settings(Cog):
 
     async def _run_bot_menu(self, ctx: SlashContext, message):
         while True:
-            interaction: ComponentContext = await self.bot.wait_for(
+            button_ctx: ComponentContext = await self.bot.wait_for(
                 "component",
                 check=lambda inter: inter.message.id == message.id
                 and inter.author_id == ctx.author_id,
             )
-            if interaction.custom_id == "select_reload_extensions":
-                extensions = interaction.values
+            if button_ctx.custom_id == "select_reload_extensions":
+                extensions = button_ctx.values
                 for extension in extensions:
                     self.bot.reload_extension(extension)
-                await interaction.send(f'**Reloaded:**\n `{", ".join(extensions)}`')
-            elif interaction.custom_id == "button_reload_bot":
-                await interaction.defer(edit_origin=True)
-                await interaction.message.disable_components()
+                await button_ctx.send(f'**Reloaded:**\n `{", ".join(extensions)}`')
+            elif button_ctx.custom_id == "button_reload_bot":
+                await button_ctx.defer(edit_origin=True)
+                await button_ctx.message.disable_components()
                 await ctx.channel.send("Reloading...")
                 os.execv(sys.executable, ["python3.9"] + sys.argv)
-            elif interaction.custom_id == "button_sync_commands":
+            elif button_ctx.custom_id == "button_sync_commands":
+                await button_ctx.defer()
                 await self.bot.slash.sync_all_commands()
                 await ctx.send("Slash Commands were synced!", hidden=True)
-            elif interaction.custom_id == "button_exit":
-                await interaction.defer(edit_origin=True)
-                await interaction.message.disable_components()
+            elif button_ctx.custom_id == "button_exit":
+                await button_ctx.defer(edit_origin=True)
+                await button_ctx.message.disable_components()
                 return
 
 

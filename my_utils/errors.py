@@ -1,4 +1,12 @@
+class BotNotConnectedToVoice(Exception):
+    pass
+
+
 class NotConnectedToVoice(Exception):
+    pass
+
+
+class NotPlaying(Exception):
     pass
 
 
@@ -35,3 +43,7 @@ class CommandDisabled(Exception):
 
     def __init__(self, message: str = None):
         self.message = message
+
+
+class NoData(Exception):
+    """Nothing found in database"""

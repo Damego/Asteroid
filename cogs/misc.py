@@ -30,7 +30,7 @@ from my_utils import (
     is_enabled,
     _cog_is_enabled,
     transform_permission,
-    paginator
+    paginator,
 )
 from .levels._levels import formula_of_experience
 
@@ -322,10 +322,7 @@ class Misc(Cog):
         else:
             await ctx.send(embed=embeds[0])
 
-    @slash_subcommand(
-        base="misc",
-        name="send_image"
-    )
+    @slash_subcommand(base="misc", name="send_image")
     async def send_image(self, ctx: SlashContext, url: str):
         if not url_rx.match(url):
             return await ctx.send("Not link", hidden=True)

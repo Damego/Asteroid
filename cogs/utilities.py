@@ -15,7 +15,15 @@ from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 from pymongo.collection import Collection
 
-from my_utils import AsteroidBot, Cog, bot_owner_or_permissions, get_content, is_enabled
+from my_utils import (
+    AsteroidBot,
+    Cog,
+    bot_owner_or_permissions,
+    get_content,
+    is_enabled,
+    consts,
+    NoData,
+)
 
 
 class Utilities(Cog):
@@ -216,7 +224,7 @@ class Utilities(Cog):
         embed = Embed(
             description=embed_description,
             color=0xEEE2A0,
-            timestamp=datetime.datetime.utcnow(),
+            timestamp=datetime.datetime.now(),
         )
         embed.set_author(name=message.author, icon_url=message.author.avatar_url)
         if message.attachments:
@@ -452,7 +460,7 @@ class Utilities(Cog):
         embed = Embed(
             title=content["BLACKLIST_TEXT"],
             color=self.bot.get_embed_color(ctx.guild_id),
-            timestamp=datetime.datetime.utcnow(),
+            timestamp=datetime.datetime.now(),
         )
         members = starboard_data["blacklist"].get("members")
         channels = starboard_data["blacklist"].get("channels")
@@ -545,6 +553,128 @@ class Utilities(Cog):
             upsert=True,
         )
         await ctx.send(content["COMMAND_ENABLED"].format(command_name=command_name))
+
+    @slash_subcommand(
+        base="todo",
+        name="new",
+        description="Adds a new todo in your todo's",
+        guild_ids=consts.test_guild_id,
+    )
+    async def add_todo(self, ctx: SlashContext, todo_content: str):
+        content = get_content(
+            "TODO_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+        )
+        message = await ctx.send(
+            content["TODO_CREATED_TEXT"].format(todo_content=todo_content)
+        )
+
+        data = {
+            "created_at": datetime.datetime.now().strftime("%d.%m.%Y %H:%M"),
+            "created_at_timestamp": datetime.datetime.now().timestamp(),
+            "jump_url": message.jump_url,
+            "message_id": message.id,
+            "content": todo_content,
+        }
+        collection = self.bot.get_guild_users_collection(ctx.guild_id)
+        collection.update_one(
+            {"_id": str(ctx.author_id)}, {"$push": {"todo_list": data}}, upsert=True
+        )
+
+    @Cog.listener(name="on_autocomplete")
+    async def todo_autocomplete(self, ctx: AutoCompleteContext):
+        if not self.bot.get_transformed_command_name(ctx).startswith("todo"):
+            return
+        if ctx.focused_option == "todo":
+            collection = self.bot.get_guild_users_collection(ctx.guild_id)
+            user_data = collection.find_one({"_id": str(ctx.author_id)})
+            if user_data is None:
+                return
+            user_todo_list = user_data.get("todo_list")
+            if user_todo_list is None:
+                return
+            choices = [
+                create_choice(
+                    name=f"{count}. | {todo['created_at']} | {todo['content'][:10]}...",
+                    value=todo["created_at"],
+                )
+                for count, todo in enumerate(user_todo_list, start=1)
+                if ctx.user_input
+                in f"{count}. {todo['created_at']} | {todo['content'][::10]}..."
+            ][:25]
+            await ctx.populate(choices)
+
+    @slash_subcommand(
+        base="todo",
+        name="delete",
+        description="Deletes a todo from your todo's",
+        options=[
+            create_option(
+                name="todo",
+                description="Your todo",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            )
+        ],
+        guild_ids=consts.test_guild_id,
+    )
+    async def delete_todo(self, ctx: SlashContext, todo: str):
+        collection = self.bot.get_guild_users_collection(ctx.guild_id)
+        user_data = collection.find_one({"_id": str(ctx.author_id)})
+        if user_data is None:
+            raise NoData
+        user_todo_list = user_data.get("todo_list")
+        if user_todo_list is None:
+            raise NoData
+        for todo_data in user_todo_list:
+            if todo_data["created_at"] == todo:
+                data = todo_data
+                break
+        else:
+            raise NoData
+        content = get_content(
+            "TODO_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+        )
+        await ctx.send(content["TODO_DELETED"])
+
+        collection.update_one(
+            {"_id": str(ctx.author_id)}, {"$pull": {"todo_list": data}}, upsert=True
+        )
+
+    @slash_subcommand(
+        base="todo",
+        name="list",
+        description="Show your todo list",
+        guild_ids=consts.test_guild_id,
+    )
+    async def todo_list(self, ctx: SlashContext):
+        await ctx.defer()
+        collection = self.bot.get_guild_users_collection(ctx.guild_id)
+        user_data = collection.find_one({"_id": str(ctx.author_id)})
+        if user_data is None:
+            raise NoData
+        user_todo_list = user_data.get("todo_list")
+        if user_todo_list is None:
+            raise NoData
+
+        content = get_content(
+            "TODO_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+        )
+        embed = Embed(
+            title=content["USER_TODO_LIST"].format(ctx.author.display_name),
+            description="",
+            color=self.bot.get_embed_color(ctx.guild_id),
+            timestamp=datetime.datetime.utcnow(),
+        )
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+        for count, todo_data in enumerate(user_todo_list, start=1):
+            embed.add_field(
+                name=f"{count}. *(<t:{int(todo_data['created_at_timestamp'])}:R>)*",
+                value=f" ```{todo_data['content']}```",
+                inline=False,
+            )
+
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

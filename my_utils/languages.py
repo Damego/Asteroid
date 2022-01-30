@@ -100,7 +100,6 @@ LANGUAGES = {
             "GI_ACCOUNT_NOT_FOUND": "Аккаунт с таким UID не найден!",
             "GI_DATA_NOT_PUBLIC": "Профиль закрыт! Откройте профиль на [сайте]("
             "https://www.hoyolab.com/genshin/accountCenter/gameRecord)",
-            "NOT_CONNECTED_TO_VOICE": "Вы не подключены к голосовому каналу!!",
             "NOT_BOT_OWNER": "Это команда доступна только владельцу бота!",
             "BOT_MISS_PERMS": "**У бота недостаточно прав!**\nНеобходимые права: ",
             "MISS_PERMS": "**У вас недостаточно прав!**\nНеобходимые права:",
@@ -111,6 +110,10 @@ LANGUAGES = {
             "DONT_HAVE_PERMS": "**У вас недостаточно прав для использования этой команды!**\nТребуется:",
             "FORBIDDEN": "У бота недостаточно прав чтобы сделать это",
             "BAD_ARGUMENT": "Вы ввели неверно один из аргументов!",
+            "BOT_NOT_CONNECTED": "Бот не присоединён к голосовому каналу!",
+            "NOT_CONNECTED_TO_VOICE_TEXT": "Присоединитесь к голосовому каналу с ботом!",
+            "NOT_PLAYING": "Музыка не играет!",
+            "NO_DATA_FOUND": "Ничего не найдено!",
         },
         "FUNC_RANDOM_NUMBER_OUT_CONTENT": "Рандомное число: `{}`",
         "FUNC_MEMBER_INFO": {
@@ -237,9 +240,6 @@ LANGUAGES = {
         },
         "MUSIC_COMMANDS": {
             "ADDED_IN_QUEUE_TEXT": "`{}` Было добавлено в очередь",
-            "BOT_NOT_CONNECTED": "Бот не присоединён к голосовому каналу!",
-            "NOT_CONNECTED_TO_VOICE_TEXT": "Присоединитесь к голосовому каналу с ботом!",
-            "NOT_PLAYING": "Музыка не играет!",
             "DISCONNECTED_TEXT": "Успешно остановлено и отключено!",
             "PAUSED_TEXT": "Воспроизведение музыки поставлено на паузу!",
             "RESUMED_TEXT": "Пауза снята!",
@@ -444,6 +444,11 @@ LANGUAGES = {
             "NOT_BUTTONS_AUTOROLE": "Название не соответствует автороли для кнопок!",
             "AUTOROLE_CREATED": "Создано!",
         },
+        "TODO_COMMANDS": {
+            "TODO_CREATED_TEXT": "**Создано To Do:** ```\n{todo_content}\n```",
+            "TODO_DELETED": "To Do удалено!",
+            "USER_TODO_LIST": "To Do {}",
+        },
     },
     "en": {
         "ERRORS_DESCRIPTIONS": {
@@ -455,7 +460,6 @@ LANGUAGES = {
             "UID_NOT_BINDED": "You didn't tie UID!",
             "GI_ACCOUNT_NOT_FOUND": "Account with this UID not found!",
             "GI_DATA_NOT_PUBLIC": "Profile is private! Open profile on [site](https://www.hoyolab.com/genshin/accountCenter/gameRecord)",
-            "NOT_CONNECTED_TO_VOICE": "You not connected to voice channel!",
             "NOT_BOT_OWNER": "Only owner can use this command!",
             "BOT_MISS_PERMS": "Bot don't have permission for this!**\nRequired permissions: ",
             "MISS_PERMS": "You don't have permission for this!**\nRequired permissions:",
@@ -470,6 +474,10 @@ LANGUAGES = {
             "DONT_HAVE_PERMS": "**You don't have permission for this!**\nRequired permissions:",
             "FORBIDDEN": "Bot doesn't have permission for this!",
             "BAD_ARGUMENT": "One of arguments is wrong!",
+            "BOT_NOT_CONNECTED": "Bot doesn't connected to a voice channel!",
+            "NOT_CONNECTED_TO_VOICE_TEXT": "Connect to voice channel with a bot",
+            "NOT_PLAYING": "Music not playing!",
+            "NO_DATA_FOUND": "Nothing found!",
         },
         "FUNC_RANDOM_NUMBER_OUT_CONTENT": "Random number is `{}`",
         "FUNC_MEMBER_INFO": {
@@ -598,9 +606,6 @@ LANGUAGES = {
         },
         "MUSIC_COMMANDS": {
             "ADDED_IN_QUEUE_TEXT": "`{}` was added in queue",
-            "BOT_NOT_CONNECTED": "Bot doesn't connected to a voice channel!",
-            "NOT_CONNECTED_TO_VOICE_TEXT": "Connect to voice channel with a bot",
-            "NOT_PLAYING": "Music not playing!",
             "DISCONNECTED_TEXT": "Successfully stopped and disconnected!",
             "PAUSED_TEXT": "Paused!",
             "RESUMED_TEXT": "Resumed!",
@@ -804,6 +809,11 @@ LANGUAGES = {
             "AT_LEAST_LABEL_EMOJI_TEXT": "Should be at least label or emoji",
             "NOT_BUTTONS_AUTOROLE": "That's not autorole name for buttons!",
             "AUTOROLE_CREATED": "Created!",
+        },
+        "TODO_COMMANDS": {
+            "TODO_CREATED_TEXT": "**To Do created:** ```\n{todo_content}\n```",
+            "TODO_DELETED": "To Do deleted!",
+            "USER_TODO_LIST": "To Do {}",
         },
     },
 }
