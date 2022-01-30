@@ -557,8 +557,7 @@ class Utilities(Cog):
     @slash_subcommand(
         base="todo",
         name="new",
-        description="Adds a new todo in your todo's",
-        guild_ids=consts.test_guild_id,
+        description="Adds a new todo in your todo's"
     )
     async def add_todo(self, ctx: SlashContext, todo_content: str):
         content = get_content(
@@ -615,8 +614,7 @@ class Utilities(Cog):
                 required=True,
                 autocomplete=True,
             )
-        ],
-        guild_ids=consts.test_guild_id,
+        ]
     )
     async def delete_todo(self, ctx: SlashContext, todo: str):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
@@ -644,8 +642,7 @@ class Utilities(Cog):
     @slash_subcommand(
         base="todo",
         name="list",
-        description="Show your todo list",
-        guild_ids=consts.test_guild_id,
+        description="Show your todo list"
     )
     async def todo_list(self, ctx: SlashContext):
         await ctx.defer()
