@@ -258,6 +258,8 @@ class AutoRole(Cog):
 
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         autoroles = collection.find_one({"_id": "autorole"})
+        if autoroles is None:
+            return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
         autorole_data = autoroles.get(name)
         if autorole_data is None:
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
@@ -339,6 +341,8 @@ class AutoRole(Cog):
 
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         autoroles = collection.find_one({"_id": "autorole"})
+        if autoroles is None:
+            return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
         autorole_data = autoroles.get(name)
         if autorole_data is None:
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
@@ -416,6 +420,8 @@ class AutoRole(Cog):
 
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         autoroles = collection.find_one({"_id": "autorole"})
+        if autoroles is None:
+            return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
         autorole_data = autoroles.get(name)
         if autorole_data is None:
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
