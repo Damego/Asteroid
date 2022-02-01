@@ -540,15 +540,8 @@ class AutoRole(Cog):
         message_data = autorole_data.get(name)
         if message_data is None:
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
-        
-        collection.update_one(
-            {"_id": "autorole"},
-            {
-                "$unset": {
-                    name: ""
-                }
-            }
-        )
+
+        collection.update_one({"_id": "autorole"}, {"$unset": {name: ""}})
 
         await ctx.send(content["DROPDOWN_DELETED_TEXT"])
 

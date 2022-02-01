@@ -422,7 +422,7 @@ LANGUAGES = {
             "DROPDOWN_LOADED_TEXT": "Меню загружено!",
             "DROPDOWN_LIST": "Список меню с ролями",
             "DROPDOWN_NOT_FOUND": "Меню с этим именем не найдено!",
-            "DROPDOWN_DELETED_TEXT": "Меню удалено! Не забудьте удалить сообщение!"
+            "DROPDOWN_DELETED_TEXT": "Меню удалено! Не забудьте удалить сообщение!",
         },
         "AUTOROLE_ON_JOIN": {
             "ROLE_ADDED_TEXT": "Роль {role} Добавлена!",
@@ -455,7 +455,7 @@ LANGUAGES = {
             "TODO_CREATED_TEXT": "**Создано To Do:** ```\n{todo_content}\n```",
             "TODO_DELETED": "To Do удалено!",
             "USER_TODO_LIST": "To Do {}",
-            "JUMP_TO": "Перейти к сообщению"
+            "JUMP_TO": "Перейти к сообщению",
         },
     },
     "en": {
@@ -790,7 +790,7 @@ LANGUAGES = {
             "DROPDOWN_LOADED_TEXT": "Dropdown loaded!",
             "DROPDOWN_LIST": "Dropdowns list",
             "DROPDOWN_NOT_FOUND": "Dropdown with this name not found!",
-            "DROPDOWN_DELETED_TEXT": "Dropdown successully deleted! Don't forget to delete a message"
+            "DROPDOWN_DELETED_TEXT": "Dropdown successully deleted! Don't forget to delete a message",
         },
         "AUTOROLE_ON_JOIN": {
             "ROLE_ADDED_TEXT": "Role {role} Added!",
@@ -823,7 +823,7 @@ LANGUAGES = {
             "TODO_CREATED_TEXT": "**To Do created:** ```\n{todo_content}\n```",
             "TODO_DELETED": "To Do deleted!",
             "USER_TODO_LIST": "To Do {}",
-            "JUMP_TO": "Jump To Message"
+            "JUMP_TO": "Jump To Message",
         },
     },
 }

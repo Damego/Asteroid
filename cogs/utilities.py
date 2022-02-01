@@ -555,9 +555,7 @@ class Utilities(Cog):
         await ctx.send(content["COMMAND_ENABLED"].format(command_name=command_name))
 
     @slash_subcommand(
-        base="todo",
-        name="new",
-        description="Adds a new todo in your todo's"
+        base="todo", name="new", description="Adds a new todo in your todo's"
     )
     async def add_todo(self, ctx: SlashContext, todo_content: str):
         content = get_content(
@@ -614,7 +612,7 @@ class Utilities(Cog):
                 required=True,
                 autocomplete=True,
             )
-        ]
+        ],
     )
     async def delete_todo(self, ctx: SlashContext, todo: str):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
@@ -639,11 +637,7 @@ class Utilities(Cog):
             {"_id": str(ctx.author_id)}, {"$pull": {"todo_list": data}}, upsert=True
         )
 
-    @slash_subcommand(
-        base="todo",
-        name="list",
-        description="Show your todo list"
-    )
+    @slash_subcommand(base="todo", name="list", description="Show your todo list")
     async def todo_list(self, ctx: SlashContext):
         await ctx.defer()
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
