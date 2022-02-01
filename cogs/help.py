@@ -15,8 +15,9 @@ class Help(Cog):
         self.bot = bot
         self.hidden = True
         self.name = "Help"
+        self.commands: dict = None
 
-    @slash_command(name="help", description="Show all bot's commands")
+    @slash_command(name="help", description="Help and bot commands")
     async def help_command(self, ctx: SlashContext):
         await ctx.defer()
 
@@ -178,6 +179,8 @@ class Help(Cog):
         return option_line
 
     def _get_commands_data(self) -> dict:
+        if self.commands:
+            return self.commands
         commands_data = self._get_subcommands_data()
         _commands = self.bot.slash.commands
         for _command in _commands:
@@ -191,6 +194,7 @@ class Help(Cog):
                 continue
             commands_data[cog][_command] = {"command_description": command.description}
 
+        self.commands = commands_data
         return commands_data
 
     def _get_subcommands_data(self) -> dict:
