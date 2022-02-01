@@ -68,24 +68,6 @@ class Settings(Cog):
         await ctx.send(embed=embed, delete_after=10)
 
     @slash_subcommand(
-        base="set",
-        name="status",
-        description="Disable all commands in cogs (if implemented)",
-    )
-    @bot_owner_or_permissions(manage_roles=True)
-    async def set_cog_status(self, ctx: SlashContext, cog: str, status: bool):
-        await ctx.defer()
-        cogs_names = [self.bot.cogs[_cog].name for _cog in self.bot.cogs]
-        if cog not in cogs_names:
-            return await ctx.send("Cog not found!")
-
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        collection.update_one(
-            {"_id": "cogs_status"}, {"$set": {cog: status}}, upsert=True
-        )
-        await ctx.send("Changed!")
-
-    @slash_subcommand(
         base="staff", subcommand_group="ext", name="load", description="Load extension"
     )
     @is_owner()
