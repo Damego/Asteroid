@@ -417,7 +417,7 @@ LANGUAGES = {
             "DROPDOWN_ENABLED_TEXT": "Меню включено!",
             "DROPDOWN_DISABLED_TEXT": "Меню выключено!",
             "DROPDOWN_SAVED_TEXT": "Сохранено!",
-            "NOT_SAVED_DROPDOWNS": "Нет сохранённих меню!",
+            "NOT_SAVED_DROPDOWNS": "Нет сохранённых меню!",
             "DROPDOWN_NOT_FOUND": "Нет меню с таким именем!",
             "DROPDOWN_LOADED_TEXT": "Меню загружено!",
             "DROPDOWN_LIST": "Список меню с ролями",
