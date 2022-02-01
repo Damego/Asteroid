@@ -506,6 +506,46 @@ class AutoRole(Cog):
 
         await ctx.send(embed=embed, hidden=True)
 
+    @slash_subcommand(
+        base="autorole",
+        subcommand_group="dropdown",
+        name="delete",
+        description="Deletes dropdown from database. Doesn't delete message!",
+        options=[
+            create_option(
+                name="name",
+                description="The name of dropdown",
+                required=True,
+                option_type=SlashCommandOptionType.STRING,
+                autocomplete=True,
+            )
+        ],
+    )
+    @is_enabled()
+    @bot_owner_or_permissions(manage_roles=True)
+    async def autorole_dropdown_delete(self, ctx: SlashContext, name: str):
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content: dict = get_content("AUTOROLE_DROPDOWN", lang)
+
+        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        autorole_data = collection.find_one({"_id": "autorole"})
+        if autorole_data is None:
+            return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
+        message_data = autorole_data.get(name)
+        if message_data is None:
+            return await ctx.send(content["DROPDOWN_NOT_FOUND"])
+        
+        collection.update_one(
+            {"_id": "autorole"},
+            {
+                "$unset": {
+                    name: ""
+                }
+            }
+        )
+
+        await ctx.send(content["DROPDOWN_DELETED_TEXT"])
+
     # REACTION ROLE COMMANDS AND EVENTS
 
     @Cog.listener()

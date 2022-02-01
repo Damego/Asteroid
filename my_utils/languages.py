@@ -27,6 +27,7 @@ LANGUAGES = {
             "AUTOROLE_DROPDOWN_LOAD": "Загружает меню с базы",
             "AUTOROLE_DROPDOWN_REMOVE_OPTION": "Удаляет опцию с меню",
             "AUTOROLE_DROPDOWN_SET_STATUS": "Устанавливает статус на меню",
+            "AUTOROLE_DROPDOWN_DELETE": "Удаляет меню из базы. Не удаляет само сообщение!",
             "AUTOROLE_ON_JOIN_ADD": "Добавляет роль, которая выдаётся при заходе на сервер",
             "AUTOROLE_ON_JOIN_REMOVE": "Удаляет роль, которая выдаётся при заходе на сервер",
             "AUTOROLE_REMOVE_ROLE_FROM_EVERYONE": "Удаляет роль у всех участников сервера",
@@ -54,7 +55,9 @@ LANGUAGES = {
             "LEVELS_ON_JOIN_ROLE_REMOVE": "Удаляет роль по уровню",
             "SERVER_OFFLINE_BOTS": "Показывает список всех ботов в оффлайне",
             "SERVER_ROLE_PERMS": "Показывает права у роли на сервере",
+            "SERVER_ROLES": "Выводит все роли на сервере",
             "MISC_PING": "Показывает задержку бота",
+            "MISC_SEND_IMAGE": "Отправляет картину в виде embed из ссылки",
             "MOD_ADD_ROLE": "Добавляет роль к участнику",
             "MOD_BAN": "Банит участника на сервере",
             "MOD_CLEAR": "Удаляет сообщения в канале",
@@ -89,6 +92,9 @@ LANGUAGES = {
             "STARBOARD_BLACKLIST_ADD": "Добавляет участника/роль/канал в чёрный список",
             "STARBOARD_BLACKLIST_LIST": "Показывает чёрный список",
             "STARBOARD_BLACKLIST_REMOVE": "Удаляет участника/роль/канал из чёрного списка",
+            "TODO_NEW": "Создаёт новое To Do",
+            "TODO_DELETE": "Удаляет ваше To Do",
+            "TODO_LIST": "Показывает список ваших To Do",
         },
         "ERRORS_DESCRIPTIONS": {
             "COG_DISABLED": "Эта команда отключена на этом сервере!",
@@ -416,6 +422,7 @@ LANGUAGES = {
             "DROPDOWN_LOADED_TEXT": "Меню загружено!",
             "DROPDOWN_LIST": "Список меню с ролями",
             "DROPDOWN_NOT_FOUND": "Меню с этим именем не найдено!",
+            "DROPDOWN_DELETED_TEXT": "Меню удалено! Не забудьте удалить сообщение!"
         },
         "AUTOROLE_ON_JOIN": {
             "ROLE_ADDED_TEXT": "Роль {role} Добавлена!",
@@ -783,6 +790,7 @@ LANGUAGES = {
             "DROPDOWN_LOADED_TEXT": "Dropdown loaded!",
             "DROPDOWN_LIST": "Dropdowns list",
             "DROPDOWN_NOT_FOUND": "Dropdown with this name not found!",
+            "DROPDOWN_DELETED_TEXT": "Dropdown successully deleted! Don't forget to delete a message"
         },
         "AUTOROLE_ON_JOIN": {
             "ROLE_ADDED_TEXT": "Role {role} Added!",

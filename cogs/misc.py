@@ -235,7 +235,7 @@ class Misc(Cog):
 
         await ctx.send(embed=embed)
 
-    @slash_subcommand(base="server", name="offline_bots")
+    @slash_subcommand(base="server", name="offline_bots", description="Shows all offline bots in server")
     async def check_bots(self, ctx: SlashContext):
         bots_list = [member for member in ctx.guild.members if member.bot]
 
