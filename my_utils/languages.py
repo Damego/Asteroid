@@ -150,7 +150,7 @@ LANGUAGES = {
             "INVITE_BUTTON_NO_PERMS": "Без разрешений",
             "INVITE_BUTTON_ADMIN": "Администратор",
             "INVITE_BUTTON_RECOMMENDED": "Рекомендуемый",
-            "CLICK_TO_INVITE_TEXT": "Нажмите на кнопку, чтобы пригласить бота",
+            "CLICK_TO_INVITE_TEXT": "Нажмите на кнопку, чтобы пригласить бота\nСтарый способ {link}",
         },
         "FUNC_ACTIVITIES": {
             "NOT_CONNECTED_TO_CHANNEL_TEXT": "Вы не подключены к голосовому каналу!",
@@ -514,8 +514,8 @@ LANGUAGES = {
         "INVITE_COMMAND": {
             "INVITE_BUTTON_NO_PERMS": "Without permissions",
             "INVITE_BUTTON_ADMIN": "Administrator",
-            "INVITE_BUTTON_RECOMMENDED": "Recommenend",
-            "CLICK_TO_INVITE_TEXT": "Click on button to invite bot!",
+            "INVITE_BUTTON_RECOMMENDED": "Recommended",
+            "CLICK_TO_INVITE_TEXT": "Click on button to invite bot!\nOld way {link}",
         },
         "FUNC_PING": "Bot latency is `{}` ms",
         "FUNC_ACTIVITIES": {
