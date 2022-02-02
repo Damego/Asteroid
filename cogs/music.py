@@ -1,14 +1,12 @@
 from re import compile
-from typing import Union
+from typing import Union, List
 
 from discord import (
     VoiceClient,
     Member,
-    Message,
     Embed,
     VoiceState,
     Guild,
-    Client,
     VoiceChannel,
 )
 from discord_slash import SlashContext
@@ -172,23 +170,45 @@ class Music(Cog):
             return await ctx.send(content["MUSIC_NOT_FOUND_TEXT"])
 
         if results["loadType"] == "PLAYLIST_LOADED":
-            tracks = results["tracks"]
-            for track_data in tracks:
-                player.add(requester=ctx.author, track=track_data)
-                await self._added_to_queue(ctx, content, tracks)
+            tracks = [lavalink.AudioTrack(track_data, ctx.author) for track_data in results["tracks"]]
+            for track in tracks:
+                player.add(requester=ctx.author, track=track)
+            if player.is_playing:
+                await self._added_to_queue(ctx, tracks, content)
         else:
             track = lavalink.AudioTrack(results["tracks"][0], ctx.author)
             player.add(requester=ctx.author, track=results["tracks"][0])
+            if player.is_playing:
+                await self._added_to_queue(ctx, track, content)
 
         if not player.is_playing:
             await player.play()
-        await self._send_message(ctx, track, content)
+            await self._send_message(ctx, track, content)
+
+    async def _added_to_queue(self, ctx: SlashContext, tracks: Union[List[lavalink.AudioTrack], lavalink.AudioTrack], content: dict):
+        if isinstance(tracks, lavalink.AudioTrack):
+            tracks = [tracks]
+        tracks_titles = [f"`{track.title}`" for track in tracks]
+
+        description = content["ADDED_IN_QUEUE_DESCRIPTION_TEXT"].format(
+            tracks_amount=len(tracks),
+            tracks="\n".join(tracks_titles)
+        )
+        embed = Embed(
+            title=content["ADDED_IN_QUEUE_TITLE_TEXT"],
+            description=description,
+            color=self.bot.get_embed_color(ctx.guild_id)
+        )
+        await ctx.send(embed=embed)
 
     async def _send_message(
         self, ctx: SlashContext, track: lavalink.AudioTrack, content: dict
     ):
         embed = await self._get_music_info(ctx, track, content)
-        await ctx.send(embed=embed)
+        if not ctx.responded:
+            await ctx.send(embed=embed)
+        else:
+            await ctx.channel.send(embed=embed)
 
     async def _get_music_info(
         self, ctx: SlashContext, track: lavalink.AudioTrack, content: dict
@@ -300,8 +320,11 @@ class Music(Cog):
 
         self.__check_music_status(ctx, player)
 
+        track = player.queue[0] if player.queue else None
         await player.skip()
         await ctx.send(content["TRACK_SKIPPED_TEXT"])
+        if track:
+            await self._send_message(ctx, track, content)
 
 
 def setup(bot):

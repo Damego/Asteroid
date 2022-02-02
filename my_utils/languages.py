@@ -245,7 +245,8 @@ LANGUAGES = {
             "TAG_RENAMED_TEXT": "Тег `{tag_name}` переименован в `{new_tag_name}`!"
         },
         "MUSIC_COMMANDS": {
-            "ADDED_IN_QUEUE_TEXT": "`{}` Было добавлено в очередь",
+            "ADDED_IN_QUEUE_DESCRIPTION_TEXT": "Было добавлено в плейлист `{tracks_amount}` трек/треков!\n{tracks}",
+            "ADDED_IN_QUEUE_TITLE_TEXT": "Обновление плейлиста",
             "DISCONNECTED_TEXT": "Успешно остановлено и отключено!",
             "PAUSED_TEXT": "Воспроизведение музыки поставлено на паузу!",
             "RESUMED_TEXT": "Пауза снята!",
@@ -613,7 +614,8 @@ LANGUAGES = {
             "NO_TAGS_TEXT": "No tags in this server!",
         },
         "MUSIC_COMMANDS": {
-            "ADDED_IN_QUEUE_TEXT": "`{}` was added in queue",
+            "ADDED_IN_QUEUE_DESCRIPTION_TEXT": "Was added to the queue `{tracks_amount}` track/tracks.\n{tracks}",
+            "ADDED_IN_QUEUE_TITLE_TEXT": "Queue update!",
             "DISCONNECTED_TEXT": "Successfully stopped and disconnected!",
             "PAUSED_TEXT": "Paused!",
             "RESUMED_TEXT": "Resumed!",
