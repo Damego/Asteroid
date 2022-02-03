@@ -13,6 +13,7 @@ from discord import (
     Webhook,
     AsyncWebhookAdapter,
     TextChannel,
+    Forbidden
 )
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
@@ -31,6 +32,7 @@ from my_utils import (
     _cog_is_enabled,
     transform_permission,
     paginator,
+    consts
 )
 from .levels._levels import formula_of_experience
 
@@ -337,6 +339,22 @@ class Misc(Cog):
         embed = Embed(title="Image")
         embed.set_image(url=url)
         await ctx.send(embed=embed)
+
+    @slash_subcommand(
+        base="test",
+        name="clear_nicknames",
+        guild_ids=consts.test_global_guilds_ids
+    )
+    async def clear_nicknames(self, ctx: SlashContext):
+        await ctx.defer()
+        members: List[Member] = ctx.guild.members
+        count = 0
+        for member in members:
+            try:
+                await member.edit(nick=None)
+            except Forbidden:
+                count += 1
+        await ctx.send(f"Готово! {count} пользователей не удалось изменить!")
 
 
 def setup(bot):
