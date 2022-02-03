@@ -301,8 +301,8 @@ class Misc(Cog):
 
         await ctx.send(
             content["CLICK_TO_INVITE_TEXT"].format(link=self.bot.no_perms_invite_link),
-            components=components
-            )
+            components=components,
+        )
 
     @slash_subcommand(
         base="server", name="roles", description="Show's all server roles"
