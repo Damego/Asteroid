@@ -117,7 +117,7 @@ class Staff(Cog):
         try:
             server_invites = await guild.invites()
         except Forbidden:
-            pass
+            server_invites = await guild.text_channels[0].create_invite()
         else:
             if server_invites:
                 embed.add_field(
