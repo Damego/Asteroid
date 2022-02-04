@@ -113,15 +113,17 @@ class Staff(Cog):
         )
 
         embed.add_field(name="Permissions", value=bot_perms)
+        server_invites = None
         try:
             server_invites = await guild.invites()
         except Forbidden:
             pass
         else:
-            embed.add_field(
-                name="Invites",
-                value="/n".join([f"{invite}" for invite in server_invites]),
-            )
+            if server_invites:
+                embed.add_field(
+                    name="Invites",
+                    value="/n".join([f"{invite}" for invite in server_invites]),
+                )
         await ctx.send(embed=embed)
 
     @slash_subcommand(
