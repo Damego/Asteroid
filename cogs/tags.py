@@ -490,9 +490,9 @@ class Tags(Cog):
         cogs_collection = self.bot.get_guild_cogs_collection(ctx.guild_id)
         tags_data = cogs_collection.find_one("tags")
         if tags_data is None:
-            raise NotTagOwner
-        if not tags_data.get("is_public"):
-            raise NotTagOwner
+            return
+        if tags_data.get("is_public"):
+            return
 
         if tag_data is None:
             return
