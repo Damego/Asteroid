@@ -270,7 +270,8 @@ class Music(Cog):
 
     @slash_subcommand(
         base="music",
-        name="add_to_playlist",
+        subcommand_group="playlist",
+        name="add_track",
         description="Add a current song to your playlist",
         options=[
             create_option(
@@ -310,7 +311,8 @@ class Music(Cog):
 
     @slash_subcommand(
         base="music",
-        name="remove_from_playlist",
+        subcommand_group="playlist",
+        name="delete_track",
         description="Deletes a song from your playlist",
         options=[
             create_option(
@@ -344,7 +346,8 @@ class Music(Cog):
 
     @slash_subcommand(
         base="music",
-        name="play_playlist",
+        subcommand_group="playlist",
+        name="play",
         description="Plays/adds to queue your playlist",
         options=[
             create_option(
@@ -372,7 +375,8 @@ class Music(Cog):
 
     @slash_subcommand(
         base="music",
-        name="show_playlist",
+        subcommand_group="playlist",
+        name="info",
         description="Shows your playlist",
         options=[
             create_option(
