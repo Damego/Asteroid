@@ -1,3 +1,4 @@
+from datetime import datetime
 from re import compile
 from typing import Union, List
 
@@ -9,8 +10,11 @@ from discord import (
     Guild,
     VoiceChannel,
 )
-from discord_slash import SlashContext
+from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
+from discord_slash.utils.manage_commands import create_option, create_choice
+from discord_components import Button, ButtonStyle
+from discord_slash_components_bridge import ComponentContext, ComponentMessage
 import lavalink
 
 from my_utils import (
@@ -21,6 +25,8 @@ from my_utils import (
     BotNotConnectedToVoice,
     NotConnectedToVoice,
     NotPlaying,
+    consts,
+    NoData,
 )
 
 
@@ -111,49 +117,7 @@ class Music(Cog):
     @slash_subcommand(base="music", name="play", description="Start playing music")
     @is_enabled()
     async def play_music(self, ctx: SlashContext, query: str):
-        await ctx.defer()
-
-        if not ctx.author.voice:
-            raise NotConnectedToVoice
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content("MUSIC_COMMANDS", lang)
-
-        player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(
-            ctx.guild_id
-        )
-        if player is None:
-            player = self.bot.lavalink.player_manager.create(
-                ctx.guild_id, endpoint=str(ctx.guild.region)
-            )
-
-        if not ctx.voice_client:
-            player.store("channel", ctx.channel.id)
-            await ctx.author.voice.channel.connect(cls=LavalinkVoiceClient)
-
-        if not url_rx.match(query):
-            query = f"ytsearch:{query}"
-        results = await player.node.get_tracks(query)
-        if not results or not results["tracks"]:
-            return await ctx.send(content["MUSIC_NOT_FOUND_TEXT"])
-
-        if results["loadType"] == "PLAYLIST_LOADED":
-            tracks = [
-                lavalink.AudioTrack(track_data, ctx.author)
-                for track_data in results["tracks"]
-            ]
-            for track in tracks:
-                player.add(requester=ctx.author, track=track)
-            if player.is_playing:
-                await self._added_to_queue(ctx, tracks, content)
-        else:
-            track = lavalink.AudioTrack(results["tracks"][0], ctx.author)
-            player.add(requester=ctx.author, track=results["tracks"][0])
-            if player.is_playing:
-                await self._added_to_queue(ctx, track, content)
-
-        if not player.is_playing:
-            await player.play()
-            await self._send_message(ctx, track, content)
+        await self._play_music(ctx, query)
 
     @slash_subcommand(base="music", name="stop", description="Stop playing music")
     @is_enabled()
@@ -277,6 +241,244 @@ class Music(Cog):
         )
         await ctx.send(embed=embed, hidden=True)
 
+    @Cog.listener(name="on_autocomplete")
+    async def playlist_autocomplete(self, ctx: AutoCompleteContext):
+        if not self.bot.get_transformed_command_name(ctx).startswith("music"):
+            return
+        user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
+        if not user_data:
+            return
+        user_playlists = user_data.get("music_playlists")
+        if not user_playlists:
+            return
+
+        if ctx.focused_option == "playlist":
+            playlists = [
+                playlist
+                for playlist in user_playlists
+                if playlist.startswith(ctx.user_input)
+            ]
+            choices = [
+                create_choice(name=playlist, value=playlist) for playlist in playlists
+            ]
+        elif ctx.focused_option == "name":
+            input_playlist = ctx.options["playlist"]
+            tracks_list = user_playlists[input_playlist]
+            choices = [create_choice(name=track, value=track) for track in tracks_list]
+
+        await ctx.populate(choices)
+
+    @slash_subcommand(
+        base="music",
+        name="add_to_playlist",
+        description="Add a current song to your playlist",
+        options=[
+            create_option(
+                name="playlist",
+                description="Your playlist. If not exists it creates new one",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            ),
+            create_option(
+                name="query",
+                description="The query if bot is not playing",
+                option_type=SlashCommandOptionType.STRING,
+                required=False,
+            ),
+        ],
+    )
+    @is_enabled()
+    async def music_add_to_playlist(
+        self, ctx: SlashContext, playlist: str, query: str = None
+    ):
+        collection = self.bot.get_guild_users_collection(ctx.guild_id)
+        if not query:
+            player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(
+                ctx.guild_id
+            )
+            if not player:
+                raise NotPlaying
+            query = player.current.title
+
+        collection.update_one(
+            {"_id": str(ctx.author_id)},
+            {"$push": {f"music_playlists.{playlist}": query}},
+            upsert=True,
+        )
+        await ctx.send("Done", hidden=True)
+
+    @slash_subcommand(
+        base="music",
+        name="remove_from_playlist",
+        description="Deletes a song from your playlist",
+        options=[
+            create_option(
+                name="playlist",
+                description="Your playlist",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            ),
+            create_option(
+                name="name",
+                description="The name of track in playlist",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            ),
+        ],
+    )
+    @is_enabled()
+    async def music_delete_from_playlist(
+        self, ctx: SlashContext, playlist: str, name: str = None
+    ):
+        collection = self.bot.get_guild_users_collection(ctx.guild_id)
+
+        collection.update_one(
+            {"_id": str(ctx.author_id)},
+            {"$pull": {f"music_playlists.{playlist}": name}},
+            upsert=True,
+        )
+        await ctx.send("Done", hidden=True)
+
+    @slash_subcommand(
+        base="music",
+        name="play_playlist",
+        description="Plays/adds to queue your playlist",
+        options=[
+            create_option(
+                name="playlist",
+                description="Your playlist",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            )
+        ],
+    )
+    @is_enabled()
+    async def music_play_playlist(self, ctx: SlashContext, playlist: str):
+        user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
+        if not user_data:
+            raise NoData
+        user_playlists = user_data.get("music_playlists")
+        if not user_playlists:
+            raise NoData
+        tracks = user_playlists.get(playlist)
+        if not tracks:
+            raise NoData
+
+        await self._play_music(ctx, tracks, is_playlist=True)
+
+    @slash_subcommand(
+        base="music",
+        name="show_playlist",
+        description="Shows your playlist",
+        options=[
+            create_option(
+                name="playlist",
+                description="Your playlist",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            ),
+            create_option(
+                name="hidden",
+                description="Should be message hidden or not",
+                option_type=SlashCommandOptionType.BOOLEAN,
+                required=True,
+            ),
+        ],
+    )
+    @is_enabled()
+    async def show_user_playlist(
+        self, ctx: SlashContext, playlist: str, hidden: bool = True
+    ):
+        await ctx.defer(hidden=hidden)
+
+        user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
+        if not user_data:
+            raise NoData
+        user_playlists = user_data.get("music_playlists")
+        if not user_playlists:
+            raise NoData
+        playlist_data = user_playlists.get(playlist)
+        if not playlist_data:
+            raise NoData
+
+        content = get_content(
+            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+        )["MUSIC_PLAYLIST"]
+        embed = Embed(
+            title=content["PLAYLIST_TITLE_TEXT"].format(playlist=playlist),
+            description="",
+            color=self.bot.get_embed_color(ctx.guild_id),
+        )
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+        for count, track in enumerate(playlist_data, start=1):
+            embed.description += f"{count}. `{track}`\n"
+
+        await ctx.send(embed=embed, hidden=hidden)
+
+    async def _play_music(
+        self, ctx: SlashContext, query: Union[str, List[str]], is_playlist: bool = False
+    ):
+        await ctx.defer()
+
+        if not ctx.author.voice:
+            raise NotConnectedToVoice
+        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content("MUSIC_COMMANDS", lang)
+
+        player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(
+            ctx.guild_id
+        )
+        if player is None:
+            player = self.bot.lavalink.player_manager.create(
+                ctx.guild_id, endpoint=str(ctx.guild.region)
+            )
+
+        if not ctx.voice_client:
+            player.store("channel", ctx.channel.id)
+            await ctx.author.voice.channel.connect(cls=LavalinkVoiceClient)
+
+        track = tracks = None
+        if isinstance(query, List) and is_playlist:
+            tracks = [
+                await self.__get_tracks(ctx, player, content, _query)
+                for _query in query
+            ]
+        else:
+            track = await self.__get_tracks(ctx, player, content, query)
+
+        await self._added_to_queue(ctx, track or tracks, content)
+
+        if not player.is_playing:
+            await self._send_message(ctx, track or tracks[0], content)
+            await player.play()
+
+    async def __get_tracks(self, ctx: SlashContext, player, content: dict, query: str):
+        tracks = track = None
+
+        if not url_rx.match(query):
+            query = f"ytsearch:{query}"
+        results = await player.node.get_tracks(query)
+        if not results or not results["tracks"]:
+            return await ctx.send(content["MUSIC_NOT_FOUND_TEXT"])
+
+        if results["loadType"] == "PLAYLIST_LOADED":
+            tracks = [
+                lavalink.AudioTrack(track_data, ctx.author)
+                for track_data in results["tracks"]
+            ]
+            for track in tracks:
+                player.add(requester=ctx.author, track=track)
+        else:
+            track = lavalink.AudioTrack(results["tracks"][0], ctx.author)
+            player.add(requester=ctx.author, track=results["tracks"][0])
+
+        return tracks or track
+
     async def _added_to_queue(
         self,
         ctx: SlashContext,
@@ -309,14 +511,8 @@ class Music(Cog):
     async def _get_music_info(
         self, ctx: SlashContext, track: lavalink.AudioTrack, content: dict
     ) -> Embed:
-        duration = track.duration // 1000
         if not track.stream:
-            duration_hours = duration // 3600
-            duration_minutes = (duration // 60) % 60
-            duration_seconds = duration % 60
-            duration = (
-                f"{duration_hours:02}:{duration_minutes:02}:{duration_seconds:02}"
-            )
+            duration = self._get_track_duration(track)
         else:
             duration = content["LIVE_TEXT"]
 

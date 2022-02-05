@@ -13,7 +13,7 @@ from discord import (
     Webhook,
     AsyncWebhookAdapter,
     TextChannel,
-    Forbidden
+    Forbidden,
 )
 from discord_slash import SlashContext, ContextMenuType, MenuContext
 from discord_slash.cog_ext import (
@@ -32,7 +32,7 @@ from my_utils import (
     _cog_is_enabled,
     transform_permission,
     paginator,
-    consts
+    consts,
 )
 from .levels._levels import formula_of_experience
 
@@ -331,7 +331,9 @@ class Misc(Cog):
         else:
             await ctx.send(embed=embeds[0])
 
-    @slash_subcommand(base="misc", name="send_image", description="Send image in embed from link")
+    @slash_subcommand(
+        base="misc", name="send_image", description="Send image in embed from link"
+    )
     async def send_image(self, ctx: SlashContext, url: str):
         if not url_rx.match(url):
             return await ctx.send("Not link", hidden=True)
