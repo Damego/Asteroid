@@ -331,7 +331,7 @@ class Misc(Cog):
         else:
             await ctx.send(embed=embeds[0])
 
-    @slash_subcommand(base="misc", name="send_image")
+    @slash_subcommand(base="misc", name="send_image", description="Send image in embed from link")
     async def send_image(self, ctx: SlashContext, url: str):
         if not url_rx.match(url):
             return await ctx.send("Not link", hidden=True)
