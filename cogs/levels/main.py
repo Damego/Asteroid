@@ -3,6 +3,7 @@ from time import time
 from random import randint
 
 from discord import Member, Message, VoiceState, Role, Embed
+from discord.ext.commands import BadArgument
 from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
@@ -246,6 +247,8 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def levels_add_xp(self, ctx: SlashContext, member: Member, exp: int):
+        if exp < 0:
+            raise BadArgument
         await ctx.defer(hidden=True)
         await update_member(self.bot, member, exp)
         await ctx.send("✅", hidden=True)
@@ -432,6 +435,8 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_time_to_member(self, ctx: SlashContext, member: Member, time: int):
+        if time < 0:
+            raise BadArgument
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         collection.update_one(
             {"_id": str(member.id)}, {"$set": {"voice_time_count": time}}
@@ -458,6 +463,8 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_level_to_member(self, ctx: SlashContext, member: Member, level: int):
+        if level < 0:
+            raise BadArgument
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         collection.update_one(
             {"_id": str(member.id)}, {"$set": {"leveling.level": level}}
