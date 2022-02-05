@@ -454,10 +454,10 @@ LANGUAGES = {
             "NOT_BUTTONS_AUTOROLE": "Название не соответствует автороли для кнопок!",
             "AUTOROLE_CREATED": "Создано!",
         },
-        "TODO_COMMANDS": {
-            "TODO_CREATED_TEXT": "**Создано To Do:** ```\n{todo_content}\n```",
-            "TODO_DELETED": "To Do удалено!",
-            "USER_TODO_LIST": "To Do {}",
+        "NOTES_COMMANDS": {
+            "NOTE_CREATED_TEXT": "**Заметка создана:** ```\n{note_content}\n```",
+            "NOTE_DELETED": "Заметка удалена!",
+            "USER_NOTE_LIST": "Заметки {}",
             "JUMP_TO": "Перейти к сообщению",
         },
     },

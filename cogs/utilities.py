@@ -32,14 +32,10 @@ class Utilities(Cog):
         self.emoji = "🧰"
         self.name = "Utilities"
 
-    @Cog.listener()
-    async def on_guild_join(self, guild: Guild):
-        ...
-
     # STARBOARD
 
     @Cog.listener("on_autocomplete")
-    async def starboard_autocomplete(self, ctx: AutoCompleteContext, **kwargs):
+    async def starboard_autocomplete(self, ctx: AutoCompleteContext):
         if ctx.name != "starboard":
             return
 
@@ -497,8 +493,7 @@ class Utilities(Cog):
             return
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
         configuration_data = collection.find_one({"_id": "configuration"})
-        disabled_commands = configuration_data.get("disabled_commands")
-        if disabled_commands:
+        if disabled_commands := configuration_data.get("disabled_commands"):
             choices = [
                 create_choice(name=command_name, value=command_name)
                 for command_name in disabled_commands
@@ -555,110 +550,115 @@ class Utilities(Cog):
         await ctx.send(content["COMMAND_ENABLED"].format(command_name=command_name))
 
     @slash_subcommand(
-        base="todo", name="new", description="Adds a new todo in your todo's"
+        base="note", name="new", description="Create a note"
     )
-    async def add_todo(self, ctx: SlashContext, todo_content: str):
+    async def add_todo(self, ctx: SlashContext, name: str, note_content: str):
         content = get_content(
-            "TODO_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "NOTES_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
         )
-        message = await ctx.send(
-            content["TODO_CREATED_TEXT"].format(todo_content=todo_content)
+        embed = Embed(
+            title=content["NOTE_CREATED_TEXT"].format(name=name),
+            description=f"``` {note_content} ```"
         )
+        message = await ctx.send(embed=embed)
 
         data = {
+            "name": name,
             "created_at": datetime.datetime.now().strftime("%d.%m.%Y %H:%M"),
             "created_at_timestamp": datetime.datetime.now().timestamp(),
             "jump_url": message.jump_url,
-            "message_id": message.id,
-            "content": todo_content,
+            "content": note_content,
         }
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         collection.update_one(
-            {"_id": str(ctx.author_id)}, {"$push": {"todo_list": data}}, upsert=True
+            {"_id": str(ctx.author_id)}, {"$push": {"notes": data}}, upsert=True
         )
 
     @Cog.listener(name="on_autocomplete")
-    async def todo_autocomplete(self, ctx: AutoCompleteContext):
-        if not self.bot.get_transformed_command_name(ctx).startswith("todo"):
+    async def note_autocomplete(self, ctx: AutoCompleteContext):
+        if not self.bot.get_transformed_command_name(ctx).startswith("note"):
             return
-        if ctx.focused_option == "todo":
-            collection = self.bot.get_guild_users_collection(ctx.guild_id)
-            user_data = collection.find_one({"_id": str(ctx.author_id)})
-            if user_data is None:
-                return
-            user_todo_list = user_data.get("todo_list")
-            if user_todo_list is None:
-                return
-            choices = [
-                create_choice(
-                    name=f"{count}. | {todo['created_at']} | {todo['content'][:10]}...",
-                    value=todo["created_at"],
-                )
-                for count, todo in enumerate(user_todo_list, start=1)
-                if ctx.user_input
-                in f"{count}. {todo['created_at']} | {todo['content'][::10]}..."
-            ][:25]
-            await ctx.populate(choices)
+        if ctx.focused_option != "name":
+            return
+
+        collection = self.bot.get_guild_users_collection(ctx.guild_id)
+        user_data = collection.find_one({"_id": str(ctx.author_id)})
+        if user_data is None:
+            return
+        notes = user_data.get("notes")
+        if notes is None:
+            return
+        choices = [
+            create_choice(
+                name=f"{count}. | {note['created_at']} | {note['name']}",
+                value=note["name"],
+            )
+            for count, note in enumerate(notes, start=1)
+            if ctx.user_input
+            in f"{count}. {note['created_at']} | {note['name']}"
+        ][:25]
+
+        await ctx.populate(choices)
 
     @slash_subcommand(
-        base="todo",
+        base="note",
         name="delete",
-        description="Deletes a todo from your todo's",
+        description="Delete a note",
         options=[
             create_option(
-                name="todo",
-                description="Your todo",
+                name="name",
+                description="The name of note",
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True,
             )
         ],
     )
-    async def delete_todo(self, ctx: SlashContext, todo: str):
+    async def delete_note(self, ctx: SlashContext, name: str):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         user_data = collection.find_one({"_id": str(ctx.author_id)})
         if user_data is None:
             raise NoData
-        user_todo_list = user_data.get("todo_list")
-        if user_todo_list is None:
+        notes = user_data.get("notes")
+        if notes is None:
             raise NoData
-        for todo_data in user_todo_list:
-            if todo_data["created_at"] == todo:
-                data = todo_data
+        for note_data in notes:
+            if note_data["name"] == name:
+                data = note_data
                 break
         else:
             raise NoData
         content = get_content(
-            "TODO_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "NOTES_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
         )
-        await ctx.send(content["TODO_DELETED"])
+        await ctx.send(content["NOTE_DELETED"])
 
         collection.update_one(
-            {"_id": str(ctx.author_id)}, {"$pull": {"todo_list": data}}, upsert=True
+            {"_id": str(ctx.author_id)}, {"$pull": {"notes": data}}, upsert=True
         )
 
-    @slash_subcommand(base="todo", name="list", description="Show your todo list")
+    @slash_subcommand(base="note", name="list", description="Show your notes")
     async def todo_list(self, ctx: SlashContext):
         await ctx.defer()
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         user_data = collection.find_one({"_id": str(ctx.author_id)})
         if user_data is None:
             raise NoData
-        user_todo_list = user_data.get("todo_list")
-        if user_todo_list is None:
+        notes = user_data.get("notes")
+        if notes is None:
             raise NoData
 
         content = get_content(
-            "TODO_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "NOTES_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
         )
         embed = Embed(
-            title=content["USER_TODO_LIST"].format(ctx.author.display_name),
+            title=content["USER_NOTE_LIST"].format(ctx.author.display_name),
             description="",
             color=self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.datetime.utcnow(),
         )
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
-        for count, todo_data in enumerate(user_todo_list, start=1):
+        for count, todo_data in enumerate(notes, start=1):
             embed.add_field(
                 name=f"{count}. *(<t:{int(todo_data['created_at_timestamp'])}:R>)*",
                 value=f" ```{todo_data['content']}``` [{content['JUMP_TO']}]({todo_data['jump_url']})",
