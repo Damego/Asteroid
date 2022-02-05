@@ -259,6 +259,7 @@ LANGUAGES = {
             "MUSIC_NOT_FOUND_TEXT": "Музыка с таким названием/ссылкой не найдено!",
             "PLAYLIST_IS_EMPTY_TEXT": "Плейлист пуст!",
             "CURRENT_QUEUE_TITLE_TEXT": "Текущий плейлист",
+            "MUSIC_PLAYLIST": {"PLAYLIST_TITLE_TEXT": "Плейлист: {playlist}"},
         },
         "FUNC_RANDOM_ITEMS": {
             "ITEMS_LIST": [
@@ -629,6 +630,7 @@ LANGUAGES = {
             "MUSIC_NOT_FOUND_TEXT": "Music with this name/url not found",
             "PLAYLIST_IS_EMPTY_TEXT": "Playlist is empty!",
             "CURRENT_QUEUE_TITLE_TEXT": "Current queue",
+            "MUSIC_PLAYLIST": {"PLAYLIST_TITLE_TEXT": "Playlist: {playlist}"},
         },
         "FUNC_RANDOM_ITEMS": {
             "ITEMS_LIST": [
