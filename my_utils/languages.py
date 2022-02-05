@@ -459,7 +459,7 @@ LANGUAGES = {
             "AUTOROLE_CREATED": "Создано!",
         },
         "NOTES_COMMANDS": {
-            "NOTE_CREATED_TEXT": "**Заметка создана:** ```\n{note_content}\n```",
+            "NOTE_CREATED_TEXT": "**Заметка создана:** ```\n{name}\n```",
             "NOTE_DELETED": "Заметка удалена!",
             "USER_NOTE_LIST": "Заметки {}",
             "JUMP_TO": "Перейти к сообщению",
@@ -830,7 +830,7 @@ LANGUAGES = {
             "AUTOROLE_CREATED": "Created!",
         },
         "NOTES_COMMANDS": {
-            "NOTE_CREATED_TEXT": "**Note created:** ```\n{note_content}\n```",
+            "NOTE_CREATED_TEXT": "**Note created:** ```\n{name}\n```",
             "NOTE_DELETED": "Note deleted!",
             "USER_NOTE_LIST": "Notes {}",
             "JUMP_TO": "Jump To Message",
