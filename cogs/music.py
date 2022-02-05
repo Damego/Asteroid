@@ -243,6 +243,7 @@ class Music(Cog):
 
     @Cog.listener(name="on_autocomplete")
     async def playlist_autocomplete(self, ctx: AutoCompleteContext):
+        choices = None
         if not self.bot.get_transformed_command_name(ctx).startswith("music"):
             return
         user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
@@ -265,8 +266,24 @@ class Music(Cog):
             input_playlist = ctx.options["playlist"]
             tracks_list = user_playlists[input_playlist]
             choices = [create_choice(name=track, value=track) for track in tracks_list]
+        elif ctx.focused_option == "member_playlist":
+            member_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.guild.get_member(int(ctx.options["member"])).id)
+            if not member_data:
+                return
+            member_playlists = member_data.get("music_playlists")
+            if not member_playlists:
+                return
 
-        await ctx.populate(choices)
+            playlists = [
+                playlist
+                for playlist in user_playlists
+                if playlist.startswith(ctx.user_input)
+            ]
+            choices = [
+                create_choice(name=playlist, value=playlist) for playlist in playlists
+            ]
+        if choices:
+            await ctx.populate(choices)
 
     @slash_subcommand(
         base="music",
@@ -423,6 +440,53 @@ class Music(Cog):
             embed.description += f"{count}. `{track}`\n"
 
         await ctx.send(embed=embed, hidden=hidden)
+        
+    @slash_subcommand(
+        base="music",
+        subcommand_group="playlist",
+        name="copy",
+        description="Copies a user playlist to your playlist",
+        options=[
+            create_option(
+                name="member",
+                description="The Member to copy playlist",
+                option_type=SlashCommandOptionType.USER,
+                required=True
+            ),
+            create_option(
+                name="member_playlist",
+                description="Playlist of member",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            ),
+            create_option(
+                name="playlist",
+                description="Your playlist",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            ),
+        ]
+    )
+    async def copy_member_playlist(self, ctx: SlashContext, member: Member, member_playlist: str, playlist: str):
+        member_data = self.bot.mongo.get_user_data(ctx.guild_id, member.id)
+        if not member_data:
+            raise NoData
+        member_playlists = member_data.get("music_playlists")
+        if not member_playlists:
+            raise NoData
+        playlist_data = member_playlists.get(member_playlist)
+        if not playlist_data:
+            raise NoData
+
+        self.bot.mongo.update_user(
+            ctx.guild_id,
+            ctx.author_id,
+            "$push",
+            {f"music_playlists.{playlist}": playlist_data}
+        )
+        await ctx.send("Done", hidden=True)
 
     async def _play_music(
         self, ctx: SlashContext, query: Union[str, List[str]], is_playlist: bool = False
