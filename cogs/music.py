@@ -539,6 +539,17 @@ class Music(Cog):
 
         return embed
 
+    def _get_track_duration(self, track: Union[lavalink.AudioTrack, int]):
+        if isinstance(track, lavalink.AudioTrack):
+            original_duration = track.duration // 1000
+        else:
+            original_duration = track // 1000
+
+        duration_hours = original_duration // 3600
+        duration_minutes = (original_duration // 60) % 60
+        duration_seconds = original_duration % 60
+        return f"{duration_hours:02}:{duration_minutes:02}:{duration_seconds:02}"
+
     def __check_music_status(self, ctx: SlashContext, player: lavalink.DefaultPlayer):
         if not player.is_connected:
             raise BotNotConnectedToVoice
