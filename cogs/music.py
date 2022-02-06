@@ -333,8 +333,9 @@ class Music(Cog):
         )
         content = get_content("MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id))["MUSIC_PLAYLIST"]
         embed = Embed(
-            title=content["PLAYLIST_UPDATE_TITLE_TRACK"],
-            description=content["ADDED_TEXT"].format(query=query)
+            title=content["PLAYLIST_UPDATE_TITLE_TRACK"].format(playlist=playlist),
+            description=content["ADDED_TEXT"].format(query=query),
+            color=self.bot.get_embed_color(ctx.guild_id)
         )
         await ctx.send(embed=embed, hidden=hidden)
 
