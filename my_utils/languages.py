@@ -261,14 +261,15 @@ LANGUAGES = {
             "LIVE_TEXT": "Прямая трансляция",
             "REQUESTED_BY_TEXT": "Запрошено {}",
             "MUSIC_NOT_FOUND_TEXT": "Музыка с таким названием/ссылкой не найдено!",
-            "PLAYLIST_IS_EMPTY_TEXT": "Плейлист пуст!",
-            "CURRENT_QUEUE_TITLE_TEXT": "Текущий плейлист",
+            "QUEUE_IS_EMPTY_TEXT": "Очередь пуста!",
+            "CURRENT_QUEUE_TITLE_TEXT": "Текущая очередь",
             "MUSIC_PLAYLIST": {
                 "PLAYLIST_TITLE_TEXT": "Плейлист: {playlist}",
                 "PLAYLIST_UPDATE_TITLE_TRACK": "Обновление плейлиста: {playlist}",
                 "ADDED_TEXT": "Добавлен запрос: `{query}`",
                 "MUSIC_DELETED": "Удалена песня `{name}` из плейлиста `{playlist}`",
-                "PLAYLIST_COPIED": "Плейлист скопирован!"
+                "PLAYLIST_COPIED": "Плейлист скопирован!",
+                "PLAYLIST_DELETE_TEXT": "Плейлист `{playlist}` удалён!"
                 },
         },
         "FUNC_RANDOM_ITEMS": {
@@ -638,14 +639,15 @@ LANGUAGES = {
             "LIVE_TEXT": "Live",
             "REQUESTED_BY_TEXT": "Requested by {}",
             "MUSIC_NOT_FOUND_TEXT": "Music with this name/url not found",
-            "PLAYLIST_IS_EMPTY_TEXT": "Playlist is empty!",
+            "QUEUE_IS_EMPTY_TEXT": "Queue is empty!",
             "CURRENT_QUEUE_TITLE_TEXT": "Current queue",
             "MUSIC_PLAYLIST": {
                 "PLAYLIST_TITLE_TEXT": "Playlist: {playlist}",
                 "PLAYLIST_UPDATE_TITLE_TRACK": "Playlist update: {playlist}",
                 "ADDED_TEXT": "Added query: `{query}`",
                 "MUSIC_DELETED": "Deleted track from `{playlist}` playlist `{name}`",
-                "PLAYLIST_COPIED": "Playlist copied!"
+                "PLAYLIST_COPIED": "Playlist copied!",
+                "PLAYLIST_DELETE_TEXT": "Playlist `{playlist}` deleted!"
                 },
         },
         "FUNC_RANDOM_ITEMS": {
