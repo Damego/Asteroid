@@ -32,9 +32,9 @@ class Mongo:
         collection = self._connection[str(guild_id)]["users"]
         collection.update_one({"_id": str(user_id)}, {update_type: data}, upsert=True)
 
-    def get_user_data(self, guild_id: int, user_id: int) -> dict:
+    def get_user_data(self, guild_id: int, user_id: int, data: dict = None) -> dict:
         collection = self._connection[str(guild_id)]["users"]
-        return collection.find_one({"_id": str(user_id)})
+        return collection.find_one({"_id": str(user_id)}, data)
 
     def remove_user(self, guild_id: int, user_id: int):
         ...

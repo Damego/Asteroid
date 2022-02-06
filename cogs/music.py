@@ -10,6 +10,7 @@ from discord import (
     Guild,
     VoiceChannel,
 )
+from discord.ext.commands import BadArgument
 from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
@@ -304,11 +305,17 @@ class Music(Cog):
                 option_type=SlashCommandOptionType.STRING,
                 required=False,
             ),
+            create_option(
+                name="hidden",
+                description="Should be message hidden or not",
+                option_type=SlashCommandOptionType.BOOLEAN,
+                required=True,
+            ),
         ],
     )
     @is_enabled()
     async def music_add_to_playlist(
-        self, ctx: SlashContext, playlist: str, query: str = None
+        self, ctx: SlashContext, playlist: str, query: str = None, hidden: bool = False
     ):
         collection = self.bot.get_guild_users_collection(ctx.guild_id)
         if not query:
@@ -324,7 +331,12 @@ class Music(Cog):
             {"$push": {f"music_playlists.{playlist}": query}},
             upsert=True,
         )
-        await ctx.send("Done", hidden=True)
+        content = get_content("MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id))["MUSIC_PLAYLIST"]
+        embed = Embed(
+            title=content["PLAYLIST_UPDATE_TITLE_TRACK"],
+            description=content["ADDED_TEXT"].format(query=query)
+        )
+        await ctx.send(embed=embed, hidden=hidden)
 
     @slash_subcommand(
         base="music",
@@ -352,14 +364,19 @@ class Music(Cog):
     async def music_delete_from_playlist(
         self, ctx: SlashContext, playlist: str, name: str = None
     ):
-        collection = self.bot.get_guild_users_collection(ctx.guild_id)
+        await ctx.defer(hidden=True)
+        playlist_tracks = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id, {"music_playlists": playlist})
+        if not playlist_tracks or name not in playlist_tracks:
+            raise NoData
 
-        collection.update_one(
-            {"_id": str(ctx.author_id)},
-            {"$pull": {f"music_playlists.{playlist}": name}},
-            upsert=True,
+        self.bot.mongo.update_user(
+            ctx.guild_id,
+            ctx.author_id,
+            "$pull",
+            {f"music_playlists.{playlist}": name}
         )
-        await ctx.send("Done", hidden=True)
+        content = get_content("MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id))["MUSIC_PLAYLIST"]
+        await ctx.send(content["MUSIC_DELETED"].format(name=name, playlist=playlist), hidden=True)
 
     @slash_subcommand(
         base="music",
@@ -378,17 +395,12 @@ class Music(Cog):
     )
     @is_enabled()
     async def music_play_playlist(self, ctx: SlashContext, playlist: str):
-        user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
-        if not user_data:
-            raise NoData
-        user_playlists = user_data.get("music_playlists")
-        if not user_playlists:
-            raise NoData
-        tracks = user_playlists.get(playlist)
-        if not tracks:
+        await ctx.defer()
+        playlist_tracks = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id, {"music_playlists": playlist})
+        if not playlist_tracks:
             raise NoData
 
-        await self._play_music(ctx, tracks, is_playlist=True)
+        await self._play_music(ctx, playlist_tracks, is_playlist=True)
 
     @slash_subcommand(
         base="music",
@@ -416,15 +428,8 @@ class Music(Cog):
         self, ctx: SlashContext, playlist: str, hidden: bool = True
     ):
         await ctx.defer(hidden=hidden)
-
-        user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
-        if not user_data:
-            raise NoData
-        user_playlists = user_data.get("music_playlists")
-        if not user_playlists:
-            raise NoData
-        playlist_data = user_playlists.get(playlist)
-        if not playlist_data:
+        playlist_tracks = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id, {"music_playlists": playlist})
+        if not playlist_tracks:
             raise NoData
 
         content = get_content(
@@ -436,7 +441,7 @@ class Music(Cog):
             color=self.bot.get_embed_color(ctx.guild_id),
         )
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
-        for count, track in enumerate(playlist_data, start=1):
+        for count, track in enumerate(playlist_tracks, start=1):
             embed.description += f"{count}. `{track}`\n"
 
         await ctx.send(embed=embed, hidden=hidden)
@@ -470,23 +475,21 @@ class Music(Cog):
         ]
     )
     async def copy_member_playlist(self, ctx: SlashContext, member: Member, member_playlist: str, playlist: str):
-        member_data = self.bot.mongo.get_user_data(ctx.guild_id, member.id)
-        if not member_data:
-            raise NoData
-        member_playlists = member_data.get("music_playlists")
-        if not member_playlists:
-            raise NoData
-        playlist_data = member_playlists.get(member_playlist)
-        if not playlist_data:
+        await ctx.defer(hidden=True)
+        playlist_tracks = self.bot.mongo.get_user_data(ctx.guild_id, member.id, {"music_playlists": member_playlist})
+        if not playlist_tracks:
             raise NoData
 
         self.bot.mongo.update_user(
             ctx.guild_id,
             ctx.author_id,
             "$push",
-            {f"music_playlists.{playlist}": playlist_data}
+            {f"music_playlists.{playlist}": playlist_tracks}
         )
-        await ctx.send("Done", hidden=True)
+        content = get_content(
+            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+        )["MUSIC_PLAYLIST"]
+        await ctx.send(content["PLAYLIST_COPIED"], hidden=True)
 
     async def _play_music(
         self, ctx: SlashContext, query: Union[str, List[str]], is_playlist: bool = False
