@@ -266,7 +266,7 @@ class Music(Cog):
         elif ctx.focused_option == "name":
             input_playlist = ctx.options["playlist"]
             tracks_list = user_playlists[input_playlist]
-            choices = [create_choice(name=track, value=track) for track in tracks_list]
+            choices = [create_choice(name=track, value=track) for track in tracks_list if track.startswith(ctx.user_input)]
         elif ctx.focused_option == "member_playlist":
             member_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.guild.get_member(int(ctx.options["member"])).id)
             if not member_data:
