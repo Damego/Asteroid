@@ -558,7 +558,7 @@ class Utilities(Cog):
         )
         embed = Embed(
             title=content["NOTE_CREATED_TEXT"].format(name=name),
-            description=f"``` {note_content} ```"
+            description=note_content
         )
         message = await ctx.send(embed=embed)
 

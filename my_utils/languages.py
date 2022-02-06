@@ -76,6 +76,7 @@ LANGUAGES = {
             "MUSIC_SKIP": "Пропускает текущий трек",
             "MUSIC_PLAYLIST_ADD_TRACK": "Добавляет текущую песню в ваш плейлист",
             "MUSIC_PLAYLIST_DELETE_TRACK": "Удаляет песню из вашего плейлиста",
+            "MUSIC_PLAYLIST_DELETE": "Удаляет ваш плейлист",
             "MUSIC_PLAYLIST_INFO": "Показывает список песен в вашем плейлисте",
             "MUSIC_PLAYLIST_PLAY": "Начинает проигрывать ваш плейлист или добавляет его в очередь",
             "SET_LANG": "Меняет язык у бота на вашем сервере",
@@ -96,9 +97,9 @@ LANGUAGES = {
             "STARBOARD_BLACKLIST_ADD": "Добавляет участника/роль/канал в чёрный список",
             "STARBOARD_BLACKLIST_LIST": "Показывает чёрный список",
             "STARBOARD_BLACKLIST_REMOVE": "Удаляет участника/роль/канал из чёрного списка",
-            "TODO_NEW": "Создаёт новое To Do",
-            "TODO_DELETE": "Удаляет ваше To Do",
-            "TODO_LIST": "Показывает список ваших To Do",
+            "NOTE_NEW": "Создаёт новую заметку",
+            "NOTE_DELETE": "Удаляет заметку",
+            "NOTE_LIST": "Показывает список ваших заметок",
         },
         "ERRORS_DESCRIPTIONS": {
             "COG_DISABLED": "Эта команда отключена на этом сервере!",
@@ -466,7 +467,7 @@ LANGUAGES = {
             "AUTOROLE_CREATED": "Создано!",
         },
         "NOTES_COMMANDS": {
-            "NOTE_CREATED_TEXT": "**Заметка создана:** ```\n{name}\n```",
+            "NOTE_CREATED_TEXT": "**Заметка создана:** `{name}`",
             "NOTE_DELETED": "Заметка удалена!",
             "USER_NOTE_LIST": "Заметки {}",
             "JUMP_TO": "Перейти к сообщению",
@@ -844,7 +845,7 @@ LANGUAGES = {
             "AUTOROLE_CREATED": "Created!",
         },
         "NOTES_COMMANDS": {
-            "NOTE_CREATED_TEXT": "**Note created:** ```\n{name}\n```",
+            "NOTE_CREATED_TEXT": "**Note created:** `{name}`",
             "NOTE_DELETED": "Note deleted!",
             "USER_NOTE_LIST": "Notes {}",
             "JUMP_TO": "Jump To Message",
