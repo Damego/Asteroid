@@ -402,7 +402,6 @@ class Music(Cog):
     )
     @is_enabled()
     async def music_play_playlist(self, ctx: SlashContext, playlist: str):
-        await ctx.defer()
         user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
         if not user_data:
             raise NoData
