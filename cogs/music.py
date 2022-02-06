@@ -229,7 +229,7 @@ class Music(Cog):
         self.__check_music_status(ctx, player)
 
         if not player.queue:
-            return await ctx.send(content["PLAYLIST_IS_EMPTY_TEXT"])
+            return await ctx.send(content["QUEUE_IS_EMPTY_TEXT"])
 
         tracks = [
             f"**{count}.** `{track.title}`"
@@ -514,6 +514,51 @@ class Music(Cog):
             "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
         )["MUSIC_PLAYLIST"]
         await ctx.send(content["PLAYLIST_COPIED"], hidden=True)
+
+    @slash_subcommand(
+        base="music",
+        subcommand_group="playlist",
+        name="delete",
+        description="Deletes your playlist",
+        options=[
+            create_option(
+                name="playlist",
+                description="Your playlist",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            )
+        ],
+    )
+    @is_enabled()
+    async def delete_user_playlist(
+        self, ctx: SlashContext, playlist: str
+    ):
+        await ctx.defer(hidden=True)
+        user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
+        if not user_data:
+            raise NoData
+        user_playlists = user_data.get("music_playlists")
+        if not user_playlists:
+            raise NoData
+        playlist_data = user_playlists.get(playlist)
+        if not playlist_data:
+            raise NoData
+
+        content = get_content(
+            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+        )["MUSIC_PLAYLIST"]
+
+        await ctx.send(
+            content["PLAYLIST_DELETE_TEXT"].format(playlist=playlist)
+        )
+
+        self.bot.mongo.update_user(
+            ctx.guild_id,
+            ctx.author_id,
+            "$unset",
+            {f"music_playlists.{playlist}": ""}
+        )
 
     async def _play_music(
         self, ctx: SlashContext, query: Union[str, List[str]], is_playlist: bool = False
