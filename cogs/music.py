@@ -309,7 +309,7 @@ class Music(Cog):
                 name="hidden",
                 description="Should be message hidden or not",
                 option_type=SlashCommandOptionType.BOOLEAN,
-                required=True,
+                required=False,
             ),
         ],
     )
@@ -362,7 +362,7 @@ class Music(Cog):
     )
     @is_enabled()
     async def music_delete_from_playlist(
-        self, ctx: SlashContext, playlist: str, name: str = None
+        self, ctx: SlashContext, playlist: str, name: str
     ):
         await ctx.defer(hidden=True)
         playlist_tracks = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id, {"music_playlists": playlist})
@@ -419,7 +419,7 @@ class Music(Cog):
                 name="hidden",
                 description="Should be message hidden or not",
                 option_type=SlashCommandOptionType.BOOLEAN,
-                required=True,
+                required=False,
             ),
         ],
     )
