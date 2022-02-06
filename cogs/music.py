@@ -615,6 +615,8 @@ class Music(Cog):
         return f"{duration_hours:02}:{duration_minutes:02}:{duration_seconds:02}"
 
     def __check_music_status(self, ctx: SlashContext, player: lavalink.DefaultPlayer):
+        if player is None:
+            raise BotNotConnectedToVoice
         if not player.is_connected:
             raise BotNotConnectedToVoice
         if not ctx.author.voice or ctx.author.voice.channel.id != int(
