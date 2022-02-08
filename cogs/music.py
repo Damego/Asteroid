@@ -247,14 +247,14 @@ class Music(Cog):
         choices = None
         if not self.bot.get_transformed_command_name(ctx).startswith("music"):
             return
-        user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
-        if not user_data:
-            return
-        user_playlists = user_data.get("music_playlists")
-        if not user_playlists:
-            return
 
         if ctx.focused_option == "playlist":
+            user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
+            if not user_data:
+                return
+            user_playlists = user_data.get("music_playlists")
+            if not user_playlists:
+                return
             playlists = [
                 playlist
                 for playlist in user_playlists
@@ -264,6 +264,12 @@ class Music(Cog):
                 create_choice(name=playlist, value=playlist) for playlist in playlists
             ]
         elif ctx.focused_option == "name":
+            user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
+            if not user_data:
+                return
+            user_playlists = user_data.get("music_playlists")
+            if not user_playlists:
+                return
             input_playlist = ctx.options["playlist"]
             tracks_list = user_playlists[input_playlist]
             choices = [create_choice(name=track, value=track) for track in tracks_list if track.startswith(ctx.user_input)]
@@ -277,7 +283,7 @@ class Music(Cog):
 
             playlists = [
                 playlist
-                for playlist in user_playlists
+                for playlist in member_playlists
                 if playlist.startswith(ctx.user_input)
             ]
             choices = [
@@ -508,7 +514,7 @@ class Music(Cog):
             ctx.guild_id,
             ctx.author_id,
             "$push",
-            {f"music_playlists.{playlist}": playlist_data}
+            {f"music_playlists.{playlist}": {"$each": playlist_data}}
         )
         content = get_content(
             "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
