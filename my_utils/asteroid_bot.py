@@ -52,46 +52,25 @@ class AsteroidBot(Bot):
                 print(f"Extension {filename} not loaded!\nError: {e}")
 
     def get_guild_main_collection(self, guild_id: int):
-        return self.mongo.connection[str(guild_id)]["configuration"]
+        return self.mongo.guilds[str(guild_id)]["configuration"]
 
     def get_guild_users_collection(self, guild_id: int):
-        return self.mongo.connection[str(guild_id)]["users"]
+        return self.mongo.guilds[str(guild_id)]["users"]
 
     def get_guild_tags_collection(self, guild_id: int):
-        return self.mongo.connection[str(guild_id)]["tags"]
+        return self.mongo.guilds[str(guild_id)]["tags"]
 
     def get_guild_voice_time_collection(self, guild_id: int):
-        return self.mongo.connection[str(guild_id)]["voice_time"]
+        return self.mongo.guilds[str(guild_id)]["voice_time"]
 
-    def get_guild_cogs_collection(self, guild_id: int):
-        return self.mongo.connection[str(guild_id)]["cogs_config"]
-
-    def _extract_from_guild_collection(self, guild_id: int, key: str):
-        collection = self.get_guild_main_collection(guild_id)
-        try:
-            value = collection.find_one({"_id": "configuration"}).get(key)
-        except AttributeError:
-            value = None
-        except Exception as e:
-            print(e)
-            value = None
-        if value is not None:
-            return value
-
-        if key == "embed_color":
-            value = "0x5865F2"
-        elif key == "lang":
-            value = "en"
-        else:
-            value = None
-        return value
-
-    def get_embed_color(self, guild_id):
-        color = self._extract_from_guild_collection(guild_id, "embed_color")
+    async def get_embed_color(self, guild_id: int):
+        guild_data = await self.mongo.get_guild_data(guild_id)
+        color = guild_data.configuration.embed_color
         return int(color, 16)
 
-    def get_guild_bot_lang(self, guild_id):
-        return self._extract_from_guild_collection(guild_id, "lang")
+    async def get_guild_bot_lang(self, guild_id):
+        guild_data = await self.mongo.get_guild_data(guild_id)
+        return guild_data.configuration.language
 
     async def async_request(self, url: str) -> dict:
         async with ClientSession() as session:

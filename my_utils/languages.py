@@ -3,7 +3,7 @@ def get_content(content_type: str, lang: str):
 
 
 LANGUAGES = {
-    "ru": {
+    "Russian": {
         "TRANSLATED_COMMANDS": {
             "FUN_BORED": "Тебе скучно? Запусти эту команду и найди занятие для себя!",
             "FUN_QR": "Создаёт QR-код из текста",
@@ -382,6 +382,9 @@ LANGUAGES = {
             "WRONG_COLOR": "Неверный формат цвета!",
             "SUCCESSFULLY_CHANGED": "Цвет сообщений успешно изменён!",
         },
+        "SET_LANGUAGE_COMMAND": {
+            "LANGUAGE_CHANGED": "Язык сменён на русский"
+        },
         "LEVELS": {
             "FUNC_UPDATE_MEMBER": {
                 "NOTIFY_GUILD_CHANNEL": "{member} получил `{level}-й` уровень и повышение до {role}",
@@ -473,7 +476,7 @@ LANGUAGES = {
             "JUMP_TO": "Перейти к сообщению",
         },
     },
-    "en": {
+    "English": {
         "ERRORS_DESCRIPTIONS": {
             "COG_DISABLED": "This command disabled on this server!",
             "COMMAND_DISABLED": "This command or group of commands was disabled on this server!",
@@ -759,6 +762,9 @@ LANGUAGES = {
         "SET_EMBED_COLOR_COMMAND": {
             "WRONG_COLOR": "Wrong color format",
             "SUCCESSFULLY_CHANGED": "Embed color was changed!",
+        },
+        "SET_LANGUAGE_COMMAND": {
+            "LANGUAGE_CHANGED": "Language changed to English"
         },
         "LEVELS": {
             "FUNC_UPDATE_MEMBER": {

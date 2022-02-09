@@ -12,6 +12,7 @@ from discord_slash_components_bridge import ComponentContext
 
 from my_utils import AsteroidBot, get_content, bot_owner_or_permissions, Cog
 from my_utils.consts import LANGUAGES_LIST
+from my_utils.models.guild_data import GuildData, GuildConfiguration
 
 
 class Settings(Cog):
@@ -39,33 +40,34 @@ class Settings(Cog):
     )
     @bot_owner_or_permissions(manage_roles=True)
     async def set_bot_language(self, ctx: SlashContext, language: str):
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        collection.update_one(
-            {"_id": "configuration"}, {"$set": {"lang": language}}, upsert=True
+        await ctx.defer()
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        await guild_data.configuration.set_language(language)
+
+        content = get_content(
+            "SET_LANGUAGE_COMMAND", lang=guild_data.configuration.language
         )
 
-        await ctx.send(f"Language was set up to `{language}`")
+        await ctx.send(content["LANGUAGE_CHANGED"])
 
     @slash_subcommand(base="set", name="color", description="Set color for embeds")
     @bot_owner_or_permissions(manage_roles=True)
     async def set_embed_color(self, ctx: SlashContext, color: str):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content("SET_EMBED_COLOR_COMMAND", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content = get_content("SET_EMBED_COLOR_COMMAND", guild_data.configuration.language)
 
         if color.startswith("#") and len(color) == 7:
             color = color.replace("#", "")
-        elif len(color) != 6:
+        elif len(color) != 6 and any(char not in "1234567890ABCDEFabcdef" for char in color):
             await ctx.send(content["WRONG_COLOR"])
             return
-        newcolor = "0x" + color
+        color = "0x" + color
 
-        collection = self.bot.get_guild_main_collection(ctx.guild.id)
-        collection.update_one(
-            {"_id": "configuration"}, {"$set": {"embed_color": newcolor}}, upsert=True
-        )
-
-        embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=int(newcolor, 16))
+        await guild_data.configuration.set_embed_color(color)
+        embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=int(color, 16))
         await ctx.send(embed=embed, delete_after=10)
+
+        print(guild_data.configuration.embed_color)
 
     @slash_subcommand(
         base="staff", subcommand_group="ext", name="load", description="Load extension"
