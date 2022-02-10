@@ -1,10 +1,7 @@
 from discord import Role, Embed, RawReactionActionEvent, Guild, Member
-from discord_slash import AutoCompleteContext, SlashContext, SlashCommandOptionType
+from discord_slash import AutoCompleteContext, SlashContext, SlashCommandOptionType, ComponentContext, ComponentMessage, Select, SelectOption, Button, ButtonStyle
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
-from discord_components import Select, SelectOption, Button, ButtonStyle
-from discord_slash_components_bridge import ComponentContext, ComponentMessage
-from pymongo.collection import Collection
 
 from my_utils import (
     AsteroidBot,
@@ -30,9 +27,8 @@ class AutoRole(Cog):
         if member.bot:
             return
 
-        collection = self.bot.get_guild_main_collection(member.guild.id)
-        config = collection.find_one({"_id": "configuration"})
-        on_join_roles = config.get("on_join_roles")
+        guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
+        on_join_roles = guild_data.configuration.on_join_roles
         if on_join_roles is None:
             return
         guild = member.guild
@@ -45,22 +41,25 @@ class AutoRole(Cog):
         command_name = self.bot.get_transformed_command_name(ctx)
         if not command_name.startswith("autorole"):
             return
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-
+        
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        autoroles = guild_data.autoroles
+        choices = None
         if ctx.focused_option == "name":
-            autoroles = collection.find_one({"_id": "autorole"})
-            del autoroles["_id"]
-
             choices = [
-                create_choice(name=autorole_name, value=autorole_name)
-                for autorole_name in autoroles
-                if autorole_name.startswith(ctx.user_input)
+                create_choice(name=autorole.name, value=autorole.name)
+                for autorole in autoroles
+                if autorole.name.startswith(ctx.user_input)
             ][:25]
         elif ctx.focused_option == "option":
-            autoroles = collection.find_one({"_id": "autorole"})
-            autorole_data = autoroles.get(ctx.options.get("name"))
+            for autorole in autoroles:
+                if autorole.name == ctx.options.get("name"):
+                    break
+            else:
+                return
+
             select_options = [
-                option["label"] for option in autorole_data["component"]["options"]
+                option["label"] for option in autorole.component["options"]
             ]
             choices = [
                 create_choice(name=option_name, value=option_name)
@@ -68,17 +67,17 @@ class AutoRole(Cog):
                 if option_name.startswith(ctx.user_input)
             ][:25]
         elif ctx.focused_option == "role":
-            configuration_data = collection.find_one({"_id": "configuration"})
             on_join_roles = [
                 ctx.guild.get_role(role_id)
-                for role_id in configuration_data.get("on_join_roles")
+                for role_id in guild_data.configuration.on_join_roles
             ]
             choices = [
                 create_choice(name=role.name, value=str(role.id))
                 for role in on_join_roles
                 if role.name.startswith(ctx.user_input)
             ][:25]
-        await ctx.populate(choices)
+        if choices:
+            await ctx.populate(choices)
 
     @slash_subcommand(
         base="autorole",
@@ -89,14 +88,10 @@ class AutoRole(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_on_join_add(self, ctx: SlashContext, role: Role):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("AUTOROLE_ON_JOIN", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        await guild_data.configuration.add_on_join_role(role.id)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        collection.update_one(
-            {"_id": "configuration"}, {"$push": {"on_join_roles": role.id}}
-        )
-
+        content: dict = get_content("AUTOROLE_ON_JOIN", guild_data.configuration.language)
         await ctx.send(content["ROLE_ADDED_TEXT"].format(role=role.mention))
 
     @slash_subcommand(
@@ -117,16 +112,10 @@ class AutoRole(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_on_join_remove(self, ctx: SlashContext, role: str):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("AUTOROLE_ON_JOIN", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        await guild_data.configuration.delete_on_join_role(int(role))
 
-        role = ctx.guild.get_role(int(role))
-
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        collection.update_one(
-            {"_id": "configuration"}, {"$pull": {"on_join_roles": role.id}}, upsert=True
-        )
-
+        content: dict = get_content("AUTOROLE_ON_JOIN", guild_data.configuration.language)
         await ctx.send(content["ROLE_REMOVED_TEXT"].format(role=role.mention))
 
     # SELECT ROLE
@@ -149,7 +138,7 @@ class AutoRole(Cog):
                 await ctx.author.add_roles(role)
                 added_roles.append(f"`{role.name}`")
 
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content("AUTOROLE_DROPDOWN", lang)
         message_content = ""
         if added_roles:
@@ -174,8 +163,9 @@ class AutoRole(Cog):
         message_content: str,
         placeholder: str = None,
     ):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("AUTOROLE_DROPDOWN", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
         components = [
             Select(
                 placeholder=placeholder
@@ -190,21 +180,16 @@ class AutoRole(Cog):
         message = await ctx.channel.send(content=message_content, components=components)
         await ctx.send(content["CREATED_DROPDOWN_TEXT"], hidden=True)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        collection.update_one(
-            {"_id": "autorole"},
+        await guild_data.add_autorole(
+            name,
             {
-                "$set": {
-                    name: {
-                        "content": message_content,
-                        "message_id": message.id,
-                        "autorole_type": "select_menu",
-                        "component": components[0].to_dict(),
-                    }
-                }
-            },
-            upsert=True,
+                "content": message_content,
+                "message_id": message.id,
+                "autorole_type": "select_menu",
+                "component": components[0].to_dict(),
+            }
         )
+
 
     @slash_subcommand(
         base="autorole",
@@ -253,17 +238,20 @@ class AutoRole(Cog):
         emoji: str = None,
         description: str = None,
     ):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("AUTOROLE_DROPDOWN", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        autoroles = collection.find_one({"_id": "autorole"})
+        autoroles = guild_data.autoroles
         if autoroles is None:
             return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
-        autorole_data = autoroles.get(name)
-        if autorole_data is None:
+        autorole = None
+        for autorole in autoroles:
+            if autorole.name == name:
+                break
+
+        if autorole is None:
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
-        message_id = autorole_data["message_id"]
+        message_id = autorole.message_id
 
         original_message: ComponentMessage = await ctx.channel.fetch_message(
             int(message_id)
@@ -307,7 +295,7 @@ class AutoRole(Cog):
         await original_message.edit(components=[select_component])
         await ctx.send(content["ROLE_ADDED_TEXT"], hidden=True)
 
-        self._update_db_select(collection, name, select_component)
+        await autorole.update_component(select_component.to_dict())
 
     @slash_subcommand(
         base="autorole",
@@ -336,17 +324,19 @@ class AutoRole(Cog):
     async def autorole_dropdown_remove_role(
         self, ctx: SlashContext, name: str, option: str
     ):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("AUTOROLE_DROPDOWN", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        autoroles = collection.find_one({"_id": "autorole"})
+        autoroles = guild_data.autoroles
         if autoroles is None:
             return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
-        autorole_data = autoroles.get(name)
-        if autorole_data is None:
+        autorole = None
+        for autorole in autoroles:
+            if autorole.name == name:
+                break
+        if autorole is None:
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
-        message_id = autorole_data["message_id"]
+        message_id = autorole.message_id
 
         original_message: ComponentMessage = await ctx.channel.fetch_message(
             int(message_id)
@@ -374,16 +364,7 @@ class AutoRole(Cog):
         await original_message.edit(components=[select_component])
         await ctx.send(content["ROLE_REMOVED_TEXT"], hidden=True)
 
-        self._update_db_select(collection, name, select_component)
-
-    def _update_db_select(
-        self, collection: Collection, name: str, select_component: Select
-    ):
-        collection.update_one(
-            {"_id": "autorole"},
-            {"$set": {f"{name}.component": select_component.to_dict()}},
-            upsert=True,
-        )
+        await autorole.update_component(select_component.to_dict())
 
     @slash_subcommand(
         base="autorole",
@@ -415,17 +396,19 @@ class AutoRole(Cog):
     async def autorole_dropdown_set_status(
         self, ctx: SlashContext, name: str, status: str
     ):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("AUTOROLE_DROPDOWN", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        autoroles = collection.find_one({"_id": "autorole"})
+        autoroles = guild_data.autoroles
         if autoroles is None:
             return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
-        autorole_data = autoroles.get(name)
-        if autorole_data is None:
+        autorole = None
+        for autorole in autoroles:
+            if autorole.name == name:
+                break
+        if autorole is None:
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
-        message_id = autorole_data["message_id"]
+        message_id = autorole.message_id
 
         original_message: ComponentMessage = await ctx.channel.fetch_message(
             int(message_id)
@@ -465,21 +448,23 @@ class AutoRole(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_load(self, ctx: SlashContext, name: str):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("AUTOROLE_DROPDOWN", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        autorole_data = collection.find_one({"_id": "autorole"})
-        if autorole_data is None:
+        autoroles = guild_data.autoroles
+        if autoroles is None:
             return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
-        message_data = autorole_data.get(name)
-        if message_data is None:
+        autorole = None
+        for autorole in autoroles:
+            if autorole.name == name:
+                break
+        if autorole is None:
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
 
-        select_component = Select.from_json(message_data["component"])
+        select_component = Select.from_json(autorole.component)
 
         await ctx.channel.send(
-            content=message_data["content"], components=[select_component]
+            content=autorole.content, components=[select_component]
         )
         await ctx.send(content["DROPDOWN_LOADED_TEXT"], hidden=True)
 
@@ -492,23 +477,21 @@ class AutoRole(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_list(self, ctx: SlashContext):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("AUTOROLE_DROPDOWN", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        autorole_data = collection.find_one({"_id": "autorole"})
-        if autorole_data is None:
+        autoroles = guild_data.autoroles
+        if autoroles is None:
             return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
 
         embed = Embed(
             title=content["DROPDOWN_LIST"],
             description="",
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=guild_data.configuration.language,
         )
 
-        del autorole_data["_id"]
-        for count, dropdown in enumerate(autorole_data, start=1):
-            embed.description += f"**{count}. {dropdown}**\n"
+        for count, dropdown in enumerate(autoroles, start=1):
+            embed.description += f"**{count}. {dropdown.name}**\n"
 
         await ctx.send(embed=embed, hidden=True)
 
@@ -530,210 +513,21 @@ class AutoRole(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_delete(self, ctx: SlashContext, name: str):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("AUTOROLE_DROPDOWN", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        autorole_data = collection.find_one({"_id": "autorole"})
-        if autorole_data is None:
+        autoroles = guild_data.autoroles
+        if autoroles is None:
             return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
-        message_data = autorole_data.get(name)
-        if message_data is None:
+        autorole = None
+        for autorole in autoroles:
+            if autorole.name == name:
+                break
+        if autorole is None:
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
 
-        collection.update_one({"_id": "autorole"}, {"$unset": {name: ""}})
-
+        await guild_data.remove_autorole(name)
         await ctx.send(content["DROPDOWN_DELETED_TEXT"])
-
-    # REACTION ROLE COMMANDS AND EVENTS
-
-    @Cog.listener()
-    async def on_raw_reaction_add(self, payload: RawReactionActionEvent):
-        if payload.member.bot:
-            return
-        try:
-            _cog_is_enabled(self, payload.guild_id)
-        except CogDisabledOnGuild:
-            return
-
-        collection = self.bot.get_guild_main_collection(payload.guild_id)
-        message_ids = collection.find_one({"_id": "reaction_roles"})
-        if message_ids is None:
-            return
-
-        post = message_ids.get(str(payload.message_id))
-        if post is None:
-            return
-        emoji = payload.emoji.id
-        if payload.emoji.id is None:
-            emoji = payload.emoji
-
-        guild: Guild = self.bot.get_guild(payload.guild_id)
-        if guild is None:
-            guild = await self.bot.fetch_guild(payload.guild_id)
-
-        emoji_role = self.get_emoji_role(collection, payload.message_id, emoji)
-        if emoji_role is None:
-            return
-        role = guild.get_role(emoji_role)
-
-        await payload.member.add_roles(role)
-
-    @Cog.listener()
-    async def on_raw_reaction_remove(self, payload: RawReactionActionEvent):
-        try:
-            _cog_is_enabled(self, payload.guild_id)
-        except CogDisabledOnGuild:
-            return
-
-        collection = self.bot.get_guild_main_collection(payload.guild_id)
-        message_ids = collection.find_one({"_id": "reaction_roles"})
-        if message_ids is None:
-            return
-
-        post = message_ids.get(str(payload.message_id))
-        if post is None:
-            return
-
-        emoji = payload.emoji.id
-        if payload.emoji.id is None:
-            emoji = payload.emoji
-
-        guild: Guild = self.bot.get_guild(payload.guild_id)
-        if guild is None:
-            guild = await self.bot.fetch_guild(payload.guild_id)
-
-        emoji_role = self.get_emoji_role(collection, payload.message_id, emoji)
-        if emoji_role is None:
-            return
-        role = guild.get_role(emoji_role)
-
-        member = guild.get_member(payload.user_id)
-        if member is None:
-            member = guild.fetch_member(payload.user_id)
-        await member.remove_roles(role)
-
-    def get_emoji_role(self, collection, message_id: int, emoji):
-        message_ids = collection.find_one({"_id": "reaction_roles"})
-        message_roles = message_ids.get(str(message_id))
-        return message_roles.get(str(emoji))
-
-    @slash_subcommand(
-        base="reactionrole",
-        subcommand_group="add",
-        name="post",
-        description="Adds new message to react",
-        options=[
-            create_option(
-                name="message_id",
-                description="Message id",
-                option_type=SlashCommandOptionType.STRING,
-                required=True,
-            )
-        ],
-    )
-    @is_enabled()
-    @bot_owner_or_permissions(manage_roles=True)
-    async def add_post(self, ctx: SlashContext, message_id: str):
-        collection = self.bot.get_guild_main_collection(ctx.guild.id)
-        collection.update_one(
-            {"_id": "reaction_roles"}, {"$set": {message_id: {}}}, upsert=True
-        )
-
-        await ctx.send("✅", hidden=True)
-
-    @slash_subcommand(
-        base="reactionrole",
-        subcommand_group="add",
-        name="role",
-        description="Add reaction role to message",
-        options=[
-            create_option(
-                name="message_id",
-                description="Message id",
-                option_type=SlashCommandOptionType.STRING,
-                required=True,
-            ),
-            create_option(
-                name="emoji",
-                description="emoji or emoji id",
-                option_type=SlashCommandOptionType.STRING,
-                required=True,
-            ),
-            create_option(
-                name="role", description="role for emoji", option_type=8, required=True
-            ),
-        ],
-    )
-    @is_enabled()
-    @bot_owner_or_permissions(manage_roles=True)
-    async def add_emoji_role(self, ctx: SlashContext, message_id, emoji, role: Role):
-        if emoji[0] == "<":
-            emoji = emoji.split(":")[2].replace(">", "")
-
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        collection.update_one(
-            {"_id": "reaction_roles"},
-            {"$set": {f"{message_id}.{emoji}": role.id}},
-            upsert=True,
-        )
-
-        await ctx.send("✅", hidden=True)
-
-    @slash_subcommand(
-        base="reactionrole",
-        subcommand_group="remove",
-        name="post",
-        description="Remove's reaction roles message from database. Doesn't delete message.",
-        options=[
-            create_option(
-                name="message_id",
-                description="Message id",
-                option_type=SlashCommandOptionType.STRING,
-                required=True,
-            ),
-        ],
-    )
-    @bot_owner_or_permissions(manage_roles=True)
-    @is_enabled()
-    async def remove_post(self, ctx: SlashContext, message_id: str):
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        collection.update_one({"_id": "reaction_roles"}, {"$set": {message_id: ""}})
-
-        await ctx.send("✅", hidden=True)
-
-    @slash_subcommand(
-        base="reactionrole",
-        subcommand_group="remove",
-        name="role",
-        description="Remove reaction role from message",
-        options=[
-            create_option(
-                name="message_id",
-                description="Message id",
-                option_type=SlashCommandOptionType.STRING,
-                required=True,
-            ),
-            create_option(
-                name="emoji",
-                description="emoji or emoji id",
-                option_type=SlashCommandOptionType.STRING,
-                required=True,
-            ),
-        ],
-    )
-    @bot_owner_or_permissions(manage_roles=True)
-    @is_enabled()
-    async def remove_role(self, ctx: SlashContext, message_id: str, emoji: str):
-        if emoji[0] == "<":
-            emoji = emoji.split(":")[2].replace(">", "")
-
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        collection.update_one(
-            {"_id": "reaction_roles"}, {"$unset": {f"{message_id}.{emoji}": ""}}
-        )
-
-        await ctx.send("✅", hidden=True)
 
     @slash_subcommand(
         base="autorole",
@@ -792,22 +586,18 @@ class AutoRole(Cog):
         await ctx.defer(hidden=True)
 
         message = await ctx.channel.send(message_content)
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        collection.update_one(
-            {"_id": "autorole"},
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        await guild_data.add_autorole(
+            name,
             {
-                "$set": {
-                    name: {
-                        "content": message_content,
-                        "autorole_type": "buttons",
-                        "message_id": message.id,
-                    }
-                }
-            },
-            upsert=True,
+                "content": message_content,
+                "autorole_type": "buttons",
+                "message_id": message.id,
+                "component": {}
+            }
         )
         content = get_content(
-            "AUTOROLE_BUTTON", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "AUTOROLE_BUTTON", guild_data.configuration.language
         )
         await ctx.send(content["AUTOROLE_CREATED"], hidden=True)
 
@@ -863,16 +653,24 @@ class AutoRole(Cog):
         emoji: str = None,
     ):
         await ctx.defer(hidden=True)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content(
-            "AUTOROLE_BUTTON", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "AUTOROLE_BUTTON", guild_data.configuration.language
         )
         if not label and not emoji:
             return await ctx.send(content["AT_LEAST_LABEL_EMOJI_TEXT"])
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        autoroles = collection.find_one({"_id": "autorole"})
-        autorole = autoroles.get(name)
-        if autorole["autorole_type"] != "buttons":
+        autoroles = guild_data.autoroles
+        if not autoroles:
+            return await ctx.send(content["NO_AUTOROLES"])
+        autorole = None
+        for autorole in autoroles:
+            if autorole.name == name:
+                break
+        if not autorole:
+            return await ctx.send(content["NO_AUTOROLES"])
+
+        if autorole.type != "buttons":
             return await ctx.send(content["NOT_BUTTONS_AUTOROLE"])
 
         button = Button(
@@ -881,7 +679,7 @@ class AutoRole(Cog):
             style=style or ButtonStyle.gray,
             custom_id=f"autorole_button|{role.id}",
         )
-        original_message = await ctx.channel.fetch_message(int(autorole["message_id"]))
+        original_message = await ctx.channel.fetch_message(int(autorole.message_id))
         original_components = original_message.components
         if not original_components:
             original_components = [button]
@@ -899,16 +697,8 @@ class AutoRole(Cog):
         await original_message.edit(components=original_components)
         await ctx.send(content["COMMAND_ROLE_ADDED_TEXT"], hidden=True)
 
-        collection.update_one(
-            {"_id": "autorole"},
-            {
-                "$set": {
-                    f"{name}.component": [
-                        actionrow.to_dict() for actionrow in original_components
-                    ]
-                }
-            },
-            upsert=True,
+        await autorole.update_component(
+            [actionrow.to_dict() for actionrow in original_components]
         )
 
     def get_emoji(self, emoji: str):

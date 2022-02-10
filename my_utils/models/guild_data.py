@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Union
 
 
 class OperatorType(Enum):
@@ -23,7 +23,7 @@ class GuildData:
         self.starboard: GuildStarboard = None
         self.tags: List[GuildTag] = []
         self.cogs_status: Dict[str, Dict[str, str]] = None
-        self.autorole: GuildAutoRole = None
+        self.autoroles: List[GuildAutoRole]  = None
         self.roles_by_level = None
         self.reaction_roles = None
 
@@ -36,12 +36,30 @@ class GuildData:
                 self.tags = [GuildTag(self._main_collection, name, data) for name, data in document.items() if name != "_id"]
             elif document["_id"] == "cogs_data":
                 self.cogs_data = document
-            #elif document["_id"] == "autorole":
-            #    self.autorole = GuildAutoRole(self._main_collection, document)
-            #elif document["_id"] == 'roles_by_level':
-            #    self.roles_by_level = document
-            #elif document["_id"] == 'reaction_roles':
-            #    self.reaction_roles = document
+            elif document["_id"] == "autorole":
+                self.autoroles = [GuildAutoRole(self._main_collection, name, data) for name, data in document.items() if name != "_id"]
+            elif document["_id"] == 'roles_by_level':
+                self.roles_by_level = document
+
+    async def add_autorole(self, name: str, data: dict):
+        await self._main_collection.update_one(
+            {"_id": "tags"},
+            {OperatorType.SET.value: {name: data}},
+            upsert=True
+        )
+        self.autoroles.append(
+            GuildTag(self._main_collection, name, data)
+        )
+
+    async def remove_autorole(self, name: str):
+        await self._main_collection.update_one(
+            {"_id": "tags"},
+            {OperatorType.UNSET.value: {name: ""}},
+            upsert=True
+        )
+        for autorole in self.autoroles:
+            if autorole.name == name:
+                self.autoroles.remove(autorole)
 
     async def add_starboard(self, *, channel_id: int = None, limit: int = None, is_enabled: bool = True):
         data = {"is_enabled": is_enabled, "channel_id": channel_id, "limit": limit}
@@ -242,8 +260,31 @@ class GuildStarboard:
         if "roles" in self.blacklist and role_id in self.blacklist["roles"]:
             self.blacklist["roles"].remove(role_id)
 
+
 class GuildAutoRole:
-    ...
+    def __init__(self, connection, name: str, data: dict) -> None:
+        self._connection = connection
+        self.name = name
+        self.content: str = data.get("content")
+        self.message_id: int = data.get("message_id")
+        self.type: str = data.get("autorole_type")
+        self.component: dict = data.get("component")
+
+    async def _update(self, type: OperatorType, data: dict):
+        await self._connection.update_one(
+            {"_id": "autorole"},
+            {type.value: data},
+            upsert=True
+        )
+
+    async def rename(self, name: int):
+        await self._update(OperatorType.RENAME, {self.name: name})
+        self.name = name
+
+    async def update_component(self, component_data: Union[dict, list]):
+        await self._update(OperatorType.SET, {f"{self.name}.component": component_data})
+        self.component = component_data
+
 
 class GuildTag:
     def __init__(self, connection, name: str, data: dict) -> None:

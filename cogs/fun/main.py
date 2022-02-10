@@ -21,7 +21,7 @@ from discord_components import Button, ButtonStyle, Select, SelectOption
 import qrcode
 import requests
 
-from my_utils import AsteroidBot, get_content, Cog, is_enabled
+from my_utils import AsteroidBot, get_content, Cog, is_enabled, consts
 from ._tictactoe_online import TicTacToeOnline, BoardMode
 from ._tictactoe_ai import TicTacToeAI, TicTacToeMode
 from ._rockpaperscissors import RockPaperScissors
@@ -77,7 +77,7 @@ class Fun(Cog):
         await self._start_rps(ctx, member, 3)
 
     async def _start_rps(self, ctx: SlashContext, member: Member, total_rounds: int):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("FUNC_INVITE_TO_GAME", lang)
 
         if member.id == ctx.author_id:
@@ -140,7 +140,7 @@ class Fun(Cog):
             description="**Choose a difficult:**"
             "\n`Easy` - Bot random clicks on free cell"
             "\n`Impossible` - Bot with minimax AI.",
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=await self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.utcnow(),
         )
         embed.set_thumbnail(url=ctx.bot.user.avatar_url)
@@ -165,7 +165,7 @@ class Fun(Cog):
         await ttt.start(edit_origin=True, message=message)
 
     async def start_tictactoe_online(self, ctx, member: Member, mode: str):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         invite_content = get_content("FUNC_INVITE_TO_GAME", lang)
         game_content = get_content("GAME_TTT", lang)
         game_name = get_content("GAMES_NAMES", lang)["TTT"]
@@ -190,7 +190,7 @@ class Fun(Cog):
         await game.start_game()
 
     async def invite_to_game(self, ctx, member, game_name):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("FUNC_INVITE_TO_GAME", lang)
         button_label_agree = content["BUTTON_AGREE"]
         button_label_decline = content["BUTTON_DECLINE"]
@@ -256,7 +256,7 @@ class Fun(Cog):
     )
     @is_enabled()
     async def random_num(self, ctx: SlashContext, _from: int, _to: int):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("FUNC_RANDOM_NUMBER_OUT_CONTENT", lang)
 
         random_number = randint(_from, _to)
@@ -306,7 +306,7 @@ class Fun(Cog):
         self, ctx: SlashContext, activity: str, channel: VoiceChannel = None
     ):
         await ctx.defer()
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("FUNC_ACTIVITIES", lang=lang)
 
         if not channel and not ctx.author.voice:
@@ -335,7 +335,7 @@ class Fun(Cog):
             title="Discord Activity",
             description=f'[{content["JOIN_TEXT"]}](https://discord.com/invite/{code})\n\n'
             f"**Activity:** `{activity}`",
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=await self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.utcnow(),
         )
         embed.set_footer(
@@ -398,7 +398,7 @@ class Fun(Cog):
         await self._start_random(ctx, items_list)
 
     async def _start_random(self, ctx: SlashContext, _list: list = None):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("FUNC_RANDOM_ITEMS", lang)
         if _list is None:
             _list = content["ITEMS_LIST"]
@@ -430,7 +430,7 @@ class Fun(Cog):
         is_exception = False
         is_removed = False
         embed = Embed(
-            title=content["EMBED_TITLE"], color=self.bot.get_embed_color(ctx.guild_id)
+            title=content["EMBED_TITLE"], color=await self.bot.get_embed_color(ctx.guild_id)
         )
 
         message = await ctx.send(embed=embed, components=components)
@@ -500,10 +500,10 @@ class Fun(Cog):
                 and inter.message.id == message.id,
                 timeout=3600,
             )
-        except TimeoutError:
+        except TimeoutError as te:
             await message.delete()
             await message_for_update.delete()
-            raise TimeoutError
+            raise TimeoutError from te
         else:
             await interaction.defer(edit_origin=True)
             return interaction
@@ -537,7 +537,7 @@ class Fun(Cog):
         activity = data["activity"]
         embed = Embed(
             title="You bored?",
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=await self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.utcnow(),
         )
         embed.description = f'**Activity for you: ** \n{activity}\n\n**Activity type: ** `{type or data["type"]}`\n'

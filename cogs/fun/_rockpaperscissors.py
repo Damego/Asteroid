@@ -28,7 +28,7 @@ class RockPaperScissors:
         self.count1 = 0
         self.count2 = 0
         self.players = [self.ctx.author_id, self.member.id]
-        lang = self.bot.get_guild_bot_lang(self.guild_id)
+        lang = await self.bot.get_guild_bot_lang(self.guild_id)
         self.content = get_content("GAME_RPS", lang)
 
         for round in range(self.total_rounds):
@@ -47,7 +47,7 @@ class RockPaperScissors:
             winner,
         )
 
-        embed = Embed(title=title, color=self.bot.get_embed_color(self.guild_id))
+        embed = Embed(title=title, color=await self.bot.get_embed_color(self.guild_id))
         embed.add_field(name=game_name, value=text)
         await self.message.edit(content=" ", embed=embed, components=[])
 

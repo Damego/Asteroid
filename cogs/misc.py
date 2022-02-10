@@ -15,13 +15,12 @@ from discord import (
     TextChannel,
     Forbidden,
 )
-from discord_slash import SlashContext, ContextMenuType, MenuContext
+from discord_slash import SlashContext, ContextMenuType, MenuContext, Button, ButtonStyle
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu,
 )
-from discord_components import Button, ButtonStyle
 
 from my_utils import (
     AsteroidBot,
@@ -226,13 +225,13 @@ class Misc(Cog):
     @slash_subcommand(base="misc", name="ping", description="Show bot latency")
     @is_enabled()
     async def ping(self, ctx: SlashContext):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content("FUNC_PING", lang=lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content = get_content("FUNC_PING", lang=guild_data.configuration.language)
 
         embed = Embed(
             title="🏓 Pong!",
             description=content.format(int(self.bot.latency * 1000)),
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=guild_data.configuration.embed_color,
         )
 
         await ctx.send(embed=embed)

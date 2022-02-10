@@ -49,15 +49,7 @@ class TicTacToeAI:
         self.board: List[list] = None
         self.emoji_circle = self.bot.get_emoji(850792047698509826)
         self.emoji_cross = self.bot.get_emoji(850792048080060456)
-
-        self.game_embed = Embed(
-            title="Tic Tac Toe Game",
-            description=f"**Player:** {ctx.author.mention}"
-            f"\n**Difficult:** `{self.difficult}`",
-            color=self.bot.get_embed_color(ctx.guild_id),
-            timestamp=datetime.utcnow(),
-        )
-        self.game_embed.set_thumbnail(url=ctx.bot.user.avatar_url)
+        self.game_embed = None
 
     def is_won(self, board: List[list], player: GameState):
         win_states = [
@@ -90,11 +82,7 @@ class TicTacToeAI:
         return possible_moves
 
     def minimax(self, board: List[list], depth: int, player: GameState):
-        if player == GameState.ai:
-            best = [-1, -1, -inf]
-        else:
-            best = [-1, -1, +inf]
-
+        best = [-1, -1, -inf] if player == GameState.ai else [-1, -1, +inf]
         if (
             depth == 0
             or self.is_won(board, GameState.player)
@@ -110,12 +98,13 @@ class TicTacToeAI:
             board[x][y] = GameState.empty
             score[0], score[1] = x, y
 
-            if player == GameState.ai:
-                if score[2] > best[2]:
-                    best = score
-            else:
-                if score[2] < best[2]:
-                    best = score
+            if (
+                player == GameState.ai
+                and score[2] > best[2]
+                or player != GameState.ai
+                and score[2] < best[2]
+            ):
+                best = score
         return best
 
     def render_gameboard(self, disable: bool = False):
@@ -142,9 +131,10 @@ class TicTacToeAI:
                         emoji=emoji,
                         style=style,
                         custom_id=f"{i} {x}",
-                        disabled=disable if disable else style != ButtonStyle.gray,
+                        disabled=disable or style != ButtonStyle.gray,
                     ),
                 )
+
 
         return components
 
@@ -206,6 +196,14 @@ class TicTacToeAI:
         message: Union[SlashMessage, ComponentMessage] = None,
     ):
         ctx = self.ctx
+        self.game_embed = Embed(
+            title="Tic Tac Toe Game",
+            description=f"**Player:** {ctx.author.mention}"
+            f"\n**Difficult:** `{self.difficult}`",
+            color=await self.bot.get_embed_color(ctx.guild_id),
+            timestamp=datetime.utcnow(),
+        )
+        self.game_embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
         if not edit_origin:
             message = await ctx.send(
