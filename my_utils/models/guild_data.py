@@ -8,6 +8,7 @@ class OperatorType(Enum):
     PUSH = "$push"
     PULL = "$pull"
     EACH = "$each"
+    RENAME = "$rename"
 
 
 class GuildData:
@@ -18,9 +19,11 @@ class GuildData:
         self.__raw_main_data = data["main"]
         self.__raw_users_data = data["users"]
         self.guild_id = guild_id
-        self.configuration = None
-        self.starboard = None
-        self.autorole = None
+        self.configuration: GuildConfiguration = None
+        self.starboard: GuildStarboard = None
+        self.tags: List[GuildTag] = []
+        self.cogs_status: Dict[str, Dict[str, str]] = None
+        self.autorole: GuildAutoRole = None
         self.roles_by_level = None
         self.reaction_roles = None
 
@@ -29,6 +32,10 @@ class GuildData:
                 self.configuration = GuildConfiguration(self._main_collection, document)
             elif document["_id"] == "starboard":
                 self.starboard = GuildStarboard(self._main_collection, document)
+            elif document["_id"] == "tags":
+                self.tags = [GuildTag(self._main_collection, name, data) for name, data in document.items() if name != "_id"]
+            elif document["_id"] == "cogs_data":
+                self.cogs_data = document
             #elif document["_id"] == "autorole":
             #    self.autorole = GuildAutoRole(self._main_collection, document)
             #elif document["_id"] == 'roles_by_level':
@@ -45,10 +52,43 @@ class GuildData:
         )
         self.starboard = GuildStarboard(self._main_collection, data)
 
+    async def add_tag(self, name: str, author_id: int, description: str, is_embed: bool = False, title: str = "None"):
+        data = {
+            "author_id": author_id,
+            "description": description,
+            "is_embed": is_embed,
+            "title": title
+        }
+        await self._main_collection.update_one(
+            {"_id": "tags"},
+            {OperatorType.SET.value: {name: data}},
+            upsert=True
+        )
+        self.tags.append(
+            GuildTag(self._main_collection, name, data)
+        )
+
+    async def remove_tag(self, name: str):
+        await self._main_collection.update_one(
+            {"_id": "tags"},
+            {OperatorType.UNSET.value: {name: ""}},
+            upsert=True
+        )
+        for tag in self.tags:
+            if tag.name == name:
+                self.tags.remove(tag)
+
+    async def set_cog_data(self, cog_name: str, data: dict):
+        self.cogs_data[cog_name] = self.cogs_data[cog_name] | data
+        await self._main_collection.update_one(
+            {"_id": "cogs_data"},
+            {OperatorType.SET, {cog_name: self.cogs_data[cog_name]}}
+        )
+
 class GuildConfiguration:
     def __init__(self, connection, data: dict) -> None:
         self._connection = connection
-        self._embed_color: str = data.get("embed_color", "0x5865F2")
+        self._embed_color: int = int(data.get("embed_color", "0x5865F2"), 16)
         self._on_join_roles: List[int] = data.get("on_join_roles", [])
         self._language: str = data.get("language", "English")
         self._disabled_commands: List[int] = data.get("disabled_commands", [])
@@ -205,8 +245,41 @@ class GuildStarboard:
 class GuildAutoRole:
     ...
 
-class GuildTags:
-    ...
+class GuildTag:
+    def __init__(self, connection, name: str, data: dict) -> None:
+        self._connection = connection
+        self.name: str = name
+        self.author_id: int = data["author_id"]
+        self.is_embed: bool = data["is_embed"]
+        self.title: str = data["title"]
+        self.description: str = data["description"]
+    
+    async def _update(self, type: OperatorType, data: dict):
+        await self._connection.update_one(
+            {"_id": "tags"},
+            {type.value: data},
+            upsert=True
+        )
+
+    async def rename(self, name: int):
+        await self._update(OperatorType.RENAME, {self.name: name})
+        self.name = name
+
+    async def set_author_id(self, author_id: int):
+        await self._update(OperatorType.SET, {f"{self.name}.author_id": author_id})
+        self.author_id = author_id
+    
+    async def set_embed(self, is_embed: bool):
+        await self._update(OperatorType.SET, {f"{self.name}.is_embed": is_embed})
+        self.is_embed = is_embed
+
+    async def set_title(self, title: str):
+        await self._update(OperatorType.SET, {f"{self.name}.title": title})
+        self.title = title
+
+    async def set_description(self, description: str):
+        await self._update(OperatorType.SET, {f"{self.name}.description": description})
+        self.description = description
 
 class GuildUser:
     ...

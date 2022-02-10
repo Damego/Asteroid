@@ -1,10 +1,9 @@
 from os import listdir
 from typing import Union
 
-from aiohttp import ClientSession, ClientResponse
+from aiohttp import ClientSession
 from discord.ext.commands import Bot
-from discord_slash import SlashContext, MenuContext
-from discord_slash_components_bridge import SlashCommand
+from discord_slash import SlashCommand, SlashContext, MenuContext
 
 from my_utils.mongo import Mongo
 

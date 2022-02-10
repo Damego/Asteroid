@@ -13,7 +13,6 @@ from discord import (
 from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
-from pymongo.collection import Collection
 
 from my_utils import (
     AsteroidBot,
@@ -265,18 +264,19 @@ class Utilities(Cog):
             create_option(
                 name="status",
                 description="enable or disable starboard",
-                option_type=SlashCommandOptionType.BOOLEAN,
+                option_type=SlashCommandOptionType.STRING,
                 required=True,
                 choices=[
-                    create_choice(name="Enable", value=True),
-                    create_choice(name="Disable", value=False),
+                    create_choice(name="Enable", value="True"),
+                    create_choice(name="Disable", value="False"),
                 ],
             )
         ],
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def set_starboard_status(self, ctx: SlashContext, status: bool):
+    async def set_starboard_status(self, ctx: SlashContext, status: str):
+        status = status == "True"
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
