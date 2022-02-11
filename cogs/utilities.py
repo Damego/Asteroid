@@ -501,8 +501,9 @@ class Utilities(Cog):
         base="note", name="new", description="Create a note"
     )
     async def add_todo(self, ctx: SlashContext, name: str, note_content: str):
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content(
-            "NOTES_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "NOTES_COMMANDS", guild_data.configuration.language
         )
         embed = Embed(
             title=content["NOTE_CREATED_TEXT"].format(name=name),
@@ -517,10 +518,8 @@ class Utilities(Cog):
             "jump_url": message.jump_url,
             "content": note_content,
         }
-        collection = self.bot.get_guild_users_collection(ctx.guild_id)
-        await collection.update_one(
-            {"_id": str(ctx.author_id)}, {"$push": {"notes": data}}, upsert=True
-        )
+        user_data = await guild_data.get_user(ctx.author_id)
+        await user_data.add_note(data)
 
     @Cog.listener(name="on_autocomplete")
     async def note_autocomplete(self, ctx: AutoCompleteContext):
@@ -529,19 +528,17 @@ class Utilities(Cog):
         if ctx.focused_option != "name":
             return
 
-        collection = self.bot.get_guild_users_collection(ctx.guild_id)
-        user_data = await collection.find_one({"_id": str(ctx.author_id)})
-        if user_data is None:
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(ctx.author_id)
+        if not user_data.notes:
             return
-        notes = user_data.get("notes")
-        if notes is None:
-            return
+
         choices = [
             create_choice(
                 name=f"{count}. | {note['created_at']} | {note['name']}",
                 value=note["name"],
             )
-            for count, note in enumerate(notes, start=1)
+            for count, note in enumerate(user_data.notes, start=1)
             if ctx.user_input
             in f"{count}. {note['created_at']} | {note['name']}"
         ][:25]
@@ -563,50 +560,38 @@ class Utilities(Cog):
         ],
     )
     async def delete_note(self, ctx: SlashContext, name: str):
-        collection = self.bot.get_guild_users_collection(ctx.guild_id)
-        user_data = await collection.find_one({"_id": str(ctx.author_id)})
-        if user_data is None:
+        await ctx.defer()
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(ctx.author_id)
+        if not user_data.notes:
             raise NoData
-        notes = user_data.get("notes")
-        if notes is None:
-            raise NoData
-        for note_data in notes:
-            if note_data["name"] == name:
-                data = note_data
-                break
-        else:
-            raise NoData
+
+        await user_data.remove_note(name)
         content = get_content(
-            "NOTES_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "NOTES_COMMANDS", guild_data.configuration.language
         )
         await ctx.send(content["NOTE_DELETED"])
 
-        await collection.update_one(
-            {"_id": str(ctx.author_id)}, {"$pull": {"notes": data}}, upsert=True
-        )
 
     @slash_subcommand(base="note", name="list", description="Show your notes")
-    async def todo_list(self, ctx: SlashContext):
+    async def notes_list(self, ctx: SlashContext):
         await ctx.defer()
-        collection = self.bot.get_guild_users_collection(ctx.guild_id)
-        user_data = await collection.find_one({"_id": str(ctx.author_id)})
-        if user_data is None:
-            raise NoData
-        notes = user_data.get("notes")
-        if notes is None:
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(ctx.author_id)
+        if not user_data.notes:
             raise NoData
 
         content = get_content(
-            "NOTES_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "NOTES_COMMANDS", guild_data.configuration.language
         )
         embed = Embed(
             title=content["USER_NOTE_LIST"].format(ctx.author.display_name),
             description="",
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=guild_data.configuration.embed_color,
             timestamp=datetime.datetime.utcnow(),
         )
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
-        for count, todo_data in enumerate(notes, start=1):
+        for count, todo_data in enumerate(user_data.notes, start=1):
             embed.add_field(
                 name=f"{count}. *(<t:{int(todo_data['created_at_timestamp'])}:R>)*",
                 value=f" ```{todo_data['content']}``` [{content['JUMP_TO']}]({todo_data['jump_url']})",

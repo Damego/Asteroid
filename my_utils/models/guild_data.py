@@ -1,5 +1,9 @@
+import dataclasses
 from enum import Enum
 from typing import Dict, List, Union
+
+from motor.motor_asyncio import AsyncIOMotorCollection
+from pymongo.collection import Collection
 
 
 class OperatorType(Enum):
@@ -9,13 +13,14 @@ class OperatorType(Enum):
     PULL = "$pull"
     EACH = "$each"
     RENAME = "$rename"
+    INC = "$inc"
 
 
 class GuildData:
     def __init__(self, connection, data: dict, guild_id: int) -> None:
         self._connection = connection[str(guild_id)]
-        self._main_collection = self._connection["configuration"]
-        self._users_collection = self._connection["users"]
+        self._main_collection: Collection = self._connection["configuration"]
+        self._users_collection: Collection = self._connection["users"]
         self.__raw_main_data = data["main"]
         self.__raw_users_data = data["users"]
         self.guild_id = guild_id
@@ -40,6 +45,29 @@ class GuildData:
                 self.autoroles = [GuildAutoRole(self._main_collection, name, data) for name, data in document.items() if name != "_id"]
             elif document["_id"] == 'roles_by_level':
                 self.roles_by_level = document
+
+        for user in data["users"]:
+            self.users = [GuildUser(self._users_collection, user)]
+
+    async def add_user(self, user_id: int):
+        data = {"_id": str(user_id)}
+        await self._users_collection.insert_one(data)
+        user = GuildUser(self._users_collection, data)
+        self.users.append(user)
+        return user
+
+    async def get_user(self, user_id: int):
+        for user in self.users:
+            if user.id == str(user_id):
+                return user
+        user_raw_data = await self._users_collection.find_one({"_id": str(user_id)})
+        if user_raw_data is None:
+            user = await self.add_user(user_id)
+            return user
+        else:
+            user = GuildUser(self._users_collection, user_raw_data)
+            self.users.append(user)
+            return user
 
     async def add_autorole(self, name: str, data: dict):
         await self._main_collection.update_one(
@@ -323,7 +351,116 @@ class GuildTag:
         self.description = description
 
 class GuildUser:
-    ...
+    def __init__(self, connection, id: str, data: dict) -> None:
+        self._connection = connection
+        self.id: str = id
+        self.level: int = 0
+        self.xp: int = 0
+        self.xp_amount: int = 0
+        self.role: str = ""
+        self.voice_time_count: int = 0
+        self.hoyolab_uid: int = None
+        self.genshin_uid: int = None
+        self.notes: List[dict] = []
+        self.music_playlists: Dict[str, list] = {}
+
+        if leveling := data.get("leveling"):
+            self.level = leveling.get("level", 0)
+            self.xp = leveling.get("xp", 0)
+            self.xp_amount = leveling.get("xp_amount", 0)
+            self.role = leveling.get("role", "")
+        self.voice_time_count = data.get("voice_time_count", 0)
+
+        if genshin := data.get("genshin"):
+            self.hoyolab_uid = genshin.get("hoyolab_uid")
+            self.genshin_uid = genshin.get("uid")
+
+        if notes := data.get("notes", []):
+            self.notes = notes
+        
+        if playlists := data.get("music_playlists", {}):
+            for name, tracks in playlists.items():
+                self.music_playlists[name] = tracks
+
+    async def _update(self, type: OperatorType, data: dict):
+        await self._connection.update_one(
+            {"_id": self.id},
+            {type.value: {data}},
+            upsert=True
+        )
+
+    async def increase_leveling(self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0):
+        await self._update(
+            OperatorType.INC,
+            {
+                "leveling": {
+                    "level": level,
+                    "xp": xp,
+                    "xp_amount": xp_amount
+                },
+                "voice_time_count": voice_time
+            }
+        )
+        self.level = self.level + level
+        self.xp = self.xp + xp
+        self.xp_amount = self.xp_amount + xp_amount
+        self.voice_time_count = self.voice_time_count + voice_time
+
+    async def set_leveling(self, *, level: int = None, xp: int = None, xp_amount: int = None, voice_time: int = None):
+        data = {}
+        leveling = {}
+        if level is not None:
+            leveling["level"] = level
+            self.level = level
+        if xp is not None:
+            leveling["xp"] = xp
+            self.xp = xp
+        if xp_amount is not None:
+            leveling["xp_amount"] = xp_amount
+            self.xp_amount = xp_amount
+        if voice_time:
+            data["voice_time_count"] = voice_time
+        data["leveling"] = leveling
+
+        await self._update(OperatorType.set, data)
+
+    async def set_genshin_uid(self, *, hoyolab_uid: int = None, game_uid: int = None):
+        data = {}
+        if hoyolab_uid is not None:
+            data["hoyolab_uid"] = hoyolab_uid
+            self.hoyolab_uid = hoyolab_uid
+        if game_uid is not None:
+            data["uid"] = game_uid
+            self.genshin_uid = game_uid
+
+        await self._update(OperatorType.SET, {"genshin": data})
+
+    async def add_note(self, data: str):
+        await self._update(OperatorType.PUSH, {"notes": data})
+        self.notes.append(data)
+
+    async def remove_note(self, note_name: str):
+        note = None
+        for note in self.notes:
+            if note["name"] == note_name:
+                break
+        if note:
+            await self._update(OperatorType.PULL, {"notes": note})
+            self.notes.remove(note)
+
+    async def add_track_to_playlist(self, playlist: str, track: str):
+        await self._update(OperatorType.PUSH, {f"music_playlists.{playlist}": track})
+        self.music_playlists[playlist].append(track)
+
+    async def remove_track_from_playlist(self, playlist: str, track: str):
+        await self._update(OperatorType.PULL, {f"music_playlists.{playlist}": track})
+        self.music_playlists[playlist].remove(track)
+
+    async def remove_playlist(self, playlist: str):
+        await self._update(OperatorType.UNSET, {f"music_playlists.{playlist}": ""})
+        del self.music_playlists[playlist]
+
+    
 
 
 
