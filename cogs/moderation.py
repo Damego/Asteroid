@@ -20,13 +20,13 @@ class Moderation(Cog):
     async def mute(
         self, ctx: SlashContext, member: Member, reason: str = None, timeout: str = None
     ):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content("FUNC_MODERATION_MUTE_MEMBER", lang)
 
         if member.bot:
             return await ctx.send(content["CANNOT_MUTE_BOT_TEXT"], hidden=True)
 
-        muted_role = self.get_muted_role(ctx)
+        muted_role = await self.get_muted_role(ctx)
         await member.add_roles(muted_role, reason=reason)
 
         was_muted = content["WAS_MUTED_TEXT"].format(member.mention)
@@ -56,7 +56,7 @@ class Moderation(Cog):
             await channel.set_permissions(muted_role, speak=False, send_messages=False)
 
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        collection.update_one(
+        await collection.update_one(
             {"_id": "configuration"},
             {
                 "$set": {"muted_role": muted_role.id},
@@ -65,29 +65,29 @@ class Moderation(Cog):
         )
         content = get_content(
             "FUNC_MODERATION_MUTE_MEMBER",
-            lang=self.bot.get_guild_bot_lang(ctx.guild_id),
+            lang=await self.bot.get_guild_bot_lang(ctx.guild_id),
         )
         await ctx.send(
             content["MUTED_ROLE_CREATED_TEXT".format(role_name=muted_role.name)]
         )
 
-    def get_muted_role(self, ctx: SlashContext):
+    async def get_muted_role(self, ctx: SlashContext):
         collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        guild_data = collection.find_one({"_id": "configuration"})
+        guild_data = await collection.find_one({"_id": "configuration"})
         return ctx.guild.get_role(guild_data.get("muted_role"))
 
     @slash_subcommand(base="mod", name="unmute", description="Unmute members")
     @bot_owner_or_permissions(mute_members=True)
     @bot_has_guild_permissions(mute_members=True)
     async def unmute(self, ctx: SlashContext, member: Member):
-        muted_role = self.get_muted_role(ctx)
+        muted_role = await self.get_muted_role(ctx)
         await member.remove_roles(muted_role)
         await ctx.send("✅", hidden=True)
 
     @slash_subcommand(base="mod", name="ban", description="Ban member")
     @bot_owner_or_permissions(ban_members=True)
     async def ban(self, ctx: SlashContext, member: Member, reason: str = None):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content("FUNC_MODERATION_BAN_MEMBER", lang)
         if member.bot:
             return await ctx.send(content["CANNOT_BAN_BOT_TEXT"], hidden=True)
@@ -111,7 +111,7 @@ class Moderation(Cog):
     @bot_owner_or_permissions(kick_members=True)
     @bot_has_guild_permissions(kick_members=True)
     async def kick(self, ctx: SlashContext, member: Member, reason: str = None):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content("FUNC_MODERATION_KICK_MEMBER", lang)
         if member.bot:
             return await ctx.send(content["CANNOT_KICK_BOT_TEXT"], hidden=True)
@@ -151,7 +151,7 @@ class Moderation(Cog):
     @bot_has_guild_permissions(manage_nicknames=True)
     @slash_subcommand(base="mod", name="nick", description="Change nick of member")
     async def nick(self, ctx: SlashContext, member: Member, new_nick: str):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content: str = get_content("FUNC_MODERATION_CHANGE_NICK_TEXT", lang)
 
         embed = Embed(color=self.bot.get_embed_color(ctx.guild_id))
@@ -168,7 +168,7 @@ class Moderation(Cog):
         def check(message):
             return message.author.id == member.id
 
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content: str = get_content("FUNC_MODERATION_CLEAR_MESSAGES", lang)
 
         await ctx.defer(hidden=True)
@@ -194,7 +194,7 @@ class Moderation(Cog):
         self, ctx: SlashContext, member: Member, voice_channel: VoiceChannel
     ):
         content = get_content(
-            "MOD_COMMANDS_CONTENT", lang=self.bot.get_guild_bot_lang(ctx.guild_id)
+            "MOD_COMMANDS_CONTENT", lang=await self.bot.get_guild_bot_lang(ctx.guild_id)
         )
 
         if not isinstance(voice_channel, VoiceChannel):

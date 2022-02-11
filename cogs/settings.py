@@ -4,15 +4,11 @@ import sys
 
 from discord import Embed, Forbidden
 from discord.ext.commands import is_owner
-from discord_slash import SlashContext, SlashCommandOptionType
+from discord_slash import SlashContext, SlashCommandOptionType, Select, SelectOption, Button, ButtonStyle, ComponentContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
-from discord_components import Select, SelectOption, Button, ButtonStyle
-from discord_slash_components_bridge import ComponentContext
-
 from my_utils import AsteroidBot, get_content, bot_owner_or_permissions, Cog
 from my_utils.consts import LANGUAGES_LIST
-from my_utils.models.guild_data import GuildData, GuildConfiguration
 
 
 class Settings(Cog):
@@ -61,7 +57,7 @@ class Settings(Cog):
         elif len(color) != 6 and any(char not in "1234567890ABCDEFabcdef" for char in color):
             await ctx.send(content["WRONG_COLOR"])
             return
-        color = "0x" + color
+        color = f'0x{color}'
 
         await guild_data.configuration.set_embed_color(color)
         embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=int(color, 16))

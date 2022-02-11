@@ -65,7 +65,10 @@ class AsteroidBot(Bot):
     async def get_embed_color(self, guild_id: int):
         guild_data = await self.mongo.get_guild_data(guild_id)
         color = guild_data.configuration.embed_color
-        return int(color, 16)
+        if isinstance(color, int):
+            return color
+        elif isinstance(color, str):
+            return int(color, 16)
 
     async def get_guild_bot_lang(self, guild_id):
         guild_data = await self.mongo.get_guild_data(guild_id)

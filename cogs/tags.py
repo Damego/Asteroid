@@ -274,12 +274,13 @@ class Tags(Cog):
         tag_name = self.convert_tag_name(tag_name)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("EMBED_TAG_CONTROL", guild_data.configuration.language)
-
+        print(tag_name)
         tag = None
         for tag in guild_data.tags:
             if tag.name == tag_name:
+                print(tag.name)
                 break
-
+        print(tag.name)
         if tag and not tag.is_embed:
             return await ctx.send(content["NOT_SUPPORTED_TAG_TYPE"])
 
@@ -349,7 +350,7 @@ class Tags(Cog):
                 return await message.delete()
             elif button_id == "change_content":
                 embed = await self.edit_tag(
-                    ctx, button_ctx, embed, message, content
+                    button_ctx, embed, content
                 )
             elif button_id == "save_tag":
                 await self.save_tag(content, button_ctx, tag_name, embed)
@@ -396,10 +397,8 @@ class Tags(Cog):
 
     async def edit_tag(
         self,
-        ctx: SlashContext,
         button_ctx: ComponentContext,
         embed: Embed,
-        message: ComponentMessage,
         content: dict,
     ):
         modal = Modal(
@@ -424,15 +423,21 @@ class Tags(Cog):
             ]
         )
         await button_ctx.popup(modal)
-        modal_ctx: ModalContext = await self.bot.wait_for(
-            "modal",
-            check=lambda _modal_ctx: _modal_ctx.author_id == ctx.author_id and _modal_ctx.custom_id == "change_embed_content"
-        )
-        embed.title = modal_ctx.values["embed_title"]
-        embed.description = modal_ctx.values["embed_description"]
-        await modal_ctx.send(content["SUCCESSFULLY"], hidden=True)
-        await message.edit(embed=embed)
-        return embed
+
+    @Cog.listener()
+    async def on_modal(self, ctx: ModalContext):
+        if ctx.custom_id != "change_embed_content":
+            return
+        if ctx.author_id != ctx.origin_message.interaction.author_id:
+            return
+
+        content = get_content("EMBED_TAG_CONTROL", await self.bot.get_guild_bot_lang(ctx.guild_id))
+        embed = ctx.origin_message.embeds[0]
+        embed.title = ctx.values["embed_title"]
+        embed.description = ctx.values["embed_description"]
+
+        await ctx.send(content["SUCCESSFULLY"], hidden=True)
+        await ctx.origin_message.edit(embed=embed)
 
     async def save_tag(
         self, content: dict, ctx: ComponentContext, tag_name: str, embed: Embed

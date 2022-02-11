@@ -46,8 +46,7 @@ class GuildData:
             elif document["_id"] == 'roles_by_level':
                 self.roles_by_level = document
 
-        for user in data["users"]:
-            self.users = [GuildUser(self._users_collection, user)]
+        self.users = [GuildUser(self._users_collection, user) for user in data["users"]]
 
     async def add_user(self, user_id: int):
         data = {"_id": str(user_id)}
@@ -63,11 +62,18 @@ class GuildData:
         user_raw_data = await self._users_collection.find_one({"_id": str(user_id)})
         if user_raw_data is None:
             user = await self.add_user(user_id)
-            return user
         else:
             user = GuildUser(self._users_collection, user_raw_data)
             self.users.append(user)
-            return user
+
+        return user
+
+    async def remove_user(self, user_id: int):
+        await self._users_collection.delete_one({"_id": str(user_id)})
+        for user in self.users:
+            if user.id == str(user_id):
+                self.users.remove(user)
+                break
 
     async def add_autorole(self, name: str, data: dict):
         await self._main_collection.update_one(
@@ -128,8 +134,37 @@ class GuildData:
         self.cogs_data[cog_name] = self.cogs_data[cog_name] | data
         await self._main_collection.update_one(
             {"_id": "cogs_data"},
-            {OperatorType.SET, {cog_name: self.cogs_data[cog_name]}}
+            {OperatorType.SET.value: {cog_name: self.cogs_data[cog_name]}}
         )
+    
+    async def add_level_role(self, level: int, role_id: int):
+        await self._main_collection.update_one(
+            {"_id": "roles_by_level"},
+            {OperatorType.SET.value: {
+                str(level): role_id
+            }},
+            upsert=True
+        )
+        self.roles_by_level[str(level)] = role_id
+
+    async def remove_level_role(self, level: int):
+        await self._main_collection.update_one({"_id": "roles_by_level"}, {OperatorType.UNSET.value: {str(level): ""}}, upsert=True)
+        del self.roles_by_level[str(level)]
+
+    async def replace_levels(self, old_level: int, new_level: int):
+        role = self.roles_by_level[str(old_level)]
+        await self._main_collection.update_one(
+            {"_id": "roles_by_level"},
+            {"$unset": {str(old_level): ""}, "$set": {str(new_level): role}},
+            upsert=True,
+        )
+        del self.roles_by_level[str(old_level)]
+        self.roles_by_level[str(new_level)] = role
+
+    async def reset_roles_by_level(self):
+        await self._main_collection.delete_one({"_id": "roles_by_level"})
+        self.roles_by_level = {}
+
 
 class GuildConfiguration:
     def __init__(self, connection, data: dict) -> None:
@@ -351,10 +386,10 @@ class GuildTag:
         self.description = description
 
 class GuildUser:
-    def __init__(self, connection, id: str, data: dict) -> None:
+    def __init__(self, connection, data: dict) -> None:
         self._connection = connection
-        self.id: str = id
-        self.level: int = 0
+        self.id: str = data["_id"]
+        self.level: int = 1
         self.xp: int = 0
         self.xp_amount: int = 0
         self.role: str = ""
@@ -365,7 +400,7 @@ class GuildUser:
         self.music_playlists: Dict[str, list] = {}
 
         if leveling := data.get("leveling"):
-            self.level = leveling.get("level", 0)
+            self.level = leveling.get("level", 1)
             self.xp = leveling.get("xp", 0)
             self.xp_amount = leveling.get("xp_amount", 0)
             self.role = leveling.get("role", "")
@@ -385,7 +420,7 @@ class GuildUser:
     async def _update(self, type: OperatorType, data: dict):
         await self._connection.update_one(
             {"_id": self.id},
-            {type.value: {data}},
+            {type.value: data},
             upsert=True
         )
 
@@ -406,7 +441,7 @@ class GuildUser:
         self.xp_amount = self.xp_amount + xp_amount
         self.voice_time_count = self.voice_time_count + voice_time
 
-    async def set_leveling(self, *, level: int = None, xp: int = None, xp_amount: int = None, voice_time: int = None):
+    async def set_leveling(self, *, level: int = None, xp: int = None, xp_amount: int = None, voice_time: int = None, role: str = None):
         data = {}
         leveling = {}
         if level is not None:
@@ -423,6 +458,23 @@ class GuildUser:
         data["leveling"] = leveling
 
         await self._update(OperatorType.set, data)
+
+    async def reset_leveling(self):
+        data = {
+            "leveling": {
+                "level": 1,
+                "xp": 0,
+                "xp_amount": 0,
+                "role": ""
+            },
+            "voice_time_count": 0
+        }
+        await self._update(OperatorType.set, data)
+        self.level = 1
+        self.xp = 0
+        self.xp_amount = 0
+        self.role = ""
+        self.voice_time_count = 0
 
     async def set_genshin_uid(self, *, hoyolab_uid: int = None, game_uid: int = None):
         data = {}
@@ -451,6 +503,10 @@ class GuildUser:
     async def add_track_to_playlist(self, playlist: str, track: str):
         await self._update(OperatorType.PUSH, {f"music_playlists.{playlist}": track})
         self.music_playlists[playlist].append(track)
+
+    async def add_many_tracks(self, playlist:str, tracks: list):
+        await self._update(OperatorType.PUSH, {f"music_playlists.{playlist}": {OperatorType.EACH: tracks}})
+        self.music_playlists[playlist].extend(tracks)
 
     async def remove_track_from_playlist(self, playlist: str, track: str):
         await self._update(OperatorType.PULL, {f"music_playlists.{playlist}": track})

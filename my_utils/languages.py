@@ -399,6 +399,9 @@ LANGUAGES = {
                 "TITLES": "**ID | Участник | Текущий уровень**\n",
                 "TOP_MEMBERS_TEXT": "Топ участников по уровню",
                 "REQUESTED_BY_TEXT": "Запрошено",
+                "LEVEL": "Уровень",
+                "XP": "опыт",
+                "EMPTY_LEADERBOARD": "Топа нет"
             },
         },
         "HELP_COMMAND": {
@@ -786,6 +789,9 @@ LANGUAGES = {
                 "TITLES": "**ID | Member | Current Level**\n",
                 "TOP_MEMBERS_TEXT": "Top members by level",
                 "REQUESTED_BY_TEXT": "Requested by",
+                "LEVEL": "Level",
+                "XP": "xp",
+                "EMPTY_LEADERBOARD": "Leaderboard is empty"
             },
         },
         "HELP_COMMAND": {
