@@ -27,10 +27,9 @@ class GuildData:
         self.configuration: GuildConfiguration = None
         self.starboard: GuildStarboard = None
         self.tags: List[GuildTag] = []
-        self.cogs_status: Dict[str, Dict[str, str]] = None
-        self.autoroles: List[GuildAutoRole]  = None
-        self.roles_by_level = None
-        self.reaction_roles = None
+        self.cogs_status: Dict[str, Dict[str, str]] = {}
+        self.autoroles: List[GuildAutoRole] = []
+        self.roles_by_level = {}
         self.users_voice_time = {}
 
         for document in data["main"]:
@@ -101,17 +100,17 @@ class GuildData:
 
     async def add_autorole(self, name: str, data: dict):
         await self._main_collection.update_one(
-            {"_id": "tags"},
+            {"_id": "autorole"},
             {OperatorType.SET.value: {name: data}},
             upsert=True
         )
         self.autoroles.append(
-            GuildTag(self._main_collection, name, data)
+            GuildAutoRole(self._main_collection, name, data)
         )
 
     async def remove_autorole(self, name: str):
         await self._main_collection.update_one(
-            {"_id": "tags"},
+            {"_id": "autorole"},
             {OperatorType.UNSET.value: {name: ""}},
             upsert=True
         )

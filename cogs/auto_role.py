@@ -559,7 +559,7 @@ class AutoRole(Cog):
         if not ctx.custom_id.startswith("autorole_button"):
             return
         content = get_content(
-            "AUTOROLE_BUTTON", lang=self.bot.get_guild_bot_lang(ctx.guild_id)
+            "AUTOROLE_BUTTON", lang=await self.bot.get_guild_bot_lang(ctx.guild_id)
         )
         role_id = ctx.custom_id.split("|")[1]
         role = ctx.guild.get_role(int(role_id))
