@@ -5,7 +5,7 @@ from discord.ext.commands import BadArgument, bot_has_guild_permissions
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
-from my_utils import AsteroidBot, get_content, Cog, multiplier, bot_owner_or_permissions
+from my_utils import AsteroidBot, get_content, Cog, bot_owner_or_permissions
 
 
 class Moderation(Cog):
@@ -13,76 +13,6 @@ class Moderation(Cog):
         self.bot = bot
         self.emoji = 900384185804525678
         self.name = "Moderation"
-
-    @slash_subcommand(base="mod", name="mute", description="Mute member")
-    @bot_owner_or_permissions(mute_members=True)
-    @bot_has_guild_permissions(manage_roles=True)
-    async def mute(
-        self, ctx: SlashContext, member: Member, reason: str = None, timeout: str = None
-    ):
-        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("FUNC_MODERATION_MUTE_MEMBER", lang)
-
-        if member.bot:
-            return await ctx.send(content["CANNOT_MUTE_BOT_TEXT"], hidden=True)
-
-        muted_role = await self.get_muted_role(ctx)
-        await member.add_roles(muted_role, reason=reason)
-
-        was_muted = content["WAS_MUTED_TEXT"].format(member.mention)
-        message_content = was_muted
-        if reason:
-            message_content += f"\n{content['REASON_TEXT'].format(reason=reason)}"
-        if timeout:
-            amount, time_format = self._get_converted_time(timeout)
-            formatted_time_format = get_content("TIME_FORMATS", lang)[time_format]
-            message_content += f"\n{content['TIME_TEXT'].format(amount=amount, time_format=formatted_time_format)}"
-
-        await ctx.send(message_content)
-
-        if timeout:
-            await asyncio.sleep(amount * multiplier[time_format])
-            await member.remove_roles(muted_role, reason="Unmuting after time")
-
-    @slash_subcommand(
-        base="mod", name="create_muted_role", description="Creates muted role"
-    )
-    @bot_owner_or_permissions(mute_members=True)
-    @bot_has_guild_permissions(manage_roles=True, manage_channels=True)
-    async def create_muted_role(self, ctx: SlashContext, role_name: str):
-        await ctx.defer()
-        muted_role = await ctx.guild.create_role(name=role_name)
-        for channel in ctx.guild.channels:
-            await channel.set_permissions(muted_role, speak=False, send_messages=False)
-
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        await collection.update_one(
-            {"_id": "configuration"},
-            {
-                "$set": {"muted_role": muted_role.id},
-            },
-            upsert=True,
-        )
-        content = get_content(
-            "FUNC_MODERATION_MUTE_MEMBER",
-            lang=await self.bot.get_guild_bot_lang(ctx.guild_id),
-        )
-        await ctx.send(
-            content["MUTED_ROLE_CREATED_TEXT".format(role_name=muted_role.name)]
-        )
-
-    async def get_muted_role(self, ctx: SlashContext):
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        guild_data = await collection.find_one({"_id": "configuration"})
-        return ctx.guild.get_role(guild_data.get("muted_role"))
-
-    @slash_subcommand(base="mod", name="unmute", description="Unmute members")
-    @bot_owner_or_permissions(mute_members=True)
-    @bot_has_guild_permissions(mute_members=True)
-    async def unmute(self, ctx: SlashContext, member: Member):
-        muted_role = await self.get_muted_role(ctx)
-        await member.remove_roles(muted_role)
-        await ctx.send("✅", hidden=True)
 
     @slash_subcommand(base="mod", name="ban", description="Ban member")
     @bot_owner_or_permissions(ban_members=True)
