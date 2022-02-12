@@ -2,10 +2,8 @@ from asyncio import TimeoutError
 import datetime
 
 from discord import Embed
-from discord_slash import SlashContext
+from discord_slash import SlashContext, ComponentContext, Select, SelectOption
 from discord_slash.cog_ext import cog_slash as slash_command
-from discord_components import Select, SelectOption
-from discord_slash_components_bridge import ComponentContext
 
 from my_utils import AsteroidBot, get_content, Cog
 
@@ -21,7 +19,7 @@ class Help(Cog):
     async def help_command(self, ctx: SlashContext):
         await ctx.defer()
 
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("HELP_COMMAND", lang)
 
         components = self._init_components(ctx, content)
@@ -220,8 +218,7 @@ class Help(Cog):
         if command.base not in commands_data[cog]:
             commands_data[cog][command.base] = {}
 
-        has_subcommand_group = command.subcommand_group is not None
-        if has_subcommand_group:
+        if has_subcommand_group := command.subcommand_group is not None:
             if command.subcommand_group not in commands_data[cog][command.base]:
                 commands_data[cog][command.base][command.subcommand_group] = {}
             commands_data[cog][command.base][command.subcommand_group][command.name] = {

@@ -10,7 +10,6 @@ from my_utils import AsteroidBot, get_content, transform_permission
 from my_utils.errors import *
 from my_utils import slash_override
 
-
 bot = AsteroidBot(command_prefix="+", intents=Intents.all())
 
 

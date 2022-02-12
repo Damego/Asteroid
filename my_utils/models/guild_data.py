@@ -1,4 +1,4 @@
-import dataclasses
+from time import time
 from enum import Enum
 from typing import Dict, List, Union
 
@@ -31,6 +31,7 @@ class GuildData:
         self.autoroles: List[GuildAutoRole]  = None
         self.roles_by_level = None
         self.reaction_roles = None
+        self.users_voice_time = {}
 
         for document in data["main"]:
             if document["_id"] == "configuration":
@@ -45,8 +46,31 @@ class GuildData:
                 self.autoroles = [GuildAutoRole(self._main_collection, name, data) for name, data in document.items() if name != "_id"]
             elif document["_id"] == 'roles_by_level':
                 self.roles_by_level = document
+            elif document["_id"] == 'voice_time':
+                self.users_voice_time = document
 
         self.users = [GuildUser(self._users_collection, user) for user in data["users"]]
+
+    async def add_user_to_voice(self, user_id: int):
+        _time = int(time())
+        await self._main_collection.update_one(
+            {"_id": "voice_time"},
+            {OperatorType.SET: {
+                str(user_id): _time
+            }},
+            upsert=True
+        )
+        self.users_voice_time[str(user_id)] = _time
+
+    async def remove_user_to_voice(self, user_id: int):
+        await self._main_collection.update_one(
+            {"_id": "voice_time"},
+            {OperatorType.UNSET: {
+                str(user_id): ""
+            }},
+            upsert=True
+        )
+        del self.users_voice_time[str(user_id)]
 
     async def add_user(self, user_id: int):
         data = {"_id": str(user_id)}
@@ -423,6 +447,14 @@ class GuildUser:
             {type.value: data},
             upsert=True
         )
+
+    async def set_genshin_uid(self, hoyolab_uid: int, game_uid: int):
+        await self._update(
+            OperatorType.SET,
+            {"genshin": {"hoyolab_uid":hoyolab_uid, "uid": game_uid}}
+        )
+        self.hoyolab_uid = hoyolab_uid
+        self.genshin_uid = game_uid
 
     async def increase_leveling(self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0):
         await self._update(

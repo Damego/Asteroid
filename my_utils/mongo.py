@@ -2,6 +2,7 @@ from os import getenv
 
 import certifi
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCursor
+from pymongo.collection import Collection
 from dotenv import load_dotenv
 
 from .models.guild_data import GuildData
@@ -51,6 +52,11 @@ class Mongo:
 
         json_data = await self.get_guild_raw_data(guild_id)
         self._cache[str(guild_id)] = GuildData(self._guilds, json_data, guild_id)
+
+    async def delete_guild(self, guild_id: int):
+        await self._guilds[str(guild_id)]["configuration"].drop()
+        await self._guilds[str(guild_id)]["users"].drop()
+        del self._cache[str(guild_id)]
 
     async def get_guild_raw_data(self, guild_id: int):
         main_data_cursor: AsyncIOMotorCursor = self._guilds[str(guild_id)]["configuration"].find()

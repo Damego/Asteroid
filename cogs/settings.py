@@ -63,8 +63,6 @@ class Settings(Cog):
         embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=int(color, 16))
         await ctx.send(embed=embed, delete_after=10)
 
-        print(guild_data.configuration.embed_color)
-
     @slash_subcommand(
         base="staff", subcommand_group="ext", name="load", description="Load extension"
     )

@@ -14,13 +14,17 @@ from discord import (
     AsyncWebhookAdapter,
     TextChannel,
     Forbidden,
+    ChannelType,
+    File
 )
-from discord_slash import SlashContext, ContextMenuType, MenuContext, Button, ButtonStyle
+from discord.ext import commands
+from discord_slash import SlashContext, ContextMenuType, MenuContext, Button, ButtonStyle, SlashCommandOptionType
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu,
 )
+from discord_slash.utils.manage_commands import create_option
 
 from my_utils import (
     AsteroidBot,
@@ -94,20 +98,20 @@ class Misc(Cog):
     async def get_member_information_slash(
         self, ctx: SlashContext, member: Member = None
     ):
-        embed = self._get_embed_member_info(ctx, member or ctx.author)
+        embed = await self._get_embed_member_info(ctx, member or ctx.author)
         await ctx.send(embed=embed)
 
     @context_menu(name="Profile", target=ContextMenuType.USER)
     @is_enabled()
     async def get_member_information_context(self, ctx: MenuContext):
         member = ctx.target_author
-        embed = self._get_embed_member_info(ctx, member)
+        embed = await self._get_embed_member_info(ctx, member)
         await ctx.send(embed=embed)
 
-    def _get_embed_member_info(
+    async def _get_embed_member_info(
         self, ctx: Union[SlashContext, MenuContext], member: Member
     ) -> Embed:
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("FUNC_MEMBER_INFO", lang=lang)
 
         status = content["MEMBER_STATUS"]
@@ -132,7 +136,7 @@ class Misc(Cog):
             else ""
         )
 
-        embed = Embed(title=about_text, color=self.bot.get_embed_color(ctx.guild_id))
+        embed = Embed(title=about_text, color=await self.bot.get_embed_color(ctx.guild_id))
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(text=f"{ctx.author.name}", icon_url=ctx.author.avatar_url)
         embed.add_field(
@@ -159,27 +163,21 @@ class Misc(Cog):
                 levels_enabled = False
 
         if levels_enabled:
-            self._get_levels_info(ctx, member.id, embed, content)
+            await self._get_levels_info(ctx, member.id, embed, content)
 
         return embed
 
-    def _get_levels_info(
+    async def _get_levels_info(
         self, ctx: SlashContext, user_id: int, embed: Embed, content: dict
     ):
         content = content["LEVELING"]
-        users_collection = self.bot.get_guild_users_collection(ctx.guild_id)
-        user_data = users_collection.find_one({"_id": str(user_id)})
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(user_id)
 
-        if user_data is None:
-            return
-        user_stats = user_data.get("leveling")
-        if user_stats is None:
-            return
-
-        user_level = user_stats["level"]
+        user_level = user_data.level
         user_exp, user_exp_amount, user_voice_time = map(
             int,
-            [user_stats["xp"], user_stats["xp_amount"], user_data["voice_time_count"]],
+            [user_data.xp, user_data.xp_amount, user_data.voice_time_count],
         )
         xp_to_next_level = formula_of_experience(user_level)
 
@@ -268,7 +266,7 @@ class Misc(Cog):
         embed = Embed(
             title=f"Server permissions for {role.name} role",
             description=description,
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=await self.bot.get_embed_color(ctx.guild_id),
         )
 
         await ctx.send(embed=embed)
@@ -277,7 +275,7 @@ class Misc(Cog):
     @is_enabled()
     async def invite_bot(self, ctx: SlashContext):
         content = get_content(
-            "INVITE_COMMAND", lang=self.bot.get_guild_bot_lang(ctx.guild_id)
+            "INVITE_COMMAND", lang=await self.bot.get_guild_bot_lang(ctx.guild_id)
         )
 
         components = [
@@ -337,7 +335,7 @@ class Misc(Cog):
         if not url_rx.match(url):
             return await ctx.send("Not link", hidden=True)
 
-        embed = Embed(title="Image")
+        embed = Embed()
         embed.set_image(url=url)
         await ctx.send(embed=embed)
 

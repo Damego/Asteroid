@@ -1,8 +1,8 @@
-import discord
-import genshinstats as gs
-from genshinstats.errors import DataNotPublic, AccountNotFound
+from discord import Embed
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
+import genshinstats as gs
+from genshinstats.errors import DataNotPublic, AccountNotFound
 
 from my_utils import (
     UIDNotBinded,
@@ -32,12 +32,10 @@ class GenshinStats(Cog):
         if uid is None:
             raise GenshinAccountNotFound
 
-        collection = self.bot.get_guild_users_collection(ctx.guild_id)
-        collection.update_one(
-            {"_id": str(ctx.author_id)},
-            {"$set": {"genshin.hoyolab_uid": hoyolab_uid, "genshin.uid": uid}},
-            upsert=True,
-        )
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user( ctx.author_id)
+
+        await user_data.set_genshin_uid(hoyolab_uid, uid)
         lang = self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("GENSHIN_BIND_COMMAND", lang)
         await ctx.send(content)
@@ -51,11 +49,11 @@ class GenshinStats(Cog):
     async def statistics(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
-            uid = self._get_UID("", ctx.guild_id, ctx.author_id)
+            uid = self._get_UID(ctx, uid=uid)
 
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("GENSHIN_STATISTICS_COMMAND", lang)
-        genshin_data_lang = "ru-ru" if lang == "ru" else "en-us"
+        genshin_data_lang = "ru-ru" if lang == "Russian" else "en-us"
 
         self._get_cookie()
         try:
@@ -68,9 +66,9 @@ class GenshinStats(Cog):
         user_explorations = reversed(user_data["explorations"])
         user_stats = user_data["stats"]
 
-        embed = discord.Embed(
+        embed = Embed(
             title=content["EMBED_WORLD_EXPLORATION_TITLE"],
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=await self.bot.get_embed_color(ctx.guild_id),
         )
         embed.set_footer(text=f"UID: {uid}")
 
@@ -132,9 +130,9 @@ class GenshinStats(Cog):
     async def characters(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
-            uid = self._get_UID("", ctx.guild.id, ctx.author.id)
+            uid = self._get_UID(ctx, uid=uid)
 
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("GENSHIN_CHARACTERS_LIST_COMMAND", lang)
         chars_vision_content = get_content("GENSHIN_CHARACTERS_COMMAND", lang)[
             "GENSHIN_CHARACTER_VISION"
@@ -149,9 +147,9 @@ class GenshinStats(Cog):
         except AccountNotFound:
             raise GenshinAccountNotFound
 
-        embed = discord.Embed(
+        embed = Embed(
             title=content["EMBED_GENSHIN_CHARACTERS_LIST_TITLE"],
-            color=self.bot.get_embed_color(ctx.guild.id),
+            color=await self.bot.get_embed_color(ctx.guild.id),
         )
         embed.set_footer(text=f"UID: {uid}")
 
@@ -176,11 +174,11 @@ class GenshinStats(Cog):
     async def chars(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
-            uid = self._get_UID("", ctx.guild.id, ctx.author.id)
+            uid = self._get_UID(ctx, uid=uid)
 
         self._get_cookie()
 
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("GENSHIN_CHARACTERS_COMMAND", lang)
         _lang = "ru-ru" if lang == "ru" else "en-us"
 
@@ -195,13 +193,13 @@ class GenshinStats(Cog):
         pages = len(characters)
 
         for _page, character in enumerate(characters, start=1):
-            embed = discord.Embed(
+            embed = Embed(
                 title=f'{character["name"]} {"⭐" * character["rarity"]}',
                 color=self.bot.get_embed_color(ctx.guild.id),
             )
             embed.set_thumbnail(url=character["icon"])
             embed.set_footer(text=f"UID: {uid}. {_page}/{pages}")
-            embed = self.get_character_info(content, embed, character)
+            embed = await self.get_character_info(content, embed, character)
             embeds.append(embed)
 
         paginator = Paginator(
@@ -216,7 +214,7 @@ class GenshinStats(Cog):
     async def info(self, ctx: SlashContext, hoyolab_uid: int = None):
         await ctx.defer()
         if hoyolab_uid is None:
-            hoyolab_uid = self._get_UID("hoyolab", ctx.guild_id, ctx.author_id)
+            hoyolab_uid = self._get_UID(ctx, is_game_uid=False, uid=hoyolab_uid)
 
         self._get_cookie()
         card = gs.get_record_card(hoyolab_uid)
@@ -226,7 +224,7 @@ class GenshinStats(Cog):
         user_data = gs.get_user_stats(int(card["game_role_id"]))
         user_stats = user_data["stats"]
 
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("GENSHIN_INFO_COMMAND", lang)
 
         description = f"""
@@ -238,10 +236,10 @@ class GenshinStats(Cog):
         <:spiral_abyss:871370970600968233> {content['SPIRAL_ABYSS_TEXT']}: `{user_stats['spiral_abyss']}`
         """
 
-        embed = discord.Embed(
+        embed = Embed(
             title=content["PLAYER_INFO_TEXT"],
             description=description,
-            color=self.bot.get_embed_color(ctx.guild.id),
+            color=await self.bot.get_embed_color(ctx.guild.id),
         )
         embed.set_footer(text=f"Hoyolab UID: {hoyolab_uid}")
         await ctx.send(embed=embed)
@@ -251,26 +249,16 @@ class GenshinStats(Cog):
             ltuid=147861638, ltoken="3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU"
         )
 
-    def _get_UID(self, uid_type: str, guild_id: int, author_id: int):
-        collection = self.bot.get_guild_users_collection(guild_id)
-        user_stats = collection.find_one({"_id": str(author_id)})
+    async def _get_UID(self, ctx: SlashContext, *, is_game_uid: bool = True, user_id: int = None):
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(user_id or ctx.author_id)
 
-        if user_stats is None:
-            raise UIDNotBinded
-        user_genshin = user_stats.get("genshin")
-        if user_genshin is None:
-            raise UIDNotBinded
-
-        if uid_type == "hoyolab":
-            uid = user_genshin.get("hoyolab_uid")
-        else:
-            uid = user_genshin.get("uid")
-
+        uid = user_data.genshin_uid if is_game_uid else user_data.hoyolab_uid
         if uid is None:
             raise UIDNotBinded
         return uid
 
-    def get_character_info(self, content, embed: discord.Embed, character):
+    def get_character_info(self, content: dict, embed: Embed, character: dict):
         embed.description = f"""
             {content['INFORMATION_TEXT']}
             » <:character_exp:871389287978008616> {content['CHARACTER_LEVEL']}: `{character['level']}`

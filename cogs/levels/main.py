@@ -65,95 +65,59 @@ class Levels(Cog):
         if member.bot:
             return
 
-        voice_collection = self.bot.get_guild_voice_time_collection(member.guild.id)
+        guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
 
         if (not before.channel) and after.channel:  # * If member join to channel
             members = after.channel.members
             if len(members) == 2:
-                voice_collection.update_one(
-                    {"_id": str(member.id)},
-                    {"$set": {"voice_time": time()}},
-                    upsert=True,
-                )
-
-                first_member = members[0]
-                if voice_collection.find_one({"_id": str(first_member.id)}) is None:
-                    voice_collection.update_one(
-                        {"_id": str(first_member.id)},
-                        {"$set": {"voice_time": time()}},
-                        upsert=True,
-                    )
+                await guild_data.add_user_to_voice(member.id)
+                await guild_data.add_user_to_voice(members[0].id)
             elif len(members) > 2:
-                voice_collection.update_one(
-                    {"_id": str(member.id)},
-                    {"$set": {"voice_time": time()}},
-                    upsert=True,
-                )
+                await guild_data.add_user_to_voice(member.id)
 
         elif member not in before.channel.members and (
             not after.channel
         ):  # * if member left from channel
             members = before.channel.members
             if len(members) == 1:
-                await self.check_time(member, voice_collection)
+                await self.check_time(member)
                 first_member = members[0]
-                await self.check_time(first_member, voice_collection)
+                await self.check_time(first_member)
             elif len(members) > 1:
-                await self.check_time(member, voice_collection)
+                await self.check_time(member)
         elif member not in before.channel.members and member in after.channel.members:
             # * If member moved from one channel to another
             before_members = before.channel.members
             after_members = after.channel.members
 
-            if len(before_members) == 0:
-                if len(after_members) == 1:
-                    return
-                elif len(after_members) > 1:
-                    if len(after_members) == 2:
-                        voice_collection.update_one(
-                            {"_id": str(after_members[0].id)},
-                            {"$set": {"voice_time": time()}},
-                            upsert=True,
-                        )
-                    voice_collection.update_one(
-                        {"_id": str(member.id)},
-                        {"$set": {"voice_time": time()}},
-                        upsert=True,
-                    )
+            if len(before_members) == 0 and len(after_members) > 1:
+                if len(after_members) == 2:
+                    await guild_data.add_user_to_voice(after_members[0].id)
+                await guild_data.add_user_to_voice(member.id)
 
             if len(before_members) == 1:
-                await self.check_time(before_members[0], voice_collection)
+                await self.check_time(before_members[0])
             if len(after_members) == 1:
-                await self.check_time(after_members[0], voice_collection)
+                await self.check_time(after_members[0])
 
-    async def check_time(self, member: Member, voice_collection: Collection):
-        voice_user = voice_collection.find_one({"_id": str(member.id)})
+    async def check_time(self, member: Member):
+        guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
+
+        voice_user = guild_data.users_voice_time.get(str(member.id))
         if voice_user is None:
             return
-        sit_time = int(time()) - voice_user["voice_time"]
-        voice_collection.delete_one({"_id": str(member.id)})
-        exp = (sit_time // 60) * self.time_factor
-        await update_member(self.bot, member, exp)
 
-        collection = self.bot.get_guild_users_collection(member.guild.id)
-        user_data = collection.find_one({"_id": str(member.id)})
+        total_time = int(time()) - voice_user
+        earned_exp = (total_time // 60) * self.time_factor
+        await update_member(self.bot, member, earned_exp)
 
-        if user_data.get("voice_time_count") is None:
-            collection.update_one(
-                {"_id": str(member.id)}, {"$set": {"voice_time_count": 0}}, upsert=True
-            )
-        collection.update_one(
-            {"_id": str(member.id)}, {"$inc": {"voice_time_count": (sit_time // 60)}}
-        )
+        user_data = await guild_data.get_user(member.id)
+        await user_data.increase_leveling(voice_time=total_time // 60)
 
     @Cog.listener()
     async def on_message(self, message: Message):
         if message.author.bot:
             return
-
-        guild_data = await self.bot.mongo.get_guild_data(message.guild.id)
-        user_data = await guild_data.get_user(message.guild.id)
-
         xp = randint(25, 35)
         await update_member(self.bot, message, xp)
 
@@ -246,7 +210,6 @@ class Levels(Cog):
             raise NoData
         await guild_data.remove_level_role(level)
         await ctx.send("✅", hidden=True)
-
 
     @slash_subcommand(
         base="levels",
