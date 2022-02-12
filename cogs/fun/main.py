@@ -24,7 +24,6 @@ from ._tictactoe_online import TicTacToeOnline, BoardMode
 from ._tictactoe_ai import TicTacToeAI, TicTacToeMode
 from ._rockpaperscissors import RockPaperScissors
 from ._calculator import Calculator
-from ._checkers import Checkers
 
 
 bored_api_types = [
