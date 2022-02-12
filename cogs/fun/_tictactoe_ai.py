@@ -10,13 +10,8 @@ from math import inf
 from typing import List, Union
 
 from discord import Embed
-from discord_components import Button, ButtonStyle
-from discord_slash.context import SlashContext
-from discord_slash_components_bridge import (
-    ComponentContext,
-    ComponentMessage,
-    SlashMessage,
-)
+from discord_slash import ComponentContext, ComponentMessage, SlashContext, Button, ButtonStyle
+
 
 from my_utils import AsteroidBot
 
@@ -39,7 +34,7 @@ class TicTacToeAI:
     def __init__(
         self,
         bot: AsteroidBot,
-        ctx: Union[SlashContext, ComponentContext],
+        ctx: ComponentContext,
         mode: TicTacToeMode,
     ):
         self.bot = bot
@@ -161,7 +156,7 @@ class TicTacToeAI:
     async def process_turn(self, ctx: ComponentContext):
         await ctx.defer(edit_origin=True)
         pos = list(map(int, ctx.custom_id.split()))
-        self.board = self.get_board_state(ctx.message.components)
+        self.board = self.get_board_state(ctx.origin_message.components)
         self.board[pos[0]][pos[1]] = GameState.player
 
         if not self.is_won(self.board, GameState.player):
@@ -193,7 +188,7 @@ class TicTacToeAI:
         self,
         *,
         edit_origin: bool = False,
-        message: Union[SlashMessage, ComponentMessage] = None,
+        message: ComponentMessage = None,
     ):
         ctx = self.ctx
         self.game_embed = Embed(
@@ -219,14 +214,14 @@ class TicTacToeAI:
                 comp_ctx: ComponentContext = await self.bot.wait_for(
                     "button_click",
                     check=lambda _ctx: ctx.author_id == _ctx.author_id
-                    and message.id == _ctx.message.id,
+                    and message.id == _ctx.origin_message.id,
                     timeout=180,
                 )
             except TimeoutError:
                 components = self.render_gameboard(disable=True)
-                return await ctx.message.edit(components=components)
+                return await ctx.origin_message.edit(components=components)
 
             res = await self.process_turn(comp_ctx)
             if res:
                 components = self.render_gameboard(disable=True)
-                return await comp_ctx.message.edit(components=components)
+                return await comp_ctx.origin_message.edit(components=components)

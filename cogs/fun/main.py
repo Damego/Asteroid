@@ -9,15 +9,13 @@ from discord_slash import (
     SlashContext,
     ContextMenuType,
     MenuContext,
-    SlashCommandOptionType,
+    SlashCommandOptionType, Button, ButtonStyle, Select, SelectOption, ComponentContext
 )
 from discord_slash.cog_ext import (
     cog_subcommand as slash_subcommand,
     cog_context_menu as context_menu,
 )
 from discord_slash.utils.manage_commands import create_option, create_choice
-from discord_slash_components_bridge import ComponentContext
-from discord_components import Button, ButtonStyle, Select, SelectOption
 import qrcode
 import requests
 
@@ -26,6 +24,7 @@ from ._tictactoe_online import TicTacToeOnline, BoardMode
 from ._tictactoe_ai import TicTacToeAI, TicTacToeMode
 from ._rockpaperscissors import RockPaperScissors
 from ._calculator import Calculator
+from ._checkers import Checkers
 
 
 bored_api_types = [
@@ -147,21 +146,21 @@ class Fun(Cog):
         message = await ctx.send(embed=embed, components=components)
 
         try:
-            _ctx: ComponentContext = await self.bot.wait_for(
+            button_ctx: ComponentContext = await self.bot.wait_for(
                 "button_click",
                 check=lambda __ctx: __ctx.author_id == ctx.author_id
-                and __ctx.message.id == message.id,
+                and __ctx.origin_message.id == message.id,
                 timeout=60,
             )
         except TimeoutError:
             return await message.delete()
 
-        if _ctx.custom_id == "ttt_easy":
+        if button_ctx.custom_id == "ttt_easy":
             mode = TicTacToeMode.easy
         else:
             mode = TicTacToeMode.impossible
 
-        ttt = TicTacToeAI(self.bot, _ctx, mode=mode)
+        ttt = TicTacToeAI(self.bot, button_ctx, mode=mode)
         await ttt.start(edit_origin=True, message=message)
 
     async def start_tictactoe_online(self, ctx, member: Member, mode: str):
@@ -220,7 +219,7 @@ class Fun(Cog):
             embed = Embed(
                 title=game_name,
                 description=f"{ctx.author.display_name} VS {member.display_name}",
-                color=self.bot.get_embed_color(ctx.guild.id),
+                color=await self.bot.get_embed_color(ctx.guild.id),
             )
             await message.edit(content=" ", embed=embed)
             return message, True
@@ -242,7 +241,7 @@ class Fun(Cog):
             embed = Embed(
                 title=game_name,
                 description=f"{ctx.author.display_name} VS {member.display_name}",
-                color=self.bot.get_embed_color(ctx.guild.id),
+                color=await self.bot.get_embed_color(ctx.guild.id),
             )
             await message.edit(content=" ", embed=embed)
             return message, True

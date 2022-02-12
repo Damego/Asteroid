@@ -36,8 +36,7 @@ class GenshinStats(Cog):
         user_data = await guild_data.get_user( ctx.author_id)
 
         await user_data.set_genshin_uid(hoyolab_uid, uid)
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content("GENSHIN_BIND_COMMAND", lang)
+        content = get_content("GENSHIN_BIND_COMMAND", guild_data.configuration.language)
         await ctx.send(content)
 
     @slash_subcommand(
@@ -49,7 +48,7 @@ class GenshinStats(Cog):
     async def statistics(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
-            uid = self._get_UID(ctx, uid=uid)
+            uid = await self._get_UID(ctx)
 
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("GENSHIN_STATISTICS_COMMAND", lang)
@@ -130,7 +129,7 @@ class GenshinStats(Cog):
     async def characters(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
-            uid = self._get_UID(ctx, uid=uid)
+            uid = await self._get_UID(ctx)
 
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("GENSHIN_CHARACTERS_LIST_COMMAND", lang)
@@ -174,7 +173,7 @@ class GenshinStats(Cog):
     async def chars(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
-            uid = self._get_UID(ctx, uid=uid)
+            uid = await self._get_UID(ctx)
 
         self._get_cookie()
 
@@ -195,15 +194,15 @@ class GenshinStats(Cog):
         for _page, character in enumerate(characters, start=1):
             embed = Embed(
                 title=f'{character["name"]} {"⭐" * character["rarity"]}',
-                color=self.bot.get_embed_color(ctx.guild.id),
+                color=await self.bot.get_embed_color(ctx.guild.id),
             )
             embed.set_thumbnail(url=character["icon"])
             embed.set_footer(text=f"UID: {uid}. {_page}/{pages}")
-            embed = await self.get_character_info(content, embed, character)
+            embed = self.get_character_info(content, embed, character)
             embeds.append(embed)
 
         paginator = Paginator(
-            self.bot, ctx, PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds
+            self.bot, ctx, PaginatorStyle.TWO_BUTTONS, embeds
         )
         await paginator.start()
 
@@ -214,7 +213,7 @@ class GenshinStats(Cog):
     async def info(self, ctx: SlashContext, hoyolab_uid: int = None):
         await ctx.defer()
         if hoyolab_uid is None:
-            hoyolab_uid = self._get_UID(ctx, is_game_uid=False, uid=hoyolab_uid)
+            hoyolab_uid = await self._get_UID(ctx, is_game_uid=False)
 
         self._get_cookie()
         card = gs.get_record_card(hoyolab_uid)
@@ -249,9 +248,9 @@ class GenshinStats(Cog):
             ltuid=147861638, ltoken="3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU"
         )
 
-    async def _get_UID(self, ctx: SlashContext, *, is_game_uid: bool = True, user_id: int = None):
+    async def _get_UID(self, ctx: SlashContext, *, is_game_uid: bool = True):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        user_data = await guild_data.get_user(user_id or ctx.author_id)
+        user_data = await guild_data.get_user(ctx.author_id)
 
         uid = user_data.genshin_uid if is_game_uid else user_data.hoyolab_uid
         if uid is None:

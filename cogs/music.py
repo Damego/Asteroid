@@ -569,6 +569,8 @@ class Music(Cog):
         await self._added_to_queue(ctx, track or tracks, content)
 
         if not player.is_playing:
+            if isinstance(track, list):
+                track = track[0]
             await self._send_message(ctx, track or tracks[0], content)
             await player.play()
 

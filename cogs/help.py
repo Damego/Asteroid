@@ -28,16 +28,16 @@ class Help(Cog):
 
         while True:
             try:
-                interaction: ComponentContext = await self.bot.wait_for(
+                button_ctx: ComponentContext = await self.bot.wait_for(
                     "select_option",
-                    check=lambda inter: inter.author_id == ctx.author_id
-                    and inter.message.id == message.id,
+                    check=lambda _ctx: _ctx.author_id == ctx.author_id
+                    and _ctx.origin_message.id == message.id,
                     timeout=60,
                 )
             except TimeoutError:
                 return await message.edit(components=[])
 
-            value = interaction.values[0]
+            value = button_ctx.values[0]
 
             if value == "main_page":
                 embed = embeds[0]
@@ -45,7 +45,7 @@ class Help(Cog):
                 for embed in embeds:
                     if embed.title.startswith(value):
                         break
-            await interaction.edit_origin(embed=embed)
+            await button_ctx.edit_origin(embed=embed)
 
     @staticmethod
     def _cog_is_private(ctx: SlashContext, cog: Cog):
@@ -71,7 +71,7 @@ class Help(Cog):
 
     def _init_embeds(self, ctx: SlashContext, content: dict, guild_language: str):
         translated_commands = None
-        if guild_language != "en":
+        if guild_language != "English":
             translated_commands = get_content("TRANSLATED_COMMANDS", guild_language)
         commands_data = self._get_commands_data()
         embeds = [self._get_main_menu(ctx, content)]
