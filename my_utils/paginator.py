@@ -10,38 +10,38 @@ from discord_slash import SlashContext, Button, ButtonStyle, ComponentContext, C
 components = {
     1: [
         [
-            Button(style=ButtonStyle.gray, label="←", id="back", disabled=True),
-            Button(style=ButtonStyle.gray, label="→", id="next"),
+            Button(style=ButtonStyle.gray, label="←", custom_id="back", disabled=True),
+            Button(style=ButtonStyle.gray, label="→", custom_id="next"),
         ]
     ],
     2: [
         [
-            Button(style=ButtonStyle.gray, label="<<", id="first", disabled=True),
-            Button(style=ButtonStyle.gray, label="←", id="back", disabled=True),
-            Button(style=ButtonStyle.gray, label="→", id="next"),
-            Button(style=ButtonStyle.gray, label=">>", id="last"),
+            Button(style=ButtonStyle.gray, label="<<", custom_id="first", disabled=True),
+            Button(style=ButtonStyle.gray, label="←", custom_id="back", disabled=True),
+            Button(style=ButtonStyle.gray, label="→", custom_id="next"),
+            Button(style=ButtonStyle.gray, label=">>", custom_id="last"),
         ]
     ],
     3: [
         [
-            Button(style=ButtonStyle.gray, label="←", id="back", disabled=True),
+            Button(style=ButtonStyle.gray, label="←", custom_id="back", disabled=True),
             Button(
                 style=ButtonStyle.green,
                 label="1/{pages}",
                 emoji="🏠",
-                id="home",
+                custom_id="home",
                 disabled=True,
             ),
-            Button(style=ButtonStyle.gray, label="→", id="next"),
+            Button(style=ButtonStyle.gray, label="→", custom_id="next"),
         ]
     ],
     4: [
         [
-            Button(style=ButtonStyle.gray, label="<<", id="first", disabled=True),
-            Button(style=ButtonStyle.gray, label="←", id="back", disabled=True),
+            Button(style=ButtonStyle.gray, label="<<", custom_id="first", disabled=True),
+            Button(style=ButtonStyle.gray, label="←", custom_id="back", disabled=True),
             Button(style=ButtonStyle.blue, label="1/{pages}", disabled=True),
-            Button(style=ButtonStyle.gray, label="→", id="next"),
-            Button(style=ButtonStyle.gray, label=">>", id="last"),
+            Button(style=ButtonStyle.gray, label="→", custom_id="next"),
+            Button(style=ButtonStyle.gray, label=">>", custom_id="last"),
         ]
     ],
 }

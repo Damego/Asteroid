@@ -7,7 +7,6 @@ from discord.ext.commands import BadArgument
 from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
-from pymongo.collection import Collection
 
 from my_utils import (
     AsteroidBot,
@@ -15,11 +14,10 @@ from my_utils import (
     is_enabled,
     _cog_is_enabled,
     CogDisabledOnGuild,
+    NoData,
     Cog,
-    consts,
     get_content,
 )
-from my_utils.errors import NoData
 from my_utils.paginator import Paginator, PaginatorStyle
 from ._levels import update_member, formula_of_experience
 

@@ -69,14 +69,37 @@ class Tags(Cog):
         embed = Embed(
             title=tag.title,
             description=tag.description,
-            color=guild_data.configuration.language,
+            color=guild_data.configuration.embed_color,
         )
 
         await ctx.send(embed=embed)
 
-    @slash_subcommand(base="tag", name="add", description="Create new tag")
+    @slash_subcommand(
+        base="tag", 
+        name="add", 
+        description="Create new tag",
+        options=[
+            create_option(
+                name="tag_name",
+                description="The name of tag",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            ),
+            create_option(
+                name="type",
+                description="The type of tag",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                choices=[
+                    create_choice(name="Normal", value="Normal"),
+                    create_choice(name="Embed", value="Embed")
+                ]
+            )
+        ]
+    )
     @is_enabled()
-    async def create_new_tag(self, ctx: SlashContext, tag_name: str, tag_content: str):
+    async def create_new_tag(self, ctx: SlashContext, tag_name: str, type: str):
         tag_name = self.convert_tag_name(tag_name)
 
         await self._is_can_manage_tags(ctx)
@@ -89,12 +112,135 @@ class Tags(Cog):
             if tag.name == tag_name:
                 return await ctx.send(content["TAG_ALREADY_EXISTS_TEXT"], hidden=True)
 
-        await guild_data.add_tag(
-            tag_name,
-            ctx.author_id,
-            tag_content
-        )
-        await ctx.send(content=content["TAG_CREATED_TEXT"].format(tag_name=tag_name))
+        if type == "Embed":
+            modal = Modal(
+                custom_id=f"modal_new_tag|embed|{tag_name}",
+                title=content["MODAL_TITLE"],
+                components=[
+                    TextInput(
+                        label=content["MODAL_SET_TITLE"],
+                        custom_id="title",
+                        style=TextInputStyle.SHORT,
+                        placeholder=content["MODAL_TITLE_PLACEHOLDER"],
+                        max_length=32
+                    ),
+                    TextInput(
+                        label=content["MODAL_SET_DESCRIPTION"],
+                        custom_id="description",
+                        style=TextInputStyle.PARAGRAPH,
+                        placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"]
+                    )
+                ]
+            )
+        elif type == "Normal":
+            modal = Modal(
+                custom_id=f"modal_new_tag|normal|{tag_name}",
+                title=content["MODAL_TITLE"],
+                components=[
+                    TextInput(
+                        label=content["MODAL_SET_DESCRIPTION"],
+                        custom_id="description",
+                        style=TextInputStyle.PARAGRAPH,
+                        placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"]
+                    )
+                ]
+            )
+        await ctx.popup(modal)
+
+    @slash_subcommand(
+        base="tag", 
+        name="edit", 
+        description="Edit a current tag",
+        options=[
+            create_option(
+                name="tag_name",
+                description="The name of tag",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            )
+        ]
+    )
+    @is_enabled()
+    async def edit_tag(self, ctx: SlashContext, tag_name: str):
+        tag_name = self.convert_tag_name(tag_name)
+
+        await self._is_can_manage_tags(ctx)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+
+        tag = None
+        for tag in guild_data.tags:
+            if tag.name == tag_name:
+                break
+        if tag is None:
+            raise TagNotFound
+
+        content = get_content("TAG_ADD_COMMAND", guild_data.configuration.language)
+
+        if tag.is_embed:
+            modal = Modal(
+                    custom_id=f"modal_edit_tag|embed|{tag_name}",
+                    title=content["MODAL_TITLE"],
+                    components=[
+                        TextInput(
+                            label=content["MODAL_SET_TITLE"],
+                            custom_id="title",
+                            style=TextInputStyle.SHORT,
+                            placeholder=content["MODAL_TITLE_PLACEHOLDER"],
+                            max_length=32,
+                            value=tag.title
+                        ),
+                        TextInput(
+                            label=content["MODAL_SET_DESCRIPTION"],
+                            custom_id="description",
+                            style=TextInputStyle.PARAGRAPH,
+                            placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"],
+                            value=tag.description
+                        )
+                    ]
+                )
+        else:
+            modal = Modal(
+                custom_id=f"modal_edit_tag|normal|{tag_name}",
+                title=content["MODAL_TITLE"],
+                components=[
+                    TextInput(
+                        label=content["MODAL_SET_DESCRIPTION"],
+                        custom_id="description",
+                        style=TextInputStyle.PARAGRAPH,
+                        placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"],
+                        value=tag.description
+                    )
+                ]
+            )
+
+        await ctx.popup(modal)
+
+    @Cog.listener()
+    async def on_modal(self, ctx: ModalContext):
+        custom_id, type, tag_name = ctx.custom_id.split("|")
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content = get_content("TAG_ADD_COMMAND", guild_data.configuration.language)
+
+        if custom_id == "modal_new_tag":
+            await self._is_can_manage_tags(ctx)
+            await guild_data.add_tag(
+                name=tag_name,
+                author_id=ctx.author_id,
+                description=ctx.values["description"],
+                is_embed=type=="embed",
+                title=ctx.values["title"] if type=="embed" else "No title"
+            )
+            await ctx.send(content["TAG_CREATED_TEXT"].format(tag_name=tag_name), hidden=True)
+        elif custom_id == "modal_edit_tag":
+            tag = None
+            for tag in guild_data.tags:
+                if tag.name == tag_name:
+                    break
+            if type == "embed":
+                await tag.set_title(ctx.values["title"])
+            await tag.set_description(ctx.values["description"])
+            await ctx.send(content["TAG_EDITED_TEXT"].format(tag_name=tag_name), hidden=True)
 
     @slash_subcommand(
         base="tag",
@@ -255,218 +401,6 @@ class Tags(Cog):
         content = get_content("PUBLIC_TAGS_COMMAND", guild_data.configuration.language)
         await ctx.send(content["TAGS_PUBLIC"] if status else content["TAGS_FOR_ADMINS"])
 
-    @slash_subcommand(
-        base="tag",
-        name="embed",
-        description="Open embed control tag menu",
-        options=[
-            create_option(
-                name="tag_name",
-                description="The name of tag",
-                option_type=SlashCommandOptionType.STRING,
-                required=True,
-                autocomplete=True,
-            )
-        ],
-    )
-    @is_enabled()
-    async def tag_embed(self, ctx: SlashContext, tag_name: str):
-        tag_name = self.convert_tag_name(tag_name)
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content = get_content("EMBED_TAG_CONTROL", guild_data.configuration.language)
-        print(tag_name)
-        tag = None
-        for tag in guild_data.tags:
-            if tag.name == tag_name:
-                print(tag.name)
-                break
-        print(tag.name)
-        if tag and not tag.is_embed:
-            return await ctx.send(content["NOT_SUPPORTED_TAG_TYPE"])
-
-        await self._is_can_manage_tags(ctx, tag)
-
-        if tag is None:
-            embed, message = await self.init_btag(ctx, content)
-            return await self._process_interactions(
-                ctx, message, content, embed, tag_name
-            )
-
-        embed = Embed(
-            title=tag.title,
-            description=tag.description,
-            color=guild_data.configuration.embed_color,
-        )
-        components = [
-            [
-                Button(
-                    style=ButtonStyle.green,
-                    label=content["EDIT_TAG_BUTTON"],
-                    id="edit_tag",
-                ),
-                Button(
-                    style=ButtonStyle.red,
-                    label=content["REMOVE_TAG_BUTTON"],
-                    id="remove_tag",
-                ),
-                Button(style=ButtonStyle.red, label=content["EXIT_BUTTON"], id="exit"),
-            ]
-        ]
-        message: ComponentMessage = await ctx.send(embed=embed, components=components)
-
-        await self._process_interactions(
-            ctx, message, content, embed, tag_name
-        )
-
-    async def _process_interactions(
-        self,
-        ctx: SlashContext,
-        message: ComponentMessage,
-        content: dict,
-        embed: Embed,
-        tag_name: str,
-    ):
-        while True:
-            try:
-                button_ctx: ComponentContext = await self.bot.wait_for(
-                    "button_click",
-                    check=lambda inter: inter.author_id == ctx.author_id
-                    and message.id == inter.origin_message.id,
-                    timeout=600,
-                )
-            except asyncio.TimeoutError:
-                return await message.delete()
-            except Exception as e:
-                continue
-
-            button_id = button_ctx.custom_id
-
-            if button_id == "edit_tag":
-                await self.init_btag(ctx, content, message)
-            elif button_id == "remove_tag":
-                await self.remove_tag(content, button_ctx, tag_name)
-                return await message.delete(delay=5)
-            elif button_id == "exit":
-                return await message.delete()
-            elif button_id == "change_content":
-                embed = await self.edit_tag(
-                    button_ctx, embed, content
-                )
-            elif button_id == "save_tag":
-                await self.save_tag(content, button_ctx, tag_name, embed)
-            elif button_id == "get_raw":
-                await self.get_raw_description(button_ctx, embed)
-
-            if not button_ctx.responded:
-                await button_ctx.defer(edit_origin=True)
-
-    async def init_btag(
-        self, ctx: SlashContext, content: dict, message: ComponentMessage = None
-    ):
-        components = [
-            [
-                Button(
-                    style=ButtonStyle.blue,
-                    label=content["CHANGE_CONTENT_BUTTON"],
-                    id="change_content",
-                ),
-                Button(
-                    style=ButtonStyle.gray,
-                    label=content["GET_RAW_DESCRIPTION_BUTTON"],
-                    id="get_raw",
-                ),
-                Button(
-                    style=ButtonStyle.green,
-                    label=content["SAVE_TAG_BUTTON"],
-                    id="save_tag",
-                ),
-                Button(style=ButtonStyle.red, label=content["EXIT_BUTTON"], id="exit"),
-            ]
-        ]
-
-        if message is not None:
-            return await message.edit(components=components)
-
-        embed = Embed(
-            title=content["TAG_TITLE_TEXT"],
-            description=content["TAG_DESCRIPTION_TEXT"],
-            color=await self.bot.get_embed_color(ctx.guild_id),
-        )
-        message: ComponentMessage = await ctx.send(embed=embed, components=components)
-        return embed, message
-
-    async def edit_tag(
-        self,
-        button_ctx: ComponentContext,
-        embed: Embed,
-        content: dict,
-    ):
-        modal = Modal(
-            custom_id="change_embed_content",
-            title=content["MODAL_TITLE"],
-            components=[
-                TextInput(
-                    label=content["MODAL_SET_TITLE"],
-                    custom_id="embed_title",
-                    style=TextInputStyle.SHORT,
-                    value=embed.title,
-                    placeholder=content["MODAL_TITLE_PLACEHOLDER"],
-                    max_length=32
-                ),
-                TextInput(
-                    label=content["MODAL_SET_DESCRIPTION"],
-                    custom_id="embed_description",
-                    style=TextInputStyle.PARAGRAPH,
-                    value=embed.description,
-                    placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"]
-                )
-            ]
-        )
-        await button_ctx.popup(modal)
-
-    @Cog.listener()
-    async def on_modal(self, ctx: ModalContext):
-        if ctx.custom_id != "change_embed_content":
-            return
-        if ctx.author_id != ctx.origin_message.interaction.author_id:
-            return
-
-        content = get_content("EMBED_TAG_CONTROL", await self.bot.get_guild_bot_lang(ctx.guild_id))
-        embed = ctx.origin_message.embeds[0]
-        embed.title = ctx.values["embed_title"]
-        embed.description = ctx.values["embed_description"]
-
-        await ctx.send(content["SUCCESSFULLY"], hidden=True)
-        await ctx.origin_message.edit(embed=embed)
-
-    async def save_tag(
-        self, content: dict, ctx: ComponentContext, tag_name: str, embed: Embed
-    ):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        await guild_data.add_tag(
-            name=tag_name,
-            author_id=ctx.author_id,
-            description=embed.description,
-            is_embed=True,
-            title=embed.title
-        )
-
-        await ctx.send(content["SAVED_TAG_TEXT"], hidden=True)
-
-    async def get_raw_description(self, ctx: ComponentContext, embed: Embed):
-        tag_description = embed.description
-        await ctx.send(content=f"```{tag_description}```", hidden=True)
-
-    async def remove_tag(
-        self,
-        content: dict,
-        ctx: ComponentContext,
-        tag_name: str,
-    ):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        await guild_data.remove_tag(tag_name)
-        await ctx.send(content=content["REMOVED_TAG_TEXT"], hidden=True)
-
     async def _is_can_manage_tags(self, ctx: SlashContext, tag: GuildTag = None):
         if ctx.author.guild_permissions.manage_guild:
             return
@@ -479,6 +413,7 @@ class Tags(Cog):
             return
         if tags_data.get("is_public") is False:
             raise TagsIsPrivate
+
 
     @staticmethod
     def convert_tag_name(tag_name: str):
