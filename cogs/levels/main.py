@@ -39,7 +39,8 @@ class Levels(Cog):
             _cog_is_enabled(self, member.guild.id)
         except CogDisabledOnGuild:
             return
-        await self.add_member(member)
+        guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
+        await guild_data.get_user(member.id)
 
     @Cog.listener()
     async def on_member_remove(self, member: Member):
