@@ -349,11 +349,11 @@ class Utilities(Cog):
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"], hidden=True)
 
         blacklist = starboard_data.blacklist
-        if member and member.id not in blacklist["members"]:
+        if member and member.id not in blacklist.get("members", []):
             await starboard_data.add_member_to_blacklist(member.id)
-        if role and role.id not in blacklist["roles"]:
+        if role and role.id not in blacklist.get("roles", []):
             await starboard_data.add_role_to_blacklist(role.id)
-        if channel and channel.id not in blacklist["channels"]:
+        if channel and channel.id not in blacklist.get("channels", []):
             await starboard_data.add_channel_to_blacklist(channel.id)
 
         await ctx.send(content["BLACKLIST_ADDED_TEXT"], hidden=True)
