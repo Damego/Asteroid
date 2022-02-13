@@ -438,7 +438,7 @@ class Utilities(Cog):
 
         embed = Embed(
             title=content["BLACKLIST_TEXT"],
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=guild_data.configuration.embed_color,
             timestamp=datetime.datetime.now(),
         )
         members = starboard_data.blacklist.get("members")
