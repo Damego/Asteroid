@@ -240,7 +240,7 @@ class Settings(Cog):
                 await button_ctx.send(f'**Reloaded:**\n `{", ".join(extensions)}`')
             elif button_ctx.custom_id == "button_reload_bot":
                 await button_ctx.defer(edit_origin=True)
-                await button_ctx.message.disable_components()
+                await button_ctx.origin_message.disable_components()
                 await ctx.channel.send("Reloading...")
                 os.execv(sys.executable, ["python3.9"] + sys.argv)
             elif button_ctx.custom_id == "button_sync_commands":
@@ -249,7 +249,7 @@ class Settings(Cog):
                 await ctx.send("Slash Commands were synced!", hidden=True)
             elif button_ctx.custom_id == "button_exit":
                 await button_ctx.defer(edit_origin=True)
-                await button_ctx.message.disable_components()
+                await button_ctx.origin_message.disable_components()
                 return
 
 
