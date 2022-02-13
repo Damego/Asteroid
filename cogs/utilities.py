@@ -230,7 +230,18 @@ class Utilities(Cog):
         await guild_data.starboard.add_starboard_message(message.id, starboard_message.id)
 
     @slash_subcommand(
-        base="starboard", name="channel", description="Starboard channel setting"
+        base="starboard",
+        name="channel", 
+        description="Starboard channel setting",
+        options=[
+            create_option(
+                name="channel",
+                description="Text channel",
+                option_type=SlashCommandOptionType.CHANNEL,
+                required=True,
+                channel_types=[ChannelType.text]
+            )
+        ]
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
@@ -311,19 +322,19 @@ class Utilities(Cog):
             create_option(
                 name="member",
                 description="member",
-                option_type=SlashCommandOptionType.STRING,
+                option_type=SlashCommandOptionType.USER,
                 required=False,
                 ),
             create_option(
                 name="role",
                 description="Role",
-                option_type=SlashCommandOptionType.STRING,
+                option_type=SlashCommandOptionType.ROLE,
                 required=False,
             ),
             create_option(
                 name="channel",
                 description="Text channel",
-                option_type=SlashCommandOptionType.STRING,
+                option_type=SlashCommandOptionType.CHANNEL,
                 required=False,
                 channel_types=[ChannelType.text]
             )
