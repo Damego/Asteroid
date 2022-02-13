@@ -170,9 +170,9 @@ class Utilities(Cog):
     ):
         if not starboard_data.blacklist:
             return False
-        blacklisted_channels = starboard_data.blacklist.get("channels")
-        blacklisted_roles = starboard_data.blacklist.get("roles")
-        blacklisted_members = starboard_data.blacklist.get("members")
+        blacklisted_channels = starboard_data.blacklist.get("channels", [])
+        blacklisted_roles = starboard_data.blacklist.get("roles", [])
+        blacklisted_members = starboard_data.blacklist.get("members", [])
         member_roles = message.guild.get_member(payload.user_id).roles
         has_blacklisted_roles = [
             role for role in member_roles if role.id in blacklisted_roles
