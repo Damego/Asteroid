@@ -2,6 +2,7 @@ import datetime
 from typing import List
 
 from discord import (
+    ChannelType,
     Embed,
     TextChannel,
     RawReactionActionEvent,
@@ -9,6 +10,7 @@ from discord import (
     Message,
     Member,
     Role,
+    Forbidden
 )
 from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
@@ -235,6 +237,11 @@ class Utilities(Cog):
     async def set_starboard_channel(self, ctx: SlashContext, channel: TextChannel):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
 
+        try:
+            await channel.send("Test message to check permission. You can delete this.")
+        except Forbidden:
+            return await ctx.send(f"Bot doesn't have permission to send messages in {channel.mention}")
+
         if guild_data.starboard is None:
             await guild_data.add_starboard(channel_id=channel.id, limit=3, is_enabled=True)
         else:
@@ -300,6 +307,27 @@ class Utilities(Cog):
         subcommand_group="blacklist",
         name="add",
         description="Adds a member, role or channel in blacklist",
+        options=[
+            create_option(
+                name="member",
+                description="member",
+                option_type=SlashCommandOptionType.STRING,
+                required=False,
+                ),
+            create_option(
+                name="role",
+                description="Role",
+                option_type=SlashCommandOptionType.STRING,
+                required=False,
+            ),
+            create_option(
+                name="channel",
+                description="Text channel",
+                option_type=SlashCommandOptionType.STRING,
+                required=False,
+                channel_types=[ChannelType.text]
+            )
+        ]
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
