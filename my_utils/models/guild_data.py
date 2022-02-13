@@ -54,7 +54,7 @@ class GuildData:
         _time = int(time())
         await self._main_collection.update_one(
             {"_id": "voice_time"},
-            {OperatorType.SET: {
+            {OperatorType.SET.value: {
                 str(user_id): _time
             }},
             upsert=True
@@ -64,7 +64,7 @@ class GuildData:
     async def remove_user_to_voice(self, user_id: int):
         await self._main_collection.update_one(
             {"_id": "voice_time"},
-            {OperatorType.UNSET: {
+            {OperatorType.UNSET.value: {
                 str(user_id): ""
             }},
             upsert=True
@@ -459,36 +459,32 @@ class GuildUser:
         await self._update(
             OperatorType.INC,
             {
-                "leveling": {
-                    "level": level,
-                    "xp": xp,
-                    "xp_amount": xp_amount
-                },
+                "leveling.level": level,
+                "leveling.xp": xp,
+                "leveling.xp_amount": xp_amount,
                 "voice_time_count": voice_time
             }
         )
-        self.level = self.level + level
-        self.xp = self.xp + xp
-        self.xp_amount = self.xp_amount + xp_amount
-        self.voice_time_count = self.voice_time_count + voice_time
+        self.level += level
+        self.xp += xp
+        self.xp_amount += xp_amount
+        self.voice_time_count += voice_time
 
     async def set_leveling(self, *, level: int = None, xp: int = None, xp_amount: int = None, voice_time: int = None, role: str = None):
         data = {}
-        leveling = {}
         if level is not None:
-            leveling["level"] = level
+            data["leveling.level"] = level
             self.level = level
         if xp is not None:
-            leveling["xp"] = xp
+            data["leveling.xp"] = xp
             self.xp = xp
         if xp_amount is not None:
-            leveling["xp_amount"] = xp_amount
+            data["leveling.xp_amount"] = xp_amount
             self.xp_amount = xp_amount
         if voice_time:
             data["voice_time_count"] = voice_time
-        data["leveling"] = leveling
 
-        await self._update(OperatorType.set, data)
+        await self._update(OperatorType.SET, data)
 
     async def reset_leveling(self):
         data = {
