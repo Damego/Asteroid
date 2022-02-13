@@ -33,9 +33,7 @@ from asyncio import TimeoutError
 from math import pi, tau, e, sqrt
 
 from discord import Embed, Member
-from discord_components import Button, ButtonStyle
-from discord_slash import SlashContext
-from discord_slash_components_bridge import ComponentContext, ComponentMessage
+from discord_slash import SlashContext, Button, ButtonStyle, ComponentContext, ComponentMessage
 
 from my_utils import AsteroidBot
 
@@ -213,7 +211,7 @@ class Calculator:
                 interaction: ComponentContext = await self.bot.wait_for(
                     "button_click",
                     check=lambda inter: inter.author.id == ctx.author.id
-                    and inter.message.id == message.id,
+                    and inter.origin_message.id == message.id,
                     timeout=60,
                 )
             except TimeoutError:
@@ -221,23 +219,23 @@ class Calculator:
                     embed=self._get_embed(ctx.author, f"```{affichage}```"),
                     components=[
                         row.disable_components()
-                        for row in interaction.message.components
+                        for row in interaction.origin_message.components
                     ],
                 )
 
             if interaction.custom_id == "Exit":
                 embed = self._get_embed(
-                    ctx.author, interaction.message.embeds[0].description
+                    ctx.author, interaction.origin_message.embeds[0].description
                 )
                 return await interaction.edit_origin(
                     embed=embed,
                     components=[
                         row.disable_components()
-                        for row in interaction.message.components
+                        for row in interaction.origin_message.components
                     ],
                 )
             elif interaction.custom_id == "⌫":
-                lst = list(interaction.message.embeds[0].description.replace("`", ""))
+                lst = list(interaction.origin_message.embeds[0].description.replace("`", ""))
                 if len(lst) > 1:
                     try:
                         index = lst.index("|")
@@ -264,7 +262,7 @@ class Calculator:
                     affichage = f"{affichage.replace('|','')}={expression}"
                 expression = ""
             elif interaction.custom_id == "❮":
-                lst = list(interaction.message.embeds[0].description.replace("`", ""))
+                lst = list(interaction.origin_message.embeds[0].description.replace("`", ""))
                 if len(lst) > 1:
                     try:
                         index = lst.index("|")
@@ -274,7 +272,7 @@ class Calculator:
                         lst = ["|"]
                 affichage = "".join(lst)
             elif interaction.custom_id == "❯":
-                lst = list(interaction.message.embeds[0].description.replace("`", ""))
+                lst = list(interaction.origin_message.embeds[0].description.replace("`", ""))
                 if len(lst) > 1:
                     try:
                         index = lst.index("|")

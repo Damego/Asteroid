@@ -3,9 +3,7 @@ from enum import IntEnum
 from typing import List
 
 from discord import Embed, Member
-from discord_components import Button, ButtonStyle
-from discord_slash.context import SlashContext
-from discord_slash_components_bridge import ComponentMessage, ComponentContext
+from discord_slash import SlashContext, ComponentMessage, ComponentContext, Button, ButtonStyle
 
 from my_utils import AsteroidBot
 
@@ -121,7 +119,7 @@ class TicTacToeOnline:
         await ctx.defer(edit_origin=True)
 
         pos = list(map(int, ctx.custom_id.split()))
-        self.update_board(ctx.message.components)
+        self.update_board(ctx.origin_message.components)
         self.board[pos[0]][pos[1]] = player
 
         await ctx.edit_origin(components=self.render_gameboard())

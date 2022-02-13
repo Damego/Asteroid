@@ -10,13 +10,8 @@ from math import inf
 from typing import List, Union
 
 from discord import Embed
-from discord_components import Button, ButtonStyle
-from discord_slash.context import SlashContext
-from discord_slash_components_bridge import (
-    ComponentContext,
-    ComponentMessage,
-    SlashMessage,
-)
+from discord_slash import ComponentContext, ComponentMessage, SlashContext, Button, ButtonStyle
+
 
 from my_utils import AsteroidBot
 
@@ -39,7 +34,7 @@ class TicTacToeAI:
     def __init__(
         self,
         bot: AsteroidBot,
-        ctx: Union[SlashContext, ComponentContext],
+        ctx: ComponentContext,
         mode: TicTacToeMode,
     ):
         self.bot = bot
@@ -49,15 +44,7 @@ class TicTacToeAI:
         self.board: List[list] = None
         self.emoji_circle = self.bot.get_emoji(850792047698509826)
         self.emoji_cross = self.bot.get_emoji(850792048080060456)
-
-        self.game_embed = Embed(
-            title="Tic Tac Toe Game",
-            description=f"**Player:** {ctx.author.mention}"
-            f"\n**Difficult:** `{self.difficult}`",
-            color=self.bot.get_embed_color(ctx.guild_id),
-            timestamp=datetime.utcnow(),
-        )
-        self.game_embed.set_thumbnail(url=ctx.bot.user.avatar_url)
+        self.game_embed = None
 
     def is_won(self, board: List[list], player: GameState):
         win_states = [
@@ -90,11 +77,7 @@ class TicTacToeAI:
         return possible_moves
 
     def minimax(self, board: List[list], depth: int, player: GameState):
-        if player == GameState.ai:
-            best = [-1, -1, -inf]
-        else:
-            best = [-1, -1, +inf]
-
+        best = [-1, -1, -inf] if player == GameState.ai else [-1, -1, +inf]
         if (
             depth == 0
             or self.is_won(board, GameState.player)
@@ -110,12 +93,13 @@ class TicTacToeAI:
             board[x][y] = GameState.empty
             score[0], score[1] = x, y
 
-            if player == GameState.ai:
-                if score[2] > best[2]:
-                    best = score
-            else:
-                if score[2] < best[2]:
-                    best = score
+            if (
+                player == GameState.ai
+                and score[2] > best[2]
+                or player != GameState.ai
+                and score[2] < best[2]
+            ):
+                best = score
         return best
 
     def render_gameboard(self, disable: bool = False):
@@ -142,9 +126,10 @@ class TicTacToeAI:
                         emoji=emoji,
                         style=style,
                         custom_id=f"{i} {x}",
-                        disabled=disable if disable else style != ButtonStyle.gray,
+                        disabled=disable or style != ButtonStyle.gray,
                     ),
                 )
+
 
         return components
 
@@ -171,7 +156,7 @@ class TicTacToeAI:
     async def process_turn(self, ctx: ComponentContext):
         await ctx.defer(edit_origin=True)
         pos = list(map(int, ctx.custom_id.split()))
-        self.board = self.get_board_state(ctx.message.components)
+        self.board = self.get_board_state(ctx.origin_message.components)
         self.board[pos[0]][pos[1]] = GameState.player
 
         if not self.is_won(self.board, GameState.player):
@@ -203,9 +188,17 @@ class TicTacToeAI:
         self,
         *,
         edit_origin: bool = False,
-        message: Union[SlashMessage, ComponentMessage] = None,
+        message: ComponentMessage = None,
     ):
         ctx = self.ctx
+        self.game_embed = Embed(
+            title="Tic Tac Toe Game",
+            description=f"**Player:** {ctx.author.mention}"
+            f"\n**Difficult:** `{self.difficult}`",
+            color=await self.bot.get_embed_color(ctx.guild_id),
+            timestamp=datetime.utcnow(),
+        )
+        self.game_embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
         if not edit_origin:
             message = await ctx.send(
@@ -221,14 +214,14 @@ class TicTacToeAI:
                 comp_ctx: ComponentContext = await self.bot.wait_for(
                     "button_click",
                     check=lambda _ctx: ctx.author_id == _ctx.author_id
-                    and message.id == _ctx.message.id,
+                    and message.id == _ctx.origin_message.id,
                     timeout=180,
                 )
             except TimeoutError:
                 components = self.render_gameboard(disable=True)
-                return await ctx.message.edit(components=components)
+                return await ctx.origin_message.edit(components=components)
 
             res = await self.process_turn(comp_ctx)
             if res:
                 components = self.render_gameboard(disable=True)
-                return await comp_ctx.message.edit(components=components)
+                return await comp_ctx.origin_message.edit(components=components)

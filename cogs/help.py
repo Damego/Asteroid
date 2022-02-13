@@ -2,10 +2,8 @@ from asyncio import TimeoutError
 import datetime
 
 from discord import Embed
-from discord_slash import SlashContext
+from discord_slash import SlashContext, ComponentContext, Select, SelectOption
 from discord_slash.cog_ext import cog_slash as slash_command
-from discord_components import Select, SelectOption
-from discord_slash_components_bridge import ComponentContext
 
 from my_utils import AsteroidBot, get_content, Cog
 
@@ -21,7 +19,7 @@ class Help(Cog):
     async def help_command(self, ctx: SlashContext):
         await ctx.defer()
 
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("HELP_COMMAND", lang)
 
         components = self._init_components(ctx, content)
@@ -30,16 +28,16 @@ class Help(Cog):
 
         while True:
             try:
-                interaction: ComponentContext = await self.bot.wait_for(
+                button_ctx: ComponentContext = await self.bot.wait_for(
                     "select_option",
-                    check=lambda inter: inter.author_id == ctx.author_id
-                    and inter.message.id == message.id,
+                    check=lambda _ctx: _ctx.author_id == ctx.author_id
+                    and _ctx.origin_message.id == message.id,
                     timeout=60,
                 )
             except TimeoutError:
                 return await message.edit(components=[])
 
-            value = interaction.values[0]
+            value = button_ctx.values[0]
 
             if value == "main_page":
                 embed = embeds[0]
@@ -47,7 +45,7 @@ class Help(Cog):
                 for embed in embeds:
                     if embed.title.startswith(value):
                         break
-            await interaction.edit_origin(embed=embed)
+            await button_ctx.edit_origin(embed=embed)
 
     @staticmethod
     def _cog_is_private(ctx: SlashContext, cog: Cog):
@@ -73,7 +71,7 @@ class Help(Cog):
 
     def _init_embeds(self, ctx: SlashContext, content: dict, guild_language: str):
         translated_commands = None
-        if guild_language != "en":
+        if guild_language != "English":
             translated_commands = get_content("TRANSLATED_COMMANDS", guild_language)
         commands_data = self._get_commands_data()
         embeds = [self._get_main_menu(ctx, content)]
@@ -220,8 +218,7 @@ class Help(Cog):
         if command.base not in commands_data[cog]:
             commands_data[cog][command.base] = {}
 
-        has_subcommand_group = command.subcommand_group is not None
-        if has_subcommand_group:
+        if has_subcommand_group := command.subcommand_group is not None:
             if command.subcommand_group not in commands_data[cog][command.base]:
                 commands_data[cog][command.base][command.subcommand_group] = {}
             commands_data[cog][command.base][command.subcommand_group][command.name] = {

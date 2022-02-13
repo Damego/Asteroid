@@ -1,9 +1,7 @@
 from random import choice
 
 from discord import Embed, Member
-from discord_slash import SlashContext
-from discord_components import Button, ButtonStyle
-from discord_slash_components_bridge import ComponentMessage, ComponentContext
+from discord_slash import SlashContext, ComponentMessage, ComponentContext, Button, ButtonStyle
 
 from my_utils import AsteroidBot, get_content
 
@@ -28,7 +26,7 @@ class RockPaperScissors:
         self.count1 = 0
         self.count2 = 0
         self.players = [self.ctx.author_id, self.member.id]
-        lang = self.bot.get_guild_bot_lang(self.guild_id)
+        lang = await self.bot.get_guild_bot_lang(self.guild_id)
         self.content = get_content("GAME_RPS", lang)
 
         for round in range(self.total_rounds):
@@ -47,15 +45,15 @@ class RockPaperScissors:
             winner,
         )
 
-        embed = Embed(title=title, color=self.bot.get_embed_color(self.guild_id))
+        embed = Embed(title=title, color=await self.bot.get_embed_color(self.guild_id))
         embed.add_field(name=game_name, value=text)
         await self.message.edit(content=" ", embed=embed, components=[])
 
     async def start_round(self, round):
-        def check(interaction):
+        def check(_button_ctx):
             return (
-                interaction.author_id in self.players
-                and interaction.message.id == self.message.id
+                _button_ctx.author_id in self.players
+                and _button_ctx.origin_message.id == self.message.id
             )
 
         players_choice = {}
@@ -66,7 +64,7 @@ class RockPaperScissors:
             self.count1, self.count2, round + 1, self.total_rounds
         )
 
-        embed = Embed(title="🪨-✂️-🧾", color=self.bot.get_embed_color(self.guild_id))
+        embed = Embed(title="🪨-✂️-🧾", color=await self.bot.get_embed_color(self.guild_id))
         embed.add_field(name=players_text, value=current_score_text)
 
         components = [
@@ -83,16 +81,16 @@ class RockPaperScissors:
             players_choice[self.member.id] = choice(["rock", "paper", "scissors"])
 
         while True:
-            interaction: ComponentContext = await self.bot.wait_for(
+            button_ctx: ComponentContext = await self.bot.wait_for(
                 "button_click", check=check
             )
 
-            if interaction.author_id in players_choice:
+            if button_ctx.author_id in players_choice:
                 made_move = self.content["MADE_MOVE_TEXT"]
-                await interaction.send(made_move, hidden=True)
+                await button_ctx.send(made_move, hidden=True)
             else:
-                await interaction.defer(ignore=True)
-                players_choice[interaction.author_id] = interaction.custom_id
+                await button_ctx.defer(ignore=True)
+                players_choice[button_ctx.author_id] = button_ctx.custom_id
 
             if len(players_choice) == 2:
                 break

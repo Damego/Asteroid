@@ -21,6 +21,9 @@ class ForbiddenTag(Exception):
 class NotTagOwner(Exception):
     pass
 
+class TagsIsPrivate(Exception):
+    pass
+
 
 class UIDNotBinded(Exception):
     pass

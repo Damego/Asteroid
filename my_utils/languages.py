@@ -3,7 +3,7 @@ def get_content(content_type: str, lang: str):
 
 
 LANGUAGES = {
-    "ru": {
+    "Russian": {
         "TRANSLATED_COMMANDS": {
             "FUN_BORED": "Тебе скучно? Запусти эту команду и найди занятие для себя!",
             "FUN_QR": "Создаёт QR-код из текста",
@@ -222,21 +222,6 @@ LANGUAGES = {
             "TAGS_PUBLIC": "Теги теперь доступны всем!",
             "TAGS_FOR_ADMINS": "Теги теперь могут создавать только те, у кого есть право `Управлять сервером`!",
         },
-        "EMBED_TAG_CONTROL": {
-            "NOT_SUPPORTED_TAG_TYPE": "Этот тег не поддерживается!",
-            "EDIT_TAG_BUTTON": "Редактировать",
-            "REMOVE_TAG_BUTTON": "Удалить",
-            "EXIT_BUTTON": "Выйти",
-            "SET_TITLE_BUTTON": "Заголовок",
-            "SET_DESCRIPTION_BUTTON": "Описание",
-            "GET_RAW_DESCRIPTION_BUTTON": "Исходник",
-            "SAVE_TAG_BUTTON": "Сохранить",
-            "TAG_TITLE_TEXT": "Заголовок Тега",
-            "TAG_DESCRIPTION_TEXT": "Описание Тега",
-            "INPUT_TEXT": "Введите",
-            "SAVED_TAG_TEXT": "**Сохранено!**",
-            "REMOVED_TAG_TEXT": "**Тег удалён!**",
-        },
         "FUNC_TAG_LIST": {
             "TAGS_LIST_TEXT": "Список тегов в {server}",
             "NO_TAGS_TEXT": "Список пуст!",
@@ -244,6 +229,12 @@ LANGUAGES = {
         "TAG_ADD_COMMAND": {
             "TAG_ALREADY_EXISTS_TEXT": "Этот тег уже существует!",
             "TAG_CREATED_TEXT": "Тег `{tag_name}` успешно создан!",
+            "TAG_EDITED_TEXT": "Тег `{tag_name}` успешно изменён!",
+            "MODAL_TITLE": "Настройка Тега",
+            "MODAL_SET_TITLE": "Заголовок",
+            "MODAL_TITLE_PLACEHOLDER": "То, что будет наверху тега",
+            "MODAL_SET_DESCRIPTION": "Описание",
+            "MODAL_DESCRIPTION_PLACEHOLDER": "Напишите что-то интересное",
         },
         "TAG_REMOVE_COMMAND": {"TAG_REMOVED_TEXT": "Тег `{tag_name}` успешно удалён!"},
         "TAG_RENAME_TAG": {
@@ -382,6 +373,9 @@ LANGUAGES = {
             "WRONG_COLOR": "Неверный формат цвета!",
             "SUCCESSFULLY_CHANGED": "Цвет сообщений успешно изменён!",
         },
+        "SET_LANGUAGE_COMMAND": {
+            "LANGUAGE_CHANGED": "Язык сменён на русский"
+        },
         "LEVELS": {
             "FUNC_UPDATE_MEMBER": {
                 "NOTIFY_GUILD_CHANNEL": "{member} получил `{level}-й` уровень и повышение до {role}",
@@ -391,6 +385,9 @@ LANGUAGES = {
                 "TITLES": "**ID | Участник | Текущий уровень**\n",
                 "TOP_MEMBERS_TEXT": "Топ участников по уровню",
                 "REQUESTED_BY_TEXT": "Запрошено",
+                "LEVEL": "Уровень",
+                "XP": "опыт",
+                "EMPTY_LEADERBOARD": "Топа нет"
             },
         },
         "HELP_COMMAND": {
@@ -463,6 +460,7 @@ LANGUAGES = {
             "LIMIT_25_BUTTONS": "Достигнут лимит в 25 кнопок!",
             "COMMAND_ROLE_ADDED_TEXT": "Роль добавлена",
             "AT_LEAST_LABEL_EMOJI_TEXT": "Должно быть хотя бы название кнопки(label) или эмодзи(emoji)",
+            "NO_AUTOROLES": "Автороли не найдены!",
             "NOT_BUTTONS_AUTOROLE": "Название не соответствует автороли для кнопок!",
             "AUTOROLE_CREATED": "Создано!",
         },
@@ -473,7 +471,7 @@ LANGUAGES = {
             "JUMP_TO": "Перейти к сообщению",
         },
     },
-    "en": {
+    "English": {
         "ERRORS_DESCRIPTIONS": {
             "COG_DISABLED": "This command disabled on this server!",
             "COMMAND_DISABLED": "This command or group of commands was disabled on this server!",
@@ -598,24 +596,15 @@ LANGUAGES = {
             "TAGS_PUBLIC": "Tags for now public!",
             "TAGS_FOR_ADMINS": "For now tags only for roles with `Manage Server` permission!",
         },
-        "EMBED_TAG_CONTROL": {
-            "NOT_SUPPORTED_TAG_TYPE": "This tag not supported!",
-            "EDIT_TAG_BUTTON": "Edit",
-            "REMOVE_TAG_BUTTON": "Delete",
-            "EXIT_BUTTON": "Exit",
-            "SET_TITLE_BUTTON": "Title",
-            "SET_DESCRIPTION_BUTTON": "Description",
-            "GET_RAW_DESCRIPTION_BUTTON": "Get raw",
-            "SAVE_TAG_BUTTON": "Save",
-            "TAG_TITLE_TEXT": "Tag title",
-            "TAG_DESCRIPTION_TEXT": "Tag description",
-            "INPUT_TEXT": "Input",
-            "SAVED_TAG_TEXT": "**Saved!**",
-            "REMOVED_TAG_TEXT": "**Tag was deleted!**",
-        },
         "TAG_ADD_COMMAND": {
             "TAG_ALREADY_EXISTS_TEXT": "This tag already exists!",
             "TAG_CREATED_TEXT": "Tag `{tag_name}` successfully created!",
+            "TAG_EDITED_TEXT": "Tag `{tag_name}` successfully edited!",
+            "MODAL_TITLE": "Tag configuration",
+            "MODAL_SET_TITLE": "Title",
+            "MODAL_TITLE_PLACEHOLDER": "Write here title of tag",
+            "MODAL_SET_DESCRIPTION": "Description",
+            "MODAL_DESCRIPTION_PLACEHOLDER": "Write something interesting",
         },
         "TAG_REMOVE_COMMAND": {
             "TAG_REMOVED_TEXT": "Tag `{tag_name}` successfully removed!"
@@ -760,6 +749,9 @@ LANGUAGES = {
             "WRONG_COLOR": "Wrong color format",
             "SUCCESSFULLY_CHANGED": "Embed color was changed!",
         },
+        "SET_LANGUAGE_COMMAND": {
+            "LANGUAGE_CHANGED": "Language changed to English"
+        },
         "LEVELS": {
             "FUNC_UPDATE_MEMBER": {
                 "NOTIFY_GUILD_CHANNEL": "{member} reached level `{level}` and got role {role}",
@@ -769,6 +761,9 @@ LANGUAGES = {
                 "TITLES": "**ID | Member | Current Level**\n",
                 "TOP_MEMBERS_TEXT": "Top members by level",
                 "REQUESTED_BY_TEXT": "Requested by",
+                "LEVEL": "Level",
+                "XP": "xp",
+                "EMPTY_LEADERBOARD": "Leaderboard is empty"
             },
         },
         "HELP_COMMAND": {
@@ -841,6 +836,7 @@ LANGUAGES = {
             "LIMIT_25_BUTTONS": "You have reached limit in 25 buttons",
             "COMMAND_ROLE_ADDED_TEXT": "Role added",
             "AT_LEAST_LABEL_EMOJI_TEXT": "Should be at least label or emoji",
+            "NO_AUTOROLES": "Autoroles doesn't exists!",
             "NOT_BUTTONS_AUTOROLE": "That's not autorole name for buttons!",
             "AUTOROLE_CREATED": "Created!",
         },

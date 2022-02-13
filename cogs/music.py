@@ -1,4 +1,3 @@
-from datetime import datetime
 from re import compile
 from typing import Union, List
 
@@ -10,12 +9,9 @@ from discord import (
     Guild,
     VoiceChannel,
 )
-from discord.ext.commands import BadArgument
 from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
-from discord_components import Button, ButtonStyle
-from discord_slash_components_bridge import ComponentContext, ComponentMessage
 import lavalink
 
 from my_utils import (
@@ -127,7 +123,7 @@ class Music(Cog):
 
         player = self.bot.lavalink.player_manager.get(ctx.guild_id)
         content: dict = get_content(
-            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "MUSIC_COMMANDS", await self.bot.get_guild_bot_lang(ctx.guild_id)
         )
         self.__check_music_status(ctx, player)
 
@@ -145,7 +141,7 @@ class Music(Cog):
             ctx.guild_id
         )
         content: dict = get_content(
-            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "MUSIC_COMMANDS", await self.bot.get_guild_bot_lang(ctx.guild_id)
         )
 
         self.__check_music_status(ctx, player)
@@ -162,7 +158,7 @@ class Music(Cog):
             ctx.guild_id
         )
         content: dict = get_content(
-            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "MUSIC_COMMANDS", await self.bot.get_guild_bot_lang(ctx.guild_id)
         )
 
         self.__check_music_status(ctx, player)
@@ -179,7 +175,7 @@ class Music(Cog):
             ctx.guild_id
         )
         content: dict = get_content(
-            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "MUSIC_COMMANDS", await self.bot.get_guild_bot_lang(ctx.guild_id)
         )
 
         self.__check_music_status(ctx, player)
@@ -199,7 +195,7 @@ class Music(Cog):
             ctx.guild_id
         )
         content: dict = get_content(
-            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "MUSIC_COMMANDS", await self.bot.get_guild_bot_lang(ctx.guild_id)
         )
 
         self.__check_music_status(ctx, player)
@@ -218,12 +214,13 @@ class Music(Cog):
     @is_enabled()
     async def show_queue_musis(self, ctx: SlashContext):
         await ctx.defer(hidden=True)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
 
         player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(
             ctx.guild_id
         )
         content: dict = get_content(
-            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "MUSIC_COMMANDS", guild_data.configuration.language
         )
 
         self.__check_music_status(ctx, player)
@@ -238,7 +235,7 @@ class Music(Cog):
         embed = Embed(
             title=content["CURRENT_QUEUE_TITLE_TEXT"],
             description="\n".join(tracks),
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=guild_data.configuration.embed_color,
         )
         await ctx.send(embed=embed, hidden=True)
 
@@ -248,42 +245,31 @@ class Music(Cog):
         if not self.bot.get_transformed_command_name(ctx).startswith("music"):
             return
 
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+
         if ctx.focused_option == "playlist":
-            user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
-            if not user_data:
-                return
-            user_playlists = user_data.get("music_playlists")
-            if not user_playlists:
-                return
+            user_data = await guild_data.get_user(ctx.author_id)
             playlists = [
                 playlist
-                for playlist in user_playlists
+                for playlist in user_data.music_playlists
                 if playlist.startswith(ctx.user_input)
             ]
             choices = [
                 create_choice(name=playlist, value=playlist) for playlist in playlists
             ]
         elif ctx.focused_option == "name":
-            user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
-            if not user_data:
-                return
-            user_playlists = user_data.get("music_playlists")
-            if not user_playlists:
+            user_data = await guild_data.get_user(ctx.author_id)
+            if not user_data.music_playlists:
                 return
             input_playlist = ctx.options["playlist"]
-            tracks_list = user_playlists[input_playlist]
+            tracks_list = user_data.music_playlists[input_playlist]
             choices = [create_choice(name=track, value=track) for track in tracks_list if track.startswith(ctx.user_input)]
         elif ctx.focused_option == "member_playlist":
-            member_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.guild.get_member(int(ctx.options["member"])).id)
-            if not member_data:
-                return
-            member_playlists = member_data.get("music_playlists")
-            if not member_playlists:
-                return
+            member_data = await guild_data.get_user(int(ctx.options["member"]))
 
             playlists = [
                 playlist
-                for playlist in member_playlists
+                for playlist in member_data.music_playlists
                 if playlist.startswith(ctx.user_input)
             ]
             choices = [
@@ -323,7 +309,8 @@ class Music(Cog):
     async def music_add_to_playlist(
         self, ctx: SlashContext, playlist: str, query: str = None, hidden: bool = False
     ):
-        collection = self.bot.get_guild_users_collection(ctx.guild_id)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+
         if not query:
             player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(
                 ctx.guild_id
@@ -332,16 +319,14 @@ class Music(Cog):
                 raise NotPlaying
             query = player.current.title
 
-        collection.update_one(
-            {"_id": str(ctx.author_id)},
-            {"$push": {f"music_playlists.{playlist}": query}},
-            upsert=True,
-        )
-        content = get_content("MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id))["MUSIC_PLAYLIST"]
+        user_data = await guild_data.get_user(ctx.author_id)
+        await user_data.add_track_to_playlist(playlist, query)
+
+        content = get_content("MUSIC_COMMANDS", guild_data.configuration.language)["MUSIC_PLAYLIST"]
         embed = Embed(
             title=content["PLAYLIST_UPDATE_TITLE_TRACK"].format(playlist=playlist),
             description=content["ADDED_TEXT"].format(query=query),
-            color=self.bot.get_embed_color(ctx.guild_id)
+            color=guild_data.configuration.language
         )
         await ctx.send(embed=embed, hidden=hidden)
 
@@ -372,23 +357,18 @@ class Music(Cog):
         self, ctx: SlashContext, playlist: str, name: str
     ):
         await ctx.defer(hidden=True)
-        user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
-        if not user_data:
-            raise NoData
-        user_playlists = user_data.get("music_playlists")
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(ctx.author_id)
+        user_playlists = user_data.music_playlists
         if not user_playlists:
             raise NoData
         playlist_data = user_playlists.get(playlist)
         if not playlist_data:
             raise NoData
 
-        self.bot.mongo.update_user(
-            ctx.guild_id,
-            ctx.author_id,
-            "$pull",
-            {f"music_playlists.{playlist}": name}
-        )
-        content = get_content("MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id))["MUSIC_PLAYLIST"]
+        await user_data.remove_track_from_playlist(playlist, name)
+
+        content = get_content("MUSIC_COMMANDS", guild_data.configuration.language)["MUSIC_PLAYLIST"]
         await ctx.send(content["MUSIC_DELETED"].format(name=name, playlist=playlist), hidden=True)
 
     @slash_subcommand(
@@ -408,10 +388,9 @@ class Music(Cog):
     )
     @is_enabled()
     async def music_play_playlist(self, ctx: SlashContext, playlist: str):
-        user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
-        if not user_data:
-            raise NoData
-        user_playlists = user_data.get("music_playlists")
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(ctx.author_id)
+        user_playlists = user_data.music_playlists
         if not user_playlists:
             raise NoData
         playlist_data = user_playlists.get(playlist)
@@ -446,10 +425,9 @@ class Music(Cog):
         self, ctx: SlashContext, playlist: str, hidden: bool = True
     ):
         await ctx.defer(hidden=hidden)
-        user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
-        if not user_data:
-            raise NoData
-        user_playlists = user_data.get("music_playlists")
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(ctx.author_id)
+        user_playlists = user_data.music_playlists
         if not user_playlists:
             raise NoData
         playlist_data = user_playlists.get(playlist)
@@ -457,12 +435,12 @@ class Music(Cog):
             raise NoData
 
         content = get_content(
-            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "MUSIC_COMMANDS", guild_data.configuration.language
         )["MUSIC_PLAYLIST"]
         embed = Embed(
             title=content["PLAYLIST_TITLE_TEXT"].format(playlist=playlist),
             description="",
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=guild_data.configuration.embed_color,
         )
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
         for count, track in enumerate(playlist_data, start=1):
@@ -500,24 +478,20 @@ class Music(Cog):
     )
     async def copy_member_playlist(self, ctx: SlashContext, member: Member, member_playlist: str, playlist: str):
         await ctx.defer(hidden=True)
-        user_data = self.bot.mongo.get_user_data(ctx.guild_id, member.id)
-        if not user_data:
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        member_data = await guild_data.get_user(member.id)
+        member_playlists = member_data.music_playlists
+        if not member_playlists:
             raise NoData
-        user_playlists = user_data.get("music_playlists")
-        if not user_playlists:
-            raise NoData
-        playlist_data = user_playlists.get(member_playlist)
+        playlist_data = member_playlists.get(member_playlist)
         if not playlist_data:
             raise NoData
 
-        self.bot.mongo.update_user(
-            ctx.guild_id,
-            ctx.author_id,
-            "$push",
-            {f"music_playlists.{playlist}": {"$each": playlist_data}}
-        )
+        user_data = await guild_data.get_user(ctx.author_id)
+        await user_data.add_many_tracks(playlist_data)
+
         content = get_content(
-            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "MUSIC_COMMANDS", guild_data.configuration.language
         )["MUSIC_PLAYLIST"]
         await ctx.send(content["PLAYLIST_COPIED"], hidden=True)
 
@@ -541,10 +515,9 @@ class Music(Cog):
         self, ctx: SlashContext, playlist: str
     ):
         await ctx.defer(hidden=True)
-        user_data = self.bot.mongo.get_user_data(ctx.guild_id, ctx.author_id)
-        if not user_data:
-            raise NoData
-        user_playlists = user_data.get("music_playlists")
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(ctx.author_id)
+        user_playlists = user_data.music_playlists
         if not user_playlists:
             raise NoData
         playlist_data = user_playlists.get(playlist)
@@ -552,19 +525,14 @@ class Music(Cog):
             raise NoData
 
         content = get_content(
-            "MUSIC_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "MUSIC_COMMANDS", guild_data.configuration.language
         )["MUSIC_PLAYLIST"]
 
         await ctx.send(
             content["PLAYLIST_DELETE_TEXT"].format(playlist=playlist)
         )
 
-        self.bot.mongo.update_user(
-            ctx.guild_id,
-            ctx.author_id,
-            "$unset",
-            {f"music_playlists.{playlist}": ""}
-        )
+        await user_data.remove_playlist(playlist)
 
     async def _play_music(
         self, ctx: SlashContext, query: Union[str, List[str]], is_playlist: bool = False
@@ -573,7 +541,7 @@ class Music(Cog):
 
         if not ctx.author.voice:
             raise NotConnectedToVoice
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("MUSIC_COMMANDS", lang)
 
         player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(
@@ -587,6 +555,7 @@ class Music(Cog):
         if not ctx.voice_client:
             player.store("channel", ctx.channel.id)
             await ctx.author.voice.channel.connect(cls=LavalinkVoiceClient)
+            await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
 
         track = tracks = None
         if isinstance(query, List) and is_playlist:
@@ -600,6 +569,8 @@ class Music(Cog):
         await self._added_to_queue(ctx, track or tracks, content)
 
         if not player.is_playing:
+            if isinstance(track, list):
+                track = track[0]
             await self._send_message(ctx, track or tracks[0], content)
             await player.play()
 
@@ -610,7 +581,7 @@ class Music(Cog):
             query = f"ytsearch:{query}"
         results = await player.node.get_tracks(query)
         if not results or not results["tracks"]:
-            return await ctx.send(content["MUSIC_NOT_FOUND_TEXT"])
+            raise NoData
 
         if results["loadType"] == "PLAYLIST_LOADED":
             tracks = [
@@ -641,7 +612,7 @@ class Music(Cog):
         embed = Embed(
             title=content["ADDED_IN_QUEUE_TITLE_TEXT"],
             description=description,
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=await self.bot.get_embed_color(ctx.guild_id),
         )
         await ctx.send(embed=embed)
 
@@ -663,7 +634,7 @@ class Music(Cog):
             duration = content["LIVE_TEXT"]
 
         embed = Embed(
-            title=content["PLAYING_TEXT"], color=self.bot.get_embed_color(ctx.guild.id)
+            title=content["PLAYING_TEXT"], color=await self.bot.get_embed_color(ctx.guild.id)
         )
         embed.add_field(
             name=content["NAME_TEXT"],

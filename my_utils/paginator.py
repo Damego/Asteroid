@@ -1,50 +1,47 @@
-from asyncio import TimeoutError
 from copy import deepcopy
 from enum import IntEnum
 from typing import Union, List
 
 from discord import Client, Embed
 from discord.ext.commands import Bot
-from discord_slash import SlashContext
-from discord_components import Button, ButtonStyle
-from discord_slash_components_bridge import ComponentContext, ComponentMessage
+from discord_slash import SlashContext, Button, ButtonStyle, ComponentContext, ComponentMessage
 
 
 components = {
     1: [
         [
-            Button(style=ButtonStyle.gray, label="←", id="back", disabled=True),
-            Button(style=ButtonStyle.gray, label="→", id="next"),
+            Button(style=ButtonStyle.gray, label="←", custom_id="back", disabled=True),
+            Button(style=ButtonStyle.gray, label="→", custom_id="next"),
         ]
     ],
     2: [
         [
-            Button(style=ButtonStyle.gray, label="<<", id="first", disabled=True),
-            Button(style=ButtonStyle.gray, label="←", id="back", disabled=True),
-            Button(style=ButtonStyle.gray, label="→", id="next"),
-            Button(style=ButtonStyle.gray, label=">>", id="last"),
+            Button(style=ButtonStyle.gray, label="<<", custom_id="first", disabled=True),
+            Button(style=ButtonStyle.gray, label="←", custom_id="back", disabled=True),
+            Button(style=ButtonStyle.gray, label="→", custom_id="next"),
+            Button(style=ButtonStyle.gray, label=">>", custom_id="last"),
         ]
     ],
     3: [
         [
-            Button(style=ButtonStyle.gray, label="←", id="back", disabled=True),
+            Button(style=ButtonStyle.gray, label="←", custom_id="back", disabled=True),
             Button(
                 style=ButtonStyle.green,
                 label="1/{pages}",
                 emoji="🏠",
-                id="home",
+                custom_id="home",
                 disabled=True,
             ),
-            Button(style=ButtonStyle.gray, label="→", id="next"),
+            Button(style=ButtonStyle.gray, label="→", custom_id="next"),
         ]
     ],
     4: [
         [
-            Button(style=ButtonStyle.gray, label="<<", id="first", disabled=True),
-            Button(style=ButtonStyle.gray, label="←", id="back", disabled=True),
+            Button(style=ButtonStyle.gray, label="<<", custom_id="first", disabled=True),
+            Button(style=ButtonStyle.gray, label="←", custom_id="back", disabled=True),
             Button(style=ButtonStyle.blue, label="1/{pages}", disabled=True),
-            Button(style=ButtonStyle.gray, label="→", id="next"),
-            Button(style=ButtonStyle.gray, label=">>", id="last"),
+            Button(style=ButtonStyle.gray, label="→", custom_id="next"),
+            Button(style=ButtonStyle.gray, label=">>", custom_id="last"),
         ]
     ],
 }
@@ -73,7 +70,7 @@ class Paginator:
         self.pages = len(embeds)
         self.current_page = 1
         self.message = None
-        self._interaction = None
+        self.button_ctx = None
 
         if self.style == 3:
             self.components[0][1].label = f"1/{self.pages}"
@@ -85,40 +82,29 @@ class Paginator:
             embed=self.embeds[0], components=self.components
         )
 
-        while True:
-            self._interaction = await self._get_interaction()
-            if self._interaction is None:
-                return
+        self.bot.add_listener(self.button_click, "on_button_click")
 
-            if self.style == 1:
-                self._process_style1()
-            elif self.style == 2:
-                self._process_style2()
-            elif self.style == 3:
-                self._process_style3()
-            elif self.style == 4:
-                self._process_style4()
+    async def button_click(self, ctx: ComponentContext):
+        if ctx.author_id != self.ctx.author_id or ctx.origin_message_id != self.message.id:
+            return
 
-            try:
-                await self._interaction.edit_origin(
-                    embed=self.embeds[self.current_page - 1], components=self.components
-                )
-            except Exception as e:
-                print(e)
+        if self.style == 1:
+            self._process_style1(ctx.custom_id)
+        elif self.style == 2:
+            self._process_style2(ctx.custom_id)
+        elif self.style == 3:
+            self._process_style3(ctx.custom_id)
+        elif self.style == 4:
+            self._process_style4(ctx.custom_id)
 
-    async def _get_interaction(self) -> ComponentContext:
-        try:
-            return await self.bot.wait_for(
-                "button_click",
-                check=lambda ctx: ctx.author_id == self.ctx.author_id
-                and ctx.message.id == self.message.id,
-                timeout=60,
-            )
-        except TimeoutError:
-            await self.message.edit(components=[])
+        print(self.components[0][0].to_dict())
+        print(self.components[0][1].to_dict())
 
-    def _process_style1(self):
-        custom_id = self._interaction.custom_id
+        await ctx.edit_origin(
+            embed=self.embeds[self.current_page - 1], components=self.components
+        )
+
+    def _process_style1(self, custom_id: str):
         if custom_id == "back":
             if self.current_page == self.pages:
                 self.components[0][-1].disabled = False
@@ -136,8 +122,7 @@ class Paginator:
             elif self.current_page == self.pages - 1:
                 self.components[0][-1].disabled = False
 
-    def _process_style2(self):
-        custom_id = self._interaction.custom_id
+    def _process_style2(self, custom_id: str):
         first_button = self.components[0][0]
         second_button = self.components[0][1]
         second_last_button = self.components[0][-2]
@@ -181,9 +166,7 @@ class Paginator:
                 second_last_button.disabled = False
                 last_button.disabled = False
 
-    def _process_style3(self):
-        custom_id = self._interaction.custom_id
-
+    def _process_style3(self, custom_id: str):
         if custom_id == "back":
             if self.current_page == self.pages:
                 self.components[0][-1].disabled = False
@@ -209,9 +192,7 @@ class Paginator:
 
         self.components[0][1].label = f"{self.current_page}/{self.pages}"
 
-    def _process_style4(self):
-        custom_id = self._interaction.custom_id
-
+    def _process_style4(self, custom_id: str):
         first_button = self.components[0][0]
         second_button = self.components[0][1]
         second_last_button = self.components[0][-2]

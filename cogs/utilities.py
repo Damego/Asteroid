@@ -13,7 +13,6 @@ from discord import (
 from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
-from pymongo.collection import Collection
 
 from my_utils import (
     AsteroidBot,
@@ -24,6 +23,7 @@ from my_utils import (
     consts,
     NoData,
 )
+from my_utils.models.guild_data import GuildData, GuildStarboard
 
 
 class Utilities(Cog):
@@ -39,16 +39,15 @@ class Utilities(Cog):
         if ctx.name != "starboard":
             return
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        starboard_data = collection.find_one({"_id": "starboard"})
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        starboard_data = guild_data.starboard
         if not starboard_data:
             return
-        if starboard_data.get("blacklist") is None:
+        if starboard_data.blacklist is None:
             return
-        blacklist_data = starboard_data["blacklist"]
 
         if ctx.focused_option == "channel":
-            channel_ids = blacklist_data.get("channels")
+            channel_ids = starboard_data.blacklist.get("channels")
             if not channel_ids:
                 return
             channels: List[TextChannel] = [
@@ -60,7 +59,7 @@ class Utilities(Cog):
                 if channel.name.startswith(ctx.user_input)
             ][:25]
         elif ctx.focused_option == "member":
-            member_ids = blacklist_data.get("members")
+            member_ids = starboard_data.blacklist.get("members")
             if not member_ids:
                 return
             members: List[Member] = [
@@ -72,7 +71,7 @@ class Utilities(Cog):
                 if member.display_name.startswith(ctx.user_input)
             ][:25]
         elif ctx.focused_option == "role":
-            role_ids = blacklist_data.get("roles")
+            role_ids = starboard_data.blacklist.get("roles")
             if not role_ids:
                 return
             roles: List[Role] = [ctx.guild.get_role(role_id) for role_id in role_ids]
@@ -91,13 +90,13 @@ class Utilities(Cog):
         if str(payload.emoji) != "⭐":
             return
 
-        collection = self.bot.get_guild_main_collection(payload.guild_id)
-        starboard_data = collection.find_one({"_id": "starboard"})
+        guild_data = await self.bot.mongo.get_guild_data(payload.guild_id)
+        starboard_data = guild_data.starboard
         if starboard_data is None:
             return
-        if not starboard_data["is_enabled"]:
+        if not starboard_data.is_enabled:
             return
-        if payload.channel_id == starboard_data["channel_id"]:
+        if payload.channel_id == starboard_data.channel_id:
             return
 
         guild: Guild = self.bot.get_guild(payload.guild_id)
@@ -111,18 +110,17 @@ class Utilities(Cog):
             emoji = reaction.emoji
             if emoji == "⭐":
                 stars_count = reaction.count
-        limit = starboard_data["limit"]
-        if stars_count < limit:
+        if stars_count < starboard_data.limit:
             return
 
-        starboard_channel: TextChannel = guild.get_channel(starboard_data["channel_id"])
-        exists_messages = starboard_data.get("messages")
+        starboard_channel: TextChannel = guild.get_channel(starboard_data.channel_id)
+        exists_messages = starboard_data.messages
         if exists_messages is None or str(payload.message_id) not in exists_messages:
             await self._send_starboard_message(
-                collection, message, stars_count, starboard_channel
+                guild_data, message, stars_count, starboard_channel
             )
         else:
-            starboard_message_id = starboard_data["messages"][str(payload.message_id)][
+            starboard_message_id = starboard_data.messages[str(payload.message_id)][
                 "starboard_message"
             ]
             await self._update_starboard_message(
@@ -134,13 +132,13 @@ class Utilities(Cog):
         if str(payload.emoji) != "⭐":
             return
 
-        collection = self.bot.get_guild_main_collection(payload.guild_id)
-        starboard_data = collection.find_one({"_id": "starboard"})
+        guild_data = await self.bot.mongo.get_guild_data(payload.guild_id)
+        starboard_data = guild_data.starboard
         if starboard_data is None:
             return
-        if not starboard_data["is_enabled"]:
+        if not starboard_data.is_enabled:
             return
-        if payload.channel_id == starboard_data["channel_id"]:
+        if payload.channel_id == starboard_data.channel_id:
             return
 
         guild: Guild = self.bot.get_guild(payload.guild_id)
@@ -156,8 +154,8 @@ class Utilities(Cog):
             if emoji == "⭐":
                 stars_count = reaction.count
 
-        starboard_channel: TextChannel = guild.get_channel(starboard_data["channel_id"])
-        starboard_message_id = starboard_data["messages"][str(payload.message_id)][
+        starboard_channel: TextChannel = guild.get_channel(starboard_data.channel_id)
+        starboard_message_id = starboard_data.messages[str(payload.message_id)][
             "starboard_message"
         ]
         await self._update_starboard_message(
@@ -166,14 +164,13 @@ class Utilities(Cog):
 
     @staticmethod
     def _is_blacklisted(
-        payload: RawReactionActionEvent, message: Message, starboard_data: dict
+        payload: RawReactionActionEvent, message: Message, starboard_data: GuildStarboard
     ):
-        blacklist = starboard_data.get("blacklist")
-        if not blacklist:
+        if not starboard_data.blacklist:
             return False
-        blacklisted_channels = blacklist.get("channels")
-        blacklisted_roles = blacklist.get("roles")
-        blacklisted_members = blacklist.get("members")
+        blacklisted_channels = starboard_data.blacklist.get("channels")
+        blacklisted_roles = starboard_data.blacklist.get("roles")
+        blacklisted_members = starboard_data.blacklist.get("members")
         member_roles = message.guild.get_member(payload.user_id).roles
         has_blacklisted_roles = [
             role for role in member_roles if role.id in blacklisted_roles
@@ -206,13 +203,12 @@ class Utilities(Cog):
 
     async def _send_starboard_message(
         self,
-        collection: Collection,
+        guild_data: GuildData,
         message: Message,
         stars_count: int,
         starboard_channel: TextChannel,
     ):
-        lang = self.bot.get_guild_bot_lang(message.guild.id)
-        content = get_content("STARBOARD_FUNCTIONS", lang)
+        content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
         embed_description = (
             f"{message.content}\n\n"
             f"**[{content['JUMP_TO_ORIGINAL_MESSAGE_TEXT']}]({message.jump_url})**"
@@ -229,14 +225,7 @@ class Utilities(Cog):
             content=f"⭐{stars_count} | {message.channel.mention}", embed=embed
         )
 
-        collection.update_one(
-            {"_id": "starboard"},
-            {
-                "$set": {
-                    f"messages.{message.id}.starboard_message": starboard_message.id
-                }
-            },
-        )
+        await guild_data.starboard.add_starboard_message(message.id, starboard_message.id)
 
     @slash_subcommand(
         base="starboard", name="channel", description="Starboard channel setting"
@@ -244,29 +233,27 @@ class Utilities(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_channel(self, ctx: SlashContext, channel: TextChannel):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content("STARBOARD_FUNCTIONS", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        starboard_data = collection.find_one({"_id": "starboard"})
-        if starboard_data is None:
-            data = {"is_enabled": True, "channel_id": channel.id, "limit": 3}
+        if guild_data.starboard is None:
+            await guild_data.add_starboard(channel_id=channel.id, limit=3, is_enabled=True)
         else:
-            data = {"channel_id": channel.id}
-        collection.update_one({"_id": "starboard"}, {"$set": data}, upsert=True)
+            await guild_data.starboard.set_channel_id(channel.id)
+
+        content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
         await ctx.send(content["CHANNEL_WAS_SETUP_TEXT"])
 
     @slash_subcommand(base="starboard", name="limit", description="Limit setting")
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_stars_limit(self, ctx: SlashContext, limit: int):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content("STARBOARD_FUNCTIONS", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.starboard:
+            await guild_data.add_starboard(limit=limit)
+        else:
+            await guild_data.starboard.set_limit(limit)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        collection.update_one(
-            {"_id": "starboard"}, {"$set": {"limit": limit}}, upsert=True
-        )
+        content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
         await ctx.send(content["LIMIT_WAS_SETUP_TEXT"].format(limit=limit))
 
     @slash_subcommand(
@@ -280,8 +267,8 @@ class Utilities(Cog):
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
                 choices=[
-                    create_choice(name="enable", value="enable"),
-                    create_choice(name="disable", value="disable"),
+                    create_choice(name="Enable", value="True"),
+                    create_choice(name="Disable", value="False"),
                 ],
             )
         ],
@@ -289,28 +276,24 @@ class Utilities(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_status(self, ctx: SlashContext, status: str):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content("STARBOARD_FUNCTIONS", lang)
+        status = status == "True"
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
-        _status = status == "enable"
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        starboard_data = collection.find_one({"_id": "starboard"})
+        starboard_data = guild_data.starboard
         if (
             starboard_data is None
-            or "channel_id" not in starboard_data
-            or "limit" not in starboard_data
+            or not starboard_data.channel_id
+            or not starboard_data.limit
         ):
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"])
+        await starboard_data.set_status(status)
 
-        collection.update_one(
-            {"_id": "starboard"}, {"$set": {"is_enabled": _status}}, upsert=True
+        await ctx.send(
+            content["STARBOARD_ENABLED_TEXT"]
+            if status
+            else content["STARBOARD_DISABLED_TEXT"]
         )
-        if _status:
-            message_content = content["STARBOARD_ENABLED_TEXT"]
-        else:
-            message_content = content["STARBOARD_DISABLED_TEXT"]
-
-        await ctx.send(message_content)
 
     @slash_subcommand(
         base="starboard",
@@ -327,37 +310,23 @@ class Utilities(Cog):
         role: Role = None,
         channel: TextChannel = None,
     ):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content("STARBOARD_FUNCTIONS", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
         if not member and not role and not channel:
             return await ctx.send(content["BLACKLIST_NO_OPTIONS_TEXT"], hidden=True)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        starboard_data = collection.find_one({"_id": "starboard"})
+        starboard_data = guild_data.starboard
         if starboard_data is None:
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"], hidden=True)
 
-        data = {}
-        if "blacklist" not in starboard_data:
-            if member:
-                data["members"] = member.id
-            if role:
-                data["roles"] = role.id
-            if channel:
-                data["channels"] = channel.id
-        else:
-            blacklist = starboard_data["blacklist"]
-            if member and member.id not in blacklist["members"]:
-                data["members"] = member.id
-            if role and role.id not in blacklist["roles"]:
-                data["roles"] = role.id
-            if channel and channel.id not in blacklist["channels"]:
-                data["channels"] = channel.id
-
-        to_send = {f"blacklist.{key}": value for key, value in data.items()}
-
-        collection.update_one({"_id": "starboard"}, {"$push": to_send}, upsert=True)
+        blacklist = starboard_data.blacklist
+        if member and member.id not in blacklist["members"]:
+            await starboard_data.add_member_to_blacklist(member.id)
+        if role and role.id not in blacklist["roles"]:
+            await starboard_data.add_role_to_blacklist(role.id)
+        if channel and channel.id not in blacklist["channels"]:
+            await starboard_data.add_channel_to_blacklist(channel.id)
 
         await ctx.send(content["BLACKLIST_ADDED_TEXT"], hidden=True)
 
@@ -399,38 +368,25 @@ class Utilities(Cog):
         role: str = None,
         channel: str = None,
     ):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content("STARBOARD_FUNCTIONS", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
         if not member and not role and not channel:
             return await ctx.send(content["BLACKLIST_NO_OPTIONS_TEXT"])
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        starboard_data = collection.find_one({"_id": "starboard"})
+        starboard_data = guild_data.starboard
         if starboard_data is None:
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"], hidden=True)
-
-        data = {}
-        if "blacklist" not in starboard_data:
+        if not starboard_data.blacklist:
             return await ctx.send(content["EMPTY_BLACKLIST_TEXT"], hidden=True)
 
-        blacklist = starboard_data["blacklist"]
-        if member:
-            member = ctx.guild.get_member(int(member))
-            if member.id in blacklist["members"]:
-                data["members"] = member.id
-        if role:
-            role = ctx.guild.get_role(int(role))
-            if role.id in blacklist["roles"]:
-                data["roles"] = role.id
-        if channel:
-            channel = ctx.guild.get_channel(int(channel))
-            if channel.id in blacklist["channels"]:
-                data["channels"] = channel.id
-
-        to_send = {f"blacklist.{key}": value for key, value in data.items()}
-
-        collection.update_one({"_id": "starboard"}, {"$pull": to_send}, upsert=True)
+        blacklist = starboard_data.blacklist
+        if member and int(member) in blacklist["members"]:
+            await starboard_data.remove_member_from_blacklist(int(member))
+        if role and int(role) in blacklist["roles"]:
+            await starboard_data.remove_role_from_blacklist(int(role))
+        if channel and int(channel) in blacklist["channels"]:
+            await starboard_data.remove_channel_from_blacklist(int(channel))
 
         await ctx.send(content["BLACKLIST_REMOVED_TEXT"], hidden=True)
 
@@ -443,14 +399,13 @@ class Utilities(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def starboard_blacklist_list(self, ctx: SlashContext, hidden: bool = False):
-        lang = self.bot.get_guild_bot_lang(ctx.guild_id)
-        content = get_content("STARBOARD_FUNCTIONS", lang)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        starboard_data = collection.find_one({"_id": "starboard"})
+        starboard_data = guild_data.starboard
         if starboard_data is None:
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"], hidden=True)
-        if "blacklist" not in starboard_data or not starboard_data["blacklist"]:
+        if not starboard_data.blacklist:
             return await ctx.send(content["EMPTY_BLACKLIST_TEXT"], hidden=True)
 
         embed = Embed(
@@ -458,9 +413,9 @@ class Utilities(Cog):
             color=self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.datetime.now(),
         )
-        members = starboard_data["blacklist"].get("members")
-        channels = starboard_data["blacklist"].get("channels")
-        roles = starboard_data["blacklist"].get("roles")
+        members = starboard_data.blacklist.get("members")
+        channels = starboard_data.blacklist.get("channels")
+        roles = starboard_data.blacklist.get("roles")
 
         if not members and not channels and not roles:
             return await ctx.send(content["EMPTY_BLACKLIST_TEXT"], hidden=True)
@@ -488,18 +443,20 @@ class Utilities(Cog):
     #  TURN OFF/ON COMMANDS/GROUP OF COMMANDS
 
     @Cog.listener(name="on_autocomplete")
-    async def command_autocomplete(self, ctx: AutoCompleteContext, **kwargs):
+    async def command_autocomplete(self, ctx: AutoCompleteContext):
         if self.bot.get_transformed_command_name(ctx) != "command":
             return
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        configuration_data = collection.find_one({"_id": "configuration"})
-        if disabled_commands := configuration_data.get("disabled_commands"):
-            choices = [
-                create_choice(name=command_name, value=command_name)
-                for command_name in disabled_commands
-                if command_name.startswith(ctx.user_input)
-            ][:25]
-            await ctx.populate(choices)
+
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        disabled_commands = guild_data.configuration.disabled_commands
+
+        choices = [
+            create_choice(name=command_name, value=command_name)
+            for command_name in disabled_commands
+            if command_name.startswith(ctx.user_input)
+        ][:25]
+
+        await ctx.populate(choices)
 
     @slash_subcommand(
         base="command",
@@ -508,17 +465,12 @@ class Utilities(Cog):
     )
     @bot_owner_or_permissions(manage_guild=True)
     async def disable_cmd(self, ctx: SlashContext, command_name: str):
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        await guild_data.configuration.add_disabled_command(command_name)
+
         content = get_content(
-            "COMMAND_CONTROL", lang=self.bot.get_guild_bot_lang(ctx.guild_id)
+            "COMMAND_CONTROL", lang=guild_data.configuration.language
         )
-
-        collection.update_one(
-            {"_id": "configuration"},
-            {"$push": {"disabled_commands": command_name}},
-            upsert=True,
-        )
-
         await ctx.send(content["COMMAND_DISABLED"].format(command_name=command_name))
 
     @slash_subcommand(
@@ -537,15 +489,11 @@ class Utilities(Cog):
     )
     @bot_owner_or_permissions(manage_guild=True)
     async def enable_cmd(self, ctx: SlashContext, command_name: str):
-        collection = self.bot.get_guild_main_collection(ctx.guild_id)
-        content = get_content(
-            "COMMAND_CONTROL", lang=self.bot.get_guild_bot_lang(ctx.guild_id)
-        )
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        await guild_data.configuration.delete_disabled_command(command_name)
 
-        collection.update_one(
-            {"_id": "configuration"},
-            {"$pull": {"disabled_commands": command_name}},
-            upsert=True,
+        content = get_content(
+            "COMMAND_CONTROL", lang=guild_data.configuration.language
         )
         await ctx.send(content["COMMAND_ENABLED"].format(command_name=command_name))
 
@@ -553,8 +501,9 @@ class Utilities(Cog):
         base="note", name="new", description="Create a note"
     )
     async def add_todo(self, ctx: SlashContext, name: str, note_content: str):
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content(
-            "NOTES_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "NOTES_COMMANDS", guild_data.configuration.language
         )
         embed = Embed(
             title=content["NOTE_CREATED_TEXT"].format(name=name),
@@ -569,10 +518,8 @@ class Utilities(Cog):
             "jump_url": message.jump_url,
             "content": note_content,
         }
-        collection = self.bot.get_guild_users_collection(ctx.guild_id)
-        collection.update_one(
-            {"_id": str(ctx.author_id)}, {"$push": {"notes": data}}, upsert=True
-        )
+        user_data = await guild_data.get_user(ctx.author_id)
+        await user_data.add_note(data)
 
     @Cog.listener(name="on_autocomplete")
     async def note_autocomplete(self, ctx: AutoCompleteContext):
@@ -581,19 +528,17 @@ class Utilities(Cog):
         if ctx.focused_option != "name":
             return
 
-        collection = self.bot.get_guild_users_collection(ctx.guild_id)
-        user_data = collection.find_one({"_id": str(ctx.author_id)})
-        if user_data is None:
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(ctx.author_id)
+        if not user_data.notes:
             return
-        notes = user_data.get("notes")
-        if notes is None:
-            return
+
         choices = [
             create_choice(
                 name=f"{count}. | {note['created_at']} | {note['name']}",
                 value=note["name"],
             )
-            for count, note in enumerate(notes, start=1)
+            for count, note in enumerate(user_data.notes, start=1)
             if ctx.user_input
             in f"{count}. {note['created_at']} | {note['name']}"
         ][:25]
@@ -615,50 +560,38 @@ class Utilities(Cog):
         ],
     )
     async def delete_note(self, ctx: SlashContext, name: str):
-        collection = self.bot.get_guild_users_collection(ctx.guild_id)
-        user_data = collection.find_one({"_id": str(ctx.author_id)})
-        if user_data is None:
+        await ctx.defer()
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(ctx.author_id)
+        if not user_data.notes:
             raise NoData
-        notes = user_data.get("notes")
-        if notes is None:
-            raise NoData
-        for note_data in notes:
-            if note_data["name"] == name:
-                data = note_data
-                break
-        else:
-            raise NoData
+
+        await user_data.remove_note(name)
         content = get_content(
-            "NOTES_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "NOTES_COMMANDS", guild_data.configuration.language
         )
         await ctx.send(content["NOTE_DELETED"])
 
-        collection.update_one(
-            {"_id": str(ctx.author_id)}, {"$pull": {"notes": data}}, upsert=True
-        )
 
     @slash_subcommand(base="note", name="list", description="Show your notes")
-    async def todo_list(self, ctx: SlashContext):
+    async def notes_list(self, ctx: SlashContext):
         await ctx.defer()
-        collection = self.bot.get_guild_users_collection(ctx.guild_id)
-        user_data = collection.find_one({"_id": str(ctx.author_id)})
-        if user_data is None:
-            raise NoData
-        notes = user_data.get("notes")
-        if notes is None:
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(ctx.author_id)
+        if not user_data.notes:
             raise NoData
 
         content = get_content(
-            "NOTES_COMMANDS", self.bot.get_guild_bot_lang(ctx.guild_id)
+            "NOTES_COMMANDS", guild_data.configuration.language
         )
         embed = Embed(
             title=content["USER_NOTE_LIST"].format(ctx.author.display_name),
             description="",
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=guild_data.configuration.embed_color,
             timestamp=datetime.datetime.utcnow(),
         )
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
-        for count, todo_data in enumerate(notes, start=1):
+        for count, todo_data in enumerate(user_data.notes, start=1):
             embed.add_field(
                 name=f"{count}. *(<t:{int(todo_data['created_at_timestamp'])}:R>)*",
                 value=f" ```{todo_data['content']}``` [{content['JUMP_TO']}]({todo_data['jump_url']})",

@@ -37,7 +37,7 @@ def is_enabled():
 
         command_name = bot.get_transformed_command_name(ctx)
         collection = bot.get_guild_main_collection(ctx.guild_id)
-        guild_data = collection.find_one({"_id": "configuration"})
+        guild_data = await collection.find_one({"_id": "configuration"})
         if guild_data is None:
             return True
         if not guild_data.get("disabled_commands"):

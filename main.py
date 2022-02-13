@@ -1,4 +1,3 @@
-import asyncio
 from os import getenv
 from traceback import format_exception
 
@@ -10,7 +9,6 @@ from dotenv import load_dotenv
 from my_utils import AsteroidBot, get_content, transform_permission
 from my_utils.errors import *
 from my_utils import slash_override
-
 
 bot = AsteroidBot(command_prefix="+", intents=Intents.all())
 
@@ -25,34 +23,19 @@ async def on_ready():
 
     print(f"{bot.user} загружен!")
 
-
 @bot.event
 async def on_guild_join(guild: Guild):
-    collection = bot.get_guild_main_collection(guild.id)
-    collection.update_one(
-        {"_id": "configuration"}, {"$set": {"embed_color": "0x5865F2"}}, upsert=True
-    )
-
+    await bot.mongo.add_guild(guild.id)
 
 @bot.event
 async def on_guild_remove(guild: Guild):
-    guild_id = guild.id
-    collections = [
-        bot.get_guild_main_collection(guild_id),
-        bot.get_guild_tags_collection(guild_id),
-        bot.get_guild_users_collection(guild_id),
-        bot.get_guild_voice_time_collection(guild_id),
-    ]
-
-    for collection in collections:
-        collection.drop()
-
+    await bot.mongo.delete_guild(guild.id)
 
 @bot.event
 async def on_slash_command_error(ctx: SlashContext, error):
     print(error)
     embed = Embed(color=0xED4245)
-    lang = bot.get_guild_bot_lang(ctx.guild_id)
+    lang = await bot.get_guild_bot_lang(ctx.guild_id)
     content = get_content("ERRORS_DESCRIPTIONS", lang)
 
     if isinstance(error, CogDisabledOnGuild):
