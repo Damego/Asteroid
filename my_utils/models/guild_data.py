@@ -27,7 +27,7 @@ class GuildData:
         self.configuration: GuildConfiguration = None
         self.starboard: GuildStarboard = None
         self.tags: List[GuildTag] = []
-        self.cogs_status: Dict[str, Dict[str, str]] = {}
+        self.cogs_data: Dict[str, Dict[str, str]] = {}
         self.autoroles: List[GuildAutoRole] = []
         self.roles_by_level = {}
         self.users_voice_time = {}

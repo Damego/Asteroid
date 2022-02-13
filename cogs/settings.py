@@ -230,7 +230,7 @@ class Settings(Cog):
         while True:
             button_ctx: ComponentContext = await self.bot.wait_for(
                 "component",
-                check=lambda inter: inter.message.id == message.id
+                check=lambda inter: inter.original_message.id == message.id
                 and inter.author_id == ctx.author_id,
             )
             if button_ctx.custom_id == "select_reload_extensions":
