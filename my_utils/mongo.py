@@ -39,7 +39,7 @@ class Mongo:
         collection = self._guilds[str(guild_id)]["users"]
         await collection.update_one({"_id": str(user_id)}, {update_type: data}, upsert=True)
 
-    async def get_user_data(self, guild_id: int, user_id: int, data: dict = None) -> dict:
+    async def get_raw_user_data(self, guild_id: int, user_id: int, data: dict = None) -> dict:
         collection = self._guilds[str(guild_id)]["users"]
         user_data = await collection.find_one({"_id": str(user_id)}, data)
         return user_data
@@ -70,7 +70,7 @@ class Mongo:
 
     async def get_guild_data(self, guild_id: int) -> GuildData:
         if str(guild_id) not in self._cache:
-            print("Guild data not found in cache. Fetching...")
+            print(f"GuildData for {guild_id} not found in cache. Fetching in database...")
             json_data = await self.get_guild_raw_data(guild_id)
             self._cache[str(guild_id)] = GuildData(self._guilds, json_data, guild_id)
         return self._cache[str(guild_id)]

@@ -239,6 +239,7 @@ class Misc(Cog):
         name="offline_bots",
         description="Shows all offline bots in server",
     )
+    @is_enabled()
     async def check_bots(self, ctx: SlashContext):
         bots_list = [member for member in ctx.guild.members if member.bot]
 
@@ -306,6 +307,7 @@ class Misc(Cog):
     @slash_subcommand(
         base="server", name="roles", description="Show's all server roles"
     )
+    @is_enabled()
     async def send_server_roles(self, ctx: SlashContext):
         guild_roles: List[Role] = ctx.guild.roles[::-1]
         embeds: List[Embed] = []
@@ -331,11 +333,12 @@ class Misc(Cog):
     @slash_subcommand(
         base="misc", name="send_image", description="Send image in embed from link"
     )
+    @is_enabled()
     async def send_image(self, ctx: SlashContext, url: str):
         if not url_rx.match(url):
             return await ctx.send("Not link", hidden=True)
 
-        embed = Embed()
+        embed = Embed(color=await self.bot.get_embed_color(ctx.guild_id))
         embed.set_image(url=url)
         await ctx.send(embed=embed)
 

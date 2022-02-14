@@ -580,6 +580,7 @@ class AutoRole(Cog):
         name="create",
         description="Send a message for adding buttons",
     )
+    @is_enabled()
     async def autorole_button_create(
         self, ctx: SlashContext, name: str, message_content: str
     ):
@@ -643,6 +644,7 @@ class AutoRole(Cog):
             ),
         ],
     )
+    @is_enabled()
     async def autorole_button_add_role(
         self,
         ctx: SlashContext,

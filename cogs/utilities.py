@@ -539,6 +539,7 @@ class Utilities(Cog):
     @slash_subcommand(
         base="note", name="new", description="Create a note"
     )
+    @is_enabled()
     async def add_todo(self, ctx: SlashContext, name: str, note_content: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content(
@@ -598,6 +599,7 @@ class Utilities(Cog):
             )
         ],
     )
+    @is_enabled()
     async def delete_note(self, ctx: SlashContext, name: str):
         await ctx.defer()
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
@@ -613,6 +615,7 @@ class Utilities(Cog):
 
 
     @slash_subcommand(base="note", name="list", description="Show your notes")
+    @is_enabled()
     async def notes_list(self, ctx: SlashContext):
         await ctx.defer()
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)

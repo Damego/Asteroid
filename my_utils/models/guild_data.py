@@ -82,13 +82,15 @@ class GuildData:
         for user in self.users:
             if user.id == str(user_id):
                 return user
+        print(f"UserData for {user_id} not found in `GuildData {self.guild_id}`. Fetching in database...")
         user_raw_data = await self._users_collection.find_one({"_id": str(user_id)})
         if user_raw_data is None:
+            print(f"No data for user {user_id}. Adding user to database...")
             user = await self.add_user(user_id)
         else:
+            print(f"Founded data for user {user_id} in database. Adding user to `GuildData {self.guild_id}`...")
             user = GuildUser(self._users_collection, user_raw_data)
             self.users.append(user)
-
         return user
 
     async def remove_user(self, user_id: int):
@@ -529,19 +531,26 @@ class GuildUser:
 
     async def add_track_to_playlist(self, playlist: str, track: str):
         await self._update(OperatorType.PUSH, {f"music_playlists.{playlist}": track})
+        if playlist not in self.music_playlists:
+            self.music_playlists[playlist] = []
         self.music_playlists[playlist].append(track)
 
-    async def add_many_tracks(self, playlist:str, tracks: list):
+    async def add_many_tracks(self, playlist: str, tracks: list):
         await self._update(OperatorType.PUSH, {f"music_playlists.{playlist}": {OperatorType.EACH: tracks}})
+        if playlist not in self.music_playlists:
+            self.music_playlists[playlist] = []
         self.music_playlists[playlist].extend(tracks)
 
     async def remove_track_from_playlist(self, playlist: str, track: str):
         await self._update(OperatorType.PULL, {f"music_playlists.{playlist}": track})
+        if playlist not in self.music_playlists:
+            self.music_playlists[playlist] = []
         self.music_playlists[playlist].remove(track)
 
     async def remove_playlist(self, playlist: str):
         await self._update(OperatorType.UNSET, {f"music_playlists.{playlist}": ""})
-        del self.music_playlists[playlist]
+        if playlist in self.music_playlists:
+            del self.music_playlists[playlist]
 
     
 

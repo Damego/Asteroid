@@ -22,7 +22,7 @@ from my_utils import (
     BotNotConnectedToVoice,
     NotConnectedToVoice,
     NotPlaying,
-    consts,
+    bot_owner_or_permissions,
     NoData,
 )
 
@@ -238,6 +238,28 @@ class Music(Cog):
             color=guild_data.configuration.embed_color,
         )
         await ctx.send(embed=embed, hidden=True)
+
+    @slash_subcommand(
+        base="music",
+        name="force_stop",
+        description="Use this command if bot doesn't connect or doesn't play music"
+    )
+    @bot_owner_or_permissions(move_members=True)
+    @is_enabled()
+    async def music_force_stop(self, ctx: SlashContext):
+        await ctx.defer(hidden=True)
+
+        player = self.bot.lavalink.player_manager.get(ctx.guild_id)
+        if player is not None:
+            player.queue.clear()
+            await player.stop()
+        try:
+            await ctx.voice_client.disconnect(force=True)
+        except Exception:
+            await ctx.send(":x:")
+        else:
+            await ctx.send(":white_check_mark:")
+
 
     @Cog.listener(name="on_autocomplete")
     async def playlist_autocomplete(self, ctx: AutoCompleteContext):
@@ -476,6 +498,7 @@ class Music(Cog):
             ),
         ]
     )
+    @is_enabled()
     async def copy_member_playlist(self, ctx: SlashContext, member: Member, member_playlist: str, playlist: str):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
