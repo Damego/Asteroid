@@ -348,7 +348,7 @@ class Music(Cog):
         embed = Embed(
             title=content["PLAYLIST_UPDATE_TITLE_TRACK"].format(playlist=playlist),
             description=content["ADDED_TEXT"].format(query=query),
-            color=guild_data.configuration.language
+            color=guild_data.configuration.embed_color
         )
         await ctx.send(embed=embed, hidden=hidden)
 
