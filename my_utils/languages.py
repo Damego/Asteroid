@@ -486,11 +486,7 @@ LANGUAGES = {
             "MISS_PERMS": "You don't have permission for this!**\nRequired permissions:",
             "CHECK_FAILURE": "You can't use this command!",
             "OTHER_ERRORS_TITLE": "❌ Oops... An unexpected error occurred!",
-            "OTHER_ERRORS_DESCRIPTION": "This bug was sent to owner\n"
-            "*Error:* \n"
-            "```python "
-            "{error}"
-            " ```",
+            "OTHER_ERRORS_DESCRIPTION": "This bug was sent to owner\n*Error:*\n``` {error} ```",
             "BOT_DONT_HAVE_PERMS": "**Bot don't have permission for this!**\nRequired permissions:",
             "DONT_HAVE_PERMS": "**You don't have permission for this!**\nRequired permissions:",
             "FORBIDDEN": "Bot doesn't have permission for this!",

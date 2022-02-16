@@ -1,4 +1,5 @@
 from os import getenv
+from datetime import datetime
 from traceback import format_exception
 
 from discord import Guild, Intents, Embed, Forbidden
@@ -33,7 +34,6 @@ async def on_guild_remove(guild: Guild):
 
 @bot.event
 async def on_slash_command_error(ctx: SlashContext, error):
-    print(error)
     embed = Embed(color=0xED4245)
     lang = await bot.get_guild_bot_lang(ctx.guild_id)
     content = get_content("ERRORS_DESCRIPTIONS", lang)
@@ -84,26 +84,41 @@ async def on_slash_command_error(ctx: SlashContext, error):
             format_exception(type(error), error, error.__traceback__)
         )
 
-        error_description = f"""
-        **Guild:** {ctx.guild}
-        **Channel:** {ctx.channel}
-        **User:** {ctx.author}
-        **Error:**
-        `{error}`
-        **Traceback:**
-        ``` \n
-        {error_traceback}
-        ``` """
-
+        error_embed = Embed(
+            title="Unexpected error",
+            description=f"``` {error_traceback} ```",
+            timestamp=datetime.utcnow(),
+            color=0xED4245
+        )
+        error_embed.add_field(
+            name="Command Name",
+            value=f"`/{bot.get_transformed_command_name(ctx)}`"
+        )
+        error_embed.add_field(
+            name="Guild",
+            value=f"Name: `{ctx.guild.name}`\n ID:`{ctx.guild_id}`"
+        )
+        error_embed.add_field(
+            name="Channel",
+            value=f"Name: `{ctx.channel.name}`\n ID:`{ctx.channel_id}`"
+        )
+        error_embed.add_field(
+            name="User",
+            value=f"Name: `{ctx.author.name}`\n ID:`{ctx.author_id}`"
+        )
+        error_embed.add_field(
+            name="Short Description",
+            value=f"`{error}`"
+        )
         channel = ctx.bot.get_channel(863001051523055626)
         if channel is None:
             channel = await ctx.bot.fetch_channel(863001051523055626)
         try:
-            await channel.send(error_description)
+            await channel.send(embed=error_embed)
         except Exception:
-            await channel.send("Произошла ошибка! Чекни логи!")
-            print(error_description)
-
+            error_embed.description = "Checks logs"
+            await channel.send(embed=error_embed)
+            print(error_traceback)
     embed.description = desc
     try:
         await ctx.send(embed=embed)
