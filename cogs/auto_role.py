@@ -173,7 +173,7 @@ class AutoRole(Cog):
                 else content["NO_OPTIONS_TEXT"],
                 options=[SelectOption(label="None", value="None")],
                 disabled=True,
-                id="autorole_select",
+                custom_id="autorole_select",
             )
         ]
 
