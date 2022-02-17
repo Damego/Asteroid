@@ -1,3 +1,4 @@
+from datetime import datetime
 from re import compile
 from typing import Union, List
 
@@ -636,7 +637,9 @@ class Music(Cog):
             title=content["ADDED_IN_QUEUE_TITLE_TEXT"],
             description=description,
             color=await self.bot.get_embed_color(ctx.guild_id),
+            timestamp=datetime.utcnow()
         )
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
 
     async def _send_message(
