@@ -15,6 +15,7 @@ async def update_member(
 ):
     guild = member_or_message.guild
     guild_id = guild.id
+    message = None
 
     if isinstance(member_or_message, Message):
         message = member_or_message
