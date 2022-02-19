@@ -28,7 +28,7 @@ class Moderation(Cog):
         embed = Embed(
             title=was_banned_text,
             description=ban_reason_text,
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=await self.bot.get_embed_color(ctx.guild_id),
         )
         await ctx.send(embed=embed)
         embed.description += content["SERVER"].format(guild=ctx.guild)
@@ -52,7 +52,7 @@ class Moderation(Cog):
         embed = Embed(
             title=was_kicked_text,
             description=kick_reason_text,
-            color=self.bot.get_embed_color(ctx.guild_id),
+            color=await self.bot.get_embed_color(ctx.guild_id),
         )
         await ctx.send(embed=embed)
         embed.description += content["SERVER"].format(guild=ctx.guild)
@@ -82,9 +82,9 @@ class Moderation(Cog):
     @slash_subcommand(base="mod", name="nick", description="Change nick of member")
     async def nick(self, ctx: SlashContext, member: Member, new_nick: str):
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: str = get_content("FUNC_MODERATION_CHANGE_NICK_TEXT", lang)
+        content: dict = get_content("FUNC_MODERATION_CHANGE_NICK_TEXT", lang)
 
-        embed = Embed(color=self.bot.get_embed_color(ctx.guild_id))
+        embed = Embed(color=await self.bot.get_embed_color(ctx.guild_id))
         await member.edit(nick=new_nick)
         embed.description = content.format(member.mention, new_nick)
         await ctx.send(embed=embed)
@@ -99,21 +99,13 @@ class Moderation(Cog):
             return message.author.id == member.id
 
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: str = get_content("FUNC_MODERATION_CLEAR_MESSAGES", lang)
+        content: dict = get_content("FUNC_MODERATION_CLEAR_MESSAGES", lang)
 
         await ctx.defer(hidden=True)
         deleted_messages = await ctx.channel.purge(
             limit=amount, check=check if member else None
         )
         await ctx.send(content.format(len(deleted_messages)), hidden=True)
-
-    @staticmethod
-    def _get_converted_time(time: str):
-        amount = time[:-1]
-        time_format = time[-1]
-        if amount.isdigit() and time_format in ["д", "ч", "м", "с", "d", "h", "m", "s"]:
-            return int(amount), time_format
-        raise BadArgument
 
     @slash_subcommand(
         base="mod", name="move_to", description="Moves member to certain channel"
