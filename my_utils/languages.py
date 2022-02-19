@@ -241,7 +241,7 @@ LANGUAGES = {
             "TAG_RENAMED_TEXT": "Тег `{tag_name}` переименован в `{new_tag_name}`!"
         },
         "MUSIC_COMMANDS": {
-            "ADDED_IN_QUEUE_DESCRIPTION_TEXT": "Было добавлено в очередь `{tracks_amount}` трек/треков!\n{tracks}",
+            "ADDED_IN_QUEUE_DESCRIPTION_TEXT": "Было добавлено в очередь `{tracks_amount}` трек(ов)!\n{tracks}",
             "ADDED_IN_QUEUE_TITLE_TEXT": "Обновление очереди",
             "DISCONNECTED_TEXT": "Успешно остановлено и отключено!",
             "PAUSED_TEXT": "Воспроизведение музыки поставлено на паузу!",
@@ -255,6 +255,7 @@ LANGUAGES = {
             "MUSIC_NOT_FOUND_TEXT": "Музыка с таким названием/ссылкой не найдено!",
             "QUEUE_IS_EMPTY_TEXT": "Очередь пуста!",
             "CURRENT_QUEUE_TITLE_TEXT": "Текущая очередь",
+            "CURRENT_SONG_TEXT": "Текущий трек",
             "MUSIC_PLAYLIST": {
                 "PLAYLIST_TITLE_TEXT": "Плейлист: {playlist}",
                 "PLAYLIST_UPDATE_TITLE_TRACK": "Обновление плейлиста: {playlist}",
@@ -611,7 +612,7 @@ LANGUAGES = {
             "NO_TAGS_TEXT": "No tags in this server!",
         },
         "MUSIC_COMMANDS": {
-            "ADDED_IN_QUEUE_DESCRIPTION_TEXT": "Was/Were added to the queue `{tracks_amount}` track/tracks.\n{tracks}",
+            "ADDED_IN_QUEUE_DESCRIPTION_TEXT": "Was/Were added to the queue `{tracks_amount}` track(s).\n{tracks}",
             "ADDED_IN_QUEUE_TITLE_TEXT": "Queue update",
             "DISCONNECTED_TEXT": "Successfully stopped and disconnected!",
             "PAUSED_TEXT": "Paused!",
@@ -625,6 +626,7 @@ LANGUAGES = {
             "MUSIC_NOT_FOUND_TEXT": "Music with this name/url not found",
             "QUEUE_IS_EMPTY_TEXT": "Queue is empty!",
             "CURRENT_QUEUE_TITLE_TEXT": "Current queue",
+            "CURRENT_SONG_TEXT": "Current track",
             "MUSIC_PLAYLIST": {
                 "PLAYLIST_TITLE_TEXT": "Playlist: {playlist}",
                 "PLAYLIST_UPDATE_TITLE_TRACK": "Playlist update: {playlist}",
