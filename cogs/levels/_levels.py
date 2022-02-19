@@ -55,7 +55,7 @@ async def update_member(
         )
 
     await user_data.set_leveling(
-        level=level, xp=user_xp, role=_role.id if _role else None
+        level=level, xp=user_xp, role_id=_role.id if _role else None
     )
 
 
