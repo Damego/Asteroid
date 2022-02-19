@@ -7,6 +7,7 @@ from my_utils import AsteroidBot
 from my_utils.languages import get_content
 from my_utils.models.guild_data import GuildUser
 
+
 last_user_message = {}
 
 
@@ -27,20 +28,20 @@ async def update_member(
 
     guild_data = await bot.mongo.get_guild_data(member_or_message.guild.id)
     user_data = await guild_data.get_user(member.id)
-    await user_data.increase_leveling(
-        xp=exp, xp_amount=exp
-    )
+    if user_data.xp_amount == 0:
+        await user_data.set_leveling(level=1, xp=0, xp_amount=0)
+    await user_data.increase_leveling(xp=exp, xp_amount=exp)
 
-    xp = user_data.xp
+    user_xp = user_data.xp
     level = user_data.level
 
     exp_to_next_level = formula_of_experience(level)
     _role = None
     roles = guild_data.roles_by_level
 
-    while xp > exp_to_next_level:
+    while user_xp >= exp_to_next_level:
         level += 1
-        xp -= exp_to_next_level
+        user_xp -= exp_to_next_level
         exp_to_next_level = formula_of_experience(level)
 
         role_id = roles.get(str(level))
@@ -53,7 +54,10 @@ async def update_member(
             guild_data.configuration.language, guild, member, level, _role, message
         )
 
-    await user_data.set_leveling(level=level, xp=xp)
+    await user_data.set_leveling(
+        level=level, xp=user_xp, role=_role.id if _role else None
+    )
+
 
 def formula_of_experience(level: int):
     return int(((level + 1) * 100) + (((level + 1) * 20) ** 1.4))
@@ -84,7 +88,6 @@ async def update_member_role(user_data: GuildUser, member: Member, role: Role):
             await member.remove_roles(role, reason="Removing old role")
             break
     await member.add_roles(role, reason="Adding new role")
-    await user_data.set_leveling(role=role.id)
 
 
 async def notify_member(
