@@ -595,7 +595,7 @@ class Music(Cog):
                 for _query in query
             ]
         else:
-            tracks = await self.__get_tracks(ctx, player, query)
+            tracks = [await self.__get_tracks(ctx, player, query)]
 
         await self._added_to_queue(ctx, tracks, content)
 
