@@ -290,7 +290,7 @@ class Levels(Cog):
                 xp_amount += exp
             content += f"{level} — {role.mention} | EXP: {xp_amount}\n"
 
-        embed = Embed(description=content, color=self.bot.get_embed_color(ctx.guild_id))
+        embed = Embed(description=content, color=guild_data.configuration.embed_color)
         await ctx.send(embed=embed)
 
     @slash_subcommand(base="levels", name="clear_members_stats")
