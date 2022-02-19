@@ -233,7 +233,8 @@ class Music(Cog):
         ]
         embed = Embed(
             title=content["CURRENT_QUEUE_TITLE_TEXT"],
-            description=f"**{content['CURRENT_SONG_TEXT']}:** `{player.current.name}`\n{'\n'.join(tracks)}",
+            description=f"**{content['CURRENT_SONG_TEXT']}:** `{player.current.name}`"
+            "\n{'\n'.join(tracks)}",
             color=guild_data.configuration.embed_color,
         )
         await ctx.send(embed=embed, hidden=True)
