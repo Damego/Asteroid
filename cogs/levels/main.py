@@ -137,8 +137,9 @@ class Levels(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         user_data = await guild_data.get_user(member.id)
 
-        if current_role := user_data.role:
-            await member.remove_roles(current_role)
+        if current_role_id := user_data.role:
+            role = ctx.guild.get_role(current_role_id)
+            await member.remove_roles(role)
 
         await user_data.set_leveling(level=1, xp=0, xp_amount=0, voice_time=0, role="")
         await ctx.send("✅", hidden=True)
