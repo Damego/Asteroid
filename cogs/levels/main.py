@@ -140,7 +140,7 @@ class Levels(Cog):
             role = ctx.guild.get_role(current_role_id)
             await member.remove_roles(role)
 
-        await user_data.set_leveling(level=1, xp=0, xp_amount=0, voice_time=0, role="")
+        await user_data.set_leveling(level=1, xp=0, xp_amount=0, voice_time=0, role_id="")
         await ctx.send("✅", hidden=True)
         # TODO Return special on_join_role(start role) for levels
 
