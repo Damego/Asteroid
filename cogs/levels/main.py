@@ -112,6 +112,7 @@ class Levels(Cog):
 
         user_data = await guild_data.get_user(member.id)
         await user_data.increase_leveling(voice_time=total_time // 60)
+        await guild_data.remove_user_to_voice(member.id)
 
     @Cog.listener()
     async def on_message(self, message: Message):
