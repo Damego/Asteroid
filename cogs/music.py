@@ -233,7 +233,7 @@ class Music(Cog):
         ]
         embed = Embed(
             title=content["CURRENT_QUEUE_TITLE_TEXT"],
-            description="\n".join(tracks),
+            description=f"**{content['CURRENT_SONG_TEXT']}:** `{player.current.name}`\n{'\n'.join(tracks)}",
             color=guild_data.configuration.embed_color,
         )
         await ctx.send(embed=embed, hidden=True)
@@ -588,31 +588,29 @@ class Music(Cog):
                 channel=ctx.author.voice.channel, self_deaf=True
             )
 
-        track = tracks = None
+        tracks = None
         if isinstance(query, List) and is_playlist:
             tracks = [
-                await self.__get_tracks(ctx, player, content, _query)
+                await self.__get_tracks(ctx, player, _query)
                 for _query in query
             ]
         else:
-            track = await self.__get_tracks(ctx, player, content, query)
+            tracks = await self.__get_tracks(ctx, player, query)
 
-        await self._added_to_queue(ctx, track or tracks, content)
+        await self._added_to_queue(ctx, tracks, content)
 
         if not player.is_playing:
-            if isinstance(track, list):
-                track = track[0]
-            await self._send_message(ctx, track or tracks[0], content)
+            await self._send_message(ctx, tracks[0], content)
             await player.play()
 
-    async def __get_tracks(self, ctx: SlashContext, player, content: dict, query: str):
+    async def __get_tracks(self, ctx: SlashContext, player, query: str):
         tracks = track = None
 
         if not url_rx.match(query):
             query = f"ytsearch:{query}"
         results = await player.node.get_tracks(query)
         if not results or not results["tracks"]:
-            raise NoData
+            raise NoData # * Should be here raising error?
 
         if results["loadType"] == "PLAYLIST_LOADED":
             tracks = [
