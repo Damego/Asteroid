@@ -10,7 +10,13 @@ from math import inf
 from typing import List, Union
 
 from discord import Embed
-from discord_slash import ComponentContext, ComponentMessage, SlashContext, Button, ButtonStyle
+from discord_slash import (
+    ComponentContext,
+    ComponentMessage,
+    SlashContext,
+    Button,
+    ButtonStyle,
+)
 
 
 from my_utils import AsteroidBot
@@ -129,7 +135,6 @@ class TicTacToeAI:
                         disabled=disable or style != ButtonStyle.gray,
                     ),
                 )
-
 
         return components
 

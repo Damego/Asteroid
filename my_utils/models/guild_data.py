@@ -1,9 +1,8 @@
-from time import time
 from enum import Enum
+from time import time
 from typing import Dict, List, Union
 
 from motor.motor_asyncio import AsyncIOMotorCollection
-from pymongo.collection import Collection
 
 
 class OperatorType(Enum):
@@ -19,8 +18,10 @@ class OperatorType(Enum):
 class GuildData:
     def __init__(self, connection, data: dict, guild_id: int) -> None:
         self._connection = connection[str(guild_id)]
-        self._main_collection: Collection = self._connection["configuration"]
-        self._users_collection: Collection = self._connection["users"]
+        self._main_collection: AsyncIOMotorCollection = self._connection[
+            "configuration"
+        ]
+        self._users_collection: AsyncIOMotorCollection = self._connection["users"]
         self.__raw_main_data = data["main"]
         self.__raw_users_data = data["users"]
         self.guild_id = guild_id
@@ -38,14 +39,22 @@ class GuildData:
             elif document["_id"] == "starboard":
                 self.starboard = GuildStarboard(self._main_collection, document)
             elif document["_id"] == "tags":
-                self.tags = [GuildTag(self._main_collection, name, data) for name, data in document.items() if name != "_id"]
+                self.tags = [
+                    GuildTag(self._main_collection, name, data)
+                    for name, data in document.items()
+                    if name != "_id"
+                ]
             elif document["_id"] == "cogs_data":
                 self.cogs_data = document
             elif document["_id"] == "autorole":
-                self.autoroles = [GuildAutoRole(self._main_collection, name, data) for name, data in document.items() if name != "_id"]
-            elif document["_id"] == 'roles_by_level':
+                self.autoroles = [
+                    GuildAutoRole(self._main_collection, name, data)
+                    for name, data in document.items()
+                    if name != "_id"
+                ]
+            elif document["_id"] == "roles_by_level":
                 self.roles_by_level = document
-            elif document["_id"] == 'voice_time':
+            elif document["_id"] == "voice_time":
                 self.users_voice_time = document
 
         self.users = [GuildUser(self._users_collection, user) for user in data["users"]]
@@ -54,20 +63,16 @@ class GuildData:
         _time = int(time())
         await self._main_collection.update_one(
             {"_id": "voice_time"},
-            {OperatorType.SET.value: {
-                str(user_id): _time
-            }},
-            upsert=True
+            {OperatorType.SET.value: {str(user_id): _time}},
+            upsert=True,
         )
         self.users_voice_time[str(user_id)] = _time
 
     async def remove_user_to_voice(self, user_id: int):
         await self._main_collection.update_one(
             {"_id": "voice_time"},
-            {OperatorType.UNSET.value: {
-                str(user_id): ""
-            }},
-            upsert=True
+            {OperatorType.UNSET.value: {str(user_id): ""}},
+            upsert=True,
         )
         del self.users_voice_time[str(user_id)]
 
@@ -82,13 +87,17 @@ class GuildData:
         for user in self.users:
             if user.id == str(user_id):
                 return user
-        print(f"UserData for {user_id} not found in `GuildData {self.guild_id}`. Fetching in database...")
+        print(
+            f"UserData for {user_id} not found in `GuildData {self.guild_id}`. Fetching in database..."
+        )
         user_raw_data = await self._users_collection.find_one({"_id": str(user_id)})
         if user_raw_data is None:
             print(f"No data for user {user_id}. Adding user to database...")
             user = await self.add_user(user_id)
         else:
-            print(f"Founded data for user {user_id} in database. Adding user to `GuildData {self.guild_id}`...")
+            print(
+                f"Founded data for user {user_id} in database. Adding user to `GuildData {self.guild_id}`..."
+            )
             user = GuildUser(self._users_collection, user_raw_data)
             self.users.append(user)
         return user
@@ -102,54 +111,49 @@ class GuildData:
 
     async def add_autorole(self, name: str, data: dict):
         await self._main_collection.update_one(
-            {"_id": "autorole"},
-            {OperatorType.SET.value: {name: data}},
-            upsert=True
+            {"_id": "autorole"}, {OperatorType.SET.value: {name: data}}, upsert=True
         )
-        self.autoroles.append(
-            GuildAutoRole(self._main_collection, name, data)
-        )
+        self.autoroles.append(GuildAutoRole(self._main_collection, name, data))
 
     async def remove_autorole(self, name: str):
         await self._main_collection.update_one(
-            {"_id": "autorole"},
-            {OperatorType.UNSET.value: {name: ""}},
-            upsert=True
+            {"_id": "autorole"}, {OperatorType.UNSET.value: {name: ""}}, upsert=True
         )
         for autorole in self.autoroles:
             if autorole.name == name:
                 self.autoroles.remove(autorole)
 
-    async def add_starboard(self, *, channel_id: int = None, limit: int = None, is_enabled: bool = True):
+    async def add_starboard(
+        self, *, channel_id: int = None, limit: int = None, is_enabled: bool = True
+    ):
         data = {"is_enabled": is_enabled, "channel_id": channel_id, "limit": limit}
         await self._main_collection.update_one(
-            {"_id": "starboard"},
-            {OperatorType.SET.value: data},
-            upsert=True
+            {"_id": "starboard"}, {OperatorType.SET.value: data}, upsert=True
         )
         self.starboard = GuildStarboard(self._main_collection, data)
 
-    async def add_tag(self, name: str, author_id: int, description: str, is_embed: bool = False, title: str = "None"):
+    async def add_tag(
+        self,
+        name: str,
+        author_id: int,
+        description: str,
+        is_embed: bool = False,
+        title: str = "None",
+    ):
         data = {
             "author_id": author_id,
             "description": description,
             "is_embed": is_embed,
-            "title": title
+            "title": title,
         }
         await self._main_collection.update_one(
-            {"_id": "tags"},
-            {OperatorType.SET.value: {name: data}},
-            upsert=True
+            {"_id": "tags"}, {OperatorType.SET.value: {name: data}}, upsert=True
         )
-        self.tags.append(
-            GuildTag(self._main_collection, name, data)
-        )
+        self.tags.append(GuildTag(self._main_collection, name, data))
 
     async def remove_tag(self, name: str):
         await self._main_collection.update_one(
-            {"_id": "tags"},
-            {OperatorType.UNSET.value: {name: ""}},
-            upsert=True
+            {"_id": "tags"}, {OperatorType.UNSET.value: {name: ""}}, upsert=True
         )
         for tag in self.tags:
             if tag.name == name:
@@ -159,21 +163,23 @@ class GuildData:
         self.cogs_data[cog_name] = self.cogs_data[cog_name] | data
         await self._main_collection.update_one(
             {"_id": "cogs_data"},
-            {OperatorType.SET.value: {cog_name: self.cogs_data[cog_name]}}
+            {OperatorType.SET.value: {cog_name: self.cogs_data[cog_name]}},
         )
-    
+
     async def add_level_role(self, level: int, role_id: int):
         await self._main_collection.update_one(
             {"_id": "roles_by_level"},
-            {OperatorType.SET.value: {
-                str(level): role_id
-            }},
-            upsert=True
+            {OperatorType.SET.value: {str(level): role_id}},
+            upsert=True,
         )
         self.roles_by_level[str(level)] = role_id
 
     async def remove_level_role(self, level: int):
-        await self._main_collection.update_one({"_id": "roles_by_level"}, {OperatorType.UNSET.value: {str(level): ""}}, upsert=True)
+        await self._main_collection.update_one(
+            {"_id": "roles_by_level"},
+            {OperatorType.UNSET.value: {str(level): ""}},
+            upsert=True,
+        )
         del self.roles_by_level[str(level)]
 
     async def replace_levels(self, old_level: int, new_level: int):
@@ -206,7 +212,7 @@ class GuildConfiguration:
     @property
     def language(self):
         return self._language
-    
+
     @property
     def on_join_roles(self):
         return self._on_join_roles
@@ -217,11 +223,7 @@ class GuildConfiguration:
 
     async def _update(self, type: OperatorType, data: dict):
         await self._connection.update_one(
-            {"_id": "configuration"},
-            {
-                type.value: data
-            },
-            upsert=True
+            {"_id": "configuration"}, {type.value: data}, upsert=True
         )
 
     async def set_embed_color(self, color):
@@ -256,95 +258,64 @@ class GuildStarboard:
         self.is_enabled: bool = data.get("is_enabled")
         self.limit: int = data.get("limit")
         self.messages: Dict[str, Dict[str, int]] = data.get("messages", {})
-        self.blacklist: Dict[str, List[int]] = data.get("blacklist", {"members": [], "channels": [], "roles": []})
+        self.blacklist: Dict[str, List[int]] = data.get(
+            "blacklist", {"members": [], "channels": [], "roles": []}
+        )
 
     async def _update(self, type: OperatorType, data: dict):
         await self._connection.update_one(
-            {"_id": "starboard"},
-            {
-                type.value: data
-            },
-            upsert=True
+            {"_id": "starboard"}, {type.value: data}, upsert=True
         )
 
     async def add_starboard_message(self, message_id: int, starboard_message_id: int):
         await self._update(
             OperatorType.SET,
-            {f"messages.{message_id}.starboard_message": starboard_message_id}
+            {f"messages.{message_id}.starboard_message": starboard_message_id},
         )
-        self.messages[str(message_id)] = {
-            "starboard_message": starboard_message_id
-        }
+        self.messages[str(message_id)] = {"starboard_message": starboard_message_id}
 
     async def set_status(self, is_enabled: bool):
-        await self._update(
-            OperatorType.SET,
-            {"is_enabled": is_enabled}
-        )
+        await self._update(OperatorType.SET, {"is_enabled": is_enabled})
         self.is_enabled = is_enabled
 
     async def set_channel_id(self, channel_id: int):
-        await self._update(
-            OperatorType.SET,
-            {"channel_id": channel_id}
-        )
+        await self._update(OperatorType.SET, {"channel_id": channel_id})
         self.channel_id = channel_id
 
     async def set_limit(self, limit: int):
-        await self._update(
-            OperatorType.SET,
-            {"limit": limit}
-        )
+        await self._update(OperatorType.SET, {"limit": limit})
         self.limit = limit
 
     async def add_member_to_blacklist(self, member_id: int):
-        await self._update(
-            OperatorType.PUSH,
-            {"blacklist.members": member_id}
-        )
+        await self._update(OperatorType.PUSH, {"blacklist.members": member_id})
         if "members" not in self.blacklist:
             self.blacklist["members"] = []
         self.blacklist["members"].append(member_id)
 
     async def remove_member_from_blacklist(self, member_id: int):
-        await self._update(
-            OperatorType.PULL,
-            {"blacklist.members": member_id}
-        )
+        await self._update(OperatorType.PULL, {"blacklist.members": member_id})
         if "members" in self.blacklist and member_id in self.blacklist["members"]:
             self.blacklist["members"].remove(member_id)
 
     async def add_channel_to_blacklist(self, channel_id: int):
-        await self._update(
-            OperatorType.PUSH,
-            {"blacklist.channels": channel_id}
-        )
+        await self._update(OperatorType.PUSH, {"blacklist.channels": channel_id})
         if "channels" not in self.blacklist:
             self.blacklist["channels"] = []
         self.blacklist["channels"].append(channel_id)
 
     async def remove_channel_from_blacklist(self, channel_id: int):
-        await self._update(
-            OperatorType.PULL,
-            {"blacklist.channels": channel_id}
-        )
+        await self._update(OperatorType.PULL, {"blacklist.channels": channel_id})
         if "channels" in self.blacklist and channel_id in self.blacklist["channels"]:
             self.blacklist["channels"].remove(channel_id)
 
     async def add_role_to_blacklist(self, role_id: int):
-        await self._update(
-            OperatorType.PUSH,
-            {"blacklist.roles": role_id}
-        )
+        await self._update(OperatorType.PUSH, {"blacklist.roles": role_id})
         if "roles" not in self.blacklist:
             self.blacklist["roles"] = []
         self.blacklist["roles"].append(role_id)
 
     async def remove_role_from_blacklist(self, role_id: int):
-        await self._update(
-            OperatorType.PULL,
-            {"blacklist.roles": role_id}
-        )
+        await self._update(OperatorType.PULL, {"blacklist.roles": role_id})
         if "roles" in self.blacklist and role_id in self.blacklist["roles"]:
             self.blacklist["roles"].remove(role_id)
 
@@ -360,9 +331,7 @@ class GuildAutoRole:
 
     async def _update(self, type: OperatorType, data: dict):
         await self._connection.update_one(
-            {"_id": "autorole"},
-            {type.value: data},
-            upsert=True
+            {"_id": "autorole"}, {type.value: data}, upsert=True
         )
 
     async def rename(self, name: int):
@@ -382,12 +351,10 @@ class GuildTag:
         self.is_embed: bool = data["is_embed"]
         self.title: str = data["title"]
         self.description: str = data["description"]
-    
+
     async def _update(self, type: OperatorType, data: dict):
         await self._connection.update_one(
-            {"_id": "tags"},
-            {type.value: data},
-            upsert=True
+            {"_id": "tags"}, {type.value: data}, upsert=True
         )
 
     async def rename(self, name: int):
@@ -397,7 +364,7 @@ class GuildTag:
     async def set_author_id(self, author_id: int):
         await self._update(OperatorType.SET, {f"{self.name}.author_id": author_id})
         self.author_id = author_id
-    
+
     async def set_embed(self, is_embed: bool):
         await self._update(OperatorType.SET, {f"{self.name}.is_embed": is_embed})
         self.is_embed = is_embed
@@ -409,6 +376,7 @@ class GuildTag:
     async def set_description(self, description: str):
         await self._update(OperatorType.SET, {f"{self.name}.description": description})
         self.description = description
+
 
 class GuildUser:
     def __init__(self, connection, data: dict) -> None:
@@ -437,42 +405,49 @@ class GuildUser:
 
         if notes := data.get("notes", []):
             self.notes = notes
-        
+
         if playlists := data.get("music_playlists", {}):
             for name, tracks in playlists.items():
                 self.music_playlists[name] = tracks
 
     async def _update(self, type: OperatorType, data: dict):
         await self._connection.update_one(
-            {"_id": self.id},
-            {type.value: data},
-            upsert=True
+            {"_id": self.id}, {type.value: data}, upsert=True
         )
 
     async def set_genshin_uid(self, hoyolab_uid: int, game_uid: int):
         await self._update(
-            OperatorType.SET,
-            {"genshin": {"hoyolab_uid":hoyolab_uid, "uid": game_uid}}
+            OperatorType.SET, {"genshin": {"hoyolab_uid": hoyolab_uid, "uid": game_uid}}
         )
         self.hoyolab_uid = hoyolab_uid
         self.genshin_uid = game_uid
 
-    async def increase_leveling(self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0):
+    async def increase_leveling(
+        self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0
+    ):
         await self._update(
             OperatorType.INC,
             {
                 "leveling.level": level,
                 "leveling.xp": xp,
                 "leveling.xp_amount": xp_amount,
-                "voice_time_count": voice_time
-            }
+                "voice_time_count": voice_time,
+            },
         )
         self.level += level
         self.xp += xp
         self.xp_amount += xp_amount
         self.voice_time_count += voice_time
 
-    async def set_leveling(self, *, level: int = None, xp: int = None, xp_amount: int = None, voice_time: int = None, role: str = None):
+    async def set_leveling(
+        self,
+        *,
+        level: int = None,
+        xp: int = None,
+        xp_amount: int = None,
+        voice_time: int = None,
+        role_id: int = None,
+    ):
         data = {}
         if level is not None:
             data["leveling.level"] = level
@@ -483,20 +458,18 @@ class GuildUser:
         if xp_amount is not None:
             data["leveling.xp_amount"] = xp_amount
             self.xp_amount = xp_amount
-        if voice_time:
+        if voice_time is not None:
             data["voice_time_count"] = voice_time
+        if role_id is not None:
+            data["leveling.role"] = role_id
+            self.role = role_id
 
         await self._update(OperatorType.SET, data)
 
     async def reset_leveling(self):
         data = {
-            "leveling": {
-                "level": 1,
-                "xp": 0,
-                "xp_amount": 0,
-                "role": ""
-            },
-            "voice_time_count": 0
+            "leveling": {"level": 1, "xp": 0, "xp_amount": 0, "role": ""},
+            "voice_time_count": 0,
         }
         await self._update(OperatorType.set, data)
         self.level = 1
@@ -536,7 +509,10 @@ class GuildUser:
         self.music_playlists[playlist].append(track)
 
     async def add_many_tracks(self, playlist: str, tracks: list):
-        await self._update(OperatorType.PUSH, {f"music_playlists.{playlist}": {OperatorType.EACH: tracks}})
+        await self._update(
+            OperatorType.PUSH,
+            {f"music_playlists.{playlist}": {OperatorType.EACH: tracks}},
+        )
         if playlist not in self.music_playlists:
             self.music_playlists[playlist] = []
         self.music_playlists[playlist].extend(tracks)
@@ -551,8 +527,3 @@ class GuildUser:
         await self._update(OperatorType.UNSET, {f"music_playlists.{playlist}": ""})
         if playlist in self.music_playlists:
             del self.music_playlists[playlist]
-
-    
-
-
-

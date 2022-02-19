@@ -33,7 +33,7 @@ class GenshinStats(Cog):
             raise GenshinAccountNotFound
 
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        user_data = await guild_data.get_user( ctx.author_id)
+        user_data = await guild_data.get_user(ctx.author_id)
 
         await user_data.set_genshin_uid(hoyolab_uid, uid)
         content = get_content("GENSHIN_BIND_COMMAND", guild_data.configuration.language)
@@ -201,9 +201,7 @@ class GenshinStats(Cog):
             embed = self.get_character_info(content, embed, character)
             embeds.append(embed)
 
-        paginator = Paginator(
-            self.bot, ctx, PaginatorStyle.TWO_BUTTONS, embeds
-        )
+        paginator = Paginator(self.bot, ctx, PaginatorStyle.TWO_BUTTONS, embeds)
         await paginator.start()
 
     @slash_subcommand(

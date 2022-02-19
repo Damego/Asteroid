@@ -24,13 +24,16 @@ async def on_ready():
 
     print(f"{bot.user} загружен!")
 
+
 @bot.event
 async def on_guild_join(guild: Guild):
     await bot.mongo.add_guild(guild.id)
 
+
 @bot.event
 async def on_guild_remove(guild: Guild):
     await bot.mongo.delete_guild(guild.id)
+
 
 @bot.event
 async def on_slash_command_error(ctx: SlashContext, error):
@@ -88,28 +91,21 @@ async def on_slash_command_error(ctx: SlashContext, error):
             title="Unexpected error",
             description=f"``` {error_traceback} ```",
             timestamp=datetime.utcnow(),
-            color=0xED4245
+            color=0xED4245,
         )
         error_embed.add_field(
-            name="Command Name",
-            value=f"`/{bot.get_transformed_command_name(ctx)}`"
+            name="Command Name", value=f"`/{bot.get_transformed_command_name(ctx)}`"
         )
         error_embed.add_field(
-            name="Guild",
-            value=f"Name: `{ctx.guild.name}`\n ID:`{ctx.guild_id}`"
+            name="Guild", value=f"Name: `{ctx.guild.name}`\n ID:`{ctx.guild_id}`"
         )
         error_embed.add_field(
-            name="Channel",
-            value=f"Name: `{ctx.channel.name}`\n ID:`{ctx.channel_id}`"
+            name="Channel", value=f"Name: `{ctx.channel.name}`\n ID:`{ctx.channel_id}`"
         )
         error_embed.add_field(
-            name="User",
-            value=f"Name: `{ctx.author.name}`\n ID:`{ctx.author_id}`"
+            name="User", value=f"Name: `{ctx.author.name}`\n ID:`{ctx.author_id}`"
         )
-        error_embed.add_field(
-            name="Short Description",
-            value=f"`{error}`"
-        )
+        error_embed.add_field(name="Short Description", value=f"`{error}`")
         channel = ctx.bot.get_channel(863001051523055626)
         if channel is None:
             channel = await ctx.bot.fetch_channel(863001051523055626)

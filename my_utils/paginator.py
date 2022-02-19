@@ -4,7 +4,13 @@ from typing import Union, List
 
 from discord import Client, Embed
 from discord.ext.commands import Bot
-from discord_slash import SlashContext, Button, ButtonStyle, ComponentContext, ComponentMessage
+from discord_slash import (
+    SlashContext,
+    Button,
+    ButtonStyle,
+    ComponentContext,
+    ComponentMessage,
+)
 
 
 components = {
@@ -16,7 +22,9 @@ components = {
     ],
     2: [
         [
-            Button(style=ButtonStyle.gray, label="<<", custom_id="first", disabled=True),
+            Button(
+                style=ButtonStyle.gray, label="<<", custom_id="first", disabled=True
+            ),
             Button(style=ButtonStyle.gray, label="←", custom_id="back", disabled=True),
             Button(style=ButtonStyle.gray, label="→", custom_id="next"),
             Button(style=ButtonStyle.gray, label=">>", custom_id="last"),
@@ -37,7 +45,9 @@ components = {
     ],
     4: [
         [
-            Button(style=ButtonStyle.gray, label="<<", custom_id="first", disabled=True),
+            Button(
+                style=ButtonStyle.gray, label="<<", custom_id="first", disabled=True
+            ),
             Button(style=ButtonStyle.gray, label="←", custom_id="back", disabled=True),
             Button(style=ButtonStyle.blue, label="1/{pages}", disabled=True),
             Button(style=ButtonStyle.gray, label="→", custom_id="next"),
@@ -85,7 +95,10 @@ class Paginator:
         self.bot.add_listener(self.button_click, "on_button_click")
 
     async def button_click(self, ctx: ComponentContext):
-        if ctx.author_id != self.ctx.author_id or ctx.origin_message_id != self.message.id:
+        if (
+            ctx.author_id != self.ctx.author_id
+            or ctx.origin_message_id != self.message.id
+        ):
             return
 
         if self.style == 1:

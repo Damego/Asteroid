@@ -1,7 +1,19 @@
 import asyncio
 
 from discord import Embed, Message
-from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType, Button, ButtonStyle, ComponentMessage, ComponentContext, Modal, ModalContext, TextInput, TextInputStyle
+from discord_slash import (
+    SlashContext,
+    AutoCompleteContext,
+    SlashCommandOptionType,
+    Button,
+    ButtonStyle,
+    ComponentMessage,
+    ComponentContext,
+    Modal,
+    ModalContext,
+    TextInput,
+    TextInputStyle,
+)
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 
@@ -75,8 +87,8 @@ class Tags(Cog):
         await ctx.send(embed=embed)
 
     @slash_subcommand(
-        base="tag", 
-        name="add", 
+        base="tag",
+        name="add",
         description="Create new tag",
         options=[
             create_option(
@@ -93,10 +105,10 @@ class Tags(Cog):
                 required=True,
                 choices=[
                     create_choice(name="Normal", value="Normal"),
-                    create_choice(name="Embed", value="Embed")
-                ]
-            )
-        ]
+                    create_choice(name="Embed", value="Embed"),
+                ],
+            ),
+        ],
     )
     @is_enabled()
     async def create_new_tag(self, ctx: SlashContext, tag_name: str, type: str):
@@ -122,15 +134,15 @@ class Tags(Cog):
                         custom_id="title",
                         style=TextInputStyle.SHORT,
                         placeholder=content["MODAL_TITLE_PLACEHOLDER"],
-                        max_length=32
+                        max_length=32,
                     ),
                     TextInput(
                         label=content["MODAL_SET_DESCRIPTION"],
                         custom_id="description",
                         style=TextInputStyle.PARAGRAPH,
-                        placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"]
-                    )
-                ]
+                        placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"],
+                    ),
+                ],
             )
         elif type == "Normal":
             modal = Modal(
@@ -141,15 +153,15 @@ class Tags(Cog):
                         label=content["MODAL_SET_DESCRIPTION"],
                         custom_id="description",
                         style=TextInputStyle.PARAGRAPH,
-                        placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"]
+                        placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"],
                     )
-                ]
+                ],
             )
         await ctx.popup(modal)
 
     @slash_subcommand(
-        base="tag", 
-        name="edit", 
+        base="tag",
+        name="edit",
         description="Edit a current tag",
         options=[
             create_option(
@@ -159,7 +171,7 @@ class Tags(Cog):
                 required=True,
                 autocomplete=True,
             )
-        ]
+        ],
     )
     @is_enabled()
     async def edit_tag(self, ctx: SlashContext, tag_name: str):
@@ -179,26 +191,26 @@ class Tags(Cog):
 
         if tag.is_embed:
             modal = Modal(
-                    custom_id=f"modal_edit_tag|embed|{tag_name}",
-                    title=content["MODAL_TITLE"],
-                    components=[
-                        TextInput(
-                            label=content["MODAL_SET_TITLE"],
-                            custom_id="title",
-                            style=TextInputStyle.SHORT,
-                            placeholder=content["MODAL_TITLE_PLACEHOLDER"],
-                            max_length=32,
-                            value=tag.title
-                        ),
-                        TextInput(
-                            label=content["MODAL_SET_DESCRIPTION"],
-                            custom_id="description",
-                            style=TextInputStyle.PARAGRAPH,
-                            placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"],
-                            value=tag.description
-                        )
-                    ]
-                )
+                custom_id=f"modal_edit_tag|embed|{tag_name}",
+                title=content["MODAL_TITLE"],
+                components=[
+                    TextInput(
+                        label=content["MODAL_SET_TITLE"],
+                        custom_id="title",
+                        style=TextInputStyle.SHORT,
+                        placeholder=content["MODAL_TITLE_PLACEHOLDER"],
+                        max_length=32,
+                        value=tag.title,
+                    ),
+                    TextInput(
+                        label=content["MODAL_SET_DESCRIPTION"],
+                        custom_id="description",
+                        style=TextInputStyle.PARAGRAPH,
+                        placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"],
+                        value=tag.description,
+                    ),
+                ],
+            )
         else:
             modal = Modal(
                 custom_id=f"modal_edit_tag|normal|{tag_name}",
@@ -209,9 +221,9 @@ class Tags(Cog):
                         custom_id="description",
                         style=TextInputStyle.PARAGRAPH,
                         placeholder=content["MODAL_DESCRIPTION_PLACEHOLDER"],
-                        value=tag.description
+                        value=tag.description,
                     )
-                ]
+                ],
             )
 
         await ctx.popup(modal)
@@ -228,10 +240,12 @@ class Tags(Cog):
                 name=tag_name,
                 author_id=ctx.author_id,
                 description=ctx.values["description"],
-                is_embed=type=="embed",
-                title=ctx.values["title"] if type=="embed" else "No title"
+                is_embed=type == "embed",
+                title=ctx.values["title"] if type == "embed" else "No title",
             )
-            await ctx.send(content["TAG_CREATED_TEXT"].format(tag_name=tag_name), hidden=True)
+            await ctx.send(
+                content["TAG_CREATED_TEXT"].format(tag_name=tag_name), hidden=True
+            )
         elif custom_id == "modal_edit_tag":
             tag = None
             for tag in guild_data.tags:
@@ -240,7 +254,9 @@ class Tags(Cog):
             if type == "embed":
                 await tag.set_title(ctx.values["title"])
             await tag.set_description(ctx.values["description"])
-            await ctx.send(content["TAG_EDITED_TEXT"].format(tag_name=tag_name), hidden=True)
+            await ctx.send(
+                content["TAG_EDITED_TEXT"].format(tag_name=tag_name), hidden=True
+            )
 
     @slash_subcommand(
         base="tag",
@@ -282,7 +298,7 @@ class Tags(Cog):
 
         description = ""
         for count, tag in enumerate(guild_data.tags, start=1):
-            description += f'**{count}. {tag.name}**\n'
+            description += f"**{count}. {tag.name}**\n"
             count += 1
         if not description:
             description = content["NO_TAGS_TEXT"]
@@ -318,7 +334,7 @@ class Tags(Cog):
     async def rename(self, ctx: SlashContext, tag_name: str, new_tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
         new_tag_name = self.convert_tag_name(new_tag_name)
-        
+
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("TAG_RENAME_TAG", guild_data.configuration.language)
 
@@ -379,17 +395,11 @@ class Tags(Cog):
                 required=True,
                 option_type=SlashCommandOptionType.STRING,
                 choices=[
-                    create_choice(
-                        name="Moderators",
-                        value="False"
-                    ),
-                    create_choice(
-                        name="Everyone",
-                        value="True"
-                    )
-                ]
+                    create_choice(name="Moderators", value="False"),
+                    create_choice(name="Everyone", value="True"),
+                ],
             )
-        ]
+        ],
     )
     @is_enabled()
     @is_administrator_or_bot_owner()
@@ -413,7 +423,6 @@ class Tags(Cog):
             return
         if tags_data.get("is_public") is False:
             raise TagsIsPrivate
-
 
     @staticmethod
     def convert_tag_name(tag_name: str):

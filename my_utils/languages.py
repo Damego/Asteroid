@@ -261,8 +261,8 @@ LANGUAGES = {
                 "ADDED_TEXT": "Добавлен запрос: `{query}`",
                 "MUSIC_DELETED": "Удалена песня `{name}` из плейлиста `{playlist}`",
                 "PLAYLIST_COPIED": "Плейлист скопирован!",
-                "PLAYLIST_DELETE_TEXT": "Плейлист `{playlist}` удалён!"
-                },
+                "PLAYLIST_DELETE_TEXT": "Плейлист `{playlist}` удалён!",
+            },
         },
         "FUNC_RANDOM_ITEMS": {
             "ITEMS_LIST": [
@@ -373,9 +373,7 @@ LANGUAGES = {
             "WRONG_COLOR": "Неверный формат цвета!",
             "SUCCESSFULLY_CHANGED": "Цвет сообщений успешно изменён!",
         },
-        "SET_LANGUAGE_COMMAND": {
-            "LANGUAGE_CHANGED": "Язык сменён на русский"
-        },
+        "SET_LANGUAGE_COMMAND": {"LANGUAGE_CHANGED": "Язык сменён на русский"},
         "LEVELS": {
             "FUNC_UPDATE_MEMBER": {
                 "NOTIFY_GUILD_CHANNEL": "{member} получил `{level}-й` уровень и повышение до {role}",
@@ -387,7 +385,7 @@ LANGUAGES = {
                 "REQUESTED_BY_TEXT": "Запрошено",
                 "LEVEL": "Уровень",
                 "XP": "опыт",
-                "EMPTY_LEADERBOARD": "Топа нет"
+                "EMPTY_LEADERBOARD": "Топа нет",
             },
         },
         "HELP_COMMAND": {
@@ -633,8 +631,8 @@ LANGUAGES = {
                 "ADDED_TEXT": "Added query: `{query}`",
                 "MUSIC_DELETED": "Deleted track from `{playlist}` playlist `{name}`",
                 "PLAYLIST_COPIED": "Playlist copied!",
-                "PLAYLIST_DELETE_TEXT": "Playlist `{playlist}` deleted!"
-                },
+                "PLAYLIST_DELETE_TEXT": "Playlist `{playlist}` deleted!",
+            },
         },
         "FUNC_RANDOM_ITEMS": {
             "ITEMS_LIST": [
@@ -745,9 +743,7 @@ LANGUAGES = {
             "WRONG_COLOR": "Wrong color format",
             "SUCCESSFULLY_CHANGED": "Embed color was changed!",
         },
-        "SET_LANGUAGE_COMMAND": {
-            "LANGUAGE_CHANGED": "Language changed to English"
-        },
+        "SET_LANGUAGE_COMMAND": {"LANGUAGE_CHANGED": "Language changed to English"},
         "LEVELS": {
             "FUNC_UPDATE_MEMBER": {
                 "NOTIFY_GUILD_CHANNEL": "{member} reached level `{level}` and got role {role}",
@@ -759,7 +755,7 @@ LANGUAGES = {
                 "REQUESTED_BY_TEXT": "Requested by",
                 "LEVEL": "Level",
                 "XP": "xp",
-                "EMPTY_LEADERBOARD": "Leaderboard is empty"
+                "EMPTY_LEADERBOARD": "Leaderboard is empty",
             },
         },
         "HELP_COMMAND": {

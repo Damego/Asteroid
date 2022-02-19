@@ -18,7 +18,14 @@ from discord import (
     File
 )
 from discord.ext import commands
-from discord_slash import SlashContext, ContextMenuType, MenuContext, Button, ButtonStyle, SlashCommandOptionType
+from discord_slash import (
+    SlashContext,
+    ContextMenuType,
+    MenuContext,
+    Button,
+    ButtonStyle,
+    SlashCommandOptionType,
+)
 from discord_slash.cog_ext import (
     cog_slash as slash_command,
     cog_subcommand as slash_subcommand,
@@ -136,7 +143,9 @@ class Misc(Cog):
             else ""
         )
 
-        embed = Embed(title=about_text, color=await self.bot.get_embed_color(ctx.guild_id))
+        embed = Embed(
+            title=about_text, color=await self.bot.get_embed_color(ctx.guild_id)
+        )
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(text=f"{ctx.author.name}", icon_url=ctx.author.avatar_url)
         embed.add_field(

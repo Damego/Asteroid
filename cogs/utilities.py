@@ -10,7 +10,7 @@ from discord import (
     Message,
     Member,
     Role,
-    Forbidden
+    Forbidden,
 )
 from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
@@ -166,7 +166,9 @@ class Utilities(Cog):
 
     @staticmethod
     def _is_blacklisted(
-        payload: RawReactionActionEvent, message: Message, starboard_data: GuildStarboard
+        payload: RawReactionActionEvent,
+        message: Message,
+        starboard_data: GuildStarboard,
     ):
         if not starboard_data.blacklist:
             return False
@@ -227,11 +229,13 @@ class Utilities(Cog):
             content=f"⭐{stars_count} | {message.channel.mention}", embed=embed
         )
 
-        await guild_data.starboard.add_starboard_message(message.id, starboard_message.id)
+        await guild_data.starboard.add_starboard_message(
+            message.id, starboard_message.id
+        )
 
     @slash_subcommand(
         base="starboard",
-        name="channel", 
+        name="channel",
         description="Starboard channel setting",
         options=[
             create_option(
@@ -239,9 +243,9 @@ class Utilities(Cog):
                 description="Text channel",
                 option_type=SlashCommandOptionType.CHANNEL,
                 required=True,
-                channel_types=[ChannelType.text]
+                channel_types=[ChannelType.text],
             )
-        ]
+        ],
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
@@ -251,10 +255,14 @@ class Utilities(Cog):
         try:
             await channel.send("Test message to check permission. You can delete this.")
         except Forbidden:
-            return await ctx.send(f"Bot doesn't have permission to send messages in {channel.mention}")
+            return await ctx.send(
+                f"Bot doesn't have permission to send messages in {channel.mention}"
+            )
 
         if guild_data.starboard is None:
-            await guild_data.add_starboard(channel_id=channel.id, limit=3, is_enabled=True)
+            await guild_data.add_starboard(
+                channel_id=channel.id, limit=3, is_enabled=True
+            )
         else:
             await guild_data.starboard.set_channel_id(channel.id)
 
@@ -324,7 +332,7 @@ class Utilities(Cog):
                 description="member",
                 option_type=SlashCommandOptionType.USER,
                 required=False,
-                ),
+            ),
             create_option(
                 name="role",
                 description="Role",
@@ -336,9 +344,9 @@ class Utilities(Cog):
                 description="Text channel",
                 option_type=SlashCommandOptionType.CHANNEL,
                 required=False,
-                channel_types=[ChannelType.text]
-            )
-        ]
+                channel_types=[ChannelType.text],
+            ),
+        ],
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
@@ -507,9 +515,7 @@ class Utilities(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         await guild_data.configuration.add_disabled_command(command_name)
 
-        content = get_content(
-            "COMMAND_CONTROL", lang=guild_data.configuration.language
-        )
+        content = get_content("COMMAND_CONTROL", lang=guild_data.configuration.language)
         await ctx.send(content["COMMAND_DISABLED"].format(command_name=command_name))
 
     @slash_subcommand(
@@ -531,23 +537,17 @@ class Utilities(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         await guild_data.configuration.delete_disabled_command(command_name)
 
-        content = get_content(
-            "COMMAND_CONTROL", lang=guild_data.configuration.language
-        )
+        content = get_content("COMMAND_CONTROL", lang=guild_data.configuration.language)
         await ctx.send(content["COMMAND_ENABLED"].format(command_name=command_name))
 
-    @slash_subcommand(
-        base="note", name="new", description="Create a note"
-    )
+    @slash_subcommand(base="note", name="new", description="Create a note")
     @is_enabled()
     async def add_todo(self, ctx: SlashContext, name: str, note_content: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content = get_content(
-            "NOTES_COMMANDS", guild_data.configuration.language
-        )
+        content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
         embed = Embed(
             title=content["NOTE_CREATED_TEXT"].format(name=name),
-            description=note_content
+            description=note_content,
         )
         message = await ctx.send(embed=embed)
 
@@ -579,8 +579,7 @@ class Utilities(Cog):
                 value=note["name"],
             )
             for count, note in enumerate(user_data.notes, start=1)
-            if ctx.user_input
-            in f"{count}. {note['created_at']} | {note['name']}"
+            if ctx.user_input in f"{count}. {note['created_at']} | {note['name']}"
         ][:25]
 
         await ctx.populate(choices)
@@ -608,11 +607,8 @@ class Utilities(Cog):
             raise NoData
 
         await user_data.remove_note(name)
-        content = get_content(
-            "NOTES_COMMANDS", guild_data.configuration.language
-        )
+        content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
         await ctx.send(content["NOTE_DELETED"])
-
 
     @slash_subcommand(base="note", name="list", description="Show your notes")
     @is_enabled()
@@ -623,9 +619,7 @@ class Utilities(Cog):
         if not user_data.notes:
             raise NoData
 
-        content = get_content(
-            "NOTES_COMMANDS", guild_data.configuration.language
-        )
+        content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
         embed = Embed(
             title=content["USER_NOTE_LIST"].format(ctx.author.display_name),
             description="",

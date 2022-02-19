@@ -9,7 +9,12 @@ from discord_slash import (
     SlashContext,
     ContextMenuType,
     MenuContext,
-    SlashCommandOptionType, Button, ButtonStyle, Select, SelectOption, ComponentContext
+    SlashCommandOptionType,
+    Button,
+    ButtonStyle,
+    Select,
+    SelectOption,
+    ComponentContext,
 )
 from discord_slash.cog_ext import (
     cog_subcommand as slash_subcommand,
@@ -430,7 +435,8 @@ class Fun(Cog):
         is_exception = False
         is_removed = False
         embed = Embed(
-            title=content["EMBED_TITLE"], color=await self.bot.get_embed_color(ctx.guild_id)
+            title=content["EMBED_TITLE"],
+            color=await self.bot.get_embed_color(ctx.guild_id),
         )
 
         message = await ctx.send(embed=embed, components=components)

@@ -109,7 +109,6 @@ class Levels(Cog):
         total_time = int(time()) - voice_user
         earned_exp = (total_time // 60) * self.time_factor
         await update_member(self.bot, member, earned_exp)
-
         user_data = await guild_data.get_user(member.id)
         await user_data.increase_leveling(voice_time=total_time // 60)
         await guild_data.remove_user_to_voice(member.id)
@@ -143,7 +142,7 @@ class Levels(Cog):
 
         await user_data.set_leveling(level=1, xp=0, xp_amount=0, voice_time=0, role="")
         await ctx.send("✅", hidden=True)
-        # TODO Return special on_join_role(start role) for levels 
+        # TODO Return special on_join_role(start role) for levels
 
     @slash_subcommand(
         base="levels",
@@ -258,9 +257,7 @@ class Levels(Cog):
         if choices:
             await ctx.populate(choices)
 
-    @slash_subcommand(
-        base="levels", name="reset", description="Reset levels in server"
-    )
+    @slash_subcommand(base="levels", name="reset", description="Reset levels in server")
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def reset_levels(self, ctx: SlashContext):
@@ -269,9 +266,7 @@ class Levels(Cog):
         await ctx.send("✅", hidden=True)
 
     @slash_subcommand(
-        base="levels",
-        name="list",
-        description="Show list of levels in server"
+        base="levels", name="list", description="Show list of levels in server"
     )
     @is_enabled()
     async def send_levels_list(self, ctx: SlashContext):
@@ -330,7 +325,6 @@ class Levels(Cog):
             if user_data.level not in (0, 1)
         ]
         list_for_sort.sort(key=lambda x: (x[1], x[-1]), reverse=True)
-        print(list_for_sort)
         for count, user_data in enumerate(list_for_sort, start=1):
             member: Member = ctx.guild.get_member(int(user_data[0]))
             if member is None:
@@ -339,9 +333,7 @@ class Levels(Cog):
                 except Exception:
                     continue
 
-            embed_desc += (
-                f"**#{count}・{member.mention}**\n╰**{content['LEVEL']}:** `{user_data[1]}` | **{content['XP']}:** `{int(user_data[2])}`"
-            )
+            embed_desc += f"**#{count}・{member.mention}**\n╰**{content['LEVEL']}:** `{user_data[1]}` | **{content['XP']}:** `{int(user_data[2])}`"
 
             if count % 10 == 0:
                 embeds.append(await self._get_embed(ctx, embed_desc, content))

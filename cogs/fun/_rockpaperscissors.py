@@ -1,7 +1,13 @@
 from random import choice
 
 from discord import Embed, Member
-from discord_slash import SlashContext, ComponentMessage, ComponentContext, Button, ButtonStyle
+from discord_slash import (
+    SlashContext,
+    ComponentMessage,
+    ComponentContext,
+    Button,
+    ButtonStyle,
+)
 
 from my_utils import AsteroidBot, get_content
 
@@ -64,7 +70,9 @@ class RockPaperScissors:
             self.count1, self.count2, round + 1, self.total_rounds
         )
 
-        embed = Embed(title="🪨-✂️-🧾", color=await self.bot.get_embed_color(self.guild_id))
+        embed = Embed(
+            title="🪨-✂️-🧾", color=await self.bot.get_embed_color(self.guild_id)
+        )
         embed.add_field(name=players_text, value=current_score_text)
 
         components = [

@@ -4,7 +4,15 @@ import sys
 
 from discord import Embed, Forbidden
 from discord.ext.commands import is_owner
-from discord_slash import SlashContext, SlashCommandOptionType, Select, SelectOption, Button, ButtonStyle, ComponentContext
+from discord_slash import (
+    SlashContext,
+    SlashCommandOptionType,
+    Select,
+    SelectOption,
+    Button,
+    ButtonStyle,
+    ComponentContext,
+)
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 from my_utils import AsteroidBot, get_content, bot_owner_or_permissions, Cog
@@ -50,14 +58,18 @@ class Settings(Cog):
     @bot_owner_or_permissions(manage_roles=True)
     async def set_embed_color(self, ctx: SlashContext, color: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content = get_content("SET_EMBED_COLOR_COMMAND", guild_data.configuration.language)
+        content = get_content(
+            "SET_EMBED_COLOR_COMMAND", guild_data.configuration.language
+        )
 
         if color.startswith("#") and len(color) == 7:
             color = color.replace("#", "")
-        elif len(color) != 6 and any(char not in "1234567890ABCDEFabcdef" for char in color):
+        elif len(color) != 6 and any(
+            char not in "1234567890ABCDEFabcdef" for char in color
+        ):
             await ctx.send(content["WRONG_COLOR"])
             return
-        color = f'0x{color}'
+        color = f"0x{color}"
 
         await guild_data.configuration.set_embed_color(color)
         embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=int(color, 16))

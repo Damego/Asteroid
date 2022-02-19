@@ -33,7 +33,13 @@ from asyncio import TimeoutError
 from math import pi, tau, e, sqrt
 
 from discord import Embed, Member
-from discord_slash import SlashContext, Button, ButtonStyle, ComponentContext, ComponentMessage
+from discord_slash import (
+    SlashContext,
+    Button,
+    ButtonStyle,
+    ComponentContext,
+    ComponentMessage,
+)
 
 from my_utils import AsteroidBot
 
@@ -235,7 +241,9 @@ class Calculator:
                     ],
                 )
             elif interaction.custom_id == "⌫":
-                lst = list(interaction.origin_message.embeds[0].description.replace("`", ""))
+                lst = list(
+                    interaction.origin_message.embeds[0].description.replace("`", "")
+                )
                 if len(lst) > 1:
                     try:
                         index = lst.index("|")
@@ -262,7 +270,9 @@ class Calculator:
                     affichage = f"{affichage.replace('|','')}={expression}"
                 expression = ""
             elif interaction.custom_id == "❮":
-                lst = list(interaction.origin_message.embeds[0].description.replace("`", ""))
+                lst = list(
+                    interaction.origin_message.embeds[0].description.replace("`", "")
+                )
                 if len(lst) > 1:
                     try:
                         index = lst.index("|")
@@ -272,7 +282,9 @@ class Calculator:
                         lst = ["|"]
                 affichage = "".join(lst)
             elif interaction.custom_id == "❯":
-                lst = list(interaction.origin_message.embeds[0].description.replace("`", ""))
+                lst = list(
+                    interaction.origin_message.embeds[0].description.replace("`", "")
+                )
                 if len(lst) > 1:
                     try:
                         index = lst.index("|")
