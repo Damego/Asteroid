@@ -84,7 +84,7 @@ async def update_member_role(user_data: GuildUser, member: Member, role: Role):
     old_role_id = user_data.role
 
     for role in member.roles:
-        if role.id == int(old_role_id):
+        if role.id == old_role_id:
             await member.remove_roles(role, reason="Removing old role")
             break
     await member.add_roles(role, reason="Adding new role")

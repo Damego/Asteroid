@@ -150,7 +150,10 @@ class Levels(Cog):
         description="Add exp to member",
         options=[
             create_option(
-                name="member", description="Server Member", option_type=6, required=True
+                name="member",
+                description="Server Member",
+                option_type=SlashCommandOptionType.USER,
+                required=True,
             ),
             create_option(
                 name="exp",
