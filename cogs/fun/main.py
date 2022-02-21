@@ -202,10 +202,6 @@ class Fun(Cog):
         invite_text = content["INVITE_MESSAGE_CONTENT"].format(
             member.mention, ctx.author.name, game_name
         )
-
-        def member_agree(interaction):
-            return interaction.author_id == member.id
-
         components = [
             [
                 Button(
@@ -231,11 +227,11 @@ class Fun(Cog):
             return message, True
 
         try:
-            interaction: ComponentContext = await self.bot.wait_for(
-                "button_click", check=member_agree, timeout=60
+            button_ctx: ComponentContext = await self.bot.wait_for(
+                "button_click", check=lambda _ctx: _ctx.author_id == member.id, timeout=60
             )
             accepted_invite = content["AGREE_MESSAGE_CONTENT"]
-            await interaction.send(accepted_invite, hidden=True)
+            await button_ctx.send(accepted_invite, hidden=True)
         except TimeoutError:
             timeout_error = content["TIMEOUT_MESSAGE_CONTENT"].format(
                 member.display_name
@@ -243,7 +239,7 @@ class Fun(Cog):
             await message.edit(content=timeout_error, components=[])
             return message, False
 
-        if interaction.custom_id == "agree":
+        if button_ctx.custom_id == "agree":
             embed = Embed(
                 title=game_name,
                 description=f"{ctx.author.display_name} VS {member.display_name}",
@@ -444,25 +440,25 @@ class Fun(Cog):
 
         while True:
             try:
-                interaction = await self._get_interaction(
+                button_ctx = await self._get_button_ctx(
                     ctx, message, message_for_update
                 )
             except TimeoutError:
                 return
 
-            if isinstance(interaction.component, Select):
-                selected = interaction.values
+            if isinstance(button_ctx.component, Select):
+                selected = button_ctx.values
                 if is_exception:
                     _selected = _list.copy()
                     for item in selected:
                         _selected.remove(item)
                     selected = _selected
                 embed.description = content["SELECTED_ITEMS_TEXT"] + ", ".join(selected)
-                await interaction.edit_origin(embed=embed)
+                await button_ctx.edit_origin(embed=embed)
 
-            elif interaction.custom_id == "toggle":
+            elif button_ctx.custom_id == "toggle":
                 is_exception = not is_exception
-                interaction.component.label = (
+                button_ctx.component.label = (
                     content["EXCEPTION_BUTTON"]
                     if is_exception
                     else content["SELECT_BUTTON"]
@@ -471,11 +467,11 @@ class Fun(Cog):
                 is_removed = False
                 embed.description = ""
 
-                await interaction.edit_origin(
-                    embed=embed, components=interaction.message.components
+                await button_ctx.edit_origin(
+                    embed=embed, components=button_ctx.origin_message.components
                 )
 
-            elif interaction.custom_id == "start_random":
+            elif button_ctx.custom_id == "start_random":
                 if not is_exception and selected is not None:
                     item = choice(selected)
                     await message_for_update.edit(content=item)
@@ -493,17 +489,17 @@ class Fun(Cog):
                     item = choice(selected)
                     await message_for_update.edit(content=item)
 
-            elif interaction.custom_id == "exit":
+            elif button_ctx.custom_id == "exit":
                 await message.delete()
                 await message_for_update.delete()
                 return
 
-    async def _get_interaction(self, ctx: SlashContext, message, message_for_update):
+    async def _get_button_ctx(self, ctx: SlashContext, message, message_for_update):
         try:
-            interaction: ComponentContext = await self.bot.wait_for(
+            button_ctx: ComponentContext = await self.bot.wait_for(
                 "component",
-                check=lambda inter: inter.author_id == ctx.author_id
-                and inter.message.id == message.id,
+                check=lambda _ctx: _ctx.author_id == ctx.author_id
+                and _ctx.origin_message_id == message.id,
                 timeout=3600,
             )
         except TimeoutError as te:
@@ -511,8 +507,8 @@ class Fun(Cog):
             await message_for_update.delete()
             raise TimeoutError from te
         else:
-            await interaction.defer(edit_origin=True)
-            return interaction
+            await button_ctx.defer(edit_origin=True)
+            return button_ctx
 
     @slash_subcommand(
         base="fun",
