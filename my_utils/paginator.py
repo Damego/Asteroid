@@ -110,9 +110,6 @@ class Paginator:
         elif self.style == 4:
             self._process_style4(ctx.custom_id)
 
-        print(self.components[0][0].to_dict())
-        print(self.components[0][1].to_dict())
-
         await ctx.edit_origin(
             embed=self.embeds[self.current_page - 1], components=self.components
         )
