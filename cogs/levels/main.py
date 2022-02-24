@@ -336,7 +336,7 @@ class Levels(Cog):
                 except Exception:
                     continue
 
-            embed_desc += f"**#{count}・{member.mention}**\n╰**{content['LEVEL']}:** `{user_data[1]}` | **{content['XP']}:** `{int(user_data[2])}`"
+            embed_desc += f"**#{count}・{member.mention}**\n╰**{content['LEVEL']}:** `{user_data[1]}` | **{content['XP']}:** `{int(user_data[2])}`\n"
 
             if count % 10 == 0:
                 embeds.append(await self._get_embed(ctx, embed_desc, content))
