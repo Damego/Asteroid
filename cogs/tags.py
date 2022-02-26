@@ -95,8 +95,7 @@ class Tags(Cog):
                 name="tag_name",
                 description="The name of tag",
                 option_type=SlashCommandOptionType.STRING,
-                required=True,
-                autocomplete=True,
+                required=True
             ),
             create_option(
                 name="type",
