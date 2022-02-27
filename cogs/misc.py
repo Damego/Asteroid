@@ -5,6 +5,7 @@ from re import compile
 
 from aiohttp import ClientSession
 from discord import (
+    Attachment,
     Member,
     Embed,
     Role,
@@ -15,7 +16,7 @@ from discord import (
     TextChannel,
     Forbidden,
     ChannelType,
-    File
+    File,
 )
 from discord.ext import commands
 from discord_slash import (
@@ -350,6 +351,24 @@ class Misc(Cog):
         embed = Embed(title="Image", color=await self.bot.get_embed_color(ctx.guild_id))
         embed.set_image(url=url)
         await ctx.send(embed=embed)
+
+    @slash_command(
+        base="misc",
+        name="attachment",
+        options=[
+            create_option(
+                name="attachment",
+                description="Send attachment",
+                option_type=SlashCommandOptionType.ATTACHMENT,
+                required=True,
+            ),
+        ],
+    )
+    async def test_attachment(
+        self, ctx: SlashContext, attachment: Attachment
+    ):
+        file = attachment.to_file()
+        await ctx.send(file=file)
 
 
 def setup(bot):
