@@ -352,7 +352,7 @@ class Misc(Cog):
         embed.set_image(url=url)
         await ctx.send(embed=embed)
 
-    @slash_command(
+    @slash_subcommand(
         base="misc",
         name="attachment",
         options=[
