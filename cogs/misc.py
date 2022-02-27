@@ -367,7 +367,7 @@ class Misc(Cog):
     async def test_attachment(
         self, ctx: SlashContext, attachment: Attachment
     ):
-        file = attachment.to_file()
+        file = await attachment.to_file()
         await ctx.send(file=file)
 
 
