@@ -347,7 +347,7 @@ class Misc(Cog):
         if not url_rx.match(url):
             return await ctx.send("Not link", hidden=True)
 
-        embed = Embed(color=await self.bot.get_embed_color(ctx.guild_id))
+        embed = Embed(title="Image", color=await self.bot.get_embed_color(ctx.guild_id))
         embed.set_image(url=url)
         await ctx.send(embed=embed)
 
