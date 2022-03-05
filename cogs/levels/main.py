@@ -41,6 +41,9 @@ class Levels(Cog):
             return
         guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
         await guild_data.get_user(member.id)
+        if guild_data.configuration.start_level_role is not None:
+            role = member.guild.get_role(guild_data.configuration.start_level_role)
+            await member.add_roles(role)
 
     @Cog.listener()
     async def on_member_remove(self, member: Member):
@@ -290,7 +293,8 @@ class Levels(Cog):
                 xp_amount += exp
             content += f"{level} — {role.mention} | EXP: {xp_amount}\n"
 
-        embed = Embed(description=content, color=guild_data.configuration.embed_color)
+        embed = Embed(description=content,
+                      color=guild_data.configuration.embed_color)
         await ctx.send(embed=embed)
 
     @slash_subcommand(base="levels", name="clear_members_stats")
@@ -306,6 +310,24 @@ class Levels(Cog):
             user_data = await guild_data.get_user(member.id)
             await user_data.reset_leveling()
 
+        await ctx.send("✅", hidden=True)
+
+    @slash_subcommand(base="levels", name="set_start_role", description="Set's start level role")
+    @is_enabled()
+    @bot_owner_or_permissions(manage_guild=True)
+    async def levels_set_start_role(self, ctx: SlashContext, role: Role):
+        await ctx.defer(hidden=True)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        await guild_data.configuration.set_start_level_role(role.id)
+        await ctx.send("✅", hidden=True)
+
+    @slash_subcommand(base="levels", name="delete_start_role", description="Delete's start level role")
+    @is_enabled()
+    @bot_owner_or_permissions(manage_guild=True)
+    async def levels_delete_start_role(self, ctx: SlashContext):
+        await ctx.defer(hidden=True)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        await guild_data.configuration.set_start_level_role(None)
         await ctx.send("✅", hidden=True)
 
     @slash_subcommand(

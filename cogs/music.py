@@ -521,7 +521,7 @@ class Music(Cog):
             raise NoData
 
         user_data = await guild_data.get_user(ctx.author_id)
-        await user_data.add_many_tracks(playlist_data)
+        await user_data.add_many_tracks(playlist, playlist_data)
 
         content = get_content("MUSIC_COMMANDS", guild_data.configuration.language)[
             "MUSIC_PLAYLIST"

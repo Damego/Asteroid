@@ -96,12 +96,13 @@ async def on_slash_command_error(ctx: SlashContext, error):
         error_embed.add_field(
             name="Command Name", value=f"`/{bot.get_transformed_command_name(ctx)}`"
         )
-        error_embed.add_field(
-            name="Guild", value=f"Name: `{ctx.guild.name}`\n ID:`{ctx.guild_id}`"
-        )
-        error_embed.add_field(
-            name="Channel", value=f"Name: `{ctx.channel.name}`\n ID:`{ctx.channel_id}`"
-        )
+        if ctx.guild is not None:
+            error_embed.add_field(
+                name="Guild", value=f"Name: `{ctx.guild.name}`\n ID:`{ctx.guild_id}`"
+            )
+            error_embed.add_field(
+                name="Channel", value=f"Name: `{ctx.channel.name}`\n ID:`{ctx.channel_id}`"
+            )
         error_embed.add_field(
             name="User", value=f"Name: `{ctx.author.name}`\n ID:`{ctx.author_id}`"
         )

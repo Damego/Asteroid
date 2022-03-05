@@ -1,4 +1,5 @@
-from discord import Role, Embed, RawReactionActionEvent, Guild, Member
+from discord import Role, Embed, Member
+from discord.ext.commands import BadArgument
 from discord_slash import (
     AutoCompleteContext,
     SlashContext,
@@ -124,12 +125,15 @@ class AutoRole(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_on_join_remove(self, ctx: SlashContext, role: str):
+        if not role.isdecimal:
+            raise BadArgument
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         await guild_data.configuration.delete_on_join_role(int(role))
 
         content: dict = get_content(
             "AUTOROLE_ON_JOIN", guild_data.configuration.language
         )
+        role = ctx.guild.get_role(int(role))
         await ctx.send(content["ROLE_REMOVED_TEXT"].format(role=role.mention))
 
     # SELECT ROLE
