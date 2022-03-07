@@ -99,7 +99,7 @@ class AutoRole(Cog):
             components_json = autorole.component
             for row in components_json:
                 if row["type"] == 1:
-                    for component in row:
+                    for component in row["components"]:
                         if component["type"] == 2:
                             if component["label"] is None:
                                 labels.append(component["emoji"]["name"])
