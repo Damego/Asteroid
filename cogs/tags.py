@@ -52,8 +52,8 @@ class Tags(Cog):
 
     @slash_subcommand(
         base="tag",
-        name="open",
-        description="Open tag",
+        name="view",
+        description="View an existing tag",
         options=[
             create_option(
                 name="tag_name",
@@ -65,7 +65,7 @@ class Tags(Cog):
         ],
     )
     @is_enabled()
-    async def open_tag(self, ctx: SlashContext, tag_name: str):
+    async def view_tag(self, ctx: SlashContext, tag_name: str):
         tag_name = self.convert_tag_name(tag_name)
 
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
@@ -88,7 +88,7 @@ class Tags(Cog):
 
     @slash_subcommand(
         base="tag",
-        name="add",
+        name="create",
         description="Create new tag",
         options=[
             create_option(

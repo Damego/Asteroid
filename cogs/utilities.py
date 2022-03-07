@@ -13,7 +13,7 @@ from discord import (
     Forbidden,
 )
 from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
-from discord_slash.cog_ext import cog_subcommand as slash_subcommand
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand, cog_slash as slash_command
 from discord_slash.utils.manage_commands import create_option, create_choice
 
 from my_utils import (
@@ -662,6 +662,55 @@ class Utilities(Cog):
         await global_user.add_many_tracks(f"{playlist} — GLOBAL", playlist_data)
 
         await ctx.send("Now your playlist is global!", hidden=True)
+
+    @slash_command(
+        name="language",
+        description="Changes bot's language on your server.",
+        options=[
+            create_option(
+                name="language",
+                description="Language",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                choices=[
+                    create_choice(name=language, value=language)
+                    for language in consts.LANGUAGES_LIST
+                ],
+            )
+        ],
+    )
+    @bot_owner_or_permissions(manage_roles=True)
+    async def set_bot_language(self, ctx: SlashContext, language: str):
+        await ctx.defer()
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        await guild_data.configuration.set_language(language)
+
+        content = get_content(
+            "SET_LANGUAGE_COMMAND", lang=guild_data.configuration.language
+        )
+
+        await ctx.send(content["LANGUAGE_CHANGED"])
+
+    @slash_command(name="embed_color", description="Set color for embeds")
+    @bot_owner_or_permissions(manage_roles=True)
+    async def set_embed_color(self, ctx: SlashContext, color: str):
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content = get_content(
+            "SET_EMBED_COLOR_COMMAND", guild_data.configuration.language
+        )
+
+        if color.startswith("#") and len(color) == 7:
+            color = color.replace("#", "")
+        elif len(color) != 6 and any(
+            char not in "1234567890ABCDEFabcdef" for char in color
+        ):
+            await ctx.send(content["WRONG_COLOR"])
+            return
+        color = f"0x{color}"
+
+        await guild_data.configuration.set_embed_color(color)
+        embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=int(color, 16))
+        await ctx.send(embed=embed, delete_after=10)
 
 
 

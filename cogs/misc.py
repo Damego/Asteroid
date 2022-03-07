@@ -355,6 +355,7 @@ class Misc(Cog):
     @slash_subcommand(
         base="misc",
         name="attachment",
+        description="Sends file",
         options=[
             create_option(
                 name="attachment",

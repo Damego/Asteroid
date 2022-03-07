@@ -331,10 +331,10 @@ class Levels(Cog):
         await ctx.send("✅", hidden=True)
 
     @slash_subcommand(
-        base="levels", name="top", description="Shows top members by level", options=[]
+        base="levels", name="leaderboard", description="Shows top members by level", options=[]
     )
     @is_enabled()
-    async def levels_top_members(self, ctx: SlashContext):
+    async def leaderboard_members(self, ctx: SlashContext):
         # TODO Rewrite this command due to can collect data about all users of server
         await ctx.defer()
 
