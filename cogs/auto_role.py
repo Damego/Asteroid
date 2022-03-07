@@ -49,8 +49,7 @@ class AutoRole(Cog):
 
     @Cog.listener(name="on_autocomplete")
     async def autorole_select_autocomplete(self, ctx: AutoCompleteContext):
-        command_name = self.bot.get_transformed_command_name(ctx)
-        if not command_name.startswith("autorole"):
+        if ctx.name != "autorole":
             return
 
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
@@ -720,6 +719,63 @@ class AutoRole(Cog):
                     return await ctx.send(content["LIMIT_25_BUTTONS"])
                 else:
                     original_components.append([button])
+
+        await original_message.edit(components=original_components)
+        await ctx.send(content["COMMAND_ROLE_ADDED_TEXT"], hidden=True)
+
+        await autorole.update_component(
+            [actionrow.to_dict() for actionrow in original_components]
+        )
+
+    @slash_subcommand(
+        base="autorole",
+        subcommand_group="button",
+        name="remove_role",
+        description="Remove button with role.",
+        options=[
+            create_option(
+                name="name",
+                description="The name of group of buttons",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            ),
+            create_option(
+                name="label",
+                description="The label of button",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True
+            ),
+        ]
+    )
+    async def autorole_button_remove_role(self, ctx: SlashContext, name: str, label: str):
+        await ctx.defer(hidden=True)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content = get_content("AUTOROLE_BUTTON", guild_data.configuration.language)
+
+        autoroles = guild_data.autoroles
+        if not autoroles:
+            return await ctx.send(content["NO_AUTOROLES"])
+        autorole = None
+        for autorole in autoroles:
+            if autorole.name == name:
+                break
+        if not autorole:
+            return await ctx.send(content["NO_AUTOROLES"])
+
+        if autorole.type != "buttons":
+            return await ctx.send(content["NOT_BUTTONS_AUTOROLE"])
+
+        original_message = await ctx.channel.fetch_message(int(autorole.message_id))
+        original_components = original_message.components
+        for row in original_components:
+            for component in row:
+                if component.label == label:
+                    row.remove_component(component)
+                    break
+            if len(row) == 0:
+                original_components.remove(row)
 
         await original_message.edit(components=original_components)
         await ctx.send(content["COMMAND_ROLE_ADDED_TEXT"], hidden=True)
