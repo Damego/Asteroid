@@ -803,7 +803,8 @@ class AutoRole(Cog):
                     break
             else:
                 for component in row:
-                    if component.emoji.name == label:
+                    emoji_name = component.emoji["name"] if isinstance(component.emoji, dict) else component.emoji.name
+                    if emoji_name == label:
                         row.remove_component(component)
                         break
 
