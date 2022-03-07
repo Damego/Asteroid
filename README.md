@@ -9,17 +9,7 @@
 <h2>Main libraries</h2>
 
 - discord.py v1.7.3 - Base client
-- discord-py-interactions v3.0.2 - Slash commands
-- discord-components v2.1.2 - Buttons and Select Menus
+- custom discord-py-interactions v3 - Slash commands and components
 
 <h2>Setup Bot</h2>
-
-1. Create `.env` file
-2. Put in `.env` 
-```shell
-BOT_TOKEN=
-MONGODB_URL=
-WEBHOOK_GUILDS_UPDATE=
-```
-3. Configure `my_utils/consts.py` file
-3. Run bot via opening `main.py` file
+Figure it out for yourself
