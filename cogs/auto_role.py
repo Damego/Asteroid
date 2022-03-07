@@ -791,7 +791,6 @@ class AutoRole(Cog):
                 break
         if not autorole:
             return await ctx.send(content["NO_AUTOROLES"])
-
         if autorole.type != "buttons":
             return await ctx.send(content["NOT_BUTTONS_AUTOROLE"])
 
@@ -802,6 +801,12 @@ class AutoRole(Cog):
                 if component.label == label:
                     row.remove_component(component)
                     break
+            else:
+                for component in row:
+                    if component.emoji.name == label:
+                        row.remove_component(component)
+                        break
+
             if len(row) == 0:
                 original_components.remove(row)
 
