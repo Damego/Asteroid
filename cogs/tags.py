@@ -36,9 +36,7 @@ class Tags(Cog):
 
     @Cog.listener(name="on_autocomplete")
     async def tag_autocomplete(self, ctx: AutoCompleteContext):
-        if not self.bot.get_transformed_command_name(ctx).startswith("tag"):
-            return
-        if ctx.focused_option != "tag_name":
+        if ctx.name != "tag" and ctx.focused_option != "tag_name":
             return
         choices = None
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)

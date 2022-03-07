@@ -62,6 +62,7 @@ class AutoRole(Cog):
                 if autorole.name.startswith(ctx.user_input)
             ][:25]
         elif ctx.focused_option == "option":
+            autorole = None
             for autorole in autoroles:
                 if autorole.name == ctx.options.get("name"):
                     break
@@ -86,6 +87,32 @@ class AutoRole(Cog):
                 for role in on_join_roles
                 if role.name.startswith(ctx.user_input)
             ][:25]
+        if ctx.focused_option == "label":
+            name = ctx.options.get("name")
+            autoroles = guild_data.autoroles
+            for autorole in autoroles:
+                if autorole.name == name:
+                    break
+            else:
+                return
+            labels = []
+            components_json = autorole.component
+            for row in components_json:
+                if row["type"] == 1:
+                    labels.extend(
+                        component["label"]
+                        for component in row["components"]
+                        if component["type"] == 2
+                    )
+            
+            choices = [
+                create_choice(
+                    name=label,
+                    value=label
+                )
+                for label in labels
+            ][:25]
+
         if choices:
             await ctx.populate(choices)
 
