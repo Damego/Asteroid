@@ -104,7 +104,7 @@ class AutoRole(Cog):
                         for component in row["components"]
                         if component["type"] == 2
                     )
-            
+
             choices = [
                 create_choice(
                     name=label,
@@ -805,7 +805,7 @@ class AutoRole(Cog):
                 original_components.remove(row)
 
         await original_message.edit(components=original_components)
-        await ctx.send(content["COMMAND_ROLE_ADDED_TEXT"], hidden=True)
+        await ctx.send(content["COMMAND_ROLE_REMOVED_TEXT"], hidden=True)
 
         await autorole.update_component(
             [actionrow.to_dict() for actionrow in original_components]
