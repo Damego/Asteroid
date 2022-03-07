@@ -1,18 +1,9 @@
-from enum import Enum
 from time import time
 from typing import Dict, List, Union
 
 from motor.motor_asyncio import AsyncIOMotorCollection
 
-
-class OperatorType(Enum):
-    SET = "$set"
-    UNSET = "$unset"
-    PUSH = "$push"
-    PULL = "$pull"
-    EACH = "$each"
-    RENAME = "$rename"
-    INC = "$inc"
+from .enums import OperatorType
 
 
 class GuildData:
@@ -565,7 +556,7 @@ class GuildUser:
     async def add_many_tracks(self, playlist: str, tracks: list):
         await self._update(
             OperatorType.PUSH,
-            {f"music_playlists.{playlist}": {OperatorType.EACH: tracks}},
+            {f"music_playlists.{playlist}": {OperatorType.EACH.value: tracks}},
         )
         if playlist not in self._music_playlists:
             self._music_playlists[playlist] = []

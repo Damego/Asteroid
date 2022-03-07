@@ -262,27 +262,35 @@ class Music(Cog):
     @Cog.listener(name="on_autocomplete")
     async def playlist_autocomplete(self, ctx: AutoCompleteContext):
         choices = None
-        if not self.bot.get_transformed_command_name(ctx).startswith("music"):
+        if ctx.name not in ["music", "global"]:
             return
 
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        global_data = await self.bot.mongo.get_global_data()
 
         if ctx.focused_option == "playlist":
-            user_data = await guild_data.get_user(ctx.author_id)
+            user_guild_data = await guild_data.get_user(ctx.author_id)
+            user_global_data = await global_data.get_user(ctx.author_id)
+            all_playlists = user_guild_data.music_playlists | user_global_data.music_playlists
+
             playlists = [
                 playlist
-                for playlist in user_data.music_playlists
+                for playlist in all_playlists
                 if playlist.startswith(ctx.user_input)
             ]
+
             choices = [
                 create_choice(name=playlist, value=playlist) for playlist in playlists
             ]
         elif ctx.focused_option == "name":
-            user_data = await guild_data.get_user(ctx.author_id)
-            if not user_data.music_playlists:
+            user_guild_data = await guild_data.get_user(ctx.author_id)
+            user_global_data = await global_data.get_user(ctx.author_id)
+            if not user_guild_data.music_playlists and not user_global_data.music_playlists:
                 return
+
             input_playlist = ctx.options["playlist"]
-            tracks_list = user_data.music_playlists[input_playlist]
+            all_playlists = user_guild_data.music_playlists | user_global_data.music_playlists
+            tracks_list = all_playlists.get(input_playlist)
             choices = [
                 create_choice(name=track, value=track)
                 for track in tracks_list
@@ -333,8 +341,6 @@ class Music(Cog):
     async def music_add_to_playlist(
         self, ctx: SlashContext, playlist: str, query: str = None, hidden: bool = False
     ):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-
         if not query:
             player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(
                 ctx.guild_id
@@ -343,7 +349,13 @@ class Music(Cog):
                 raise NotPlaying
             query = player.current.title
 
-        user_data = await guild_data.get_user(ctx.author_id)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if playlist.endswith("GLOBAL"):
+            data = await self.bot.mongo.get_global_data()
+        else:
+            data = guild_data
+
+        user_data = await data.get_user(ctx.author_id)
         await user_data.add_track_to_playlist(playlist, query)
 
         content = get_content("MUSIC_COMMANDS", guild_data.configuration.language)[
@@ -384,7 +396,12 @@ class Music(Cog):
     ):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        user_data = await guild_data.get_user(ctx.author_id)
+        if playlist.endswith("GLOBAL"):
+            data = await self.bot.mongo.get_global_data()
+        else:
+            data = guild_data
+
+        user_data = await data.get_user(ctx.author_id)
         user_playlists = user_data.music_playlists
         if not user_playlists:
             raise NoData
@@ -419,7 +436,12 @@ class Music(Cog):
     @is_enabled()
     async def music_play_playlist(self, ctx: SlashContext, playlist: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        user_data = await guild_data.get_user(ctx.author_id)
+        if playlist.endswith("GLOBAL"):
+            data = await self.bot.mongo.get_global_data()
+        else:
+            data = guild_data
+
+        user_data = await data.get_user(ctx.author_id)
         user_playlists = user_data.music_playlists
         if not user_playlists:
             raise NoData
@@ -456,7 +478,12 @@ class Music(Cog):
     ):
         await ctx.defer(hidden=hidden)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        user_data = await guild_data.get_user(ctx.author_id)
+        if playlist.endswith("GLOBAL"):
+            data = await self.bot.mongo.get_global_data()
+        else:
+            data = guild_data
+
+        user_data = await data.get_user(ctx.author_id)
         user_playlists = user_data.music_playlists
         if not user_playlists:
             raise NoData
@@ -520,7 +547,11 @@ class Music(Cog):
         if not playlist_data:
             raise NoData
 
-        user_data = await guild_data.get_user(ctx.author_id)
+        if playlist.endswith("GLOBAL"):
+            data = await self.bot.mongo.get_global_data()
+        else:
+            data = guild_data
+        user_data = await data.get_user(ctx.author_id)
         await user_data.add_many_tracks(playlist, playlist_data)
 
         content = get_content("MUSIC_COMMANDS", guild_data.configuration.language)[
@@ -547,7 +578,12 @@ class Music(Cog):
     async def delete_user_playlist(self, ctx: SlashContext, playlist: str):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        user_data = await guild_data.get_user(ctx.author_id)
+        if playlist.endswith("GLOBAL"):
+            data = await self.bot.mongo.get_global_data()
+        else:
+            data = guild_data
+
+        user_data = await data.get_user(ctx.author_id)
         user_playlists = user_data.music_playlists
         if not user_playlists:
             raise NoData

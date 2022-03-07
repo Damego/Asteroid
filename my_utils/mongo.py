@@ -5,6 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCursor
 from pymongo.collection import Collection
 from dotenv import load_dotenv
 
+from my_utils.models.global_data import GlobalData
 from .models.guild_data import GuildData
 
 
@@ -18,6 +19,8 @@ class Mongo:
         )
         self._guilds = self._connection["guilds"]
         self._cache = {}
+        self._global_data_connection = self._connection["GLOBAL"]
+        self._global_users_connection = self._global_data_connection["USERS"]
 
     @property
     def connection(self):
@@ -58,7 +61,7 @@ class Mongo:
             upsert=True,
         )
 
-        json_data = await self.get_guild_raw_data(guild_id)
+        json_data = await self.__get_guild_raw_data(guild_id)
         self._cache[str(guild_id)] = GuildData(self._guilds, json_data, guild_id)
 
     async def delete_guild(self, guild_id: int):
@@ -66,7 +69,7 @@ class Mongo:
         await self._guilds[str(guild_id)]["users"].drop()
         del self._cache[str(guild_id)]
 
-    async def get_guild_raw_data(self, guild_id: int):
+    async def __get_guild_raw_data(self, guild_id: int):
         main_data_cursor: AsyncIOMotorCursor = self._guilds[str(guild_id)][
             "configuration"
         ].find()
@@ -82,6 +85,14 @@ class Mongo:
             print(
                 f"GuildData for {guild_id} not found in cache. Fetching in database..."
             )
-            json_data = await self.get_guild_raw_data(guild_id)
+            json_data = await self.__get_guild_raw_data(guild_id)
             self._cache[str(guild_id)] = GuildData(self._guilds, json_data, guild_id)
         return self._cache[str(guild_id)]
+
+    async def get_global_data(self):
+        users_data_cursor = self._global_users_connection.find()
+        users = [user_data async for user_data in users_data_cursor]
+        self.global_data = GlobalData(self._global_data_connection, users)
+        return self.global_data
+
+        

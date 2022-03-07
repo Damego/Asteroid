@@ -636,6 +636,34 @@ class Utilities(Cog):
 
         await ctx.send(embed=embed)
 
+    @slash_subcommand(
+        base="global",
+        name="music_playlist",
+        description="Makes your playlist global. You can listen it everywhere.",
+        options=[
+            create_option(
+                name="playlist",
+                description="Your playlist",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True
+            )
+        ]
+    )
+    async def global_music_playlist(self, ctx: SlashContext, playlist: str):
+        await ctx.defer(hidden=True)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        user_data = await guild_data.get_user(ctx.author_id)
+        if playlist not in user_data.music_playlists:
+            raise NoData
+        playlist_data = user_data.music_playlists[playlist]
+        global_data = await self.bot.mongo.get_global_data()
+        global_user = await global_data.get_user(ctx.author_id)
+        await global_user.add_many_tracks(f"{playlist} — GLOBAL", playlist_data)
+
+        await ctx.send("Now your playlist is global!", hidden=True)
+
+
 
 def setup(bot):
     bot.add_cog(Utilities(bot))
