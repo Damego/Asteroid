@@ -530,7 +530,17 @@ class Fun(Cog):
     @slash_subcommand(
         base="game",
         name="monkeymemory",
-        description="Start game Monkey Memory"
+        description="Start game Monkey Memory",
+        options=[
+            create_option(
+                name="timeout",
+                description="The time to remember (in seconds). Default of 5 seconds.",
+                option_type=SlashCommandOptionType.INTEGER,
+                required=True,
+                min_value=1,
+                max_value=60
+            )
+        ]
     )
     @is_enabled()
     async def start_mm(self, ctx: SlashContext, timeout: int = 5):
