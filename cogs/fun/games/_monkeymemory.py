@@ -81,6 +81,7 @@ class MonkeyMemory:
                     _, _id = component.custom_id.split("|")
                     if not _id.startswith("empty"):
                         component.emoji = emoji[_id]
+        return self.components
 
     def _disable_components(self):
         for row in self.components:
@@ -112,7 +113,7 @@ class MonkeyMemory:
             return ctx
 
     async def start(self):
-        self.message = await self.ctx.send(f"You have `{self.timeout}` to remember the sequence.", components=self._render_start_components())
+        self.message = await self.ctx.send(f"You have `{self.timeout}` seconds to remember the sequence.", components=self._render_start_components())
         current = 1
 
         await asyncio.sleep(self.timeout)
