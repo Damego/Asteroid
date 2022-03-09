@@ -134,6 +134,8 @@ class MonkeyMemory:
                 self._disable_components()
                 self.toggle_components_status(hide=False)
                 is_end = True
+            if current == 11:
+                self._disable_components()
 
             await ctx.edit_origin(components=self.components)
             if is_end:
