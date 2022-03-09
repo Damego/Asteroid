@@ -533,6 +533,6 @@ class Fun(Cog):
         description="Start game Monkey Memory"
     )
     @is_enabled()
-    async def start_mm(self, ctx: SlashContext):
-        game = MonkeyMemory(ctx)
+    async def start_mm(self, ctx: SlashContext, timeout: int = 5):
+        game = MonkeyMemory(ctx, timeout)
         await game.start()
