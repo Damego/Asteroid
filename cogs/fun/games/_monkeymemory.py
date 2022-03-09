@@ -108,13 +108,14 @@ class MonkeyMemory:
         try:
             ctx = await self.bot.wait_for("button_click", timeout=600, check=check)
         except asyncio.TimeoutError:
-            self.message.edit("Timed out", components=self._disable_components())
+            self.message.edit(content="Timed out", components=self._disable_components())
         else:
             return ctx
 
     async def start(self):
         self.message = await self.ctx.send(f"You have `{self.timeout}` seconds to remember the sequence.", components=self._render_start_components())
         current = 1
+        is_end = False
 
         await asyncio.sleep(self.timeout)
         await self.message.edit(content="Monkey Memory", components=self.toggle_components_status(hide=True))
@@ -132,5 +133,8 @@ class MonkeyMemory:
                 self.paint_button(num, ButtonStyle.red)
                 self._disable_components()
                 self.toggle_components_status(hide=False)
+                is_end = True
 
             await ctx.edit_origin(components=self.components)
+            if is_end:
+                return
