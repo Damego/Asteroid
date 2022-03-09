@@ -536,7 +536,7 @@ class Fun(Cog):
                 name="timeout",
                 description="The time to remember (in seconds). Default of 5 seconds.",
                 option_type=SlashCommandOptionType.INTEGER,
-                required=True,
+                required=False,
                 min_value=1,
                 max_value=60
             )
