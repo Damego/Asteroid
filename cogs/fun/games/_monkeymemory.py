@@ -43,7 +43,7 @@ emoji = {
 
 
 class MonkeyMemory:
-    def __init__(self, ctx: SlashContext, timeout: int = 5) -> None:
+    def __init__(self, ctx: SlashContext, timeout: int) -> None:
         self.bot: AsteroidBot = ctx.bot
         self.ctx = ctx
         self.board = copy(template)
@@ -112,11 +112,11 @@ class MonkeyMemory:
             return ctx
 
     async def start(self):
-        self.message = await self.ctx.send("Monkey Memory", components=self._render_start_components())
+        self.message = await self.ctx.send(f"You have `{self.timeout}` to remember the sequence.", components=self._render_start_components())
         current = 1
 
         await asyncio.sleep(self.timeout)
-        await self.message.edit(components=self.toggle_components_status(hide=True))
+        await self.message.edit(content="Monkey Memory", components=self.toggle_components_status(hide=True))
 
         while True:
             ctx = await self._wait_button_click()
