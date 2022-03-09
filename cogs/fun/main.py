@@ -25,39 +25,8 @@ import qrcode
 import requests
 
 from my_utils import AsteroidBot, get_content, Cog, is_enabled, consts
-from ._tictactoe_online import TicTacToeOnline, BoardMode
-from ._tictactoe_ai import TicTacToeAI, TicTacToeMode
-from ._rockpaperscissors import RockPaperScissors
-from ._calculator import Calculator
-
-
-bored_api_types = [
-    "education",
-    "recreational",
-    "social",
-    "diy",
-    "charity",
-    "cooking",
-    "relaxation",
-    "music",
-    "busywork",
-]
-discord_activities_list = {
-    "Watch Together": "880218394199220334",
-    "Betrayal.io": "773336526917861400",
-    "Fishington.io": "814288819477020702",
-    "awkword": "879863881349087252",
-    "PuttParty": "763133495793942528",
-    "Word Snacks": "879863976006127627",
-    "Sketch Heads": "902271654783242291",
-    "Poker Night (Boost Level 1)": "755827207812677713",
-    "Chess In The Park (Boost Level 1)": "832012774040141894",
-    "Checkers In The Park (Boost Level 1)": "832013003968348200",
-    "Letter Tile (Boost Level 1)": "879863686565621790",
-    "SpellCast (Boost Level 1)": "852509694341283871",
-    "Ocho (Boost Level 1)": "832025144389533716",
-    "Doodle Crew (Old)": "878067389634314250",
-}
+from .games import Calculator, RockPaperScissors, TicTacToeMode, TicTacToeAI, TicTacToeOnline, BoardMode, MonkeyMemory
+from .consts import bored_api_types, discord_activities_list
 
 
 class Fun(Cog):
@@ -557,3 +526,13 @@ class Fun(Cog):
     async def start_calculator(self, ctx: SlashContext):
         calculator = Calculator(self.bot)
         await calculator.start(ctx)
+
+    @slash_subcommand(
+        base="game",
+        name="monkeymemory",
+        description="Start game Monkey Memory"
+    )
+    @is_enabled()
+    async def start_mm(self, ctx: SlashContext):
+        game = MonkeyMemory(ctx)
+        await game.start()
