@@ -111,16 +111,16 @@ class TicTacToeOnline:
                 elif components[i][j].style == ButtonStyle.red:
                     self.board[i][j] = GameState.enemy
 
-    def _check(self, player_id, interaction):
+    def _check(self, player_id, ctx):
         return (
-            interaction.author_id == player_id
-            and interaction.message.id == self.message.id
+            ctx.author_id == player_id
+            and ctx.origin_message.id == self.message.id
         )
 
     async def move(self, player: GameState, player_user: Member):
         ctx: ComponentContext = await self.bot.wait_for(
             "button_click",
-            check=lambda interaction: self._check(player_user.id, interaction),
+            check=lambda _ctx: self._check(player_user.id, _ctx),
         )
         await ctx.defer(edit_origin=True)
 
