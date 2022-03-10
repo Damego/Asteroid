@@ -108,7 +108,7 @@ class MonkeyMemory:
         try:
             ctx = await self.bot.wait_for("button_click", timeout=600, check=check)
         except asyncio.TimeoutError:
-            self.message.edit(content="Timed out", components=self._disable_components())
+            await self.message.edit(content="Timed out", components=self._disable_components())
         else:
             return ctx
 
