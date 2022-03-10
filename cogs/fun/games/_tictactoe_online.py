@@ -247,7 +247,7 @@ class TicTacToeOnline:
 
         embed = Embed(
             title=self.content["RESULTS_TITLE"],
-            color=self.bot.get_embed_color(self.ctx.guild_id),
+            color=await self.bot.get_embed_color(self.ctx.guild_id),
         )
         embed.add_field(
             name=self.content["RESULTS_GAME_NAME"],
