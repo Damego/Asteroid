@@ -5,8 +5,6 @@ import genshin
 
 from my_utils import (
     UIDNotBinded,
-    GenshinAccountNotFound,
-    GenshinDataNotPublic,
     AsteroidBot,
     get_content,
     Cog,
