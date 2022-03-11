@@ -56,7 +56,7 @@ class GenshinStats(Cog):
 
         self._get_cookie()
         try:
-            user_data = gs.get_user_stats(uid, lang=genshin_data_lang)
+            user_data = gs.get_user_stats(uid, False, genshin_data_lang)
         except DataNotPublic:
             raise GenshinDataNotPublic
         except AccountNotFound:
