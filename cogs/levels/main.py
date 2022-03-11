@@ -126,7 +126,7 @@ class Levels(Cog):
     @slash_subcommand(
         base="levels",
         name="reset_stats",
-        description="Reset levels statistics of Member",
+        description="Reset level statistics of Member",
         options=[
             create_option(
                 name="member", description="Guild Member", option_type=6, required=True
@@ -177,6 +177,7 @@ class Levels(Cog):
 
     @slash_subcommand(
         base="levels",
+        subcommand_group="role",
         name="add",
         description="Add Role to level",
         options=[
@@ -200,6 +201,7 @@ class Levels(Cog):
 
     @slash_subcommand(
         base="levels",
+        subcommand_group="role",
         name="remove",
         description="Remove Role of a level",
         options=[
@@ -219,8 +221,9 @@ class Levels(Cog):
 
     @slash_subcommand(
         base="levels",
+        subcommand_group="role",
         name="replace",
-        description="Replace level to another",
+        description="Replace level role to another",
         options=[
             create_option(
                 name="current_level",
@@ -263,7 +266,7 @@ class Levels(Cog):
         if choices:
             await ctx.populate(choices)
 
-    @slash_subcommand(base="levels", name="reset", description="Reset levels in server")
+    @slash_subcommand(base="levels", subcommand_group="role", name="reset", description="Reset levels in server")
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def reset_levels(self, ctx: SlashContext):
@@ -272,7 +275,7 @@ class Levels(Cog):
         await ctx.send("✅", hidden=True)
 
     @slash_subcommand(
-        base="levels", name="list", description="Show list of levels in server"
+        base="levels", subcommand_group="role", name="list", description="Show list of levels in server"
     )
     @is_enabled()
     async def send_levels_list(self, ctx: SlashContext):
@@ -312,7 +315,7 @@ class Levels(Cog):
 
         await ctx.send("✅", hidden=True)
 
-    @slash_subcommand(base="levels", name="set_start_role", description="Set's start level role")
+    @slash_subcommand(base="levels", subcommand_group="role", name="set_start_role", description="Set's start level role")
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def levels_set_start_role(self, ctx: SlashContext, role: Role):
@@ -321,7 +324,7 @@ class Levels(Cog):
         await guild_data.configuration.set_start_level_role(role.id)
         await ctx.send("✅", hidden=True)
 
-    @slash_subcommand(base="levels", name="delete_start_role", description="Delete's start level role")
+    @slash_subcommand(base="levels", subcommand_group="role", name="delete_start_role", description="Delete's start level role")
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def levels_delete_start_role(self, ctx: SlashContext):
