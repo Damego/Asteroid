@@ -1,13 +1,15 @@
 from os import getenv
 from datetime import datetime
-from traceback import format_exception
+from traceback import *
+from sys import exc_info
 
 from discord import Guild, Intents, Embed, Forbidden
-from discord.ext import commands
+from discord.ext.commands import NotOwner, BotMissingPermissions, MissingPermissions, CheckFailure, BadArgument
 from discord_slash import SlashContext
 from dotenv import load_dotenv
+from genshin.errors import DataNotPublic, AccountNotFound
 
-from my_utils import AsteroidBot, get_content, transform_permission
+from my_utils import AsteroidBot, get_content, transform_permission, consts
 from my_utils.errors import *
 from my_utils import slash_override
 
@@ -35,7 +37,7 @@ async def on_guild_remove(guild: Guild):
     await bot.mongo.delete_guild(guild.id)
 
 
-@bot.event
+@bot.listen(name="on_slash_command_error")
 async def on_slash_command_error(ctx: SlashContext, error):
     embed = Embed(color=0xED4245)
     lang = await bot.get_guild_bot_lang(ctx.guild_id)
@@ -55,9 +57,9 @@ async def on_slash_command_error(ctx: SlashContext, error):
         desc = content["NOT_TAG_OWNER"]
     elif isinstance(error, UIDNotBinded):
         desc = content["UID_NOT_BINDED"]
-    elif isinstance(error, GenshinAccountNotFound):
+    elif isinstance(error, AccountNotFound):
         desc = content["GI_ACCOUNT_NOT_FOUND"]
-    elif isinstance(error, GenshinDataNotPublic):
+    elif isinstance(error, DataNotPublic):
         desc = content["GI_DATA_NOT_PUBLIC"]
     elif isinstance(error, BotNotConnectedToVoice):
         desc = content["BOT_NOT_CONNECTED"]
@@ -65,17 +67,17 @@ async def on_slash_command_error(ctx: SlashContext, error):
         desc = content["NOT_CONNECTED_TO_VOICE_TEXT"]
     elif isinstance(error, NotPlaying):
         desc = content["NOT_PLAYING"]
-    elif isinstance(error, commands.NotOwner):
+    elif isinstance(error, NotOwner):
         desc = content["NOT_BOT_OWNER"]
-    elif isinstance(error, commands.BotMissingPermissions):
+    elif isinstance(error, BotMissingPermissions):
         missing_perms = [transform_permission(perm) for perm in error.missing_perms]
         desc = f'{content["BOT_DONT_HAVE_PERMS"]} `{", ".join(missing_perms)}`'
-    elif isinstance(error, commands.MissingPermissions):
+    elif isinstance(error, MissingPermissions):
         missing_perms = [transform_permission(perm) for perm in error.missing_perms]
         desc = f'{content["DONT_HAVE_PERMS"]} `{", ".join(missing_perms)}`'
-    elif isinstance(error, commands.CheckFailure):
+    elif isinstance(error, CheckFailure):
         desc = content["CHECK_FAILURE"]
-    elif isinstance(error, commands.BadArgument):
+    elif isinstance(error, BadArgument):
         desc = content["BAD_ARGUMENT"]
     elif isinstance(error, Forbidden):
         desc = content["FORBIDDEN"]
@@ -116,6 +118,7 @@ async def on_slash_command_error(ctx: SlashContext, error):
             error_embed.description = "Checks logs"
             await channel.send(embed=error_embed)
             print(error_traceback)
+
     embed.description = desc
     try:
         await ctx.send(embed=embed)

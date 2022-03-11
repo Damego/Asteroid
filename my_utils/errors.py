@@ -30,14 +30,6 @@ class UIDNotBinded(Exception):
     pass
 
 
-class GenshinDataNotPublic(Exception):
-    pass
-
-
-class GenshinAccountNotFound(Exception):
-    pass
-
-
 class CogDisabledOnGuild(Exception):
     pass
 
