@@ -35,7 +35,7 @@ class GenshinStats(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         user_data = await guild_data.get_user(ctx.author_id)
 
-        await user_data.set_genshin_uid(hoyolab_uid, uid)
+        await user_data.set_genshin_uid(hoyolab_uid=hoyolab_uid, game_uid=uid)
         content = get_content("GENSHIN_BIND_COMMAND", guild_data.configuration.language)
         await ctx.send(content)
 
