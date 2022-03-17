@@ -14,11 +14,7 @@ from discord import (
     Webhook,
     AsyncWebhookAdapter,
     TextChannel,
-    Forbidden,
-    ChannelType,
-    File,
 )
-from discord.ext import commands
 from discord_slash import (
     SlashContext,
     ContextMenuType,
@@ -43,7 +39,7 @@ from my_utils import (
     _cog_is_enabled,
     transform_permission,
     paginator,
-    consts,
+    bot_owner_or_permissions,
 )
 from .levels._levels import formula_of_experience
 
@@ -370,6 +366,19 @@ class Misc(Cog):
     ):
         file = await attachment.to_file()
         await ctx.send(file=file)
+
+    @slash_subcommand(
+        base="server",
+        name="bot_nick",
+        description="Set nick to bot on your server"
+    )
+    @is_enabled()
+    @bot_owner_or_permissions(manage_nicknames=True)
+    async def server_set_bot_nick(self, ctx: SlashContext, nick: str):
+        if ctx.guild is None:
+            return await ctx.send("Availble only in guild!")
+        await ctx.me.edit(nick=nick)
+        await ctx.send("Done", hidden=True)
 
 
 def setup(bot):

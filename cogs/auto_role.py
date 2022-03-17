@@ -590,6 +590,8 @@ class AutoRole(Cog):
         name="add_role_to_everyone",
         description="Adds role to everyone member on server",
     )
+    @is_enabled()
+    @bot_owner_or_permissions(manage_roles=True)
     async def autorole_add_role_to_everyone(self, ctx: SlashContext, role: Role):
         await ctx.defer()
         for member in ctx.guild.members:
@@ -602,6 +604,8 @@ class AutoRole(Cog):
         name="remove_role_from_everyone",
         description="Removes role from everyone member on server",
     )
+    @is_enabled()
+    @bot_owner_or_permissions(manage_roles=True)
     async def autorole_remove_role_from_everyone(self, ctx: SlashContext, role: Role):
         await ctx.defer()
         for member in ctx.guild.members:
@@ -637,6 +641,7 @@ class AutoRole(Cog):
         description="Send a message for adding buttons",
     )
     @is_enabled()
+    @bot_owner_or_permissions(manage_roles=True)
     async def autorole_button_create(
         self, ctx: SlashContext, name: str, message_content: str
     ):
@@ -699,6 +704,7 @@ class AutoRole(Cog):
         ],
     )
     @is_enabled()
+    @bot_owner_or_permissions(manage_roles=True)
     async def autorole_button_add_role(
         self,
         ctx: SlashContext,
@@ -777,6 +783,8 @@ class AutoRole(Cog):
             ),
         ]
     )
+    @is_enabled()
+    @bot_owner_or_permissions(manage_roles=True)
     async def autorole_button_remove_role(self, ctx: SlashContext, name: str, label: str):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
