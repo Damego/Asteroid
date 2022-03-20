@@ -25,7 +25,7 @@ import qrcode
 import requests
 
 from my_utils import AsteroidBot, get_content, Cog, is_enabled, consts
-from .games import Calculator, RockPaperScissors, TicTacToeMode, TicTacToeAI, TicTacToeOnline, BoardMode, MonkeyMemory
+from .games import Calculator, RockPaperScissors, TicTacToeMode, TicTacToeAI, TicTacToeOnline, BoardMode, MonkeyMemory, Tiles
 from .consts import bored_api_types, discord_activities_list
 
 
@@ -545,4 +545,14 @@ class Fun(Cog):
     @is_enabled()
     async def start_mm(self, ctx: SlashContext, timeout: int = 5):
         game = MonkeyMemory(ctx, timeout)
+        await game.start()
+
+    @slash_subcommand(
+        base="game",
+        name="tiles",
+        description="Start game tiles"
+    )
+    @is_enabled()
+    async def start_tiles(self, ctx: SlashContext):
+        game = Tiles(ctx)
         await game.start()
