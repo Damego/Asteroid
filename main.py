@@ -40,7 +40,10 @@ async def on_guild_remove(guild: Guild):
 @bot.listen(name="on_slash_command_error")
 async def on_slash_command_error(ctx: SlashContext, error):
     embed = Embed(color=0xED4245)
-    lang = await bot.get_guild_bot_lang(ctx.guild_id)
+    if ctx.guild is None:
+        lang = "English"
+    else:
+        lang = await bot.get_guild_bot_lang(ctx.guild_id)
     content = get_content("ERRORS_DESCRIPTIONS", lang)
 
     if isinstance(error, CogDisabledOnGuild):
