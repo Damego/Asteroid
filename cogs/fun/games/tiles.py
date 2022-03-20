@@ -62,7 +62,7 @@ class Tiles:
             try:
                 ctx: ComponentContext = await self.bot.wait_for("button_click", check=check, timeout=120)
             except TimeoutError:
-                await self.message.edit(f"Tiles. Moves: {self.moves}", components=self._render_components(disabled=True))
+                await self.message.edit(content=f"Tiles. Moves: {self.moves}", components=self._render_components(disabled=True))
                 return
             
             self.moves += 1
@@ -78,5 +78,5 @@ class Tiles:
             elif index-4 >= 0 and self.board[index-4] == 0:
                 self.board[index-4], self.board[index] = self.board[index], self.board[index-4]
             if self._is_won():
-                return await ctx.edit_origin(f"Tiles. Moves: {self.moves}", components=self._render_components(disabled=True))
-            await ctx.edit_origin(f"Tiles. Moves: {self.moves}", components=self._render_components())
+                return await ctx.edit_origin(content=f"Tiles. Moves: {self.moves}", components=self._render_components(disabled=True))
+            await ctx.edit_origin(content=f"Tiles. Moves: {self.moves}", components=self._render_components())
