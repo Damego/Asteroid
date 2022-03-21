@@ -20,9 +20,6 @@ from my_utils import (
     Cog,
     bot_owner_or_permissions,
     is_enabled,
-    _cog_is_enabled,
-    CogDisabledOnGuild,
-    consts,
 )
 
 

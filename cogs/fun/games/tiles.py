@@ -77,6 +77,9 @@ class Tiles:
                 self.board[index+4], self.board[index] = self.board[index], self.board[index+4]
             elif index-4 >= 0 and self.board[index-4] == 0:
                 self.board[index-4], self.board[index] = self.board[index], self.board[index-4]
+            else:
+                self.moves -= 1
+
             if self._is_won():
-                return await ctx.edit_origin(content=f"Tiles. Moves: {self.moves}", components=self._render_components(disabled=True))
+                return await ctx.edit_origin(content=f"Tiles. You won! Moves: {self.moves}", components=self._render_components(disabled=True))
             await ctx.edit_origin(content=f"Tiles. Moves: {self.moves}", components=self._render_components())

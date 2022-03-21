@@ -50,18 +50,6 @@ class AsteroidBot(Bot):
             except Exception as e:
                 print(f"Extension {filename} not loaded!\nError: {e}")
 
-    def get_guild_main_collection(self, guild_id: int):
-        return self.mongo.guilds[str(guild_id)]["configuration"]
-
-    def get_guild_users_collection(self, guild_id: int):
-        return self.mongo.guilds[str(guild_id)]["users"]
-
-    def get_guild_tags_collection(self, guild_id: int):
-        return self.mongo.guilds[str(guild_id)]["tags"]
-
-    def get_guild_voice_time_collection(self, guild_id: int):
-        return self.mongo.guilds[str(guild_id)]["voice_time"]
-
     async def get_embed_color(self, guild_id: int):
         guild_data = await self.mongo.get_guild_data(guild_id)
         color = guild_data.configuration.embed_color

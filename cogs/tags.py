@@ -227,6 +227,9 @@ class Tags(Cog):
 
     @Cog.listener()
     async def on_modal(self, ctx: ModalContext):
+        if not any(_id in ctx.custom_id for _id in ["modal_new_tag", "modal_edit_tag"]):
+            return
+
         custom_id, type, tag_name = ctx.custom_id.split("|")
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("TAG_ADD_COMMAND", guild_data.configuration.language)

@@ -12,7 +12,7 @@ from discord import (
     Role,
     Forbidden,
 )
-from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
+from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType, Modal, ModalContext, TextInput, TextInputStyle
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand, cog_slash as slash_command
 from discord_slash.utils.manage_commands import create_option, create_choice
 
@@ -24,6 +24,8 @@ from my_utils import (
     is_enabled,
     consts,
     NoData,
+    DiscordColors,
+    SystemChannels
 )
 from my_utils.models.guild_data import GuildData, GuildStarboard
 
@@ -548,6 +550,7 @@ class Utilities(Cog):
         embed = Embed(
             title=content["NOTE_CREATED_TEXT"].format(name=name),
             description=note_content,
+            color=guild_data.configuration.embed_color
         )
         message = await ctx.send(embed=embed)
 
@@ -712,6 +715,45 @@ class Utilities(Cog):
         embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=int(color, 16))
         await ctx.send(embed=embed, delete_after=10)
 
+    @slash_command(
+        name="issue",
+        description="Sends a issue to owner",
+        guild_ids=consts.test_guild_id
+    )
+    async def open_modal_bug(self, ctx: SlashContext):
+        modal = Modal(
+            custom_id="issue_modal",
+            title="Issue menu",
+            components=[
+                TextInput(style=TextInputStyle.SHORT, custom_id="issue_name", label="Title of the bug", placeholder="[BUG] Command `info` doesn't work!"),
+                TextInput(style=TextInputStyle.PARAGRAPH, custom_id="issue_description", label="Description", placeholder="I found a interesting bug!")
+            ]
+        )
+        await ctx.popup(modal)
+
+    @Cog.listener()
+    async def on_modal(self, ctx: ModalContext):
+        if ctx.custom_id != "issue_modal":
+            return
+        
+        await ctx.defer(hidden=True)
+
+        issue_name = ctx.values["issue_name"]
+        issue_description = ctx.values["issue_description"]
+
+        embed = Embed(
+            title=issue_name,
+            description=issue_description,
+            color=DiscordColors.RED,
+            timestamp=datetime.datetime.utcnow()
+        )
+        embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
+
+        channel = self.bot.get_channel(SystemChannels.ISSUES_REPORT)
+        await channel.send(embed=embed)
+
+        await ctx.send("Your issue was send to developers!", hidden=True)
+        # TODO: Translate command
 
 
 def setup(bot):

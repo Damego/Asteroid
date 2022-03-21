@@ -36,13 +36,12 @@ def is_enabled():
         name = None
 
         command_name = bot.get_transformed_command_name(ctx)
-        collection = bot.get_guild_main_collection(ctx.guild_id)
-        guild_data = await collection.find_one({"_id": "configuration"})
+        guild_data = await bot.mongo.get_guild_data(ctx.guild_id)
         if guild_data is None:
             return True
-        if not guild_data.get("disabled_commands"):
+        if not guild_data.configuration.disabled_commands:
             return True
-        disabled_commands = guild_data["disabled_commands"]
+        disabled_commands = guild_data.configuration.disabled_commands
         if command_name in disabled_commands:
             raise CommandDisabled
         command = command_name.split()
