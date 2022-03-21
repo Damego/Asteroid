@@ -217,37 +217,6 @@ class Settings(Cog):
                 await button_ctx.origin_message.disable_components()
                 return
 
-    @slash_subcommand(
-        base="staff",
-        name="eval",
-        description="Show modal for execute code."
-    )
-    @is_owner()
-    async def staff_eval_code(self, ctx: SlashContext):
-        modal = Modal(
-            custom_id="eval_code_modal",
-            title="Eval code",
-            components=[
-                TextInput(
-                    style=TextInputStyle.PARAGRAPH,
-                    custom_id="eval_code_textinput",
-                    label="Your code"
-                )
-            ]
-        )
-        await ctx.popup(modal)
-
-    @Cog.listener()
-    async def on_modal(self, ctx: ModalContext):
-        if ctx.custom_id != "eval_code_modal":
-            return
-
-        await ctx.defer()
-        try:
-            exec(ctx.values["eval_code_textinput"])
-        except Exception as e:
-            await ctx.channel.send(f"Error! ``` {e} ```")
-
 
 def setup(bot):
     bot.add_cog(Settings(bot))
