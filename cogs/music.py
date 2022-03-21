@@ -42,13 +42,6 @@ class LavalinkVoiceClient(VoiceClient):
         self.client = client
         self.channel = channel
 
-        if not hasattr(self.client, "lavalink"):
-            self.client.lavalink = lavalink.Client(client.user.id)
-            self.client.lavalink.add_node(
-                "localhost", 3678, "testpassword", "us", "default-node"
-            )
-        self.lavalink = self.client.lavalink
-
     async def on_voice_server_update(self, data):
         lavalink_data = {"t": "VOICE_SERVER_UPDATE", "d": data}
         await self.lavalink.voice_update_handler(lavalink_data)
