@@ -6,16 +6,11 @@ from discord import Embed, Forbidden
 from discord.ext.commands import is_owner
 from discord_slash import (
     SlashContext,
-    SlashCommandOptionType,
     Select,
     SelectOption,
     Button,
     ButtonStyle,
     ComponentContext,
-    Modal,
-    TextInput,
-    TextInputStyle,
-    ModalContext
 )
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from my_utils import AsteroidBot, Cog

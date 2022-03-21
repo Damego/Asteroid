@@ -9,7 +9,7 @@ from discord_slash import SlashContext
 from dotenv import load_dotenv
 from genshin.errors import DataNotPublic, AccountNotFound
 
-from my_utils import AsteroidBot, get_content, transform_permission, consts
+from my_utils import AsteroidBot, get_content, transform_permission, SystemChannels, DiscordColors
 from my_utils.errors import *
 from my_utils import slash_override
 
@@ -19,9 +19,9 @@ bot = AsteroidBot(command_prefix="+", intents=Intents.all())
 # EVENTS
 @bot.event
 async def on_ready():
-    channel = bot.get_channel(891222610166284368)
+    channel = bot.get_channel(SystemChannels.BOT_UPTIME_CHANNEL)
     if channel is None:
-        channel = await bot.fetch_channel(891222610166284368)
+        channel = await bot.fetch_channel(SystemChannels.BOT_UPTIME_CHANNEL)
     await channel.send(f"{bot.user} успешно загружен!")
 
     print(f"{bot.user} загружен!")
@@ -39,7 +39,7 @@ async def on_guild_remove(guild: Guild):
 
 @bot.listen(name="on_slash_command_error")
 async def on_slash_command_error(ctx: SlashContext, error):
-    embed = Embed(color=0xED4245)
+    embed = Embed(color=DiscordColors.RED)
     if ctx.guild is None:
         lang = "English"
     else:
@@ -112,9 +112,9 @@ async def on_slash_command_error(ctx: SlashContext, error):
             name="User", value=f"Name: `{ctx.author.name}`\n ID:`{ctx.author_id}`"
         )
         error_embed.add_field(name="Short Description", value=f"`{error}`")
-        channel = ctx.bot.get_channel(863001051523055626)
+        channel = ctx.bot.get_channel(SystemChannels.ERRORS_CHANNEL)
         if channel is None:
-            channel = await ctx.bot.fetch_channel(863001051523055626)
+            channel = await ctx.bot.fetch_channel(SystemChannels.ERRORS_CHANNEL)
         try:
             await channel.send(embed=error_embed)
         except Exception:

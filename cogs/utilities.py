@@ -748,7 +748,7 @@ class Utilities(Cog):
         )
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
 
-        channel = self.bot.get_channel(SystemChannels.ISSUES_REPORT)
+        channel = self.bot.get_channel(SystemChannels.ISSUES_REPORT_CHANNEL)
         await channel.send(embed=embed)
 
         await ctx.send("Your issue was send to developers!", hidden=True)

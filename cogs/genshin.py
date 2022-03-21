@@ -1,4 +1,6 @@
+import datetime
 from discord import Embed
+from discord.ext import tasks
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 import genshin
@@ -9,7 +11,9 @@ from my_utils import (
     get_content,
     Cog,
     is_enabled,
+    SystemChannels
 )
+from my_utils.consts import DiscordColors
 from my_utils.errors import NoData
 from my_utils.paginator import PaginatorStyle, Paginator
 
@@ -22,6 +26,27 @@ class GenshinStats(Cog):
 
         cookies = {"ltuid": 147861638, "ltoken": "3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU"}
         self.genshin_client = genshin.GenshinClient(cookies)
+
+        self.get_genshin_daily_reward.start()
+
+    @tasks.loop(hours=24)
+    async def get_genshin_daily_reward(self):
+        try:
+            reward = await self.genshin_client.claim_daily_reward(lang="ru-ru")
+        except genshin.AlreadyClaimed:
+            print("Cannot take reward!")
+        else:
+            embed = Embed(
+                title="Награда!",
+                description=f"Название: {reward.name}\nКоличество: {reward.amount} шт.",
+                timestamp=datetime.datetime.utcnow(),
+                color=DiscordColors.BLURPLE
+            )
+            embed.set_thumbnail(url=reward.icon)
+            channel = self.bot.get_channel(SystemChannels.GENSHIN_DAILY_REWARDS)
+            if channel is None:
+                channel = await self.bot.fetch_channel(SystemChannels.GENSHIN_DAILY_REWARDS)
+            await channel.send(embed=embed)
 
     @slash_subcommand(
         base="genshin", name="bind", description="Bind Hoyolab UID to your account"
