@@ -717,8 +717,7 @@ class Utilities(Cog):
 
     @slash_command(
         name="issue",
-        description="Sends a issue to owner",
-        guild_ids=consts.test_guild_id
+        description="Sends a issue to owner"
     )
     async def open_modal_bug(self, ctx: SlashContext):
         modal = Modal(
