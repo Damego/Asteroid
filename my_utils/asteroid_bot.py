@@ -67,10 +67,7 @@ class AsteroidBot(Bot):
             async with session.get(url) as response:
                 data = await response.json()
         return data
-    
-    def get_guild_main_collection(self, guild_id: int):
-        return self.mongo.guilds[str(guild_id)]["configuration"]
-    
+
     def get_transformed_command_name(self, ctx: Union[SlashContext, MenuContext]):
         if isinstance(ctx, MenuContext):
             return ctx.name
