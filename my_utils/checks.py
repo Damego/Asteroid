@@ -66,12 +66,9 @@ def is_enabled():
 def cog_is_enabled(func):
     async def wrapper(self, ctx: SlashContext, **kwargs):
         bot: AsteroidBot = self.bot
-        collection = bot.get_guild_main_collection(ctx.guild_id)
-        try:
-            enabled = collection.find_one({"_id": "cogs_status"})[self.name]
-        except Exception:
-            enabled = True
-        if not enabled:
+        guild_data = await bot.mongo.get_guild_data(ctx.guild_id)
+        cog_data = guild_data.cogs_data.get(self.name, True)
+        if not cog_data:
             raise CogDisabledOnGuild
         if not kwargs:
             return await func(self, ctx)
@@ -81,13 +78,10 @@ def cog_is_enabled(func):
 
 
 # No decorator check
-def _cog_is_enabled(self, guild_id: int):
+async def _cog_is_enabled(self, guild_id: int):
     bot: AsteroidBot = self.bot
-    collection = bot.get_guild_main_collection(guild_id)
-    try:
-        enabled = collection.find_one({"_id": "cogs_status"})[self.name]
-    except Exception:
-        enabled = True
-    if not enabled:
+    guild_data = await bot.mongo.get_guild_data(guild_id)
+    cog_data = guild_data.cogs_data.get(self.name, True)
+    if not cog_data:
         raise CogDisabledOnGuild
-    return enabled
+    return cog_data

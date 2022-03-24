@@ -36,7 +36,7 @@ class Levels(Cog):
         if member.bot:
             return
         try:
-            _cog_is_enabled(self, member.guild.id)
+            await _cog_is_enabled(self, member.guild.id)
         except CogDisabledOnGuild:
             return
         guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
@@ -50,7 +50,7 @@ class Levels(Cog):
         if member.bot:
             return
         try:
-            _cog_is_enabled(self, member.guild.id)
+            await _cog_is_enabled(self, member.guild.id)
         except CogDisabledOnGuild:
             return
         guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
@@ -61,7 +61,7 @@ class Levels(Cog):
         self, member: Member, before: VoiceState, after: VoiceState
     ):
         try:
-            _cog_is_enabled(self, member.guild.id)
+            await _cog_is_enabled(self, member.guild.id)
         except CogDisabledOnGuild:
             return
         if member.bot:

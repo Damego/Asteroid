@@ -162,7 +162,7 @@ class Misc(Cog):
             levels_enabled = False
         else:
             try:
-                levels_enabled = _cog_is_enabled(
+                levels_enabled = await _cog_is_enabled(
                     self.bot.get_cog("Levels"), ctx.guild_id
                 )
             except CogDisabledOnGuild:
