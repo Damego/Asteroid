@@ -16,6 +16,8 @@ LANGUAGES = {
             "GAME_RPS": "Начинает игру Камень ножницы бумага",
             "GAME_TTT_ONLINE": "Начинает игру Крестики-нолики",
             "GAME_TTT_BOT": "Начинает игру Крестики-нолики с ботом",
+            "GAME_MONKEYMEMORY": "Начинает игру Monkey Memory",
+            "GAME_TILES": "Начинает игру Пятнашки (Игра в 15)",
             "REACTIONROLE_ADD_ROLE": "Добавляет роль по реакции к сообщению",
             "REACTIONROLE_ADD_POST": "Добавляет сообщение для реакции",
             "REACTIONROLE_REMOVE_POST": "Удаляет сообщение для реакции",
@@ -33,6 +35,7 @@ LANGUAGES = {
             "AUTOROLE_REMOVE_ROLE_FROM_EVERYONE": "Удаляет роль у всех участников сервера",
             "AUTOROLE_BUTTON_CREATE": "Создаёт сообщение для последующего прикрепления кнопок с ролями",
             "AUTOROLE_BUTTON_ADD_ROLE": "Добавляет новую кнопку с ролью к сообщению",
+            "AUTOROLE_BUTTON_REMOVE_ROLE": "Удаляет кнопку с ролью в сообщении",
             "GENSHIN_BIND": "Привязывает Hoyolab UID к вашему аккаунту",
             "GENSHIN_CHARACTERS_LIST": "Показывает список персонажей",
             "GENSHIN_CHARACTERS": "Показывает подробный список персонажей",
@@ -55,9 +58,12 @@ LANGUAGES = {
             "SERVER_OFFLINE_BOTS": "Показывает список всех ботов в оффлайне",
             "SERVER_ROLE_PERMS": "Показывает права у роли на сервере",
             "SERVER_ROLES": "Выводит все роли на сервере",
+            "SERVER_BOT_NICK": "Устанавливает боту ник на сервере",
             "MISC_PING": "Показывает задержку бота",
             "MISC_SEND_IMAGE": "Отправляет картину в виде embed из ссылки",
             "MISC_ATTACHMENT": "Отправляет файл от имени бота",
+            "INFO": "Показывает информацию об участнике сервера",
+            "INVITE": "Выводит ссылку для приглашения бота",
             "MOD_ADD_ROLE": "Добавляет роль к участнику",
             "MOD_BAN": "Банит участника на сервере",
             "MOD_CLEAR": "Удаляет сообщения в канале",
@@ -84,6 +90,7 @@ LANGUAGES = {
             "MUSIC_PLAYLIST_COPY": "Копирует плейлист участника",
             "LANGUAGE": "Меняет язык у бота на вашем сервере",
             "EMBED_COLOR": "Меняет цвет сообщений (embed)",
+            "TAGS_SET_CONTROL": "Разрешает или запрещает всем(@everyone) использовать теги",
             "TAG_CREATE": "Добавляет новый тег",
             "TAG_RAW": "Отправляет тег без форматирования",
             "TAG_RENAME": "Переименовывает тег",
@@ -129,6 +136,7 @@ LANGUAGES = {
             "NOT_CONNECTED_TO_VOICE_TEXT": "Присоединитесь к голосовому каналу с ботом!",
             "NOT_PLAYING": "Музыка не играет!",
             "NO_DATA_FOUND": "Ничего не найдено!",
+            "GUILD_ONLY": "Эта команда только для сервера!"
         },
         "FUNC_RANDOM_NUMBER_OUT_CONTENT": "Рандомное число: `{}`",
         "FUNC_MEMBER_INFO": {
@@ -400,6 +408,18 @@ LANGUAGES = {
             "PLUGINS_TEXT": "Плагины",
             "SELECT_MODULE_TEXT": "Выберите плагин",
             "DESCRIPTION_TEXT": "Описание:",
+            "PLUGINS": {
+                "MAIN_PAGE": "Главная страница",
+                "AUTOROLE": "АвтоРоли",
+                "FUN": "Развлечение",
+                "GENSHINSTATS": "Статистика Genshin Impact",
+                "LEVELS": "Уровни",
+                "MISC": "Разное",
+                "MODERATION": "Модерация",
+                "MUSIC": "Музыка",
+                "TAGS": "Теги",
+                "UTILITIES": "Утилиты",
+            }
         },
         "STARBOARD_FUNCTIONS": {
             "CHANNEL_WAS_SETUP_TEXT": "Канал был установлен!",
@@ -499,6 +519,7 @@ LANGUAGES = {
             "NOT_CONNECTED_TO_VOICE_TEXT": "Connect to voice channel with a bot",
             "NOT_PLAYING": "Music not playing!",
             "NO_DATA_FOUND": "Nothing found!",
+            "GUILD_ONLY": "This command only for server!"
         },
         "FUNC_RANDOM_NUMBER_OUT_CONTENT": "Random number is `{}`",
         "FUNC_MEMBER_INFO": {
@@ -772,6 +793,18 @@ LANGUAGES = {
             "PLUGINS_TEXT": "Plugins",
             "SELECT_MODULE_TEXT": "Select Module",
             "DESCRIPTION_TEXT": "Description:",
+            "PLUGINS": {
+                "MAIN_PAGE": "Main Page",
+                "AUTOROLE": "Autoroles",
+                "FUN": "Fun",
+                "GENSHINSTATS": "Genshin Impact Statistics",
+                "LEVELS": "Levels",
+                "MISC": "Misc",
+                "MODERATION": "Moderation",
+                "MUSIC": "Music",
+                "TAGS": "Tags",
+                "UTILITIES": "Utilities",
+            }
         },
         "STARBOARD_FUNCTIONS": {
             "CHANNEL_WAS_SETUP_TEXT": "Channel was set up!",

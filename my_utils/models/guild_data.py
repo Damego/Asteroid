@@ -1,18 +1,21 @@
 from time import time
 from typing import Dict, List, Union
 
-from motor.motor_asyncio import AsyncIOMotorCollection
+from pymongo.collection import Collection
 
 from .enums import OperatorType
+from my_utils.errors import NotGuild
 
 
 class GuildData:
     def __init__(self, connection, data: dict, guild_id: int) -> None:
+        if guild_id is None:
+            raise NotGuild
         self._connection = connection[str(guild_id)]
-        self._main_collection: AsyncIOMotorCollection = self._connection[
+        self._main_collection: Collection = self._connection[
             "configuration"
         ]
-        self._users_collection: AsyncIOMotorCollection = self._connection["users"]
+        self._users_collection: Collection = self._connection["users"]
         self.__raw_main_data = data["main"]
         self.__raw_users_data = data["users"]
         self.guild_id = guild_id

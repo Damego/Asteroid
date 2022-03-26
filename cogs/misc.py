@@ -41,6 +41,7 @@ from my_utils import (
     paginator,
     bot_owner_or_permissions,
 )
+from my_utils.consts import DiscordColors
 from .levels._levels import formula_of_experience
 
 
@@ -92,10 +93,19 @@ class Misc(Cog):
     async def on_slash_command(self, ctx: SlashContext):
         if self.slash_use_channel is None:
             self.slash_use_channel = self.bot.get_channel(933755239583080448)
-        await self.slash_use_channel.send(
-            f"{datetime.utcnow()} | **{ctx.guild.name}** | {ctx.guild_id} | **{ctx.author.display_name}**\n"
-            f"`/{self.bot.get_transformed_command_name(ctx)} {ctx.kwargs}`"
+
+        embed = Embed(
+            title=self.bot.get_transformed_command_name(ctx),
+            color=DiscordColors.EMBED_COLOR,
+            timestamp=datetime.utcnow()
         )
+        embed.set_author(name=f"{ctx.author.name} | {ctx.author_id}", icon_url=ctx.author.avatar_url)
+        if ctx.kwargs:
+            embed.add_field(name="Options", value=ctx.kwargs)
+        if ctx.guild:
+            embed.add_field(name="Guild Information", value=f"Name: {ctx.guild.name}\nID: {ctx.guild_id}")
+
+        await self.slash_use_channel.send(embed=embed)
 
     @slash_command(name="info", description="Shows information about guild member")
     @is_enabled()

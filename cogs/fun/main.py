@@ -42,15 +42,6 @@ class Fun(Cog):
     async def rockpaperscissors_cmd(
         self, ctx: SlashContext, member: Member, total_rounds: int = 3
     ):
-        await self._start_rps(ctx, member, total_rounds)
-
-    @context_menu(target=ContextMenuType.USER, name="Start Rock Paper Scissors")
-    @is_enabled()
-    async def rockpaperscissors_contex(self, ctx: MenuContext):
-        member = ctx.target_author
-        await self._start_rps(ctx, member, 3)
-
-    async def _start_rps(self, ctx: SlashContext, member: Member, total_rounds: int):
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("FUNC_INVITE_TO_GAME", lang)
 

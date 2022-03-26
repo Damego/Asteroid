@@ -70,6 +70,8 @@ async def on_slash_command_error(ctx: SlashContext, error):
         desc = content["NOT_CONNECTED_TO_VOICE_TEXT"]
     elif isinstance(error, NotPlaying):
         desc = content["NOT_PLAYING"]
+    elif isinstance(error, NotGuild):
+        desc = content["GUILD_ONLY"]
     elif isinstance(error, NotOwner):
         desc = content["NOT_BOT_OWNER"]
     elif isinstance(error, BotMissingPermissions):

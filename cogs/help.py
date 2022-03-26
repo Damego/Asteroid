@@ -13,7 +13,7 @@ class Help(Cog):
         self.bot = bot
         self.hidden = True
         self.name = "Help"
-        self.commands: dict = None
+        self.commands_cache: dict = None
 
     @slash_command(name="help", description="Help and bot commands")
     async def help_command(self, ctx: SlashContext):
@@ -45,17 +45,23 @@ class Help(Cog):
                 for embed in embeds:
                     if embed.title.startswith(value):
                         break
-            await button_ctx.edit_origin(embed=embed)
+
+            for option in components[0][0].options:
+                option.default = False
+                if option.value == value:
+                    option.default = True
+
+            await button_ctx.edit_origin(embed=embed, components=components)
 
     @staticmethod
     def _cog_is_private(ctx: SlashContext, cog: Cog):
         return cog.private_guild_id and ctx.guild_id not in cog.private_guild_id
 
     def _init_components(self, ctx: SlashContext, content: dict):
-        options = [SelectOption(label="Main Page", value="main_page", emoji="🏠")]
-
-        for _cog in self.bot.cogs:
-            cog = self.bot.cogs[_cog]
+        options_translation = content["PLUGINS"]
+        options = [SelectOption(label=options_translation["MAIN_PAGE"], value="main_page", emoji="🏠", default=True)]
+        
+        for cog_name, cog in self.bot.cogs.items():
             if cog.hidden:
                 continue
             if self._cog_is_private(ctx, cog):
@@ -65,7 +71,7 @@ class Help(Cog):
             if isinstance(emoji, int):
                 emoji = self.bot.get_emoji(emoji)
 
-            options.append(SelectOption(label=_cog, value=_cog, emoji=emoji))
+            options.append(SelectOption(label=options_translation[cog_name.upper()], value=cog_name, emoji=emoji))
 
         return [Select(placeholder=content["SELECT_MODULE_TEXT"], options=options)]
 
@@ -76,15 +82,14 @@ class Help(Cog):
         commands_data = self._get_commands_data()
         embeds = [self._get_main_menu(ctx, content)]
 
-        for _cog in self.bot.cogs:
-            cog = self.bot.cogs[_cog]
+        for cog_name, cog in self.bot.cogs.items():
             if cog.hidden:
                 continue
             if self._cog_is_private(ctx, cog):
                 continue
 
             embed = Embed(
-                title=f"{_cog} | Asteroid Bot",
+                title=f"{cog_name} | Asteroid Bot",
                 description="",
                 timestamp=datetime.datetime.utcnow(),
                 color=0x2F3136,
@@ -95,43 +100,59 @@ class Help(Cog):
             )
             embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
-            for _base_command in commands_data[_cog]:
-                base_command = commands_data[_cog][_base_command]
-                for _group in base_command:
-                    if _group == "command_description":
-                        continue
-                    group = base_command[_group]
-                    if group.get("has_subcommand_group") is None:
-                        for _command_name in group:
-                            command = group[_command_name]
-                            option_line = self.get_options(command)
+            if cog not in commands_data:
+                continue
+
+            cog_commands = commands_data[cog]
+
+            for base_command, base_command_data in cog_commands.items():
+                if isinstance(base_command_data, dict):
+                    for group_command, group_command_data in base_command_data.items():
+                        if isinstance(group_command_data, dict):
+                            for command_name, command_data in group_command_data.items():
+                                options = self.get_options(command_data)
+                                command_description = (
+                                    translated_commands.get(
+                                    f"{base_command}_{group_command}_{command_name}".upper(),
+                                    command_data.description,
+                                    )
+                                    if translated_commands
+                                    else command_data.description
+                                )
+                                embed.description += (
+                                    f"`/{base_command} {group_command} {command_name}{options}`\n "
+                                    f"*{content['DESCRIPTION_TEXT']}* {command_description} \n"
+                                )
+                        else:
+                            options = self.get_options(group_command_data)
                             command_description = (
                                 translated_commands.get(
-                                    f"{_base_command}_{_group}_{_command_name}".upper(),
-                                    command["description"],
+                                f"{base_command}_{group_command}".upper(),
+                                group_command_data.description,
                                 )
                                 if translated_commands
-                                else command["description"]
+                                else group_command_data.description
                             )
                             embed.description += (
-                                f"`/{_base_command} {_group} {_command_name}{option_line}`\n "
+                                f"`/{base_command} {group_command}{options}`\n "
                                 f"*{content['DESCRIPTION_TEXT']}* {command_description} \n"
                             )
-                    else:
-                        option_line = self.get_options(group)
-                        command_description = (
-                            translated_commands.get(
-                                f"{_base_command}_{_group}".upper(),
-                                group["description"],
-                            )
-                            if translated_commands
-                            else group["description"]
+                else:
+                    options = self.get_options(base_command_data)
+                    command_description = (
+                        translated_commands.get(
+                        f"{base_command}".upper(),
+                        base_command_data.description,
                         )
-                        embed.description += (
-                            f"`/{_base_command} {_group}{option_line}`\n "
-                            f"*{content['DESCRIPTION_TEXT']}* {command_description} \n"
-                        )
+                        if translated_commands
+                        else base_command_data.description
+                    )
+                    embed.description += (
+                        f"`/{base_command}{options}`\n "
+                        f"*{content['DESCRIPTION_TEXT']}* {command_description} \n"
+                    )
             embeds.append(embed)
+
         return embeds
 
     def _get_main_menu(self, ctx: SlashContext, content: dict) -> Embed:
@@ -151,21 +172,21 @@ class Help(Cog):
             icon_url=ctx.author.avatar_url,
         )
 
+        options_translation = content["PLUGINS"]
         cogs = ""
-        for _cog in self.bot.cogs:
-            cog = self.bot.cogs[_cog]
+        for cog_name, cog in self.bot.cogs.items():
             if cog.hidden:
                 continue
             if cog.private_guild_id and ctx.guild_id not in cog.private_guild_id:
                 continue
-            cogs += f"**» {_cog}**\n"
+            cogs += f"**» {options_translation[cog_name.upper()]}**\n"
 
         embed.add_field(name=content["PLUGINS_TEXT"], value=cogs)
         return embed
 
     @staticmethod
     def get_options(command) -> str:
-        options = command["options"]
+        options = command.options
         option_line = ""
         if options is None:
             return option_line
@@ -176,62 +197,47 @@ class Help(Cog):
             )
         return option_line
 
-    def _get_commands_data(self) -> dict:
-        if self.commands:
-            return self.commands
+    def _get_commands_data(self):
+        if self.commands_cache is not None:
+            return self.commands_cache
+
         commands_data = self._get_subcommands_data()
-        _commands = self.bot.slash.commands
-        for _command in _commands:
-            if _command == "context":
+        commands = self.bot.slash.commands
+        for command_name, command_data in commands.items():
+            if command_name in ["context", "Profile"] or not command_data:
                 continue
-            command = _commands[_command]
-            cog = command.cog.name
-            if cog not in commands_data:
-                commands_data[cog] = {}
-            if _command in commands_data[cog]:
+            if command_data.cog not in commands_data:
+                commands_data[command_data.cog] = {}
+            if command_name in commands_data[command_data.cog]:
                 continue
-            commands_data[cog][_command] = {"command_description": command.description}
+            commands_data[command_data.cog][command_name] = command_data
 
-        self.commands = commands_data
+        self.commands_cache = commands_data
         return commands_data
 
-    def _get_subcommands_data(self) -> dict:
+    def _get_subcommands_data(self):
         commands_data = {}
-        _subcommands = self.bot.slash.subcommands
-        for _slash_command in _subcommands:
-            command = _subcommands[_slash_command]
-            for _subcommand in command:
-                subcommand = command[_subcommand]
-                if isinstance(subcommand, dict):
-                    for _group in subcommand:
-                        group = subcommand[_group]
-                        self._append_subcommand(commands_data, group)
+        subcommands = self.bot.slash.subcommands
+        for base_name, group in subcommands.items():
+            if base_name == "context":
+                continue
+            for group_name, group_data in group.items():
+                if isinstance(group_data, dict):
+                    for command_name, model in group_data.items():
+                        if model.cog not in commands_data:
+                            commands_data[model.cog] = {}
+                        if base_name not in commands_data[model.cog]:
+                            commands_data[model.cog][base_name] = {}
+                        if group_name not in commands_data[model.cog][base_name]:
+                            commands_data[model.cog][base_name][group_name] = {}
+                        commands_data[model.cog][base_name][group_name][command_name] = model
                 else:
-                    self._append_subcommand(commands_data, subcommand)
+                    if group_data.cog not in commands_data:
+                        commands_data[group_data.cog] = {}
+                    if base_name not in commands_data[group_data.cog]:
+                        commands_data[group_data.cog][base_name] = {}
+                    commands_data[group_data.cog][base_name][group_name] = group_data
         return commands_data
-
-    @staticmethod
-    def _append_subcommand(commands_data, command):
-        cog = command.cog.name
-        if cog not in commands_data:
-            commands_data[cog] = {}
-        if command.base not in commands_data[cog]:
-            commands_data[cog][command.base] = {}
-
-        if has_subcommand_group := command.subcommand_group is not None:
-            if command.subcommand_group not in commands_data[cog][command.base]:
-                commands_data[cog][command.base][command.subcommand_group] = {}
-            commands_data[cog][command.base][command.subcommand_group][command.name] = {
-                "description": command.description,
-                "options": command.options,
-            }
-        else:
-            commands_data[cog][command.base][command.name] = {
-                "has_subcommand_group": False,
-                "description": command.description,
-                "options": command.options,
-            }
-
 
 def setup(bot):
     bot.add_cog(Help(bot))
