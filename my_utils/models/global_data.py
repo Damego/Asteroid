@@ -1,7 +1,6 @@
 from typing import List
 
-from motor.motor_asyncio import AsyncIOMotorCollection
-from pymongo.collection import Collection  # Only for typehints
+from pymongo.collection import Collection
 
 from .enums import OperatorType
 

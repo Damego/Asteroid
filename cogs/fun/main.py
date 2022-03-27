@@ -7,8 +7,6 @@ from random import choice, randint
 from discord import Embed, Member, Forbidden, File, VoiceChannel
 from discord_slash import (
     SlashContext,
-    ContextMenuType,
-    MenuContext,
     SlashCommandOptionType,
     Button,
     ButtonStyle,
@@ -16,15 +14,12 @@ from discord_slash import (
     SelectOption,
     ComponentContext,
 )
-from discord_slash.cog_ext import (
-    cog_subcommand as slash_subcommand,
-    cog_context_menu as context_menu,
-)
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 import qrcode
 import requests
 
-from my_utils import AsteroidBot, get_content, Cog, is_enabled, consts
+from my_utils import AsteroidBot, get_content, Cog, is_enabled
 from .games import (
     Calculator,
     RockPaperScissors,

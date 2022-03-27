@@ -40,6 +40,8 @@ from my_utils import (
     transform_permission,
     paginator,
     bot_owner_or_permissions,
+    consts,
+    SystemChannels
 )
 from my_utils.consts import DiscordColors
 from .levels._levels import formula_of_experience
@@ -54,15 +56,15 @@ class Misc(Cog):
         self.hidden = False
         self.emoji = "💡"
         self.name = "Misc"
-
         self.slash_use_channel: TextChannel = None
+        self.project_lines_count = 0
+        self.__get_lines_count()
 
-    async def send_guilds_update_webhooks(self, embed: Embed):
-        async with ClientSession() as session:
-            webhook = Webhook.from_url(
-                os.getenv("WEBHOOK_GUILDS_UPDATE"), adapter=AsyncWebhookAdapter(session)
-            )
-            await webhook.send(embed=embed, username="Asteroid | Servers Information")
+    def __get_lines_count(self):
+        os.system("pygount --format=summary --suffix=py --out=lines_count.txt")
+        with open("lines_count.txt") as f:
+            lines = f.readlines()
+        self.project_lines_count = int(lines[-1].split()[-2])
 
     @Cog.listener()
     async def on_guild_join(self, guild: Guild):
@@ -74,7 +76,8 @@ class Misc(Cog):
         )
         embed = Embed(title="Новый сервер!", description=guild_info, color=0x00FF00)
         embed.set_thumbnail(url=guild.icon_url)
-        await self.send_guilds_update_webhooks(embed)
+        
+        channel = self.bot.get_channel(SystemChannels.SERVERS_UPDATE_CHANNEL)
 
     @Cog.listener()
     async def on_guild_remove(self, guild: Guild):
@@ -87,12 +90,13 @@ class Misc(Cog):
 
         embed = Embed(title="Минус сервак!", description=guild_info, color=0xFF0000)
         embed.set_thumbnail(url=guild.icon_url)
-        await self.send_guilds_update_webhooks(embed)
+        
+        channel = self.bot.get_channel(SystemChannels.SERVERS_UPDATE_CHANNEL)
 
     @Cog.listener()
     async def on_slash_command(self, ctx: SlashContext):
         if self.slash_use_channel is None:
-            self.slash_use_channel = self.bot.get_channel(933755239583080448)
+            self.slash_use_channel = self.bot.get_channel(SystemChannels.COMMANDS_USING_CHANNEL)
 
         embed = Embed(
             title=self.bot.get_transformed_command_name(ctx),
@@ -112,7 +116,7 @@ class Misc(Cog):
 
         await self.slash_use_channel.send(embed=embed)
 
-    @slash_command(name="info", description="Shows information about guild member")
+    @slash_subcommand(base="info", name="user", description="Shows information about guild member")
     @is_enabled()
     async def get_member_information_slash(
         self, ctx: SlashContext, member: Member = None
@@ -240,6 +244,43 @@ class Misc(Cog):
             badges += "<:Verified_developer_badge:904695373401038848>"
 
         return badges
+
+    @slash_subcommand(base="info", name="bot", description="Show information of bot")
+    @is_enabled()
+    async def bot_info(self, ctx: SlashContext):
+        await ctx.defer()
+        content = get_content("BOT_INFO_COMMAND", lang=await self.bot.get_guild_bot_lang(ctx.guild_id))
+        embed = Embed(
+            title=content["BOT_INFORMATION_TITLE"],
+            color=DiscordColors.EMBED_COLOR
+        )
+
+        commits = self._format_commits()
+        embed.description = f"{content['GITHUB_UPDATES']}\n{commits}"
+        users_count = sum(guild.member_count for guild in self.bot.guilds)
+        embed.add_field(
+            name=content["GENERAL_INFORMATION"],
+            value=f"{content['CREATED_AT']} <t:{int(self.bot.user.created_at.timestamp())}:F>\n"
+                f"{content['SERVERS_COUNT']} `{len(self.bot.guilds)}`\n"
+                f"{content['USERS_COUNT']} `{users_count}`"
+        )
+        embed.add_field(
+            name=content['TECHNICAL_INFORMATION'],
+            value=f"{content['BOT_VERSION']} `v2`\n"
+                f"{content['LINES_OF_CODE']} `{self.project_lines_count}`\n"
+                f"{content['LIBRARIES']}\n"
+                "・ `discord.py v1.7.3`\n"
+                "・ custom `discord-py-interactions v3`\n"
+        )
+
+        await ctx.send(embed=embed)
+
+    def _format_commits(self):
+        commits = self.bot.github_repo_commits
+        return "".join(
+            f"[`{commit.sha[:7]}`]({commit.commit.html_url[:-33]}) **{commit.commit.message.splitlines()[0]}**\n"
+            for commit in commits
+        )
 
     @slash_subcommand(base="misc", name="ping", description="Show bot latency")
     @is_enabled()

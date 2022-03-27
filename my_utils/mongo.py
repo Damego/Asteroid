@@ -2,7 +2,6 @@ from os import getenv
 
 import certifi
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCursor
-from pymongo.collection import Collection
 from dotenv import load_dotenv
 
 from my_utils.models.global_data import GlobalData

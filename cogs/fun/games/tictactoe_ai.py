@@ -7,13 +7,12 @@ from datetime import datetime
 from enum import IntEnum
 from random import choice
 from math import inf
-from typing import List, Union
+from typing import List
 
 from discord import Embed
 from discord_slash import (
     ComponentContext,
     ComponentMessage,
-    SlashContext,
     Button,
     ButtonStyle,
 )

@@ -1,14 +1,8 @@
-import asyncio
-
-from discord import Embed, Message
+from discord import Embed
 from discord_slash import (
     SlashContext,
     AutoCompleteContext,
     SlashCommandOptionType,
-    Button,
-    ButtonStyle,
-    ComponentMessage,
-    ComponentContext,
     Modal,
     ModalContext,
     TextInput,

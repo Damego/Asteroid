@@ -1,7 +1,5 @@
-import asyncio
-
 from discord import Member, Embed, Role, Forbidden, VoiceChannel
-from discord.ext.commands import BadArgument, bot_has_guild_permissions
+from discord.ext.commands import bot_has_guild_permissions
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 

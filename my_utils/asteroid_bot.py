@@ -1,11 +1,14 @@
-from os import listdir
+from os import listdir, getenv
 from typing import Union
 
 from aiohttp import ClientSession
+from datetime import datetime, timedelta, timezone
 from discord.ext.commands import Bot
 from discord_slash import SlashCommand, SlashContext, MenuContext
+from github import Github
 
 from my_utils.mongo import Mongo
+
 
 
 class AsteroidBot(Bot):
@@ -14,6 +17,13 @@ class AsteroidBot(Bot):
         self.__default_invite_link = None
         self.mongo = Mongo()
         self.slash = SlashCommand(self, sync_commands=False, sync_on_cog_reload=False)
+
+        today = datetime.now(timezone.utc)
+        delta_7 = today - timedelta(days=7)
+
+        self.github_client = Github(getenv("GITHUB_TOKEN"))
+        self.github_repo = self.github_client.get_repo("Damego/Asteroid-Discord-Bot")
+        self.github_repo_commits = list(self.github_repo.get_commits(until=today, since=delta_7))
 
         self.add_listener(self.on_ready, "on_ready")
         self._load_extensions()

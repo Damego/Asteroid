@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, timedelta, timezone
 import os
 import sys
 
@@ -109,10 +110,17 @@ class Settings(Cog):
         content = f"```\n{result}\n```"
         embed = Embed(title="Git Sync", description=content, color=0x2F3136)
 
+        self.__update_commits_cache()
+
         message = await ctx.send(
             embed=embed, components=self._get_bot_menu_components()
         )
         await self._run_bot_menu(ctx, message)
+
+    def __update_commits_cache(self):
+        today = datetime.now(timezone.utc)
+        delta_7 = today - timedelta(days=7)
+        self.bot.github_repo_commits = list(self.github_repo.get_commits(until=today, since=delta_7))
 
     @staticmethod
     async def run_shell(command: str):
