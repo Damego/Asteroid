@@ -44,5 +44,6 @@ class CommandDisabled(Exception):
 class NoData(Exception):
     """Nothing found in database"""
 
+
 class NotGuild(Exception):
     """Raises when guild is None"""

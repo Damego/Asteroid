@@ -110,7 +110,7 @@ LANGUAGES = {
             "NOTE_NEW": "Создаёт новую заметку",
             "NOTE_DELETE": "Удаляет заметку",
             "NOTE_LIST": "Показывает список ваших заметок",
-            "GLOBAL_MUSIC_PLAYLIST": "Делает ваш плейлист глобальным. Вы можете слушать ваш плейлист где угодно!"
+            "GLOBAL_MUSIC_PLAYLIST": "Делает ваш плейлист глобальным. Вы можете слушать ваш плейлист где угодно!",
         },
         "ERRORS_DESCRIPTIONS": {
             "COG_DISABLED": "Эта команда отключена на этом сервере!",
@@ -136,7 +136,7 @@ LANGUAGES = {
             "NOT_CONNECTED_TO_VOICE_TEXT": "Присоединитесь к голосовому каналу с ботом!",
             "NOT_PLAYING": "Музыка не играет!",
             "NO_DATA_FOUND": "Ничего не найдено!",
-            "GUILD_ONLY": "Эта команда только для сервера!"
+            "GUILD_ONLY": "Эта команда только для сервера!",
         },
         "FUNC_RANDOM_NUMBER_OUT_CONTENT": "Рандомное число: `{}`",
         "FUNC_MEMBER_INFO": {
@@ -419,7 +419,7 @@ LANGUAGES = {
                 "MUSIC": "Музыка",
                 "TAGS": "Теги",
                 "UTILITIES": "Утилиты",
-            }
+            },
         },
         "STARBOARD_FUNCTIONS": {
             "CHANNEL_WAS_SETUP_TEXT": "Канал был установлен!",
@@ -519,7 +519,7 @@ LANGUAGES = {
             "NOT_CONNECTED_TO_VOICE_TEXT": "Connect to voice channel with a bot",
             "NOT_PLAYING": "Music not playing!",
             "NO_DATA_FOUND": "Nothing found!",
-            "GUILD_ONLY": "This command only for server!"
+            "GUILD_ONLY": "This command only for server!",
         },
         "FUNC_RANDOM_NUMBER_OUT_CONTENT": "Random number is `{}`",
         "FUNC_MEMBER_INFO": {
@@ -804,7 +804,7 @@ LANGUAGES = {
                 "MUSIC": "Music",
                 "TAGS": "Tags",
                 "UTILITIES": "Utilities",
-            }
+            },
         },
         "STARBOARD_FUNCTIONS": {
             "CHANNEL_WAS_SETUP_TEXT": "Channel was set up!",

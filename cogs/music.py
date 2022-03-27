@@ -227,7 +227,8 @@ class Music(Cog):
         ]
         embed = Embed(
             title=content["CURRENT_QUEUE_TITLE_TEXT"],
-            description=f"**{content['CURRENT_SONG_TEXT']}:** `{player.current.title}`\n" + '\n'.join(tracks),
+            description=f"**{content['CURRENT_SONG_TEXT']}:** `{player.current.title}`\n"
+            + "\n".join(tracks),
             color=guild_data.configuration.embed_color,
         )
         await ctx.send(embed=embed, hidden=True)
@@ -265,7 +266,9 @@ class Music(Cog):
         if ctx.focused_option == "playlist":
             user_guild_data = await guild_data.get_user(ctx.author_id)
             user_global_data = await global_data.get_user(ctx.author_id)
-            all_playlists = user_guild_data.music_playlists | user_global_data.music_playlists
+            all_playlists = (
+                user_guild_data.music_playlists | user_global_data.music_playlists
+            )
 
             playlists = [
                 playlist
@@ -279,11 +282,16 @@ class Music(Cog):
         elif ctx.focused_option == "name":
             user_guild_data = await guild_data.get_user(ctx.author_id)
             user_global_data = await global_data.get_user(ctx.author_id)
-            if not user_guild_data.music_playlists and not user_global_data.music_playlists:
+            if (
+                not user_guild_data.music_playlists
+                and not user_global_data.music_playlists
+            ):
                 return
 
             input_playlist = ctx.options["playlist"]
-            all_playlists = user_guild_data.music_playlists | user_global_data.music_playlists
+            all_playlists = (
+                user_guild_data.music_playlists | user_global_data.music_playlists
+            )
             tracks_list = all_playlists.get(input_playlist)
             choices = [
                 create_choice(name=track, value=track)
@@ -620,10 +628,7 @@ class Music(Cog):
 
         tracks = None
         if isinstance(query, List) and is_playlist:
-            tracks = [
-                await self.__get_tracks(ctx, player, _query)
-                for _query in query
-            ]
+            tracks = [await self.__get_tracks(ctx, player, _query) for _query in query]
         else:
             tracks = [await self.__get_tracks(ctx, player, query)]
 
@@ -640,7 +645,7 @@ class Music(Cog):
             query = f"ytsearch:{query}"
         results = await player.node.get_tracks(query)
         if not results or not results["tracks"]:
-            raise NoData # * Should be here raising error?
+            raise NoData  # * Should be here raising error?
 
         if results["loadType"] == "PLAYLIST_LOADED":
             tracks = [

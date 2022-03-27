@@ -11,7 +11,7 @@ from my_utils import (
     get_content,
     Cog,
     is_enabled,
-    SystemChannels
+    SystemChannels,
 )
 from my_utils.consts import DiscordColors
 from my_utils.errors import NoData
@@ -24,7 +24,10 @@ class GenshinStats(Cog):
         self.emoji = 863429526632923136
         self.name = "GenshinStats"
 
-        cookies = {"ltuid": 147861638, "ltoken": "3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU"}
+        cookies = {
+            "ltuid": 147861638,
+            "ltoken": "3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU",
+        }
         self.genshin_client = genshin.GenshinClient(cookies)
 
         self.get_genshin_daily_reward.start()
@@ -40,12 +43,14 @@ class GenshinStats(Cog):
                 title="Награда!",
                 description=f"Название: {reward.name}\nКоличество: {reward.amount} шт.",
                 timestamp=datetime.datetime.utcnow(),
-                color=DiscordColors.BLURPLE
+                color=DiscordColors.BLURPLE,
             )
             embed.set_thumbnail(url=reward.icon)
             channel = self.bot.get_channel(SystemChannels.GENSHIN_DAILY_REWARDS)
             if channel is None:
-                channel = await self.bot.fetch_channel(SystemChannels.GENSHIN_DAILY_REWARDS)
+                channel = await self.bot.fetch_channel(
+                    SystemChannels.GENSHIN_DAILY_REWARDS
+                )
             await channel.send(embed=embed)
 
     @slash_subcommand(
@@ -54,14 +59,16 @@ class GenshinStats(Cog):
     @is_enabled()
     async def bind_uid(self, ctx: SlashContext, hoyolab_uid: int):
         record_card = await self.genshin_client.get_record_card(hoyolab_uid)
-        
+
         if not record_card.public or not record_card.has_uid:
             raise NoData
 
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         user_data = await guild_data.get_user(ctx.author_id)
 
-        await user_data.set_genshin_uid(hoyolab_uid=hoyolab_uid, game_uid=record_card.uid)
+        await user_data.set_genshin_uid(
+            hoyolab_uid=hoyolab_uid, game_uid=record_card.uid
+        )
         content = get_content("GENSHIN_BIND_COMMAND", guild_data.configuration.language)
         await ctx.send(content)
 
@@ -205,7 +212,9 @@ class GenshinStats(Cog):
             embed = self.get_character_info(content, embed, character)
             embeds.append(embed)
 
-        paginator = Paginator(self.bot, ctx, PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds)
+        paginator = Paginator(
+            self.bot, ctx, PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds
+        )
         await paginator.start()
 
     @slash_subcommand(
@@ -251,7 +260,9 @@ class GenshinStats(Cog):
             raise UIDNotBinded
         return uid
 
-    def get_character_info(self, content: dict, embed: Embed, character: genshin.models.Character):
+    def get_character_info(
+        self, content: dict, embed: Embed, character: genshin.models.Character
+    ):
         embed.description = f"""
             {content['INFORMATION_TEXT']}
             » <:character_exp:871389287978008616> {content['CHARACTER_LEVEL']}: `{character.level}`

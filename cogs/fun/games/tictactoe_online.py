@@ -112,10 +112,7 @@ class TicTacToeOnline:
                     self.board[i][j] = GameState.enemy
 
     def _check(self, player_id, ctx):
-        return (
-            ctx.author_id == player_id
-            and ctx.origin_message.id == self.message.id
-        )
+        return ctx.author_id == player_id and ctx.origin_message.id == self.message.id
 
     async def move(self, player: GameState, player_user: Member):
         ctx: ComponentContext = await self.bot.wait_for(

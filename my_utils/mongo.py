@@ -94,5 +94,3 @@ class Mongo:
         users = [user_data async for user_data in users_data_cursor]
         self.global_data = GlobalData(self._global_data_connection, users)
         return self.global_data
-
-        

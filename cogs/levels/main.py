@@ -136,16 +136,20 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def reset_member_statistics(self, ctx: SlashContext, member: Member):
+        await ctx.defer(hidden=True)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         user_data = await guild_data.get_user(member.id)
+        start_level_role = guild_data.configuration.start_level_role
 
         if current_role_id := user_data.role:
             role = ctx.guild.get_role(current_role_id)
             await member.remove_roles(role)
 
-        await user_data.set_leveling(level=1, xp=0, xp_amount=0, voice_time=0, role_id="")
+        await user_data.set_leveling(
+            level=1, xp=0, xp_amount=0, voice_time=0, role_id=start_level_role
+        )
+        await member.add_roles(ctx.guild.get_role(start_level_role))
         await ctx.send("✅", hidden=True)
-        # TODO Return special on_join_role(start role) for levels
 
     @slash_subcommand(
         base="levels",
@@ -169,7 +173,7 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def levels_add_xp(self, ctx: SlashContext, member: Member, exp: int):
-        if exp < 0:
+        if exp <= 0:
             raise BadArgument
         await ctx.defer(hidden=True)
         await update_member(self.bot, member, exp)
@@ -266,7 +270,12 @@ class Levels(Cog):
         if choices:
             await ctx.populate(choices)
 
-    @slash_subcommand(base="levels", subcommand_group="role", name="reset", description="Reset levels in server")
+    @slash_subcommand(
+        base="levels",
+        subcommand_group="role",
+        name="reset",
+        description="Reset levels in server",
+    )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def reset_levels(self, ctx: SlashContext):
@@ -275,7 +284,10 @@ class Levels(Cog):
         await ctx.send("✅", hidden=True)
 
     @slash_subcommand(
-        base="levels", subcommand_group="role", name="list", description="Show list of levels in server"
+        base="levels",
+        subcommand_group="role",
+        name="list",
+        description="Show list of levels in server",
     )
     @is_enabled()
     async def send_levels_list(self, ctx: SlashContext):
@@ -296,8 +308,7 @@ class Levels(Cog):
                 xp_amount += exp
             content += f"{level} — {role.mention} | EXP: {xp_amount}\n"
 
-        embed = Embed(description=content,
-                      color=guild_data.configuration.embed_color)
+        embed = Embed(description=content, color=guild_data.configuration.embed_color)
         await ctx.send(embed=embed)
 
     @slash_subcommand(base="levels", name="clear_members_stats")
@@ -315,7 +326,12 @@ class Levels(Cog):
 
         await ctx.send("✅", hidden=True)
 
-    @slash_subcommand(base="levels", subcommand_group="role", name="set_start_role", description="Set's start level role")
+    @slash_subcommand(
+        base="levels",
+        subcommand_group="role",
+        name="set_start_role",
+        description="Set's start level role",
+    )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def levels_set_start_role(self, ctx: SlashContext, role: Role):
@@ -324,7 +340,12 @@ class Levels(Cog):
         await guild_data.configuration.set_start_level_role(role.id)
         await ctx.send("✅", hidden=True)
 
-    @slash_subcommand(base="levels", subcommand_group="role", name="delete_start_role", description="Delete's start level role")
+    @slash_subcommand(
+        base="levels",
+        subcommand_group="role",
+        name="delete_start_role",
+        description="Delete's start level role",
+    )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def levels_delete_start_role(self, ctx: SlashContext):
@@ -334,7 +355,10 @@ class Levels(Cog):
         await ctx.send("✅", hidden=True)
 
     @slash_subcommand(
-        base="levels", name="leaderboard", description="Shows top members by level", options=[]
+        base="levels",
+        name="leaderboard",
+        description="Shows top members by level",
+        options=[],
     )
     @is_enabled()
     async def leaderboard_members(self, ctx: SlashContext):

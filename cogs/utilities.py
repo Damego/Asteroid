@@ -12,8 +12,19 @@ from discord import (
     Role,
     Forbidden,
 )
-from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType, Modal, ModalContext, TextInput, TextInputStyle
-from discord_slash.cog_ext import cog_subcommand as slash_subcommand, cog_slash as slash_command
+from discord_slash import (
+    SlashContext,
+    AutoCompleteContext,
+    SlashCommandOptionType,
+    Modal,
+    ModalContext,
+    TextInput,
+    TextInputStyle,
+)
+from discord_slash.cog_ext import (
+    cog_subcommand as slash_subcommand,
+    cog_slash as slash_command,
+)
 from discord_slash.utils.manage_commands import create_option, create_choice
 
 from my_utils import (
@@ -25,7 +36,7 @@ from my_utils import (
     consts,
     NoData,
     DiscordColors,
-    SystemChannels
+    SystemChannels,
 )
 from my_utils.models.guild_data import GuildData, GuildStarboard
 
@@ -550,7 +561,7 @@ class Utilities(Cog):
         embed = Embed(
             title=content["NOTE_CREATED_TEXT"].format(name=name),
             description=note_content,
-            color=guild_data.configuration.embed_color
+            color=guild_data.configuration.embed_color,
         )
         message = await ctx.send(embed=embed)
 
@@ -649,9 +660,9 @@ class Utilities(Cog):
                 description="Your playlist",
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
-                autocomplete=True
+                autocomplete=True,
             )
-        ]
+        ],
     )
     async def global_music_playlist(self, ctx: SlashContext, playlist: str):
         await ctx.defer(hidden=True)
@@ -715,18 +726,25 @@ class Utilities(Cog):
         embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=int(color, 16))
         await ctx.send(embed=embed, delete_after=10)
 
-    @slash_command(
-        name="issue",
-        description="Sends a issue to owner"
-    )
+    @slash_command(name="issue", description="Sends a issue to owner")
     async def open_modal_bug(self, ctx: SlashContext):
         modal = Modal(
             custom_id="issue_modal",
             title="Issue menu",
             components=[
-                TextInput(style=TextInputStyle.SHORT, custom_id="issue_name", label="Title of the bug", placeholder="[BUG] Command `info` doesn't work!"),
-                TextInput(style=TextInputStyle.PARAGRAPH, custom_id="issue_description", label="Description", placeholder="I found a interesting bug!")
-            ]
+                TextInput(
+                    style=TextInputStyle.SHORT,
+                    custom_id="issue_name",
+                    label="Title of the bug",
+                    placeholder="[BUG] Command `info` doesn't work!",
+                ),
+                TextInput(
+                    style=TextInputStyle.PARAGRAPH,
+                    custom_id="issue_description",
+                    label="Description",
+                    placeholder="I found a interesting bug!",
+                ),
+            ],
         )
         await ctx.popup(modal)
 
@@ -734,7 +752,7 @@ class Utilities(Cog):
     async def on_modal(self, ctx: ModalContext):
         if ctx.custom_id != "issue_modal":
             return
-        
+
         await ctx.defer(hidden=True)
 
         issue_name = ctx.values["issue_name"]
@@ -744,7 +762,7 @@ class Utilities(Cog):
             title=issue_name,
             description=issue_description,
             color=DiscordColors.RED,
-            timestamp=datetime.datetime.utcnow()
+            timestamp=datetime.datetime.utcnow(),
         )
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
 

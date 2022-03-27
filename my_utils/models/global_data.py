@@ -1,7 +1,7 @@
 from typing import List
 
 from motor.motor_asyncio import AsyncIOMotorCollection
-from pymongo.collection import Collection # Only for typehints
+from pymongo.collection import Collection  # Only for typehints
 
 from .enums import OperatorType
 
@@ -10,9 +10,13 @@ class GlobalData:
     """
     Class representing connection to global users collection
     """
+
     def __init__(self, connection, users: List[dict]) -> None:
         self._connection: Collection = connection["USERS"]
-        self.users = {user_data["_id"]: GlobalUserData(self._connection, user_data) for user_data in users}
+        self.users = {
+            user_data["_id"]: GlobalUserData(self._connection, user_data)
+            for user_data in users
+        }
 
     async def add_user(self, user_id: int):
         data = {"_id": str(user_id)}
@@ -87,4 +91,3 @@ class GlobalUserData:
         await self._update(OperatorType.UNSET, {f"music_playlists.{playlist}": ""})
         if playlist in self._music_playlists:
             del self._music_playlists[playlist]
-

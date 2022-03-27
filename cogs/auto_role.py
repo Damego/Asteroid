@@ -103,13 +103,7 @@ class AutoRole(Cog):
                             else:
                                 labels.append(component["label"])
 
-            choices = [
-                create_choice(
-                    name=label,
-                    value=label
-                )
-                for label in labels
-            ][:25]
+            choices = [create_choice(name=label, value=label) for label in labels][:25]
 
         if choices:
             await ctx.populate(choices)
@@ -776,13 +770,15 @@ class AutoRole(Cog):
                 description="The label of button",
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
-                autocomplete=True
+                autocomplete=True,
             ),
-        ]
+        ],
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_button_remove_role(self, ctx: SlashContext, name: str, label: str):
+    async def autorole_button_remove_role(
+        self, ctx: SlashContext, name: str, label: str
+    ):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("AUTOROLE_BUTTON", guild_data.configuration.language)
@@ -808,7 +804,11 @@ class AutoRole(Cog):
                     break
             else:
                 for component in row:
-                    emoji_name = component.emoji["name"] if isinstance(component.emoji, dict) else component.emoji.name
+                    emoji_name = (
+                        component.emoji["name"]
+                        if isinstance(component.emoji, dict)
+                        else component.emoji.name
+                    )
                     if emoji_name == label:
                         row.remove_component(component)
                         break

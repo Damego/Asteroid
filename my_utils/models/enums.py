@@ -1,5 +1,6 @@
 from enum import Enum, IntEnum
 
+
 class OperatorType(Enum):
     """
     Class representing operator types in MongoDB

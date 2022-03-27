@@ -9,13 +9,7 @@ from my_utils import AsteroidBot
 from .utils import spread_to_rows
 
 
-template = [
-    1, 2, 3, 4, 5, 
-    6, 7, 8, 9, 0,
-    0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0
-]
+template = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 emoji = {
     "1": "1️⃣",
@@ -45,13 +39,19 @@ class MonkeyMemory:
             if num == 0:
                 raw_components.append(
                     Button(
-                        label=" ", style=ButtonStyle.gray, disabled=True, custom_id=f"mm|empty{uuid1()}"
+                        label=" ",
+                        style=ButtonStyle.gray,
+                        disabled=True,
+                        custom_id=f"mm|empty{uuid1()}",
                     )
                 )
             else:
                 raw_components.append(
                     Button(
-                        emoji=emoji[str(num)], style=ButtonStyle.gray, custom_id=f"mm|{num}", disabled=True
+                        emoji=emoji[str(num)],
+                        style=ButtonStyle.gray,
+                        custom_id=f"mm|{num}",
+                        disabled=True,
                     )
                 )
         self.components = spread_to_rows(raw_components)
@@ -91,22 +91,32 @@ class MonkeyMemory:
 
     async def _wait_button_click(self) -> ComponentContext:
         def check(ctx: ComponentContext):
-            return ctx.author_id == self.ctx.author_id and ctx.origin_message_id == self.message.id
+            return (
+                ctx.author_id == self.ctx.author_id
+                and ctx.origin_message_id == self.message.id
+            )
 
         try:
             ctx = await self.bot.wait_for("button_click", timeout=600, check=check)
         except asyncio.TimeoutError:
-            await self.message.edit(content="Timed out", components=self._disable_components())
+            await self.message.edit(
+                content="Timed out", components=self._disable_components()
+            )
         else:
             return ctx
 
     async def start(self):
-        self.message = await self.ctx.send(f"You have `{self.timeout}` seconds to remember the sequence.", components=self._render_start_components())
+        self.message = await self.ctx.send(
+            f"You have `{self.timeout}` seconds to remember the sequence.",
+            components=self._render_start_components(),
+        )
         current = 1
         is_end = False
 
         await asyncio.sleep(self.timeout)
-        await self.message.edit(content="Monkey Memory", components=self.toggle_components_status(hide=True))
+        await self.message.edit(
+            content="Monkey Memory", components=self.toggle_components_status(hide=True)
+        )
 
         while True:
             ctx = await self._wait_button_click()

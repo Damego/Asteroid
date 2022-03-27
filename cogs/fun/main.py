@@ -25,7 +25,16 @@ import qrcode
 import requests
 
 from my_utils import AsteroidBot, get_content, Cog, is_enabled, consts
-from .games import Calculator, RockPaperScissors, TicTacToeMode, TicTacToeAI, TicTacToeOnline, BoardMode, MonkeyMemory, Tiles
+from .games import (
+    Calculator,
+    RockPaperScissors,
+    TicTacToeMode,
+    TicTacToeAI,
+    TicTacToeOnline,
+    BoardMode,
+    MonkeyMemory,
+    Tiles,
+)
 from .consts import bored_api_types, discord_activities_list
 
 
@@ -188,7 +197,9 @@ class Fun(Cog):
 
         try:
             button_ctx: ComponentContext = await self.bot.wait_for(
-                "button_click", check=lambda _ctx: _ctx.author_id == member.id, timeout=60
+                "button_click",
+                check=lambda _ctx: _ctx.author_id == member.id,
+                timeout=60,
             )
             accepted_invite = content["AGREE_MESSAGE_CONTENT"]
             await button_ctx.send(accepted_invite, hidden=True)
@@ -529,20 +540,16 @@ class Fun(Cog):
                 option_type=SlashCommandOptionType.INTEGER,
                 required=False,
                 min_value=1,
-                max_value=60
+                max_value=60,
             )
-        ]
+        ],
     )
     @is_enabled()
     async def start_mm(self, ctx: SlashContext, timeout: int = 5):
         game = MonkeyMemory(ctx, timeout)
         await game.start()
 
-    @slash_subcommand(
-        base="game",
-        name="tiles",
-        description="Start game tiles"
-    )
+    @slash_subcommand(base="game", name="tiles", description="Start game tiles")
     @is_enabled()
     async def start_tiles(self, ctx: SlashContext):
         game = Tiles(ctx)

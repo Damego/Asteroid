@@ -12,9 +12,7 @@ class GuildData:
         if guild_id is None:
             raise NotGuild
         self._connection = connection[str(guild_id)]
-        self._main_collection: Collection = self._connection[
-            "configuration"
-        ]
+        self._main_collection: Collection = self._connection["configuration"]
         self._users_collection: Collection = self._connection["users"]
         self.__raw_main_data = data["main"]
         self.__raw_users_data = data["users"]
@@ -221,7 +219,7 @@ class GuildConfiguration:
     @property
     def start_role(self):
         return self._start_level_role
-    
+
     @property
     def start_level_role(self):
         return self._start_level_role
@@ -421,11 +419,11 @@ class GuildUser:
     @property
     def id(self):
         return self._id
-    
+
     @property
     def level(self):
         return self._level
-    
+
     @property
     def xp(self):
         return self._xp

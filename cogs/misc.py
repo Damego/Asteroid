@@ -97,13 +97,18 @@ class Misc(Cog):
         embed = Embed(
             title=self.bot.get_transformed_command_name(ctx),
             color=DiscordColors.EMBED_COLOR,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
-        embed.set_author(name=f"{ctx.author.name} | {ctx.author_id}", icon_url=ctx.author.avatar_url)
+        embed.set_author(
+            name=f"{ctx.author.name} | {ctx.author_id}", icon_url=ctx.author.avatar_url
+        )
         if ctx.kwargs:
             embed.add_field(name="Options", value=ctx.kwargs)
         if ctx.guild:
-            embed.add_field(name="Guild Information", value=f"Name: {ctx.guild.name}\nID: {ctx.guild_id}")
+            embed.add_field(
+                name="Guild Information",
+                value=f"Name: {ctx.guild.name}\nID: {ctx.guild_id}",
+            )
 
         await self.slash_use_channel.send(embed=embed)
 
@@ -371,16 +376,12 @@ class Misc(Cog):
             ),
         ],
     )
-    async def test_attachment(
-        self, ctx: SlashContext, attachment: Attachment
-    ):
+    async def test_attachment(self, ctx: SlashContext, attachment: Attachment):
         file = await attachment.to_file()
         await ctx.send(file=file)
 
     @slash_subcommand(
-        base="server",
-        name="bot_nick",
-        description="Set nick to bot on your server"
+        base="server", name="bot_nick", description="Set nick to bot on your server"
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_nicknames=True)

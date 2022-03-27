@@ -4,12 +4,24 @@ from traceback import *
 from sys import exc_info
 
 from discord import Guild, Intents, Embed, Forbidden
-from discord.ext.commands import NotOwner, BotMissingPermissions, MissingPermissions, CheckFailure, BadArgument
+from discord.ext.commands import (
+    NotOwner,
+    BotMissingPermissions,
+    MissingPermissions,
+    CheckFailure,
+    BadArgument,
+)
 from discord_slash import SlashContext
 from dotenv import load_dotenv
 from genshin.errors import DataNotPublic, AccountNotFound
 
-from my_utils import AsteroidBot, get_content, transform_permission, SystemChannels, DiscordColors
+from my_utils import (
+    AsteroidBot,
+    get_content,
+    transform_permission,
+    SystemChannels,
+    DiscordColors,
+)
 from my_utils.errors import *
 from my_utils import slash_override
 
@@ -108,7 +120,8 @@ async def on_slash_command_error(ctx: SlashContext, error):
                 name="Guild", value=f"Name: `{ctx.guild.name}`\n ID:`{ctx.guild_id}`"
             )
             error_embed.add_field(
-                name="Channel", value=f"Name: `{ctx.channel.name}`\n ID:`{ctx.channel_id}`"
+                name="Channel",
+                value=f"Name: `{ctx.channel.name}`\n ID:`{ctx.channel_id}`",
             )
         error_embed.add_field(
             name="User", value=f"Name: `{ctx.author.name}`\n ID:`{ctx.author_id}`"

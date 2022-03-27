@@ -59,8 +59,15 @@ class Help(Cog):
 
     def _init_components(self, ctx: SlashContext, content: dict):
         options_translation = content["PLUGINS"]
-        options = [SelectOption(label=options_translation["MAIN_PAGE"], value="main_page", emoji="🏠", default=True)]
-        
+        options = [
+            SelectOption(
+                label=options_translation["MAIN_PAGE"],
+                value="main_page",
+                emoji="🏠",
+                default=True,
+            )
+        ]
+
         for cog_name, cog in self.bot.cogs.items():
             if cog.hidden:
                 continue
@@ -71,7 +78,13 @@ class Help(Cog):
             if isinstance(emoji, int):
                 emoji = self.bot.get_emoji(emoji)
 
-            options.append(SelectOption(label=options_translation[cog_name.upper()], value=cog_name, emoji=emoji))
+            options.append(
+                SelectOption(
+                    label=options_translation[cog_name.upper()],
+                    value=cog_name,
+                    emoji=emoji,
+                )
+            )
 
         return [Select(placeholder=content["SELECT_MODULE_TEXT"], options=options)]
 
@@ -109,12 +122,15 @@ class Help(Cog):
                 if isinstance(base_command_data, dict):
                     for group_command, group_command_data in base_command_data.items():
                         if isinstance(group_command_data, dict):
-                            for command_name, command_data in group_command_data.items():
+                            for (
+                                command_name,
+                                command_data,
+                            ) in group_command_data.items():
                                 options = self.get_options(command_data)
                                 command_description = (
                                     translated_commands.get(
-                                    f"{base_command}_{group_command}_{command_name}".upper(),
-                                    command_data.description,
+                                        f"{base_command}_{group_command}_{command_name}".upper(),
+                                        command_data.description,
                                     )
                                     if translated_commands
                                     else command_data.description
@@ -127,8 +143,8 @@ class Help(Cog):
                             options = self.get_options(group_command_data)
                             command_description = (
                                 translated_commands.get(
-                                f"{base_command}_{group_command}".upper(),
-                                group_command_data.description,
+                                    f"{base_command}_{group_command}".upper(),
+                                    group_command_data.description,
                                 )
                                 if translated_commands
                                 else group_command_data.description
@@ -141,8 +157,8 @@ class Help(Cog):
                     options = self.get_options(base_command_data)
                     command_description = (
                         translated_commands.get(
-                        f"{base_command}".upper(),
-                        base_command_data.description,
+                            f"{base_command}".upper(),
+                            base_command_data.description,
                         )
                         if translated_commands
                         else base_command_data.description
@@ -230,7 +246,9 @@ class Help(Cog):
                             commands_data[model.cog][base_name] = {}
                         if group_name not in commands_data[model.cog][base_name]:
                             commands_data[model.cog][base_name][group_name] = {}
-                        commands_data[model.cog][base_name][group_name][command_name] = model
+                        commands_data[model.cog][base_name][group_name][
+                            command_name
+                        ] = model
                 else:
                     if group_data.cog not in commands_data:
                         commands_data[group_data.cog] = {}
@@ -238,6 +256,7 @@ class Help(Cog):
                         commands_data[group_data.cog][base_name] = {}
                     commands_data[group_data.cog][base_name][group_name] = group_data
         return commands_data
+
 
 def setup(bot):
     bot.add_cog(Help(bot))
