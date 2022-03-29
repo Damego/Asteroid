@@ -19,7 +19,7 @@ from discord_slash.utils.manage_commands import create_option, create_choice
 import qrcode
 import requests
 
-from my_utils import AsteroidBot, get_content, Cog, is_enabled
+from utils import AsteroidBot, get_content, Cog, is_enabled
 from .games import (
     Calculator,
     RockPaperScissors,

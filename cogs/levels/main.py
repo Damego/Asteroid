@@ -8,7 +8,7 @@ from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionT
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 
-from my_utils import (
+from utils import (
     AsteroidBot,
     bot_owner_or_permissions,
     is_enabled,
@@ -18,7 +18,7 @@ from my_utils import (
     Cog,
     get_content,
 )
-from my_utils.paginator import Paginator, PaginatorStyle
+from utils.paginator import Paginator, PaginatorStyle
 from ._levels import update_member, formula_of_experience
 
 

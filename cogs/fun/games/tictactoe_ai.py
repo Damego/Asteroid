@@ -18,7 +18,7 @@ from discord_slash import (
 )
 
 
-from my_utils import AsteroidBot
+from utils import AsteroidBot
 
 
 BoardTemplate = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]

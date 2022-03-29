@@ -5,7 +5,7 @@ from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 import genshin
 
-from my_utils import (
+from utils import (
     UIDNotBinded,
     AsteroidBot,
     get_content,
@@ -13,9 +13,9 @@ from my_utils import (
     is_enabled,
     SystemChannels,
 )
-from my_utils.consts import DiscordColors
-from my_utils.errors import NoData
-from my_utils.paginator import PaginatorStyle, Paginator
+from utils.consts import DiscordColors
+from utils.errors import NoData
+from utils.paginator import PaginatorStyle, Paginator
 
 
 class GenshinStats(Cog):

@@ -15,15 +15,15 @@ from discord_slash import SlashContext
 from dotenv import load_dotenv
 from genshin.errors import DataNotPublic, AccountNotFound
 
-from my_utils import (
+from utils import (
     AsteroidBot,
     get_content,
     transform_permission,
     SystemChannels,
     DiscordColors,
 )
-from my_utils.errors import *
-from my_utils import slash_override
+from utils.errors import *
+from utils import slash_override
 
 bot = AsteroidBot(command_prefix="+", intents=Intents.all())
 

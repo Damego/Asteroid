@@ -9,7 +9,7 @@ from discord_slash import (
     ButtonStyle,
 )
 
-from my_utils import AsteroidBot, get_content
+from utils import AsteroidBot, get_content
 
 
 class RockPaperScissors:

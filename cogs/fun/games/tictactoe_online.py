@@ -11,7 +11,7 @@ from discord_slash import (
     ButtonStyle,
 )
 
-from my_utils import AsteroidBot
+from utils import AsteroidBot
 
 
 board_template = {

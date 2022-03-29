@@ -7,7 +7,7 @@ from discord.ext.commands import Bot
 from discord_slash import SlashCommand, SlashContext, MenuContext
 from github import Github
 
-from my_utils.mongo import Mongo
+from utils.database.mongo import Mongo
 
 
 

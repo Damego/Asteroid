@@ -4,7 +4,7 @@ from typing import Dict, List, Union
 from pymongo.collection import Collection
 
 from .enums import OperatorType
-from my_utils.errors import NotGuild
+from utils.errors import NotGuild
 
 
 class GuildData:

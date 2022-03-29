@@ -15,7 +15,7 @@ from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 import lavalink
 
-from my_utils import (
+from utils import (
     AsteroidBot,
     get_content,
     Cog,

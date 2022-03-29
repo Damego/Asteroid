@@ -11,15 +11,15 @@ from discord_slash import (
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option, create_choice
 
-from my_utils import (
+from utils import (
     AsteroidBot,
     is_administrator_or_bot_owner,
     get_content,
     Cog,
     is_enabled,
+    GuildTag
 )
-from my_utils.errors import TagNotFound, NotTagOwner, TagsIsPrivate
-from my_utils.models.guild_data import GuildTag
+from utils.errors import TagNotFound, NotTagOwner, TagsIsPrivate
 
 
 class Tags(Cog):

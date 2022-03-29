@@ -27,7 +27,7 @@ from discord_slash.cog_ext import (
 )
 from discord_slash.utils.manage_commands import create_option
 
-from my_utils import (
+from utils import (
     AsteroidBot,
     get_content,
     Cog,
@@ -37,10 +37,9 @@ from my_utils import (
     transform_permission,
     paginator,
     bot_owner_or_permissions,
-    consts,
-    SystemChannels
+    SystemChannels,
+    DiscordColors
 )
-from my_utils.consts import DiscordColors
 from .levels._levels import formula_of_experience
 
 

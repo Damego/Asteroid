@@ -1,11 +1,10 @@
 from os import getenv
 
 import certifi
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCursor
 from dotenv import load_dotenv
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCursor
 
-from my_utils.models.global_data import GlobalData
-from .models.guild_data import GuildData
+from . import GuildData, GlobalData
 
 
 load_dotenv()

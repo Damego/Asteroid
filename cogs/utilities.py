@@ -27,7 +27,7 @@ from discord_slash.cog_ext import (
 )
 from discord_slash.utils.manage_commands import create_option, create_choice
 
-from my_utils import (
+from utils import (
     AsteroidBot,
     Cog,
     bot_owner_or_permissions,
@@ -37,8 +37,9 @@ from my_utils import (
     NoData,
     DiscordColors,
     SystemChannels,
+    GuildData, 
+    GuildStarboard
 )
-from my_utils.models.guild_data import GuildData, GuildStarboard
 
 
 class Utilities(Cog):

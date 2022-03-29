@@ -5,7 +5,7 @@ from discord import Embed
 from discord_slash import SlashContext, ComponentContext, Select, SelectOption
 from discord_slash.cog_ext import cog_slash as slash_command
 
-from my_utils import AsteroidBot, get_content, Cog
+from utils import AsteroidBot, get_content, Cog
 
 
 class Help(Cog):

@@ -14,7 +14,7 @@ from discord_slash import (
     ComponentContext,
 )
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
-from my_utils import AsteroidBot, Cog
+from utils import AsteroidBot, Cog
 
 
 class Settings(Cog):

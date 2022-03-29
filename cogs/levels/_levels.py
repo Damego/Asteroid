@@ -3,9 +3,7 @@ from typing import Union
 
 from discord import Member, Message, Guild, Role
 
-from my_utils import AsteroidBot
-from my_utils.languages import get_content
-from my_utils.models.guild_data import GuildUser
+from utils import AsteroidBot, GuildUser, get_content
 
 
 last_user_message = {}

@@ -3,7 +3,7 @@ from discord.ext.commands import bot_has_guild_permissions
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
-from my_utils import AsteroidBot, get_content, Cog, bot_owner_or_permissions
+from utils import AsteroidBot, get_content, Cog, bot_owner_or_permissions
 
 
 class Moderation(Cog):

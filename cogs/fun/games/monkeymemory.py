@@ -5,7 +5,7 @@ from uuid import uuid1
 
 from discord_slash import SlashContext, Button, ButtonStyle, ComponentContext
 
-from my_utils import AsteroidBot
+from utils import AsteroidBot
 from .utils import spread_to_rows
 
 

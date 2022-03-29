@@ -6,3 +6,4 @@ from .checks import _cog_is_enabled
 from .consts import DiscordColors, SystemChannels
 from .functions import *
 from .cog import Cog
+from .database import *

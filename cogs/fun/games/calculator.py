@@ -41,7 +41,7 @@ from discord_slash import (
     ComponentMessage,
 )
 
-from my_utils import AsteroidBot
+from utils import AsteroidBot
 
 
 def calculate(expression: str):
