@@ -3,7 +3,6 @@ import os
 from typing import Union, List
 from re import compile
 
-from aiohttp import ClientSession
 from discord import (
     Attachment,
     Member,
@@ -11,8 +10,6 @@ from discord import (
     Role,
     Guild,
     PublicUserFlags,
-    Webhook,
-    AsyncWebhookAdapter,
     TextChannel,
 )
 from discord_slash import (
@@ -78,6 +75,7 @@ class Misc(Cog):
         embed.set_thumbnail(url=guild.icon_url)
         
         channel = self.bot.get_channel(SystemChannels.SERVERS_UPDATE_CHANNEL)
+        await channel.send(embed=embed)
 
     @Cog.listener()
     async def on_guild_remove(self, guild: Guild):
@@ -92,6 +90,7 @@ class Misc(Cog):
         embed.set_thumbnail(url=guild.icon_url)
         
         channel = self.bot.get_channel(SystemChannels.SERVERS_UPDATE_CHANNEL)
+        await channel.send(embed=embed)
 
     @Cog.listener()
     async def on_slash_command(self, ctx: SlashContext):
@@ -103,11 +102,12 @@ class Misc(Cog):
             color=DiscordColors.EMBED_COLOR,
             timestamp=datetime.utcnow(),
         )
-        embed.set_author(
-            name=f"{ctx.author.name} | {ctx.author_id}", icon_url=ctx.author.avatar_url
+        embed.set_footer(
+            text=f"{ctx.author.name} | {ctx.author_id}", icon_url=ctx.author.avatar_url
         )
         if ctx.kwargs:
-            embed.add_field(name="Options", value=ctx.kwargs)
+            options = "\n".join([f"{option}: {value}" for option, value in ctx.kwargs.items()])
+            embed.add_field(name="Options", value=options)
         if ctx.guild:
             embed.add_field(
                 name="Guild Information",
