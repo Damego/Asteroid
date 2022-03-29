@@ -4,7 +4,7 @@ import json
 from os import remove, environ
 from random import choice, randint
 
-from discord import Embed, Member, Forbidden, File, VoiceChannel
+from discord import ChannelType, Embed, Member, Forbidden, File, VoiceChannel
 from discord_slash import (
     SlashContext,
     SlashCommandOptionType,
@@ -222,16 +222,16 @@ class Fun(Cog):
         base="fun", name="random_num", description="Generate random number"
     )
     @is_enabled()
-    async def random_num(self, ctx: SlashContext, _from: int, _to: int):
+    async def random_num(self, ctx: SlashContext, start: int, end: int):
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("FUNC_RANDOM_NUMBER_OUT_CONTENT", lang)
 
-        random_number = randint(_from, _to)
+        random_number = randint(start, end)
         await ctx.reply(content.format(random_number))
 
     @slash_subcommand(base="fun", name="qr", description="Create a QR-code")
     @is_enabled()
-    async def create_qr(self, ctx: SlashContext, *, text):
+    async def create_qr(self, ctx: SlashContext, text: str):
         qr = qrcode.QRCode(
             version=None,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -265,6 +265,7 @@ class Fun(Cog):
                 description="Choose voice channel",
                 required=False,
                 option_type=SlashCommandOptionType.CHANNEL,
+                channel_types=[ChannelType.voice]
             ),
         ],
     )
