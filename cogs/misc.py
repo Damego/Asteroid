@@ -129,8 +129,6 @@ class Misc(Cog):
         general_info_title_text = content["GENERAL_INFO_TITLE"]
 
         is_bot = "<:discord_bot_badge:924198977367318548>" if member.bot else ""
-        user_badges = self._get_user_badges(member.public_flags)
-        badges_text = f"**{content['BADGES_TEXT']}** {user_badges}" if user_badges else ""
         member_status = status.get(str(member.status))
 
         member_roles = [role.mention for role in member.roles if role.name != "@everyone"][::-1]
@@ -149,7 +147,7 @@ class Misc(Cog):
             name=general_info_title_text,
             value=f"""
                 **{content['FULL_NAME_TEXT']}** {member} {is_bot}
-                {badges_text}
+
                 **{content['DISCORD_REGISTRATION_TEXT']}** <t:{int(member.created_at.timestamp())}:F>
                 **{content['JOINED_ON_SERVER_TEXT']}** <t:{int(member.joined_at.timestamp())}:F>
                 **{content['CURRENT_STATUS_TEXT']}** {member_status}
