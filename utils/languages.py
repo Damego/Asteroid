@@ -554,6 +554,7 @@ LANGUAGES = {
             "MEMBER_WAS_UNBANNED": "Участник был разбанен",
             "MEMBER_WAS_KICKED": "Участник был кикнут",
             "OWNERSHIP_TRANSFERED": "Владелец комнаты был смёнен",
+            "DONT_HAVE_PRIVATE_ROOM": "У вас нет комнаты",
         },
     },
     "English": {
@@ -985,6 +986,7 @@ LANGUAGES = {
             "MEMBER_WAS_UNBANNED": "Member was unbanned",
             "MEMBER_WAS_KICKED": "Member was kicked",
             "OWNERSHIP_TRANSFERED": "Room ownership was changed",
+            "DONT_HAVE_PRIVATE_ROOM": "You don't have a room!",
         },
     },
 }
