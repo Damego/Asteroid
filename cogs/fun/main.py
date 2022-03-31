@@ -265,7 +265,7 @@ class Fun(Cog):
                 description="Choose voice channel",
                 required=False,
                 option_type=SlashCommandOptionType.CHANNEL,
-                channel_types=[ChannelType.voice]
+                channel_types=[ChannelType.voice],
             ),
         ],
     )

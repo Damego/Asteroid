@@ -17,7 +17,7 @@ from utils import (
     get_content,
     Cog,
     is_enabled,
-    GuildTag
+    GuildTag,
 )
 from utils.errors import TagNotFound, NotTagOwner, TagsIsPrivate
 

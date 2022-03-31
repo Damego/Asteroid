@@ -96,7 +96,6 @@ class GenshinStats(Cog):
             color=await self.bot.get_embed_color(ctx.guild_id),
         )
         embed.set_footer(text=f"UID: {uid}")
-
         for region in user_explorations:
             if region.explored == 0.0:
                 continue

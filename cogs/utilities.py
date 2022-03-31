@@ -37,8 +37,8 @@ from utils import (
     NoData,
     DiscordColors,
     SystemChannels,
-    GuildData, 
-    GuildStarboard
+    GuildData,
+    GuildStarboard,
 )
 
 

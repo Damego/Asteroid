@@ -38,7 +38,7 @@ from utils import (
     paginator,
     bot_owner_or_permissions,
     SystemChannels,
-    DiscordColors
+    DiscordColors,
 )
 from .levels._levels import formula_of_experience
 
@@ -72,7 +72,7 @@ class Misc(Cog):
         )
         embed = Embed(title="Новый сервер!", description=guild_info, color=0x00FF00)
         embed.set_thumbnail(url=guild.icon_url)
-        
+
         channel = self.bot.get_channel(SystemChannels.SERVERS_UPDATE_CHANNEL)
         await channel.send(embed=embed)
 
@@ -87,14 +87,16 @@ class Misc(Cog):
 
         embed = Embed(title="Минус сервак!", description=guild_info, color=0xFF0000)
         embed.set_thumbnail(url=guild.icon_url)
-        
+
         channel = self.bot.get_channel(SystemChannels.SERVERS_UPDATE_CHANNEL)
         await channel.send(embed=embed)
 
     @Cog.listener()
     async def on_slash_command(self, ctx: SlashContext):
         if self.slash_use_channel is None:
-            self.slash_use_channel = self.bot.get_channel(SystemChannels.COMMANDS_USING_CHANNEL)
+            self.slash_use_channel = self.bot.get_channel(
+                SystemChannels.COMMANDS_USING_CHANNEL
+            )
 
         embed = Embed(
             title=self.bot.get_transformed_command_name(ctx),
@@ -105,7 +107,9 @@ class Misc(Cog):
             text=f"{ctx.author.name} | {ctx.author_id}", icon_url=ctx.author.avatar_url
         )
         if ctx.kwargs:
-            options = "\n".join([f"{option}: {value}" for option, value in ctx.kwargs.items()])
+            options = "\n".join(
+                [f"{option}: {value}" for option, value in ctx.kwargs.items()]
+            )
             embed.add_field(name="Options", value=options)
         if ctx.guild:
             embed.add_field(
@@ -115,7 +119,9 @@ class Misc(Cog):
 
         await self.slash_use_channel.send(embed=embed)
 
-    @slash_subcommand(base="info", name="user", description="Shows information about guild member")
+    @slash_subcommand(
+        base="info", name="user", description="Shows information about guild member"
+    )
     @is_enabled()
     async def get_member_information_slash(
         self, ctx: SlashContext, member: Member = None
@@ -248,10 +254,11 @@ class Misc(Cog):
     @is_enabled()
     async def bot_info(self, ctx: SlashContext):
         await ctx.defer()
-        content = get_content("BOT_INFO_COMMAND", lang=await self.bot.get_guild_bot_lang(ctx.guild_id))
+        content = get_content(
+            "BOT_INFO_COMMAND", lang=await self.bot.get_guild_bot_lang(ctx.guild_id)
+        )
         embed = Embed(
-            title=content["BOT_INFORMATION_TITLE"],
-            color=DiscordColors.EMBED_COLOR
+            title=content["BOT_INFORMATION_TITLE"], color=DiscordColors.EMBED_COLOR
         )
 
         commits = self._format_commits()
@@ -260,16 +267,16 @@ class Misc(Cog):
         embed.add_field(
             name=content["GENERAL_INFORMATION"],
             value=f"{content['CREATED_AT']} <t:{int(self.bot.user.created_at.timestamp())}:F>\n"
-                f"{content['SERVERS_COUNT']} `{len(self.bot.guilds)}`\n"
-                f"{content['USERS_COUNT']} `{users_count}`"
+            f"{content['SERVERS_COUNT']} `{len(self.bot.guilds)}`\n"
+            f"{content['USERS_COUNT']} `{users_count}`",
         )
         embed.add_field(
-            name=content['TECHNICAL_INFORMATION'],
+            name=content["TECHNICAL_INFORMATION"],
             value=f"{content['BOT_VERSION']} `v2`\n"
-                f"{content['LINES_OF_CODE']} `{self.project_lines_count}`\n"
-                f"{content['LIBRARIES']}\n"
-                "・ `discord.py v1.7.3`\n"
-                "・ custom `discord-py-interactions v3`\n"
+            f"{content['LINES_OF_CODE']} `{self.project_lines_count}`\n"
+            f"{content['LIBRARIES']}\n"
+            "・ `discord.py v1.7.3`\n"
+            "・ custom `discord-py-interactions v3`\n",
         )
 
         await ctx.send(embed=embed)

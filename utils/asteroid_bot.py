@@ -10,7 +10,6 @@ from github import Github
 from utils.database.mongo import Mongo
 
 
-
 class AsteroidBot(Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -23,7 +22,9 @@ class AsteroidBot(Bot):
 
         self.github_client = Github(getenv("GITHUB_TOKEN"))
         self.github_repo = self.github_client.get_repo("Damego/Asteroid-Discord-Bot")
-        self.github_repo_commits = list(self.github_repo.get_commits(until=today, since=delta_7))
+        self.github_repo_commits = list(
+            self.github_repo.get_commits(until=today, since=delta_7)
+        )
 
         self.add_listener(self.on_ready, "on_ready")
         self._load_extensions()

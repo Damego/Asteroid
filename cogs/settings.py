@@ -120,7 +120,9 @@ class Settings(Cog):
     def __update_commits_cache(self):
         today = datetime.now(timezone.utc)
         delta_7 = today - timedelta(days=7)
-        self.bot.github_repo_commits = list(self.bot.github_repo.get_commits(until=today, since=delta_7))
+        self.bot.github_repo_commits = list(
+            self.bot.github_repo.get_commits(until=today, since=delta_7)
+        )
 
     @staticmethod
     async def run_shell(command: str):
