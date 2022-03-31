@@ -112,6 +112,17 @@ LANGUAGES = {
             "NOTE_DELETE": "Удаляет заметку",
             "NOTE_LIST": "Показывает список ваших заметок",
             "GLOBAL_MUSIC_PLAYLIST": "Делает ваш плейлист глобальным. Вы можете слушать ваш плейлист где угодно!",
+            "PRIVATE_ROOMS_CREATE_MENU": "Создаёт каналы для приватных комнат",
+            "PRIVATE_ROOMS_CONTROL_CLOSE": "Закрыть комнату",
+            "PRIVATE_ROOMS_CONTROL_OPEN": "Открыть комнату",
+            "PRIVATE_ROOMS_CONTROL_HIDE": "Спрятать комнату",
+            "PRIVATE_ROOMS_CONTROL_UNHIDE": "Раскрыть комнату",
+            "PRIVATE_ROOMS_CONTROL_CHANGE_NAME": "Изменить название комнаты",
+            "PRIVATE_ROOMS_CONTROL_BAN": "Забанить участника для комнаты",
+            "PRIVATE_ROOMS_CONTROL_UNBAN": "Разбанить участника для комнаты",
+            "PRIVATE_ROOMS_CONTROL_KICK": "Кикнуть участника из комнаты",
+            "PRIVATE_ROOMS_CONTROL_TRANSFER_OWNERSHIP": "Передать право пользования комнаты",
+            "PRIVATE_ROOMS_CONTROL_SET_LIMIT": "Установить лимит комнаты",
         },
         "ERRORS_DESCRIPTIONS": {
             "COG_DISABLED": "Эта команда отключена на этом сервере!",
@@ -428,6 +439,7 @@ LANGUAGES = {
                 "MUSIC": "Музыка",
                 "TAGS": "Теги",
                 "UTILITIES": "Утилиты",
+                "PRIVATEROOMS": "Приватные комнаты",
             },
         },
         "STARBOARD_FUNCTIONS": {
@@ -501,6 +513,46 @@ LANGUAGES = {
             "NOTE_DELETED": "Заметка удалена!",
             "USER_NOTE_LIST": "Заметки {}",
             "JUMP_TO": "Перейти к сообщению",
+        },
+        "PRIVATE_VOICE": {
+            "PRIVATE_ROOMS": "Приватные комнаты",
+            "CREATE_ROOM": "Создать комнату",
+            "ROOM_CONTROL": "Управление комнатой",
+            "ROOM_CONTROL_TITLE": "Управление приватной комнатой",
+            "ROOM_CONTROL_DESCRIPTION": "**Чтобы управлять приватной комнатой, вы можете: \n"
+            "1. Нажимать на специальные кнопки.\n"
+            "2. Использовать специальные команды `/private_voice room`.\n"
+            "3. Менять настройки канала напрямую.** \n"
+            "Вы можете настроить комнату, когда она у вас есть.\n\n"
+            "<:lock_close:959124362840113182> — `Закрыть комнату` \n"
+            "<:lock_open:959124362890461254> — `Открыть комнату` \n"
+            "<:eye_close:959124362890461325> — `Спрятать комнату` \n"
+            "<:eye:959124362890473582> — `Раскрыть комнату` \n"
+            "<:pencil:959124362798174319> — `Изменить название комнаты` \n"
+            "<:minus:959124362835931236> — `Забанить участника для комнаты` \n"
+            "<:plus:959124362882068550> — `Разбанить участника для комнаты` \n"
+            "<:lightning:959124362974343169> — `Кикнуть участника из комнаты` \n"
+            "<:crown:959124362823340052> — `Передать управление комнатой` \n"
+            "<:pencil_2:959124362835927080> — `Установить лимит комнаты`",
+            "SUCCESSFULLY_CREATED": "Приватные комнаты созданы!",
+            "DONT_HAVE_PRIVATE_ROOM": "У вас нет комнаты",
+            "ROOM_CLOSED": "Комната закрыта",
+            "ROOM_OPENED": "Комната открыта",
+            "ROOM_HIDED": "Комната спрятана",
+            "ROOM_UNHIDED": "Комната раскрыта",
+            "PRIVATE_ROOM_CONTROL_MODAL": "Управление приватной комнатой",
+            "ROOM_NAME": "Название комнаты",
+            "MEMBER_ID": "ID участника",
+            "REMOVE_LIMIT": "Удалить лимит",
+            "SETUP_ROOM_LIMIT": "Установите лимит комнаты с помощью меню",
+            "LIMIT_WAS_SETUP": "Лимит комнаты был установлен",
+            "ROOM_NAME_WAS_SETUP": "Название комнаты было изменено",
+            "NOT_ID": "Вы ввели не ID",
+            "NOT_MEMBER_ID": "Участник с таким ID не найден",
+            "MEMBER_WAS_BANNED": "Участник был забанен",
+            "MEMBER_WAS_UNBANNED": "Участник был разбанен",
+            "MEMBER_WAS_KICKED": "Участник был кикнут",
+            "OWNERSHIP_TRANSFERED": "Владелец комнаты был смёнен",
         },
     },
     "English": {
@@ -891,6 +943,46 @@ LANGUAGES = {
             "NOTE_DELETED": "Note deleted!",
             "USER_NOTE_LIST": "Notes {}",
             "JUMP_TO": "Jump To Message",
+        },
+        "PRIVATE_VOICE": {
+            "PRIVATE_ROOMS": "Private Rooms",
+            "CREATE_ROOM": "Create Room",
+            "ROOM_CONTROL": "Room Control",
+            "ROOM_CONTROL_TITLE": "Private Room Control",
+            "ROOM_CONTROL_DESCRIPTION": "**To control your room you can: \n"
+            "1. Press the following buttons.\n"
+            "2. Use special command `/private_voice room`.\n"
+            "3. Control from discord settings.** \n"
+            "You can only use them when you have a private channel.\n\n"
+            "<:lock_close:959124362840113182> — `Сlose your room` \n"
+            "<:lock_open:959124362890461254> — `Open your room` \n"
+            "<:eye_close:959124362890461325> — `Hide your room` \n"
+            "<:eye:959124362890473582> — `Unhide your room` \n"
+            "<:pencil:959124362798174319> — `Change room name` \n"
+            "<:minus:959124362835931236> — `Ban a person in a room` \n"
+            "<:plus:959124362882068550> — `Unban a person in a room` \n"
+            "<:lightning:959124362974343169> — `Kick a person in a room` \n"
+            "<:crown:959124362823340052> — `Transfer room owner` \n"
+            "<:pencil_2:959124362835927080> — `Set room limit`",
+            "SUCCESSFULLY_CREATED": "Private rooms created!",
+            "DONT_HAVE_PRIVATE_ROOM": "You don't have a room!",
+            "ROOM_CLOSED": "Room closed",
+            "ROOM_OPENED": "Room opened",
+            "ROOM_HIDED": "Room hided",
+            "ROOM_UNHIDED": "Room unhided",
+            "PRIVATE_ROOM_CONTROL_MODAL": "Private Room Menu",
+            "ROOM_NAME": "Room name",
+            "MEMBER_ID": "Member ID",
+            "REMOVE_LIMIT": "Remove limit",
+            "SETUP_ROOM_LIMIT": "Setup room limit by clicking on select menu",
+            "LIMIT_WAS_SETUP": "Limit was setup",
+            "ROOM_NAME_WAS_SETUP": "Room name was changed",
+            "NOT_ID": "You did not enter an ID",
+            "NOT_MEMBER_ID": "Member with this ID not found!",
+            "MEMBER_WAS_BANNED": "Member was banned",
+            "MEMBER_WAS_UNBANNED": "Member was unbanned",
+            "MEMBER_WAS_KICKED": "Member was kicked",
+            "OWNERSHIP_TRANSFERED": "Room ownership was changed",
         },
     },
 }

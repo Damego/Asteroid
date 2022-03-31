@@ -19,6 +19,7 @@ class GuildData:
         self.__raw_users_data = data["users"]
         self.guild_id = guild_id
         self.configuration: GuildConfiguration = None
+        self.private_voice: GuildPrivateVoice = None
         self.starboard: GuildStarboard = None
         self.tags: List[GuildTag] = []
         self.cogs_data: Dict[str, Dict[str, str]] = {}
@@ -49,8 +50,24 @@ class GuildData:
                 self.roles_by_level = document
             elif document["_id"] == "voice_time":
                 self.users_voice_time = document
+            elif document["_id"] == "private_voice":
+                self.private_voice = GuildPrivateVoice(self._main_collection, document)
 
         self.users = [GuildUser(self._users_collection, user) for user in data["users"]]
+
+    async def create_private_voice(self, text_channel_id: int, voice_channel_id: int):
+        data = {
+            "text_channel_id": text_channel_id,
+            "voice_channel_id": voice_channel_id,
+            "active_channels": {},
+        }
+
+        await self._main_collection.update_one(
+            {"_id": "private_voice"},
+            {OperatorType.SET.value: data},
+            upsert=True,
+        )
+        self.private_voice = GuildPrivateVoice(self._main_collection, data)
 
     async def add_user_to_voice(self, user_id: int):
         _time = int(time())
@@ -553,3 +570,26 @@ class GuildUser:
         await self._update(OperatorType.UNSET, {f"music_playlists.{playlist}": ""})
         if playlist in self._music_playlists:
             del self._music_playlists[playlist]
+
+
+class GuildPrivateVoice:
+    def __init__(self, connection, data: dict) -> None:
+        self._connection = connection
+        self.text_channel_id: int = data.get("text_channel_id")
+        self.voice_channel_id: int = data.get("voice_channel_id")
+        self.active_channels: dict = data.get("active_channels", {})
+
+    async def _update(self, type: OperatorType, data: dict):
+        await self._connection.update_one({"_id": "private_voice"}, {type.value: data}, upsert=True)
+
+    async def set_private_voice_channel(
+        self,
+        member_id: int,
+        channel_id: int,
+    ):
+        await self._update(OperatorType.SET, {f"active_channels.{member_id}": channel_id})
+        self.active_channels[str(member_id)] = channel_id
+
+    async def delete_private_voice_channel(self, member_id: int):
+        await self._update(OperatorType.UNSET, {f"active_channels.{member_id}": ""})
+        del self.active_channels[str(member_id)]

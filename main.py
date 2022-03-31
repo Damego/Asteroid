@@ -14,10 +14,10 @@ from discord_slash import SlashContext
 from dotenv import load_dotenv
 from genshin.errors import AccountNotFound, DataNotPublic
 
-from utils import SystemChannels  # noqa: F401
-from utils import (
+from utils import (  # noqa: F401
     AsteroidBot,
     DiscordColors,
+    SystemChannels,
     errors,
     get_content,
     slash_override,
