@@ -24,7 +24,7 @@ from utils import (  # noqa: F401
     transform_permission,
 )
 
-bot = AsteroidBot(command_prefix="+", intents=Intents.all())
+bot = AsteroidBot(command_prefix="asteroid!", intents=Intents.all())
 
 
 # EVENTS
