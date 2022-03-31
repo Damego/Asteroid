@@ -523,7 +523,7 @@ LANGUAGES = {
             "ROOM_CONTROL_TITLE": "Управление приватной комнатой",
             "ROOM_CONTROL_DESCRIPTION": "**Чтобы управлять приватной комнатой, вы можете: \n"
             "1. Нажимать на специальные кнопки.\n"
-            "2. Использовать специальные команды `/private_voice room`.\n"
+            "2. Использовать специальные команды `/private_rooms control`.\n"
             "3. Менять настройки канала напрямую.** \n"
             "Вы можете настроить комнату, когда она у вас есть.\n\n"
             "<:lock_close:959124362840113182> — `Закрыть комнату` \n"
@@ -954,7 +954,7 @@ LANGUAGES = {
             "ROOM_CONTROL_TITLE": "Private Room Control",
             "ROOM_CONTROL_DESCRIPTION": "**To control your room you can: \n"
             "1. Press the following buttons.\n"
-            "2. Use special command `/private_voice room`.\n"
+            "2. Use special command `/private_rooms control`.\n"
             "3. Control from discord settings.** \n"
             "You can only use them when you have a private channel.\n\n"
             "<:lock_close:959124362840113182> — `Сlose your room` \n"
