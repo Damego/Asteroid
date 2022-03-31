@@ -1,29 +1,28 @@
-from os import getenv
 from datetime import datetime
-from traceback import *
-from sys import exc_info
+from os import getenv
+from traceback import format_exception
 
-from discord import Guild, Intents, Embed, Forbidden
+from discord import Embed, Forbidden, Guild, Intents
 from discord.ext.commands import (
-    NotOwner,
-    BotMissingPermissions,
-    MissingPermissions,
-    CheckFailure,
     BadArgument,
+    BotMissingPermissions,
+    CheckFailure,
+    MissingPermissions,
+    NotOwner,
 )
 from discord_slash import SlashContext
 from dotenv import load_dotenv
-from genshin.errors import DataNotPublic, AccountNotFound
+from genshin.errors import AccountNotFound, DataNotPublic
 
+from utils import SystemChannels  # noqa: F401
 from utils import (
     AsteroidBot,
-    get_content,
-    transform_permission,
-    SystemChannels,
     DiscordColors,
+    errors,
+    get_content,
+    slash_override,
+    transform_permission,
 )
-from utils.errors import *
-from utils import slash_override
 
 bot = AsteroidBot(command_prefix="+", intents=Intents.all())
 
@@ -58,31 +57,31 @@ async def on_slash_command_error(ctx: SlashContext, error):
         lang = await bot.get_guild_bot_lang(ctx.guild_id)
     content = get_content("ERRORS_DESCRIPTIONS", lang)
 
-    if isinstance(error, CogDisabledOnGuild):
+    if isinstance(error, errors.CogDisabledOnGuild):
         desc = content["COG_DISABLED"]
-    elif isinstance(error, CommandDisabled):
+    elif isinstance(error, errors.CommandDisabled):
         desc = content["COMMAND_DISABLED"]
-    elif isinstance(error, NoData):
+    elif isinstance(error, errors.NoData):
         desc = content["NO_DATA_FOUND"]
-    elif isinstance(error, TagNotFound):
+    elif isinstance(error, errors.TagNotFound):
         desc = content["TAG_NOT_FOUND"]
-    elif isinstance(error, ForbiddenTag):
+    elif isinstance(error, errors.ForbiddenTag):
         desc = content["FORBIDDEN_TAG"]
-    elif isinstance(error, NotTagOwner):
+    elif isinstance(error, errors.NotTagOwner):
         desc = content["NOT_TAG_OWNER"]
-    elif isinstance(error, UIDNotBinded):
+    elif isinstance(error, errors.UIDNotBinded):
         desc = content["UID_NOT_BINDED"]
     elif isinstance(error, AccountNotFound):
         desc = content["GI_ACCOUNT_NOT_FOUND"]
     elif isinstance(error, DataNotPublic):
         desc = content["GI_DATA_NOT_PUBLIC"]
-    elif isinstance(error, BotNotConnectedToVoice):
+    elif isinstance(error, errors.BotNotConnectedToVoice):
         desc = content["BOT_NOT_CONNECTED"]
-    elif isinstance(error, NotConnectedToVoice):
+    elif isinstance(error, errors.NotConnectedToVoice):
         desc = content["NOT_CONNECTED_TO_VOICE_TEXT"]
-    elif isinstance(error, NotPlaying):
+    elif isinstance(error, errors.NotPlaying):
         desc = content["NOT_PLAYING"]
-    elif isinstance(error, NotGuild):
+    elif isinstance(error, errors.NotGuild):
         desc = content["GUILD_ONLY"]
     elif isinstance(error, NotOwner):
         desc = content["NOT_BOT_OWNER"]
@@ -102,9 +101,7 @@ async def on_slash_command_error(ctx: SlashContext, error):
         desc = content["OTHER_ERRORS_DESCRIPTION"].format(error=error)
         embed.title = content["OTHER_ERRORS_TITLE"]
 
-        error_traceback = "".join(
-            format_exception(type(error), error, error.__traceback__)
-        )
+        error_traceback = "".join(format_exception(type(error), error, error.__traceback__))
 
         error_embed = Embed(
             title="Unexpected error",
@@ -140,7 +137,7 @@ async def on_slash_command_error(ctx: SlashContext, error):
     embed.description = desc
     try:
         await ctx.send(embed=embed)
-    except:
+    except Exception:
         await ctx.send(desc)
 
 

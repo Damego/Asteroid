@@ -240,9 +240,7 @@ LANGUAGES = {
             "SERVER": "\n**Сервер:** {guild}",
         },
         "FUNC_MODERATION_CLEAR_MESSAGES": "Успешно удалено `{}` сообщений!",
-        "MOD_COMMANDS_CONTENT": {
-            "NOT_VOICE_CHANNEL_TEXT": "Данный канал не является голосовым!"
-        },
+        "MOD_COMMANDS_CONTENT": {"NOT_VOICE_CHANNEL_TEXT": "Данный канал не является голосовым!"},
         "PUBLIC_TAGS_COMMAND": {
             "TAGS_PUBLIC": "Теги теперь доступны всем!",
             "TAGS_FOR_ADMINS": "Теги теперь могут создавать только те, у кого есть право `Управлять сервером`!",
@@ -262,9 +260,7 @@ LANGUAGES = {
             "MODAL_DESCRIPTION_PLACEHOLDER": "Напишите что-то интересное",
         },
         "TAG_REMOVE_COMMAND": {"TAG_REMOVED_TEXT": "Тег `{tag_name}` успешно удалён!"},
-        "TAG_RENAME_TAG": {
-            "TAG_RENAMED_TEXT": "Тег `{tag_name}` переименован в `{new_tag_name}`!"
-        },
+        "TAG_RENAME_TAG": {"TAG_RENAMED_TEXT": "Тег `{tag_name}` переименован в `{new_tag_name}`!"},
         "MUSIC_COMMANDS": {
             "ADDED_IN_QUEUE_DESCRIPTION_TEXT": "Было добавлено в очередь `{tracks_amount}` трек(ов)!\n{tracks}",
             "ADDED_IN_QUEUE_TITLE_TEXT": "Обновление очереди",
@@ -634,9 +630,7 @@ LANGUAGES = {
             "SERVER": "\n**Server:** {guild}",
         },
         "FUNC_MODERATION_CLEAR_MESSAGES": "Successfully deleted `{}` messages!",
-        "MOD_COMMANDS_CONTENT": {
-            "NOT_VOICE_CHANNEL_TEXT": "This channel is not voice channel!"
-        },
+        "MOD_COMMANDS_CONTENT": {"NOT_VOICE_CHANNEL_TEXT": "This channel is not voice channel!"},
         "PUBLIC_TAGS_COMMAND": {
             "TAGS_PUBLIC": "Tags for now public!",
             "TAGS_FOR_ADMINS": "For now tags only for roles with `Manage Server` permission!",
@@ -651,12 +645,8 @@ LANGUAGES = {
             "MODAL_SET_DESCRIPTION": "Description",
             "MODAL_DESCRIPTION_PLACEHOLDER": "Write something interesting",
         },
-        "TAG_REMOVE_COMMAND": {
-            "TAG_REMOVED_TEXT": "Tag `{tag_name}` successfully removed!"
-        },
-        "TAG_RENAME_TAG": {
-            "TAG_RENAMED_TEXT": "Tag `{tag_name}` renamed to `{new_tag_name}`!"
-        },
+        "TAG_REMOVE_COMMAND": {"TAG_REMOVED_TEXT": "Tag `{tag_name}` successfully removed!"},
+        "TAG_RENAME_TAG": {"TAG_RENAMED_TEXT": "Tag `{tag_name}` renamed to `{new_tag_name}`!"},
         "FUNC_TAG_LIST": {
             "TAGS_LIST_TEXT": "Tags list on {server}",
             "NO_TAGS_TEXT": "No tags in this server!",

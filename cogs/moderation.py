@@ -1,9 +1,9 @@
-from discord import Member, Embed, Role, Forbidden, VoiceChannel
+from discord import Embed, Forbidden, Member, Role, VoiceChannel
 from discord.ext.commands import bot_has_guild_permissions
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
-from utils import AsteroidBot, get_content, Cog, bot_owner_or_permissions
+from utils import AsteroidBot, Cog, bot_owner_or_permissions, get_content
 
 
 class Moderation(Cog):
@@ -59,9 +59,7 @@ class Moderation(Cog):
         except Forbidden:
             return
 
-    @slash_subcommand(
-        base="mod", name="remove_role", description="Remove role of member"
-    )
+    @slash_subcommand(base="mod", name="remove_role", description="Remove role of member")
     @bot_owner_or_permissions(manage_roles=True)
     @bot_has_guild_permissions(manage_roles=True)
     async def remove_role(self, ctx: SlashContext, member: Member, role: Role):
@@ -87,9 +85,7 @@ class Moderation(Cog):
         embed.description = content.format(member.mention, new_nick)
         await ctx.send(embed=embed)
 
-    @slash_subcommand(
-        base="mod", name="clear", description="Deletes messages in channel"
-    )
+    @slash_subcommand(base="mod", name="clear", description="Deletes messages in channel")
     @bot_owner_or_permissions(manage_messages=True)
     @bot_has_guild_permissions(manage_messages=True)
     async def clear(self, ctx: SlashContext, amount: int, member: Member = None):
@@ -100,19 +96,13 @@ class Moderation(Cog):
         content: dict = get_content("FUNC_MODERATION_CLEAR_MESSAGES", lang)
 
         await ctx.defer(hidden=True)
-        deleted_messages = await ctx.channel.purge(
-            limit=amount, check=check if member else None
-        )
+        deleted_messages = await ctx.channel.purge(limit=amount, check=check if member else None)
         await ctx.send(content.format(len(deleted_messages)), hidden=True)
 
-    @slash_subcommand(
-        base="mod", name="move_to", description="Moves member to certain channel"
-    )
+    @slash_subcommand(base="mod", name="move_to", description="Moves member to certain channel")
     @bot_owner_or_permissions(move_members=True)
     @bot_has_guild_permissions(move_members=True)
-    async def move_member_to(
-        self, ctx: SlashContext, member: Member, voice_channel: VoiceChannel
-    ):
+    async def move_member_to(self, ctx: SlashContext, member: Member, voice_channel: VoiceChannel):
         content = get_content(
             "MOD_COMMANDS_CONTENT", lang=await self.bot.get_guild_bot_lang(ctx.guild_id)
         )

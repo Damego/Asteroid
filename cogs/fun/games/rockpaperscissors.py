@@ -1,13 +1,7 @@
 from random import choice
 
 from discord import Embed, Member
-from discord_slash import (
-    SlashContext,
-    ComponentMessage,
-    ComponentContext,
-    Button,
-    ButtonStyle,
-)
+from discord_slash import Button, ButtonStyle, ComponentContext, ComponentMessage, SlashContext
 
 from utils import AsteroidBot, get_content
 
@@ -70,9 +64,7 @@ class RockPaperScissors:
             self.count1, self.count2, round + 1, self.total_rounds
         )
 
-        embed = Embed(
-            title="🪨-✂️-🧾", color=await self.bot.get_embed_color(self.guild_id)
-        )
+        embed = Embed(title="🪨-✂️-🧾", color=await self.bot.get_embed_color(self.guild_id))
         embed.add_field(name=players_text, value=current_score_text)
 
         components = [
@@ -89,9 +81,7 @@ class RockPaperScissors:
             players_choice[self.member.id] = choice(["rock", "paper", "scissors"])
 
         while True:
-            button_ctx: ComponentContext = await self.bot.wait_for(
-                "button_click", check=check
-            )
+            button_ctx: ComponentContext = await self.bot.wait_for("button_click", check=check)
 
             if button_ctx.author_id in players_choice:
                 made_move = self.content["MADE_MOVE_TEXT"]

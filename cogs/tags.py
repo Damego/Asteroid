@@ -1,25 +1,18 @@
 from discord import Embed
 from discord_slash import (
-    SlashContext,
     AutoCompleteContext,
-    SlashCommandOptionType,
     Modal,
     ModalContext,
+    SlashCommandOptionType,
+    SlashContext,
     TextInput,
     TextInputStyle,
 )
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
-from discord_slash.utils.manage_commands import create_option, create_choice
+from discord_slash.utils.manage_commands import create_choice, create_option
 
-from utils import (
-    AsteroidBot,
-    is_administrator_or_bot_owner,
-    get_content,
-    Cog,
-    is_enabled,
-    GuildTag,
-)
-from utils.errors import TagNotFound, NotTagOwner, TagsIsPrivate
+from utils import AsteroidBot, Cog, GuildTag, get_content, is_administrator_or_bot_owner, is_enabled
+from utils.errors import NotTagOwner, TagNotFound, TagsIsPrivate
 
 
 class Tags(Cog):
@@ -237,9 +230,7 @@ class Tags(Cog):
                 is_embed=type == "embed",
                 title=ctx.values["title"] if type == "embed" else "No title",
             )
-            await ctx.send(
-                content["TAG_CREATED_TEXT"].format(tag_name=tag_name), hidden=True
-            )
+            await ctx.send(content["TAG_CREATED_TEXT"].format(tag_name=tag_name), hidden=True)
         elif custom_id == "modal_edit_tag":
             tag = None
             for tag in guild_data.tags:
@@ -248,9 +239,7 @@ class Tags(Cog):
             if type == "embed":
                 await tag.set_title(ctx.values["title"])
             await tag.set_description(ctx.values["description"])
-            await ctx.send(
-                content["TAG_EDITED_TEXT"].format(tag_name=tag_name), hidden=True
-            )
+            await ctx.send(content["TAG_EDITED_TEXT"].format(tag_name=tag_name), hidden=True)
 
     @slash_subcommand(
         base="tag",
@@ -279,9 +268,7 @@ class Tags(Cog):
             raise TagNotFound
         await self._is_can_manage_tags(ctx, tag)
 
-        content = get_content(
-            "TAG_REMOVE_COMMAND", lang=guild_data.configuration.language
-        )
+        content = get_content("TAG_REMOVE_COMMAND", lang=guild_data.configuration.language)
         await ctx.send(content["TAG_REMOVED_TEXT"].format(tag_name=tag_name))
 
     @slash_subcommand(base="tag", name="list", description="Shows list of exists tags")
@@ -343,9 +330,7 @@ class Tags(Cog):
 
         await tag.rename(new_tag_name)
         await ctx.send(
-            content["TAG_RENAMED_TEXT"].format(
-                tag_name=tag_name, new_tag_name=new_tag_name
-            )
+            content["TAG_RENAMED_TEXT"].format(tag_name=tag_name, new_tag_name=new_tag_name)
         )
 
     @slash_subcommand(

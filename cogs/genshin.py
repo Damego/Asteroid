@@ -1,21 +1,15 @@
 import datetime
+
+import genshin
 from discord import Embed
 from discord.ext import tasks
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
-import genshin
 
-from utils import (
-    UIDNotBinded,
-    AsteroidBot,
-    get_content,
-    Cog,
-    is_enabled,
-    SystemChannels,
-)
+from utils import AsteroidBot, Cog, SystemChannels, UIDNotBinded, get_content, is_enabled
 from utils.consts import DiscordColors
 from utils.errors import NoData
-from utils.paginator import PaginatorStyle, Paginator
+from utils.paginator import Paginator, PaginatorStyle
 
 
 class GenshinStats(Cog):
@@ -48,14 +42,10 @@ class GenshinStats(Cog):
             embed.set_thumbnail(url=reward.icon)
             channel = self.bot.get_channel(SystemChannels.GENSHIN_DAILY_REWARDS)
             if channel is None:
-                channel = await self.bot.fetch_channel(
-                    SystemChannels.GENSHIN_DAILY_REWARDS
-                )
+                channel = await self.bot.fetch_channel(SystemChannels.GENSHIN_DAILY_REWARDS)
             await channel.send(embed=embed)
 
-    @slash_subcommand(
-        base="genshin", name="bind", description="Bind Hoyolab UID to your account"
-    )
+    @slash_subcommand(base="genshin", name="bind", description="Bind Hoyolab UID to your account")
     @is_enabled()
     async def bind_uid(self, ctx: SlashContext, hoyolab_uid: int):
         record_card = await self.genshin_client.get_record_card(hoyolab_uid)
@@ -66,9 +56,7 @@ class GenshinStats(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         user_data = await guild_data.get_user(ctx.author_id)
 
-        await user_data.set_genshin_uid(
-            hoyolab_uid=hoyolab_uid, game_uid=record_card.uid
-        )
+        await user_data.set_genshin_uid(hoyolab_uid=hoyolab_uid, game_uid=record_card.uid)
         content = get_content("GENSHIN_BIND_COMMAND", guild_data.configuration.language)
         await ctx.send(content)
 
@@ -102,17 +90,13 @@ class GenshinStats(Cog):
 
             description = f'{content["EXPLORED_TEXT"]}: `{region.explored / 10}%`'
             if region.name == content["Dragonspine"]:
-                description += content["FROSTBEARING_TREE_LEVEL_TEXT"].format(
-                    level=region.level
-                )
+                description += content["FROSTBEARING_TREE_LEVEL_TEXT"].format(level=region.level)
             elif region.name == content["Inazuma"]:
                 description += content["SACRED_SAKURA_LEVEL_TEXT"].format(
                     level=region.offerings[0].level
                 )
             if region.type == "Reputation":
-                description += content["REPUTATION_LEVEL_TEXT"].format(
-                    level=region.level
-                )
+                description += content["REPUTATION_LEVEL_TEXT"].format(level=region.level)
 
             embed.add_field(name=region.name, value=description)
 
@@ -122,9 +106,7 @@ class GenshinStats(Cog):
         <:Item_Electroculus:870989768387878912> {content['ELECTROCULUS']}: `{user_stats.electroculi}/181`
         """
 
-        embed.add_field(
-            name=content["COLLECTED_OCULUS_TEXT"], value=oculus_content, inline=False
-        )
+        embed.add_field(name=content["COLLECTED_OCULUS_TEXT"], value=oculus_content, inline=False)
 
         chests_opened = f"""
         {content['COMMON_CHEST']}: `{user_stats.common_chests}`
@@ -133,9 +115,7 @@ class GenshinStats(Cog):
         {content['LUXURIOUS_CHEST']}: `{user_stats.luxurious_chests}`
         """
 
-        embed.add_field(
-            name=content["CHESTS_OPENED"], value=chests_opened, inline=False
-        )
+        embed.add_field(name=content["CHESTS_OPENED"], value=chests_opened, inline=False)
 
         misc_content = f"""
         <:teleport:871385272376504341> {content['UNLOCKED_TELEPORTS']}: `{user_stats.unlocked_waypoints}/168`
@@ -211,14 +191,10 @@ class GenshinStats(Cog):
             embed = self.get_character_info(content, embed, character)
             embeds.append(embed)
 
-        paginator = Paginator(
-            self.bot, ctx, PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds
-        )
+        paginator = Paginator(self.bot, ctx, PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds)
         await paginator.start()
 
-    @slash_subcommand(
-        base="genshin", name="info", description="Show account information"
-    )
+    @slash_subcommand(base="genshin", name="info", description="Show account information")
     @is_enabled()
     async def info(self, ctx: SlashContext, hoyolab_uid: int = None):
         await ctx.defer()
@@ -259,16 +235,14 @@ class GenshinStats(Cog):
             raise UIDNotBinded
         return uid
 
-    def get_character_info(
-        self, content: dict, embed: Embed, character: genshin.models.Character
-    ):
+    def get_character_info(self, content: dict, embed: Embed, character: genshin.models.Character):
         embed.description = f"""
             {content['INFORMATION_TEXT']}
             » <:character_exp:871389287978008616> {content['CHARACTER_LEVEL']}: `{character.level}`
             » {content['CHARACTER_CONSTELLATION']}: `C{character.constellation}`
             » {content['CHARACTER_VISION']}: {content['GENSHIN_CHARACTER_VISION'][character.element]}
             » <:friendship_exp:871389291740291082> {content['CHARACTER_FRIENDSHIP']}: `{character.friendship}`
-            
+
             **{content['WEAPON_TEXT']}**
             » {content['WEAPON_NAME']}: `{character.weapon.name}`
             » {content['WEAPON_RARITY']}: `{"⭐" * character.weapon.rarity}`

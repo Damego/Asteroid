@@ -1,10 +1,10 @@
-from os import listdir, getenv
+from datetime import datetime, timedelta, timezone
+from os import getenv, listdir
 from typing import Union
 
 from aiohttp import ClientSession
-from datetime import datetime, timedelta, timezone
 from discord.ext.commands import Bot
-from discord_slash import SlashCommand, SlashContext, MenuContext
+from discord_slash import MenuContext, SlashCommand, SlashContext
 from github import Github
 
 from utils.database.mongo import Mongo
@@ -22,9 +22,7 @@ class AsteroidBot(Bot):
 
         self.github_client = Github(getenv("GITHUB_TOKEN"))
         self.github_repo = self.github_client.get_repo("Damego/Asteroid-Discord-Bot")
-        self.github_repo_commits = list(
-            self.github_repo.get_commits(until=today, since=delta_7)
-        )
+        self.github_repo_commits = list(self.github_repo.get_commits(until=today, since=delta_7))
 
         self.add_listener(self.on_ready, "on_ready")
         self._load_extensions()
@@ -37,12 +35,8 @@ class AsteroidBot(Bot):
         self._get_invite_link()
 
     def _get_invite_link(self):
-        self.no_perms_invite_link = self.__default_invite_link.format(
-            bot_id=self.user.id, scope=0
-        )
-        self.admin_invite_link = self.__default_invite_link.format(
-            bot_id=self.user.id, scope=8
-        )
+        self.no_perms_invite_link = self.__default_invite_link.format(bot_id=self.user.id, scope=0)
+        self.admin_invite_link = self.__default_invite_link.format(bot_id=self.user.id, scope=8)
         self.recommended_invite_link = self.__default_invite_link.format(
             bot_id=self.user.id, scope=506850391
         )

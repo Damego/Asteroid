@@ -1,26 +1,20 @@
-from discord import Role, Embed, Member
+from discord import Embed, Member, Role
 from discord.ext.commands import BadArgument
 from discord_slash import (
     AutoCompleteContext,
-    SlashContext,
-    SlashCommandOptionType,
+    Button,
+    ButtonStyle,
     ComponentContext,
     ComponentMessage,
     Select,
     SelectOption,
-    Button,
-    ButtonStyle,
+    SlashCommandOptionType,
+    SlashContext,
 )
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
-from discord_slash.utils.manage_commands import create_option, create_choice
+from discord_slash.utils.manage_commands import create_choice, create_option
 
-from utils import (
-    AsteroidBot,
-    get_content,
-    Cog,
-    bot_owner_or_permissions,
-    is_enabled,
-)
+from utils import AsteroidBot, Cog, bot_owner_or_permissions, get_content, is_enabled
 
 
 class AutoRole(Cog):
@@ -66,9 +60,7 @@ class AutoRole(Cog):
             else:
                 return
 
-            select_options = [
-                option["label"] for option in autorole.component["options"]
-            ]
+            select_options = [option["label"] for option in autorole.component["options"]]
             choices = [
                 create_choice(name=option_name, value=option_name)
                 for option_name in select_options
@@ -76,8 +68,7 @@ class AutoRole(Cog):
             ][:25]
         elif ctx.focused_option == "role":
             on_join_roles = [
-                ctx.guild.get_role(role_id)
-                for role_id in guild_data.configuration.on_join_roles
+                ctx.guild.get_role(role_id) for role_id in guild_data.configuration.on_join_roles
             ]
             choices = [
                 create_choice(name=role.name, value=str(role.id))
@@ -120,9 +111,7 @@ class AutoRole(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         await guild_data.configuration.add_on_join_role(role.id)
 
-        content: dict = get_content(
-            "AUTOROLE_ON_JOIN", guild_data.configuration.language
-        )
+        content: dict = get_content("AUTOROLE_ON_JOIN", guild_data.configuration.language)
         await ctx.send(content["ROLE_ADDED_TEXT"].format(role=role.mention))
 
     @slash_subcommand(
@@ -148,9 +137,7 @@ class AutoRole(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         await guild_data.configuration.delete_on_join_role(int(role))
 
-        content: dict = get_content(
-            "AUTOROLE_ON_JOIN", guild_data.configuration.language
-        )
+        content: dict = get_content("AUTOROLE_ON_JOIN", guild_data.configuration.language)
         role = ctx.guild.get_role(int(role))
         await ctx.send(content["ROLE_REMOVED_TEXT"].format(role=role.mention))
 
@@ -201,14 +188,10 @@ class AutoRole(Cog):
     ):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
 
-        content: dict = get_content(
-            "AUTOROLE_DROPDOWN", guild_data.configuration.language
-        )
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
         components = [
             Select(
-                placeholder=placeholder
-                if placeholder is not None
-                else content["NO_OPTIONS_TEXT"],
+                placeholder=placeholder if placeholder is not None else content["NO_OPTIONS_TEXT"],
                 options=[SelectOption(label="None", value="None")],
                 disabled=True,
                 custom_id="autorole_select",
@@ -247,9 +230,7 @@ class AutoRole(Cog):
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
             ),
-            create_option(
-                name="role", description="Role for option", option_type=8, required=True
-            ),
+            create_option(name="role", description="Role for option", option_type=8, required=True),
             create_option(
                 name="emoji",
                 description="The emoji for option",
@@ -276,9 +257,7 @@ class AutoRole(Cog):
         description: str = None,
     ):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content: dict = get_content(
-            "AUTOROLE_DROPDOWN", guild_data.configuration.language
-        )
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
         autoroles = guild_data.autoroles
         if autoroles is None:
@@ -292,9 +271,7 @@ class AutoRole(Cog):
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
         message_id = autorole.message_id
 
-        original_message: ComponentMessage = await ctx.channel.fetch_message(
-            int(message_id)
-        )
+        original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
         if not original_message.components:
             return await ctx.send(content["MESSAGE_WITHOUT_DROPDOWN_TEXT"], hidden=True)
 
@@ -360,13 +337,9 @@ class AutoRole(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_dropdown_remove_role(
-        self, ctx: SlashContext, name: str, option: str
-    ):
+    async def autorole_dropdown_remove_role(self, ctx: SlashContext, name: str, option: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content: dict = get_content(
-            "AUTOROLE_DROPDOWN", guild_data.configuration.language
-        )
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
         autoroles = guild_data.autoroles
         if autoroles is None:
@@ -379,9 +352,7 @@ class AutoRole(Cog):
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
         message_id = autorole.message_id
 
-        original_message: ComponentMessage = await ctx.channel.fetch_message(
-            int(message_id)
-        )
+        original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
         if not original_message.components:
             return await ctx.send(content["MESSAGE_WITHOUT_DROPDOWN_TEXT"])
 
@@ -434,13 +405,9 @@ class AutoRole(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_dropdown_set_status(
-        self, ctx: SlashContext, name: str, status: str
-    ):
+    async def autorole_dropdown_set_status(self, ctx: SlashContext, name: str, status: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content: dict = get_content(
-            "AUTOROLE_DROPDOWN", guild_data.configuration.language
-        )
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
         autoroles = guild_data.autoroles
         if autoroles is None:
@@ -453,9 +420,7 @@ class AutoRole(Cog):
             return await ctx.send(content["DROPDOWN_NOT_FOUND"])
         message_id = autorole.message_id
 
-        original_message: ComponentMessage = await ctx.channel.fetch_message(
-            int(message_id)
-        )
+        original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
         if not original_message.components:
             return await ctx.send(content["MESSAGE_WITHOUT_DROPDOWN_TEXT"], hidden=True)
 
@@ -492,9 +457,7 @@ class AutoRole(Cog):
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_load(self, ctx: SlashContext, name: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content: dict = get_content(
-            "AUTOROLE_DROPDOWN", guild_data.configuration.language
-        )
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
         autoroles = guild_data.autoroles
         if autoroles is None:
@@ -521,9 +484,7 @@ class AutoRole(Cog):
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_list(self, ctx: SlashContext):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content: dict = get_content(
-            "AUTOROLE_DROPDOWN", guild_data.configuration.language
-        )
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
         autoroles = guild_data.autoroles
         if autoroles is None:
@@ -559,9 +520,7 @@ class AutoRole(Cog):
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_dropdown_delete(self, ctx: SlashContext, name: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content: dict = get_content(
-            "AUTOROLE_DROPDOWN", guild_data.configuration.language
-        )
+        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
         autoroles = guild_data.autoroles
         if autoroles is None:
@@ -616,14 +575,10 @@ class AutoRole(Cog):
         role = ctx.guild.get_role(int(role_id))
         if role in ctx.author.roles:
             await ctx.author.remove_roles(role)
-            await ctx.send(
-                content["EVENT_REMOVED_ROLE_TEXT"].format(role.mention), hidden=True
-            )
+            await ctx.send(content["EVENT_REMOVED_ROLE_TEXT"].format(role.mention), hidden=True)
         else:
             await ctx.author.add_roles(role)
-            await ctx.send(
-                content["EVENT_ADDED_ROLE_TEXT"].format(role.mention), hidden=True
-            )
+            await ctx.send(content["EVENT_ADDED_ROLE_TEXT"].format(role.mention), hidden=True)
 
     @slash_subcommand(
         base="autorole",
@@ -633,9 +588,7 @@ class AutoRole(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_button_create(
-        self, ctx: SlashContext, name: str, message_content: str
-    ):
+    async def autorole_button_create(self, ctx: SlashContext, name: str, message_content: str):
         await ctx.defer(hidden=True)
 
         message = await ctx.channel.send(message_content)
@@ -665,9 +618,7 @@ class AutoRole(Cog):
                 required=True,
                 autocomplete=True,
             ),
-            create_option(
-                name="role", description="Role", option_type=8, required=True
-            ),
+            create_option(name="role", description="Role", option_type=8, required=True),
             create_option(
                 name="label",
                 description="The label of button",
@@ -748,9 +699,7 @@ class AutoRole(Cog):
         await original_message.edit(components=original_components)
         await ctx.send(content["COMMAND_ROLE_ADDED_TEXT"], hidden=True)
 
-        await autorole.update_component(
-            [actionrow.to_dict() for actionrow in original_components]
-        )
+        await autorole.update_component([actionrow.to_dict() for actionrow in original_components])
 
     @slash_subcommand(
         base="autorole",
@@ -776,9 +725,7 @@ class AutoRole(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_button_remove_role(
-        self, ctx: SlashContext, name: str, label: str
-    ):
+    async def autorole_button_remove_role(self, ctx: SlashContext, name: str, label: str):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("AUTOROLE_BUTTON", guild_data.configuration.language)
@@ -819,9 +766,7 @@ class AutoRole(Cog):
         await original_message.edit(components=original_components)
         await ctx.send(content["COMMAND_ROLE_REMOVED_TEXT"], hidden=True)
 
-        await autorole.update_component(
-            [actionrow.to_dict() for actionrow in original_components]
-        )
+        await autorole.update_component([actionrow.to_dict() for actionrow in original_components])
 
     def get_emoji(self, emoji: str):
         if emoji.startswith("<"):

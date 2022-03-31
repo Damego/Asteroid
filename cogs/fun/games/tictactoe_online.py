@@ -3,16 +3,9 @@ from enum import IntEnum
 from typing import List
 
 from discord import Embed, Member
-from discord_slash import (
-    SlashContext,
-    ComponentMessage,
-    ComponentContext,
-    Button,
-    ButtonStyle,
-)
+from discord_slash import Button, ButtonStyle, ComponentContext, ComponentMessage, SlashContext
 
 from utils import AsteroidBot
-
 
 board_template = {
     3: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
@@ -255,6 +248,4 @@ class TicTacToeOnline:
             ),
         )
 
-        await self.message.edit(
-            embed=embed, components=self.render_gameboard(disable=True)
-        )
+        await self.message.edit(embed=embed, components=self.render_gameboard(disable=True))

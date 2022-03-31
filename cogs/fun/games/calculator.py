@@ -30,16 +30,10 @@ SOFTWARE.
 
 
 from asyncio import TimeoutError
-from math import pi, tau, e, sqrt
+from math import e, pi, sqrt, tau
 
 from discord import Embed, Member
-from discord_slash import (
-    SlashContext,
-    Button,
-    ButtonStyle,
-    ComponentContext,
-    ComponentMessage,
-)
+from discord_slash import Button, ButtonStyle, ComponentContext, ComponentMessage, SlashContext
 
 from utils import AsteroidBot
 
@@ -55,7 +49,7 @@ def calculate(expression: str):
 
     try:
         result = eval(expression, {"sqrt": sqrt})
-    except:
+    except Exception:
         result = "Syntax Error!\nDon't forget the sign(s) ('×', '÷', ...).\nnot: 3(9+1) but 3×(9+1)"
 
     return result
@@ -68,7 +62,7 @@ def input_formatter(original: str, new: str):
     try:
         index = lst.index("|")
         lst.remove("|")
-    except:
+    except ValueError:
         index = 0
 
     if new == "×":
@@ -78,7 +72,7 @@ def input_formatter(original: str, new: str):
                 lst.insert(index + 1, "|")
                 original = "".join(lst)
                 return original
-        except:
+        except IndexError:
             lst.insert(index + 1, "|")
             original = "".join(lst)
             return original
@@ -89,7 +83,7 @@ def input_formatter(original: str, new: str):
                 return original
             else:
                 lst.insert(index, "×")
-        except:
+        except IndexError:
             lst.insert(index, "×")
     elif new == "√":
         lst.insert(index, "√()")
@@ -208,9 +202,7 @@ class Calculator:
         is_normal_mode = True
         embed = self._get_embed(ctx.author, f"```{affichage}```")
         expression = ""
-        message: ComponentMessage = await ctx.send(
-            components=self.normal_components, embed=embed
-        )
+        message: ComponentMessage = await ctx.send(components=self.normal_components, embed=embed)
 
         while True:
             try:
@@ -224,8 +216,7 @@ class Calculator:
                 return await message.edit(
                     embed=self._get_embed(ctx.author, f"```{affichage}```"),
                     components=[
-                        row.disable_components()
-                        for row in interaction.origin_message.components
+                        row.disable_components() for row in interaction.origin_message.components
                     ],
                 )
 
@@ -236,14 +227,11 @@ class Calculator:
                 return await interaction.edit_origin(
                     embed=embed,
                     components=[
-                        row.disable_components()
-                        for row in interaction.origin_message.components
+                        row.disable_components() for row in interaction.origin_message.components
                     ],
                 )
             elif interaction.custom_id == "⌫":
-                lst = list(
-                    interaction.origin_message.embeds[0].description.replace("`", "")
-                )
+                lst = list(interaction.origin_message.embeds[0].description.replace("`", ""))
                 if len(lst) > 1:
                     try:
                         index = lst.index("|")
@@ -254,7 +242,7 @@ class Calculator:
                             lst.pop(index - 2)
                         else:
                             lst.pop(index - 1)
-                    except:
+                    except IndexError:
                         lst = ["|"]
                 affichage = "".join(lst)
                 expression = affichage
@@ -270,27 +258,23 @@ class Calculator:
                     affichage = f"{affichage.replace('|','')}={expression}"
                 expression = ""
             elif interaction.custom_id == "❮":
-                lst = list(
-                    interaction.origin_message.embeds[0].description.replace("`", "")
-                )
+                lst = list(interaction.origin_message.embeds[0].description.replace("`", ""))
                 if len(lst) > 1:
                     try:
                         index = lst.index("|")
                         lst.remove("|")
                         lst.insert(index - 1, "|")
-                    except:
+                    except ValueError:
                         lst = ["|"]
                 affichage = "".join(lst)
             elif interaction.custom_id == "❯":
-                lst = list(
-                    interaction.origin_message.embeds[0].description.replace("`", "")
-                )
+                lst = list(interaction.origin_message.embeds[0].description.replace("`", ""))
                 if len(lst) > 1:
                     try:
                         index = lst.index("|")
                         lst.remove("|")
                         lst.insert(index + 1, "|")
-                    except:
+                    except ValueError:
                         lst = ["|"]
                 affichage = "".join(lst)
             elif interaction.custom_id == "scientific_mode":
@@ -308,9 +292,7 @@ class Calculator:
             else:
                 if "=" in affichage:
                     affichage = ""
-                expression = input_formatter(
-                    original=affichage, new=interaction.component.label
-                )
+                expression = input_formatter(original=affichage, new=interaction.component.label)
                 affichage = expression
 
             if interaction.custom_id not in ["scientific_mode", "normal_mode"]:

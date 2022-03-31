@@ -1,25 +1,26 @@
 import datetime
-from time import time
 from random import randint
+from time import time
 
-from discord import Member, Message, VoiceState, Role, Embed
+from discord import Embed, Member, Message, Role, VoiceState
 from discord.ext.commands import BadArgument
-from discord_slash import SlashContext, AutoCompleteContext, SlashCommandOptionType
+from discord_slash import AutoCompleteContext, SlashCommandOptionType, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
-from discord_slash.utils.manage_commands import create_option, create_choice
+from discord_slash.utils.manage_commands import create_choice, create_option
 
 from utils import (
     AsteroidBot,
-    bot_owner_or_permissions,
-    is_enabled,
-    _cog_is_enabled,
+    Cog,
     CogDisabledOnGuild,
     NoData,
-    Cog,
+    _cog_is_enabled,
+    bot_owner_or_permissions,
     get_content,
+    is_enabled,
 )
 from utils.paginator import Paginator, PaginatorStyle
-from ._levels import update_member, formula_of_experience
+
+from ._levels import formula_of_experience, update_member
 
 
 class Levels(Cog):
@@ -57,9 +58,7 @@ class Levels(Cog):
         await guild_data.remove_user(member.id)
 
     @Cog.listener()
-    async def on_voice_state_update(
-        self, member: Member, before: VoiceState, after: VoiceState
-    ):
+    async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
         try:
             await _cog_is_enabled(self, member.guild.id)
         except CogDisabledOnGuild:
@@ -128,9 +127,7 @@ class Levels(Cog):
         name="reset_stats",
         description="Reset level statistics of Member",
         options=[
-            create_option(
-                name="member", description="Guild Member", option_type=6, required=True
-            )
+            create_option(name="member", description="Guild Member", option_type=6, required=True)
         ],
     )
     @is_enabled()
@@ -191,9 +188,7 @@ class Levels(Cog):
                 option_type=SlashCommandOptionType.INTEGER,
                 required=True,
             ),
-            create_option(
-                name="role", description="Role to level", option_type=8, required=True
-            ),
+            create_option(name="role", description="Role to level", option_type=8, required=True),
         ],
     )
     @is_enabled()
@@ -208,11 +203,7 @@ class Levels(Cog):
         subcommand_group="role",
         name="remove",
         description="Remove Role of a level",
-        options=[
-            create_option(
-                name="level", description="level", option_type=5, required=True
-            )
-        ],
+        options=[create_option(name="level", description="level", option_type=5, required=True)],
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
@@ -246,9 +237,7 @@ class Levels(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def replace_level_role(
-        self, ctx: SlashContext, current_level: int, new_level: int
-    ):
+    async def replace_level_role(self, ctx: SlashContext, current_level: int, new_level: int):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         try:
             await guild_data.replace_levels(current_level, new_level)
@@ -264,9 +253,7 @@ class Levels(Cog):
         if ctx.focused_option in ["current_level", "remove"]:
             guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
             roles_by_level = guild_data.roles_by_level
-            choices = [
-                create_choice(name=level, value=int(level)) for level in roles_by_level
-            ]
+            choices = [create_choice(name=level, value=int(level)) for level in roles_by_level]
         if choices:
             await ctx.populate(choices)
 
@@ -366,9 +353,7 @@ class Levels(Cog):
         await ctx.defer()
 
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content = get_content("LEVELS", guild_data.configuration.language)[
-            "FUNC_TOP_MEMBERS"
-        ]
+        content = get_content("LEVELS", guild_data.configuration.language)["FUNC_TOP_MEMBERS"]
         embeds = []
         embed_desc = ""
         list_for_sort = [
@@ -389,7 +374,7 @@ class Levels(Cog):
 
             if count % 10 == 0:
                 embeds.append(await self._get_embed(ctx, embed_desc, content))
-                embed_desc = f""
+                embed_desc = ""
 
         if embed_desc:
             embeds.append(await self._get_embed(ctx, embed_desc, content))

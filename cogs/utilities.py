@@ -4,41 +4,39 @@ from typing import List
 from discord import (
     ChannelType,
     Embed,
-    TextChannel,
-    RawReactionActionEvent,
-    Guild,
-    Message,
-    Member,
-    Role,
     Forbidden,
+    Guild,
+    Member,
+    Message,
+    RawReactionActionEvent,
+    Role,
+    TextChannel,
 )
 from discord_slash import (
-    SlashContext,
     AutoCompleteContext,
-    SlashCommandOptionType,
     Modal,
     ModalContext,
+    SlashCommandOptionType,
+    SlashContext,
     TextInput,
     TextInputStyle,
 )
-from discord_slash.cog_ext import (
-    cog_subcommand as slash_subcommand,
-    cog_slash as slash_command,
-)
-from discord_slash.utils.manage_commands import create_option, create_choice
+from discord_slash.cog_ext import cog_slash as slash_command
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
+from discord_slash.utils.manage_commands import create_choice, create_option
 
 from utils import (
     AsteroidBot,
     Cog,
-    bot_owner_or_permissions,
-    get_content,
-    is_enabled,
-    consts,
-    NoData,
     DiscordColors,
-    SystemChannels,
     GuildData,
     GuildStarboard,
+    NoData,
+    SystemChannels,
+    bot_owner_or_permissions,
+    consts,
+    get_content,
+    is_enabled,
 )
 
 
@@ -78,9 +76,7 @@ class Utilities(Cog):
             member_ids = starboard_data.blacklist.get("members")
             if not member_ids:
                 return
-            members: List[Member] = [
-                ctx.guild.get_member(member_id) for member_id in member_ids
-            ]
+            members: List[Member] = [ctx.guild.get_member(member_id) for member_id in member_ids]
             choices = [
                 create_choice(name=member.display_name, value=str(member.id))
                 for member in members
@@ -132,9 +128,7 @@ class Utilities(Cog):
         starboard_channel: TextChannel = guild.get_channel(starboard_data.channel_id)
         exists_messages = starboard_data.messages
         if exists_messages is None or str(payload.message_id) not in exists_messages:
-            await self._send_starboard_message(
-                guild_data, message, stars_count, starboard_channel
-            )
+            await self._send_starboard_message(guild_data, message, stars_count, starboard_channel)
         else:
             starboard_message_id = starboard_data.messages[str(payload.message_id)][
                 "starboard_message"
@@ -171,12 +165,8 @@ class Utilities(Cog):
                 stars_count = reaction.count
 
         starboard_channel: TextChannel = guild.get_channel(starboard_data.channel_id)
-        starboard_message_id = starboard_data.messages[str(payload.message_id)][
-            "starboard_message"
-        ]
-        await self._update_starboard_message(
-            starboard_channel, starboard_message_id, stars_count
-        )
+        starboard_message_id = starboard_data.messages[str(payload.message_id)]["starboard_message"]
+        await self._update_starboard_message(starboard_channel, starboard_message_id, stars_count)
 
     @staticmethod
     def _is_blacklisted(
@@ -190,9 +180,7 @@ class Utilities(Cog):
         blacklisted_roles = starboard_data.blacklist.get("roles", [])
         blacklisted_members = starboard_data.blacklist.get("members", [])
         member_roles = message.guild.get_member(payload.user_id).roles
-        has_blacklisted_roles = [
-            role for role in member_roles if role.id in blacklisted_roles
-        ]
+        has_blacklisted_roles = [role for role in member_roles if role.id in blacklisted_roles]
         message_author_has_blacklisted_roles = [
             role for role in message.author.roles if role.id in blacklisted_roles
         ]
@@ -201,10 +189,7 @@ class Utilities(Cog):
             blacklisted_channels
             and payload.channel_id in blacklisted_channels
             or blacklisted_members
-            and (
-                payload.user_id in blacklisted_members
-                or message.author.id in blacklisted_members
-            )
+            and (payload.user_id in blacklisted_members or message.author.id in blacklisted_members)
             or has_blacklisted_roles
             or message_author_has_blacklisted_roles
         ):
@@ -243,9 +228,7 @@ class Utilities(Cog):
             content=f"⭐{stars_count} | {message.channel.mention}", embed=embed
         )
 
-        await guild_data.starboard.add_starboard_message(
-            message.id, starboard_message.id
-        )
+        await guild_data.starboard.add_starboard_message(message.id, starboard_message.id)
 
     @slash_subcommand(
         base="starboard",
@@ -274,9 +257,7 @@ class Utilities(Cog):
             )
 
         if guild_data.starboard is None:
-            await guild_data.add_starboard(
-                channel_id=channel.id, limit=3, is_enabled=True
-            )
+            await guild_data.add_starboard(channel_id=channel.id, limit=3, is_enabled=True)
         else:
             await guild_data.starboard.set_channel_id(channel.id)
 
@@ -321,18 +302,12 @@ class Utilities(Cog):
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
         starboard_data = guild_data.starboard
-        if (
-            starboard_data is None
-            or not starboard_data.channel_id
-            or not starboard_data.limit
-        ):
+        if starboard_data is None or not starboard_data.channel_id or not starboard_data.limit:
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"])
         await starboard_data.set_status(status)
 
         await ctx.send(
-            content["STARBOARD_ENABLED_TEXT"]
-            if status
-            else content["STARBOARD_DISABLED_TEXT"]
+            content["STARBOARD_ENABLED_TEXT"] if status else content["STARBOARD_DISABLED_TEXT"]
         )
 
     @slash_subcommand(
@@ -700,9 +675,7 @@ class Utilities(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         await guild_data.configuration.set_language(language)
 
-        content = get_content(
-            "SET_LANGUAGE_COMMAND", lang=guild_data.configuration.language
-        )
+        content = get_content("SET_LANGUAGE_COMMAND", lang=guild_data.configuration.language)
 
         await ctx.send(content["LANGUAGE_CHANGED"])
 
@@ -710,15 +683,11 @@ class Utilities(Cog):
     @bot_owner_or_permissions(manage_roles=True)
     async def set_embed_color(self, ctx: SlashContext, color: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content = get_content(
-            "SET_EMBED_COLOR_COMMAND", guild_data.configuration.language
-        )
+        content = get_content("SET_EMBED_COLOR_COMMAND", guild_data.configuration.language)
 
         if color.startswith("#") and len(color) == 7:
             color = color.replace("#", "")
-        elif len(color) != 6 and any(
-            char not in "1234567890ABCDEFabcdef" for char in color
-        ):
+        elif len(color) != 6 and any(char not in "1234567890ABCDEFabcdef" for char in color):
             await ctx.send(content["WRONG_COLOR"])
             return
         color = f"0x{color}"

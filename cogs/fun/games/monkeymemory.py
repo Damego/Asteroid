@@ -3,11 +3,11 @@ from copy import copy
 from random import shuffle
 from uuid import uuid1
 
-from discord_slash import SlashContext, Button, ButtonStyle, ComponentContext
+from discord_slash import Button, ButtonStyle, ComponentContext, SlashContext
 
 from utils import AsteroidBot
-from .utils import spread_to_rows
 
+from .utils import spread_to_rows
 
 template = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -91,17 +91,12 @@ class MonkeyMemory:
 
     async def _wait_button_click(self) -> ComponentContext:
         def check(ctx: ComponentContext):
-            return (
-                ctx.author_id == self.ctx.author_id
-                and ctx.origin_message_id == self.message.id
-            )
+            return ctx.author_id == self.ctx.author_id and ctx.origin_message_id == self.message.id
 
         try:
             ctx = await self.bot.wait_for("button_click", timeout=600, check=check)
         except asyncio.TimeoutError:
-            await self.message.edit(
-                content="Timed out", components=self._disable_components()
-            )
+            await self.message.edit(content="Timed out", components=self._disable_components())
         else:
             return ctx
 

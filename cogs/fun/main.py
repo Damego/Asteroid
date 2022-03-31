@@ -1,36 +1,37 @@
+import json
 from asyncio import TimeoutError
 from datetime import datetime
-import json
-from os import remove, environ
+from os import environ, remove
 from random import choice, randint
 
-from discord import ChannelType, Embed, Member, Forbidden, File, VoiceChannel
-from discord_slash import (
-    SlashContext,
-    SlashCommandOptionType,
-    Button,
-    ButtonStyle,
-    Select,
-    SelectOption,
-    ComponentContext,
-)
-from discord_slash.cog_ext import cog_subcommand as slash_subcommand
-from discord_slash.utils.manage_commands import create_option, create_choice
 import qrcode
 import requests
+from discord import ChannelType, Embed, File, Forbidden, Member, VoiceChannel
+from discord_slash import (
+    Button,
+    ButtonStyle,
+    ComponentContext,
+    Select,
+    SelectOption,
+    SlashCommandOptionType,
+    SlashContext,
+)
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
+from discord_slash.utils.manage_commands import create_choice, create_option
 
-from utils import AsteroidBot, get_content, Cog, is_enabled
+from utils import AsteroidBot, Cog, get_content, is_enabled
+
+from .consts import bored_api_types, discord_activities_list
 from .games import (
-    Calculator,
-    RockPaperScissors,
-    TicTacToeMode,
-    TicTacToeAI,
-    TicTacToeOnline,
     BoardMode,
+    Calculator,
     MonkeyMemory,
+    RockPaperScissors,
+    TicTacToeAI,
+    TicTacToeMode,
+    TicTacToeOnline,
     Tiles,
 )
-from .consts import bored_api_types, discord_activities_list
 
 
 class Fun(Cog):
@@ -39,13 +40,9 @@ class Fun(Cog):
         self.name = "Fun"
         self.emoji = "🎮"
 
-    @slash_subcommand(
-        base="game", name="rps", description="Start play a Rock Paper Scissors"
-    )
+    @slash_subcommand(base="game", name="rps", description="Start play a Rock Paper Scissors")
     @is_enabled()
-    async def rockpaperscissors_cmd(
-        self, ctx: SlashContext, member: Member, total_rounds: int = 3
-    ):
+    async def rockpaperscissors_cmd(self, ctx: SlashContext, member: Member, total_rounds: int = 3):
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("FUNC_INVITE_TO_GAME", lang)
 
@@ -168,9 +165,7 @@ class Fun(Cog):
         )
         components = [
             [
-                Button(
-                    style=ButtonStyle.green, label=button_label_agree, custom_id="agree"
-                ),
+                Button(style=ButtonStyle.green, label=button_label_agree, custom_id="agree"),
                 Button(
                     style=ButtonStyle.red,
                     label=button_label_decline,
@@ -199,9 +194,7 @@ class Fun(Cog):
             accepted_invite = content["AGREE_MESSAGE_CONTENT"]
             await button_ctx.send(accepted_invite, hidden=True)
         except TimeoutError:
-            timeout_error = content["TIMEOUT_MESSAGE_CONTENT"].format(
-                member.display_name
-            )
+            timeout_error = content["TIMEOUT_MESSAGE_CONTENT"].format(member.display_name)
             await message.edit(content=timeout_error, components=[])
             return message, False
 
@@ -218,9 +211,7 @@ class Fun(Cog):
         await message.edit(content=declined_invite, components=[])
         return message, False
 
-    @slash_subcommand(
-        base="fun", name="random_num", description="Generate random number"
-    )
+    @slash_subcommand(base="fun", name="random_num", description="Generate random number")
     @is_enabled()
     async def random_num(self, ctx: SlashContext, start: int, end: int):
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -270,9 +261,7 @@ class Fun(Cog):
         ],
     )
     @is_enabled()
-    async def start_activity(
-        self, ctx: SlashContext, activity: str, channel: VoiceChannel = None
-    ):
+    async def start_activity(self, ctx: SlashContext, activity: str, channel: VoiceChannel = None):
         await ctx.defer()
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("FUNC_ACTIVITIES", lang=lang)
@@ -325,16 +314,12 @@ class Fun(Cog):
             "validate": None,
         }
 
-    @slash_subcommand(
-        base="phasmo", name="item", description="Random item in Phasmophobia"
-    )
+    @slash_subcommand(base="phasmo", name="item", description="Random item in Phasmophobia")
     @is_enabled()
     async def phasmophobia_random_item(self, ctx: SlashContext):
         await self._start_random(ctx)
 
-    @slash_subcommand(
-        base="phasmo", name="map", description="Random map in Phasmophobia"
-    )
+    @slash_subcommand(base="phasmo", name="map", description="Random map in Phasmophobia")
     @is_enabled()
     async def phasmophobia_random_map(self, ctx: SlashContext):
         maps_list = [
@@ -407,9 +392,7 @@ class Fun(Cog):
 
         while True:
             try:
-                button_ctx = await self._get_button_ctx(
-                    ctx, message, message_for_update
-                )
+                button_ctx = await self._get_button_ctx(ctx, message, message_for_update)
             except TimeoutError:
                 return
 
@@ -426,9 +409,7 @@ class Fun(Cog):
             elif button_ctx.custom_id == "toggle":
                 is_exception = not is_exception
                 button_ctx.component.label = (
-                    content["EXCEPTION_BUTTON"]
-                    if is_exception
-                    else content["SELECT_BUTTON"]
+                    content["EXCEPTION_BUTTON"] if is_exception else content["SELECT_BUTTON"]
                 )
                 selected = None
                 is_removed = False
@@ -509,7 +490,9 @@ class Fun(Cog):
             color=await self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.utcnow(),
         )
-        embed.description = f'**Activity for you: ** \n{activity}\n\n**Activity type: ** `{type or data["type"]}`\n'
+        embed.description = (
+            f'**Activity for you: ** \n{activity}\n\n**Activity type: ** `{type or data["type"]}`\n'
+        )
         embed.description += f'**Link:** {data["link"]}' if data.get("link") else ""
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
 

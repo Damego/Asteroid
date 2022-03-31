@@ -1,11 +1,11 @@
-from asyncio import TimeoutError
 import datetime
+from asyncio import TimeoutError
 
 from discord import Embed
-from discord_slash import SlashContext, ComponentContext, Select, SelectOption
+from discord_slash import ComponentContext, Select, SelectOption, SlashContext
 from discord_slash.cog_ext import cog_slash as slash_command
 
-from utils import AsteroidBot, get_content, Cog
+from utils import AsteroidBot, Cog, get_content
 
 
 class Help(Cog):
@@ -208,9 +208,7 @@ class Help(Cog):
             return option_line
         for _option in options:
             option_name = _option["name"]
-            option_line += (
-                f" [{option_name}]" if _option["required"] else f" ({option_name})"
-            )
+            option_line += f" [{option_name}]" if _option["required"] else f" ({option_name})"
         return option_line
 
     def _get_commands_data(self):
@@ -246,9 +244,7 @@ class Help(Cog):
                             commands_data[model.cog][base_name] = {}
                         if group_name not in commands_data[model.cog][base_name]:
                             commands_data[model.cog][base_name][group_name] = {}
-                        commands_data[model.cog][base_name][group_name][
-                            command_name
-                        ] = model
+                        commands_data[model.cog][base_name][group_name][command_name] = model
                 else:
                     if group_data.cog not in commands_data:
                         commands_data[group_data.cog] = {}

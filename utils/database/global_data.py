@@ -13,8 +13,7 @@ class GlobalData:
     def __init__(self, connection, users: List[dict]) -> None:
         self._connection: Collection = connection["USERS"]
         self.users = {
-            user_data["_id"]: GlobalUserData(self._connection, user_data)
-            for user_data in users
+            user_data["_id"]: GlobalUserData(self._connection, user_data) for user_data in users
         }
 
     async def add_user(self, user_id: int):
@@ -61,9 +60,7 @@ class GlobalUserData:
         return self._music_playlists
 
     async def _update(self, type: OperatorType, data: dict):
-        await self._connection.update_one(
-            {"_id": self._id}, {type.value: data}, upsert=True
-        )
+        await self._connection.update_one({"_id": self._id}, {type.value: data}, upsert=True)
 
     async def add_track_to_playlist(self, playlist: str, track: str):
         await self._update(OperatorType.PUSH, {f"music_playlists.{playlist}": track})

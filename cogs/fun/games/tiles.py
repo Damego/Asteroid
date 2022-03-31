@@ -2,11 +2,11 @@ from asyncio import TimeoutError
 from copy import copy
 from random import shuffle
 
-from discord_slash import SlashContext, Button, ButtonStyle, ComponentContext
+from discord_slash import Button, ButtonStyle, ComponentContext, SlashContext
 
 from utils import AsteroidBot
-from .utils import spread_to_rows
 
+from .utils import spread_to_rows
 
 # board_3x3 = list(range(9))
 board_4x4 = list(range(16))
@@ -55,10 +55,7 @@ class Tiles:
 
     async def start(self):
         def check(ctx: ComponentContext):
-            return (
-                ctx.author_id == self.ctx.author_id
-                and ctx.origin_message_id == self.message.id
-            )
+            return ctx.author_id == self.ctx.author_id and ctx.origin_message_id == self.message.id
 
         self.message = await self.ctx.send(
             f"Tiles. Moves: {self.moves}", components=self._render_components()
@@ -80,11 +77,7 @@ class Tiles:
             _, num = ctx.custom_id.split("|")
             index = self.board.index(int(num))
 
-            if (
-                index + 1 <= len(self.board)
-                and (index + 1) % 4 != 0
-                and self.board[index + 1] == 0
-            ):
+            if index + 1 <= len(self.board) and (index + 1) % 4 != 0 and self.board[index + 1] == 0:
                 self.board[index + 1], self.board[index] = (
                     self.board[index],
                     self.board[index + 1],

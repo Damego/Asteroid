@@ -1,19 +1,13 @@
 import asyncio
-from datetime import datetime, timedelta, timezone
 import os
 import sys
+from datetime import datetime, timedelta, timezone
 
 from discord import Embed, Forbidden
 from discord.ext.commands import is_owner
-from discord_slash import (
-    SlashContext,
-    Select,
-    SelectOption,
-    Button,
-    ButtonStyle,
-    ComponentContext,
-)
+from discord_slash import Button, ButtonStyle, ComponentContext, Select, SelectOption, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
+
 from utils import AsteroidBot, Cog
 
 
@@ -96,9 +90,7 @@ class Settings(Cog):
         except RuntimeError:
             pass
 
-        embed = Embed(
-            title="Перезагрузка расширений", description=content, color=0x2F3136
-        )
+        embed = Embed(title="Перезагрузка расширений", description=content, color=0x2F3136)
         await ctx.send(embed=embed)
 
     @slash_subcommand(base="staff", name="deploy", description="Deploy update from GIT")
@@ -112,9 +104,7 @@ class Settings(Cog):
 
         self.__update_commits_cache()
 
-        message = await ctx.send(
-            embed=embed, components=self._get_bot_menu_components()
-        )
+        message = await ctx.send(embed=embed, components=self._get_bot_menu_components())
         await self._run_bot_menu(ctx, message)
 
     def __update_commits_cache(self):
@@ -165,9 +155,7 @@ class Settings(Cog):
         content = f"```\n{format_response}\n```"
 
         embed = Embed(title="PIP", description=content, color=0x2F3136)
-        message = await ctx.send(
-            embed=embed, components=self._get_bot_menu_components()
-        )
+        message = await ctx.send(embed=embed, components=self._get_bot_menu_components())
         await self._run_bot_menu(ctx, message)
 
     def _get_bot_menu_components(self):

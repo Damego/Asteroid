@@ -1,17 +1,14 @@
 from time import time
 from typing import Union
 
-from discord import Member, Message, Guild, Role
+from discord import Guild, Member, Message, Role
 
 from utils import AsteroidBot, GuildUser, get_content
-
 
 last_user_message = {}
 
 
-async def update_member(
-    bot: AsteroidBot, member_or_message: Union[Member, Message], exp: int
-):
+async def update_member(bot: AsteroidBot, member_or_message: Union[Member, Message], exp: int):
     guild = member_or_message.guild
     guild_id = guild.id
     message = None
@@ -46,9 +43,7 @@ async def update_member(
 
     if role is not None:
         await update_member_role(user_data, member, role)
-        await notify_member(
-            guild_data.configuration.language, guild, member, level, role, message
-        )
+        await notify_member(guild_data.configuration.language, guild, member, level, role, message)
 
     await user_data.set_leveling(
         level=level, xp=user_xp, xp_amount=xp_amount, role_id=role.id if role else None
@@ -95,9 +90,7 @@ async def notify_member(
     message: Message = None,
 ):
     content = get_content("LEVELS", language)["FUNC_UPDATE_MEMBER"]
-    desc = content["NOTIFY_GUILD_CHANNEL"].format(
-        member=member.mention, level=level, role=role
-    )
+    desc = content["NOTIFY_GUILD_CHANNEL"].format(member=member.mention, level=level, role=role)
 
     system_channel = guild.system_channel
     if message is not None:
@@ -105,7 +98,5 @@ async def notify_member(
     elif system_channel is not None:
         await system_channel.send(desc, delete_after=15)
     else:
-        desc = content["NOTIFY_DM"].format(
-            member=member.mention, level=level, role=role
-        )
+        desc = content["NOTIFY_DM"].format(member=member.mention, level=level, role=role)
         await member.send(desc, delete_after=15)

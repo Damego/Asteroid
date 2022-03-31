@@ -1,4 +1,4 @@
-from discord_slash import SlashCommand, model, error
+from discord_slash import SlashCommand, error, model
 
 
 def _get_cog_slash_commands(self, cog, func_list):
@@ -33,9 +33,7 @@ def _get_cog_slash_commands(self, cog, func_list):
                 self.commands[x.base].has_subcommands = True
 
             else:
-                self.commands[x.base] = model.CogBaseCommandObject(
-                    x.base, x.base_command_data
-                )
+                self.commands[x.base] = model.CogBaseCommandObject(x.base, x.base_command_data)
                 self.commands[x.base].cog = cog
             if x.base not in self.subcommands:
                 self.subcommands[x.base] = {}
@@ -43,9 +41,7 @@ def _get_cog_slash_commands(self, cog, func_list):
                 if x.subcommand_group not in self.subcommands[x.base]:
                     self.subcommands[x.base][x.subcommand_group] = {}
                 if x.name in self.subcommands[x.base][x.subcommand_group]:
-                    raise error.DuplicateCommand(
-                        f"{x.base} {x.subcommand_group} {x.name}"
-                    )
+                    raise error.DuplicateCommand(f"{x.base} {x.subcommand_group} {x.name}")
                 self.subcommands[x.base][x.subcommand_group][x.name] = x
             else:
                 if x.name in self.subcommands[x.base]:

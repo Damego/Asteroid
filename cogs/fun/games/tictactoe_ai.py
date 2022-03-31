@@ -5,21 +5,14 @@ from asyncio import TimeoutError, to_thread
 from copy import deepcopy
 from datetime import datetime
 from enum import IntEnum
-from random import choice
 from math import inf
+from random import choice
 from typing import List
 
 from discord import Embed
-from discord_slash import (
-    ComponentContext,
-    ComponentMessage,
-    Button,
-    ButtonStyle,
-)
-
+from discord_slash import Button, ButtonStyle, ComponentContext, ComponentMessage
 
 from utils import AsteroidBot
-
 
 BoardTemplate = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
@@ -83,11 +76,7 @@ class TicTacToeAI:
 
     def minimax(self, board: List[list], depth: int, player: GameState):
         best = [-1, -1, -inf] if player == GameState.ai else [-1, -1, +inf]
-        if (
-            depth == 0
-            or self.is_won(board, GameState.player)
-            or self.is_won(board, GameState.ai)
-        ):
+        if depth == 0 or self.is_won(board, GameState.player) or self.is_won(board, GameState.ai):
             score = self.evaluate(board)
             return [-1, -1, score]
 
@@ -152,9 +141,7 @@ class TicTacToeAI:
     async def process_minimax(self):
         depth = len(self.get_possible_moves(self.board))
         if depth != 0:
-            ai_move = await to_thread(
-                self.minimax, deepcopy(self.board), depth, GameState.ai
-            )
+            ai_move = await to_thread(self.minimax, deepcopy(self.board), depth, GameState.ai)
             return ai_move
 
     async def process_turn(self, ctx: ComponentContext):
@@ -197,21 +184,16 @@ class TicTacToeAI:
         ctx = self.ctx
         self.game_embed = Embed(
             title="Tic Tac Toe Game",
-            description=f"**Player:** {ctx.author.mention}"
-            f"\n**Difficult:** `{self.difficult}`",
+            description=f"**Player:** {ctx.author.mention}" f"\n**Difficult:** `{self.difficult}`",
             color=await self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.utcnow(),
         )
         self.game_embed.set_thumbnail(url=ctx.bot.user.avatar_url)
 
         if not edit_origin:
-            message = await ctx.send(
-                embed=self.game_embed, components=self.render_gameboard()
-            )
+            message = await ctx.send(embed=self.game_embed, components=self.render_gameboard())
         else:
-            await ctx.edit_origin(
-                embed=self.game_embed, components=self.render_gameboard()
-            )
+            await ctx.edit_origin(embed=self.game_embed, components=self.render_gameboard())
 
         while True:
             try:

@@ -1,47 +1,37 @@
-from datetime import datetime
 import os
-from typing import Union, List
+from datetime import datetime
 from re import compile
+from typing import List, Union
 
-from discord import (
-    Attachment,
-    Member,
-    Embed,
-    Role,
-    Guild,
-    PublicUserFlags,
-    TextChannel,
-)
+from discord import Attachment, Embed, Guild, Member, PublicUserFlags, Role, TextChannel
 from discord_slash import (
-    SlashContext,
-    ContextMenuType,
-    MenuContext,
     Button,
     ButtonStyle,
+    ContextMenuType,
+    MenuContext,
     SlashCommandOptionType,
+    SlashContext,
 )
-from discord_slash.cog_ext import (
-    cog_slash as slash_command,
-    cog_subcommand as slash_subcommand,
-    cog_context_menu as context_menu,
-)
+from discord_slash.cog_ext import cog_context_menu as context_menu
+from discord_slash.cog_ext import cog_slash as slash_command
+from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option
 
 from utils import (
     AsteroidBot,
-    get_content,
     Cog,
     CogDisabledOnGuild,
-    is_enabled,
-    _cog_is_enabled,
-    transform_permission,
-    paginator,
-    bot_owner_or_permissions,
-    SystemChannels,
     DiscordColors,
+    SystemChannels,
+    _cog_is_enabled,
+    bot_owner_or_permissions,
+    get_content,
+    is_enabled,
+    paginator,
+    transform_permission,
 )
-from .levels._levels import formula_of_experience
 
+from .levels._levels import formula_of_experience
 
 url_rx = compile(r"https?://(?:www\.)?.+")
 
@@ -94,9 +84,7 @@ class Misc(Cog):
     @Cog.listener()
     async def on_slash_command(self, ctx: SlashContext):
         if self.slash_use_channel is None:
-            self.slash_use_channel = self.bot.get_channel(
-                SystemChannels.COMMANDS_USING_CHANNEL
-            )
+            self.slash_use_channel = self.bot.get_channel(SystemChannels.COMMANDS_USING_CHANNEL)
 
         embed = Embed(
             title=self.bot.get_transformed_command_name(ctx),
@@ -107,9 +95,7 @@ class Misc(Cog):
             text=f"{ctx.author.name} | {ctx.author_id}", icon_url=ctx.author.avatar_url
         )
         if ctx.kwargs:
-            options = "\n".join(
-                [f"{option}: {value}" for option, value in ctx.kwargs.items()]
-            )
+            options = "\n".join([f"{option}: {value}" for option, value in ctx.kwargs.items()])
             embed.add_field(name="Options", value=options)
         if ctx.guild:
             embed.add_field(
@@ -119,13 +105,9 @@ class Misc(Cog):
 
         await self.slash_use_channel.send(embed=embed)
 
-    @slash_subcommand(
-        base="info", name="user", description="Shows information about guild member"
-    )
+    @slash_subcommand(base="info", name="user", description="Shows information about guild member")
     @is_enabled()
-    async def get_member_information_slash(
-        self, ctx: SlashContext, member: Member = None
-    ):
+    async def get_member_information_slash(self, ctx: SlashContext, member: Member = None):
         embed = await self._get_embed_member_info(ctx, member or ctx.author)
         await ctx.send(embed=embed)
 
@@ -148,14 +130,10 @@ class Misc(Cog):
 
         is_bot = "<:discord_bot_badge:924198977367318548>" if member.bot else ""
         user_badges = self._get_user_badges(member.public_flags)
-        badges_text = (
-            f"**{content['BADGES_TEXT']}** {user_badges}" if user_badges else ""
-        )
+        badges_text = f"**{content['BADGES_TEXT']}** {user_badges}" if user_badges else ""
         member_status = status.get(str(member.status))
 
-        member_roles = [
-            role.mention for role in member.roles if role.name != "@everyone"
-        ][::-1]
+        member_roles = [role.mention for role in member.roles if role.name != "@everyone"][::-1]
         member_roles = ", ".join(member_roles)
         role_content = (
             f"**{content['TOP_ROLE_TEXT']}** {member.top_role.mention}"
@@ -164,9 +142,7 @@ class Misc(Cog):
             else ""
         )
 
-        embed = Embed(
-            title=about_text, color=await self.bot.get_embed_color(ctx.guild_id)
-        )
+        embed = Embed(title=about_text, color=await self.bot.get_embed_color(ctx.guild_id))
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(text=f"{ctx.author.name}", icon_url=ctx.author.avatar_url)
         embed.add_field(
@@ -186,9 +162,7 @@ class Misc(Cog):
             levels_enabled = False
         else:
             try:
-                levels_enabled = await _cog_is_enabled(
-                    self.bot.get_cog("Levels"), ctx.guild_id
-                )
+                levels_enabled = await _cog_is_enabled(self.bot.get_cog("Levels"), ctx.guild_id)
             except CogDisabledOnGuild:
                 levels_enabled = False
 
@@ -197,9 +171,7 @@ class Misc(Cog):
 
         return embed
 
-    async def _get_levels_info(
-        self, ctx: SlashContext, user_id: int, embed: Embed, content: dict
-    ):
+    async def _get_levels_info(self, ctx: SlashContext, user_id: int, embed: Embed, content: dict):
         content = content["LEVELING"]
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         user_data = await guild_data.get_user(user_id)
@@ -215,9 +187,7 @@ class Misc(Cog):
         user_exp_text = content["CURRENT_EXP_TEXT"].format(
             exp=user_exp, exp_to_next_level=xp_to_next_level, exp_amount=user_exp_amount
         )
-        user_voice_time_count = content["TOTAL_VOICE_TIME"].format(
-            voice_time=user_voice_time / 60
-        )
+        user_voice_time_count = content["TOTAL_VOICE_TIME"].format(voice_time=user_voice_time / 60)
 
         embed.add_field(
             name=content["LEVELING_INFO_TITLE_TEXT"],
@@ -257,9 +227,7 @@ class Misc(Cog):
         content = get_content(
             "BOT_INFO_COMMAND", lang=await self.bot.get_guild_bot_lang(ctx.guild_id)
         )
-        embed = Embed(
-            title=content["BOT_INFORMATION_TITLE"], color=DiscordColors.EMBED_COLOR
-        )
+        embed = Embed(title=content["BOT_INFORMATION_TITLE"], color=DiscordColors.EMBED_COLOR)
 
         commits = self._format_commits()
         embed.description = f"{content['GITHUB_UPDATES']}\n{commits}"
@@ -312,9 +280,7 @@ class Misc(Cog):
         bots_list = [member for member in ctx.guild.members if member.bot]
 
         content = f"**Offline bots in {ctx.guild.name} server**\n"
-        content += ", ".join(
-            f"{bot.mention}" for bot in bots_list if str(bot.status) == "offline"
-        )
+        content += ", ".join(f"{bot.mention}" for bot in bots_list if str(bot.status) == "offline")
 
         await ctx.send(content=content)
 
@@ -372,9 +338,7 @@ class Misc(Cog):
             components=components,
         )
 
-    @slash_subcommand(
-        base="server", name="roles", description="Show's all server roles"
-    )
+    @slash_subcommand(base="server", name="roles", description="Show's all server roles")
     @is_enabled()
     async def send_server_roles(self, ctx: SlashContext):
         guild_roles: List[Role] = ctx.guild.roles[::-1]
@@ -398,9 +362,7 @@ class Misc(Cog):
         else:
             await ctx.send(embed=embeds[0])
 
-    @slash_subcommand(
-        base="misc", name="send_image", description="Send image in embed from link"
-    )
+    @slash_subcommand(base="misc", name="send_image", description="Send image in embed from link")
     @is_enabled()
     async def send_image(self, ctx: SlashContext, url: str):
         if not url_rx.match(url):
@@ -427,9 +389,7 @@ class Misc(Cog):
         file = await attachment.to_file()
         await ctx.send(file=file)
 
-    @slash_subcommand(
-        base="server", name="bot_nick", description="Set nick to bot on your server"
-    )
+    @slash_subcommand(base="server", name="bot_nick", description="Set nick to bot on your server")
     @is_enabled()
     @bot_owner_or_permissions(manage_nicknames=True)
     async def server_set_bot_nick(self, ctx: SlashContext, nick: str):

@@ -3,8 +3,9 @@ from typing import Dict, List, Union
 
 from pymongo.collection import Collection
 
-from .enums import OperatorType
 from utils.errors import NotGuild
+
+from .enums import OperatorType
 
 
 class GuildData:
@@ -225,9 +226,7 @@ class GuildConfiguration:
         return self._start_level_role
 
     async def _update(self, type: OperatorType, data: dict):
-        await self._connection.update_one(
-            {"_id": "configuration"}, {type.value: data}, upsert=True
-        )
+        await self._connection.update_one({"_id": "configuration"}, {type.value: data}, upsert=True)
 
     async def set_embed_color(self, color):
         await self._update(OperatorType.SET, {"embed_color": color})
@@ -270,9 +269,7 @@ class GuildStarboard:
         )
 
     async def _update(self, type: OperatorType, data: dict):
-        await self._connection.update_one(
-            {"_id": "starboard"}, {type.value: data}, upsert=True
-        )
+        await self._connection.update_one({"_id": "starboard"}, {type.value: data}, upsert=True)
 
     async def add_starboard_message(self, message_id: int, starboard_message_id: int):
         await self._update(
@@ -337,9 +334,7 @@ class GuildAutoRole:
         self.component: dict = data.get("component")
 
     async def _update(self, type: OperatorType, data: dict):
-        await self._connection.update_one(
-            {"_id": "autorole"}, {type.value: data}, upsert=True
-        )
+        await self._connection.update_one({"_id": "autorole"}, {type.value: data}, upsert=True)
 
     async def rename(self, name: int):
         await self._update(OperatorType.RENAME, {self.name: name})
@@ -360,9 +355,7 @@ class GuildTag:
         self.description: str = data["description"]
 
     async def _update(self, type: OperatorType, data: dict):
-        await self._connection.update_one(
-            {"_id": "tags"}, {type.value: data}, upsert=True
-        )
+        await self._connection.update_one({"_id": "tags"}, {type.value: data}, upsert=True)
 
     async def rename(self, name: int):
         await self._update(OperatorType.RENAME, {self.name: name})
@@ -457,9 +450,7 @@ class GuildUser:
         return self._music_playlists
 
     async def _update(self, type: OperatorType, data: dict):
-        await self._connection.update_one(
-            {"_id": self._id}, {type.value: data}, upsert=True
-        )
+        await self._connection.update_one({"_id": self._id}, {type.value: data}, upsert=True)
 
     async def set_genshin_uid(self, hoyolab_uid: int, game_uid: int):
         await self._update(
@@ -523,17 +514,6 @@ class GuildUser:
         self._xp_amount = 0
         self._role = ""
         self._voice_time_count = 0
-
-    async def set_genshin_uid(self, *, hoyolab_uid: int = None, game_uid: int = None):
-        data = {}
-        if hoyolab_uid is not None:
-            data["hoyolab_uid"] = hoyolab_uid
-            self._hoyolab_uid = hoyolab_uid
-        if game_uid is not None:
-            data["uid"] = game_uid
-            self._genshin_uid = game_uid
-
-        await self._update(OperatorType.SET, {"genshin": data})
 
     async def add_note(self, data: str):
         await self._update(OperatorType.PUSH, {"notes": data})

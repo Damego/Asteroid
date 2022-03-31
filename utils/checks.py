@@ -1,4 +1,4 @@
-from discord.ext.commands import check, MissingPermissions, has_guild_permissions
+from discord.ext.commands import MissingPermissions, check, has_guild_permissions
 from discord_slash import SlashContext
 
 from .asteroid_bot import AsteroidBot
@@ -7,10 +7,7 @@ from .errors import CogDisabledOnGuild, CommandDisabled
 
 def is_administrator_or_bot_owner():
     async def predicate(ctx: SlashContext):
-        if (
-            ctx.author.guild_permissions.administrator
-            or ctx.author_id == 143773579320754177
-        ):
+        if ctx.author.guild_permissions.administrator or ctx.author_id == 143773579320754177:
             return True
         raise MissingPermissions(["Administrator"])
 
