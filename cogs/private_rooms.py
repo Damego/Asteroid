@@ -362,7 +362,7 @@ class PrivateRooms(Cog):
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            raise DontHavePrivateRoom
+            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -434,7 +434,7 @@ class PrivateRooms(Cog):
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            raise DontHavePrivateRoom
+            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -452,7 +452,7 @@ class PrivateRooms(Cog):
         voice_channel_id = guild_data.private_voice.active_channels.get(str(ctx.author_id))
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if voice_channel_id is None:
-            raise DontHavePrivateRoom
+            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(voice_channel_id)
 
