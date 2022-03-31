@@ -149,6 +149,8 @@ LANGUAGES = {
             "NOT_PLAYING": "Музыка не играет!",
             "NO_DATA_FOUND": "Ничего не найдено!",
             "GUILD_ONLY": "Эта команда только для сервера!",
+            "PRIVATE_VOICE_NOT_SETUP": "Приватные комнаты не установлены на сервере!",
+            "DONT_HAVE_PRIVATE_ROOM": "У вас нет приватной комнаты!",
         },
         "FUNC_RANDOM_NUMBER_OUT_CONTENT": "Рандомное число: `{}`",
         "FUNC_MEMBER_INFO": {
@@ -535,7 +537,6 @@ LANGUAGES = {
             "<:crown:959124362823340052> — `Передать управление комнатой` \n"
             "<:pencil_2:959124362835927080> — `Установить лимит комнаты`",
             "SUCCESSFULLY_CREATED": "Приватные комнаты созданы!",
-            "DONT_HAVE_PRIVATE_ROOM": "У вас нет комнаты",
             "ROOM_CLOSED": "Комната закрыта",
             "ROOM_OPENED": "Комната открыта",
             "ROOM_HIDED": "Комната спрятана",
@@ -580,6 +581,8 @@ LANGUAGES = {
             "NOT_PLAYING": "Music not playing!",
             "NO_DATA_FOUND": "Nothing found!",
             "GUILD_ONLY": "This command only for server!",
+            "PRIVATE_VOICE_NOT_SETUP": "Private Rooms are not setup!",
+            "DONT_HAVE_PRIVATE_ROOM": "You don't have a room!",
         },
         "FUNC_RANDOM_NUMBER_OUT_CONTENT": "Random number is `{}`",
         "FUNC_MEMBER_INFO": {
@@ -965,7 +968,6 @@ LANGUAGES = {
             "<:crown:959124362823340052> — `Transfer room owner` \n"
             "<:pencil_2:959124362835927080> — `Set room limit`",
             "SUCCESSFULLY_CREATED": "Private rooms created!",
-            "DONT_HAVE_PRIVATE_ROOM": "You don't have a room!",
             "ROOM_CLOSED": "Room closed",
             "ROOM_OPENED": "Room opened",
             "ROOM_HIDED": "Room hided",

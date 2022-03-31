@@ -18,6 +18,8 @@ from utils import (
     AsteroidBot,
     Cog,
     DiscordColors,
+    DontHavePrivateRoom,
+    PrivateVoiceNotSetup,
     bot_owner_or_permissions,
     consts,
     get_content,
@@ -42,10 +44,12 @@ class PrivateRooms(Cog):
     @is_enabled()
     async def room_control_close(self, ctx: SlashContext):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -61,10 +65,12 @@ class PrivateRooms(Cog):
     @is_enabled()
     async def room_control_open(self, ctx: SlashContext):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -80,10 +86,12 @@ class PrivateRooms(Cog):
     @is_enabled()
     async def room_control_hide(self, ctx: SlashContext):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -99,10 +107,12 @@ class PrivateRooms(Cog):
     @is_enabled()
     async def room_control_unhide(self, ctx: SlashContext):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -118,10 +128,12 @@ class PrivateRooms(Cog):
     @is_enabled()
     async def room_control_change_name(self, ctx: SlashContext, name: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -137,10 +149,12 @@ class PrivateRooms(Cog):
     @is_enabled()
     async def room_control_ban_member(self, ctx: SlashContext, member: Member):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -158,10 +172,12 @@ class PrivateRooms(Cog):
     @is_enabled()
     async def room_control_unban_member(self, ctx: SlashContext, member: Member):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -177,10 +193,12 @@ class PrivateRooms(Cog):
     @is_enabled()
     async def room_control_kick(self, ctx: SlashContext, member: Member):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -198,10 +216,12 @@ class PrivateRooms(Cog):
     @bot_owner_or_permissions(manage_guild=True)
     async def room_control_transfer_ownership(self, ctx: SlashContext, member: Member):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -232,10 +252,12 @@ class PrivateRooms(Cog):
     @is_enabled()
     async def room_control_set_limit(self, ctx: SlashContext, limit: int):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -298,6 +320,8 @@ class PrivateRooms(Cog):
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
         guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
+        if not guild_data.private_voice:
+            return
 
         if after.channel and after.channel.id == guild_data.private_voice.voice_channel_id:
             # Creating a private voice channel
@@ -333,10 +357,12 @@ class PrivateRooms(Cog):
             return
 
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -403,10 +429,12 @@ class PrivateRooms(Cog):
             return
 
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        if not guild_data.private_voice:
+            raise PrivateVoiceNotSetup
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
@@ -424,7 +452,7 @@ class PrivateRooms(Cog):
         voice_channel_id = guild_data.private_voice.active_channels.get(str(ctx.author_id))
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if voice_channel_id is None:
-            return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
+            raise DontHavePrivateRoom
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(voice_channel_id)
 

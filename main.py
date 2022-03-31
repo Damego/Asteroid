@@ -83,6 +83,10 @@ async def on_slash_command_error(ctx: SlashContext, error):
         desc = content["NOT_PLAYING"]
     elif isinstance(error, errors.NotGuild):
         desc = content["GUILD_ONLY"]
+    elif isinstance(error, errors.PrivateVoiceNotSetup):
+        desc = content["PRIVATE_VOICE_NOT_SETUP"]
+    elif isinstance(error, errors.DontHavePrivateRoom):
+        desc = content["DONT_HAVE_PRIVATE_ROOM"]
     elif isinstance(error, NotOwner):
         desc = content["NOT_BOT_OWNER"]
     elif isinstance(error, BotMissingPermissions):

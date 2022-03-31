@@ -47,3 +47,11 @@ class NoData(Exception):
 
 class NotGuild(Exception):
     """Raises when guild is None"""
+
+
+class PrivateVoiceNotSetup(Exception):
+    """Guild dont have enabled private voice"""
+
+
+class DontHavePrivateRoom(Exception):
+    """Member doesnt have private room"""
