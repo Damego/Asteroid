@@ -874,6 +874,7 @@ LANGUAGES = {
                 "MUSIC": "Music",
                 "TAGS": "Tags",
                 "UTILITIES": "Utilities",
+                "PRIVATEROOMS": "Private Rooms"
             },
         },
         "STARBOARD_FUNCTIONS": {
