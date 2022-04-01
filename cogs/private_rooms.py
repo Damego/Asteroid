@@ -1,4 +1,5 @@
 from discord import Embed, Member, PermissionOverwrite, TextChannel, VoiceChannel, VoiceState
+from discord.ext.commands import bot_has_guild_permissions
 from discord_slash import (
     Button,
     ComponentContext,
@@ -43,6 +44,7 @@ class PrivateRooms(Cog):
         description="Closes your room",
     )
     @is_enabled()
+    @bot_has_guild_permissions(manage_channels=True)
     async def room_control_close(self, ctx: SlashContext):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         if not guild_data.private_voice:
@@ -64,6 +66,7 @@ class PrivateRooms(Cog):
         description="Opens your room",
     )
     @is_enabled()
+    @bot_has_guild_permissions(manage_channels=True)
     async def room_control_open(self, ctx: SlashContext):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         if not guild_data.private_voice:
@@ -85,6 +88,7 @@ class PrivateRooms(Cog):
         description="Hides your room",
     )
     @is_enabled()
+    @bot_has_guild_permissions(manage_channels=True)
     async def room_control_hide(self, ctx: SlashContext):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         if not guild_data.private_voice:
@@ -106,6 +110,7 @@ class PrivateRooms(Cog):
         description="Unhides your room",
     )
     @is_enabled()
+    @bot_has_guild_permissions(manage_channels=True)
     async def room_control_unhide(self, ctx: SlashContext):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         if not guild_data.private_voice:
@@ -127,6 +132,7 @@ class PrivateRooms(Cog):
         description="Change room name",
     )
     @is_enabled()
+    @bot_has_guild_permissions(manage_channels=True)
     async def room_control_change_name(self, ctx: SlashContext, name: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         if not guild_data.private_voice:
@@ -148,6 +154,7 @@ class PrivateRooms(Cog):
         description="Bans member to room",
     )
     @is_enabled()
+    @bot_has_guild_permissions(move_members=True, manage_channels=True)
     async def room_control_ban_member(self, ctx: SlashContext, member: Member):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         if not guild_data.private_voice:
@@ -171,6 +178,7 @@ class PrivateRooms(Cog):
         description="Unbans member from room",
     )
     @is_enabled()
+    @bot_has_guild_permissions(manage_channels=True)
     async def room_control_unban_member(self, ctx: SlashContext, member: Member):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         if not guild_data.private_voice:
@@ -192,6 +200,7 @@ class PrivateRooms(Cog):
         description="Kicks a member from room",
     )
     @is_enabled()
+    @bot_has_guild_permissions(move_members=True, manage_channels=True)
     async def room_control_kick(self, ctx: SlashContext, member: Member):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         if not guild_data.private_voice:
@@ -214,7 +223,7 @@ class PrivateRooms(Cog):
         description="Transfer room ownership",
     )
     @is_enabled()
-    @bot_owner_or_permissions(manage_guild=True)
+    @bot_has_guild_permissions(manage_channels=True)
     async def room_control_transfer_ownership(self, ctx: SlashContext, member: Member):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         if not guild_data.private_voice:
@@ -251,6 +260,7 @@ class PrivateRooms(Cog):
         ],
     )
     @is_enabled()
+    @bot_has_guild_permissions(manage_channels=True)
     async def room_control_set_limit(self, ctx: SlashContext, limit: int):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         if not guild_data.private_voice:
@@ -271,6 +281,8 @@ class PrivateRooms(Cog):
         description="Creates a control menu",
     )
     @is_enabled()
+    @bot_has_guild_permissions(move_members=True, manage_channels=True)
+    @bot_owner_or_permissions(manage_guild=True)
     async def private_voice_create_menu(self, ctx: SlashContext):
         await ctx.defer(hidden=True)
 
