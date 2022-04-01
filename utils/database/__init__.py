@@ -4,6 +4,7 @@ from .guild_data import (  # noqa: F401
     GuildAutoRole,
     GuildConfiguration,
     GuildData,
+    GuildPrivateVoice,
     GuildStarboard,
     GuildTag,
     GuildUser,

@@ -19,6 +19,7 @@ from utils import (
     Cog,
     DiscordColors,
     DontHavePrivateRoom,
+    GuildPrivateVoice,
     PrivateVoiceNotSetup,
     bot_owner_or_permissions,
     consts,
@@ -322,8 +323,12 @@ class PrivateRooms(Cog):
         guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
         if not guild_data.private_voice:
             return
+        private_voice = guild_data.private_voice
+        voice_channel_id = private_voice.voice_channel_id
+        if after.channel and after.channel.id == voice_channel_id:
+            if before.channel:
+                await self._check_channel(member, before, private_voice)
 
-        if after.channel and after.channel.id == guild_data.private_voice.voice_channel_id:
             # Creating a private voice channel
             overwrites = {
                 member.guild.default_role: PermissionOverwrite(connect=False),
@@ -333,23 +338,32 @@ class PrivateRooms(Cog):
                 f"{member.display_name}'s channel", overwrites=overwrites
             )
             await member.move_to(channel)
-            await guild_data.private_voice.set_private_voice_channel(member.id, channel.id)
+            await private_voice.set_private_voice_channel(member.id, channel.id)
             return
-        if str(member.id) in guild_data.private_voice.active_channels:
-            if len(before.channel.members) == 0:
-                await before.channel.delete()
-                await guild_data.private_voice.delete_private_voice_channel(member.id)
-            else:
-                first_member = before.channel.members[0]
-                await before.channel.set_permissions(
-                    member, manage_channels=False, connect=False, move_members=False
-                )
-                await before.channel.set_permissions(
-                    first_member, manage_channels=True, connect=True, move_members=True
-                )
-                await guild_data.private_voice.set_private_voice_channel(
-                    first_member.id, before.channel.id
-                )
+
+        if before.channel and not after.channel:
+            await self._check_channel(member, before, private_voice)
+
+    async def _check_channel(
+        self, member: Member, before: VoiceState, private_voice: GuildPrivateVoice
+    ):
+        if not (channel_id := private_voice.active_channels.get(str(member.id))):
+            return
+        if before.channel.id != channel_id:
+            return
+        if not before.channel.members:
+            await before.channel.delete()
+            await private_voice.delete_private_voice_channel(member.id)
+            return
+
+        first_member = before.channel.members[0]
+        await private_voice.set_private_voice_channel(first_member.id, before.channel.id)
+        await before.channel.set_permissions(
+            member, manage_channels=False, connect=False, move_members=False
+        )
+        await before.channel.set_permissions(
+            first_member, manage_channels=True, connect=True, move_members=True
+        )
 
     @Cog.listener()
     async def on_button_click(self, ctx: ComponentContext):

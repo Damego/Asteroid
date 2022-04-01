@@ -9,6 +9,7 @@ from .database import (  # noqa: F401
     GlobalUserData,
     GuildConfiguration,
     GuildData,
+    GuildPrivateVoice,
     GuildStarboard,
     GuildTag,
     GuildUser,
