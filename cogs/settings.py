@@ -204,7 +204,7 @@ class Settings(Cog):
             elif button_ctx.custom_id == "button_sync_commands":
                 await button_ctx.defer()
                 await self.bot.slash.sync_all_commands()
-                await ctx.send("Slash Commands were synced!", hidden=True)
+                await button_ctx.send("Slash Commands were synced!", hidden=True)
             elif button_ctx.custom_id == "button_exit":
                 await button_ctx.defer(edit_origin=True)
                 await button_ctx.origin_message.disable_components()
