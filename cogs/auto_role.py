@@ -493,7 +493,7 @@ class AutoRole(Cog):
         embed = Embed(
             title=content["DROPDOWN_LIST"],
             description="",
-            color=guild_data.configuration.language,
+            color=guild_data.configuration.embed_color,
         )
 
         for count, dropdown in enumerate(autoroles, start=1):
