@@ -874,13 +874,13 @@ LANGUAGES = {
                 "MUSIC": "Music",
                 "TAGS": "Tags",
                 "UTILITIES": "Utilities",
-                "PRIVATEROOMS": "Private Rooms"
+                "PRIVATEROOMS": "Private Rooms",
             },
         },
         "STARBOARD_FUNCTIONS": {
             "CHANNEL_WAS_SETUP_TEXT": "Channel was set up!",
             "LIMIT_WAS_SETUP_TEXT": "Stars limit was set up to `{limit}`!",
-            "STARBOARD_NOT_SETUP": "Channel or stars limit doesn't set up!",
+            "STARBOARD_NOT_SETUP_TEXT": "Channel or stars limit doesn't set up!",
             "STARBOARD_ENABLED_TEXT": "Starboard was `enabled`!",
             "STARBOARD_DISABLED_TEXT": "Starboard was `disabled`!",
             "JUMP_TO_ORIGINAL_MESSAGE_TEXT": "Jump to original message!",
