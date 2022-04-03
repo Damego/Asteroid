@@ -22,11 +22,22 @@ class RockPaperScissors:
         self.total_rounds = total_rounds
         self.guild_id = ctx.guild_id
 
+        self.components = [
+            [
+                Button(style=ButtonStyle.blue, custom_id="rock", emoji="🪨"),
+                Button(style=ButtonStyle.green, custom_id="paper", emoji="🧾"),
+                Button(style=ButtonStyle.red, custom_id="scissors", emoji="✂️"),
+            ]
+        ]
+
     async def start_game(self):
         self.count1 = 0
         self.count2 = 0
         self.players = [self.ctx.author_id, self.member.id]
+
         lang = await self.bot.get_guild_bot_lang(self.guild_id)
+        self.embed_color = await self.bot.get_embed_color(self.guild_id)
+
         self.content = get_content("GAME_RPS", lang)
 
         for round in range(self.total_rounds):
@@ -45,7 +56,7 @@ class RockPaperScissors:
             winner,
         )
 
-        embed = Embed(title=title, color=await self.bot.get_embed_color(self.guild_id))
+        embed = Embed(title=title, color=self.embed_color)
         embed.add_field(name=game_name, value=text)
         await self.message.edit(content=" ", embed=embed, components=[])
 
@@ -64,18 +75,10 @@ class RockPaperScissors:
             self.count1, self.count2, round + 1, self.total_rounds
         )
 
-        embed = Embed(title="🪨-✂️-🧾", color=await self.bot.get_embed_color(self.guild_id))
+        embed = Embed(title="🪨-✂️-🧾", color=self.embed_color)
         embed.add_field(name=players_text, value=current_score_text)
 
-        components = [
-            [
-                Button(style=ButtonStyle.blue, custom_id="rock", emoji="🪨"),
-                Button(style=ButtonStyle.green, custom_id="paper", emoji="🧾"),
-                Button(style=ButtonStyle.red, custom_id="scissors", emoji="✂️"),
-            ]
-        ]
-
-        await self.message.edit(embed=embed, components=components)
+        await self.message.edit(embed=embed, components=self.components)
 
         if self.member.bot:
             players_choice[self.member.id] = choice(["rock", "paper", "scissors"])

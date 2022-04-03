@@ -40,7 +40,26 @@ class Fun(Cog):
         self.name = "Fun"
         self.emoji = "🎮"
 
-    @slash_subcommand(base="game", name="rps", description="Start play a Rock Paper Scissors")
+    @slash_subcommand(
+        base="game",
+        name="rps",
+        description="Start play a Rock Paper Scissors",
+        options=[
+            create_option(
+                name="member",
+                description="Member you want to invite (Also bots)",
+                option_type=SlashCommandOptionType.USER,
+            ),
+            create_option(
+                name="total_rounds",
+                description="Max rounds you want to play",
+                option_type=SlashCommandOptionType.INTEGER,
+                min_value=1,
+                max_value=100,
+                required=False,
+            ),
+        ],
+    )
     @is_enabled()
     async def rockpaperscissors_cmd(self, ctx: SlashContext, member: Member, total_rounds: int = 3):
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
