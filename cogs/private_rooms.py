@@ -353,7 +353,7 @@ class PrivateRooms(Cog):
             await private_voice.set_private_voice_channel(member.id, channel.id)
             return
 
-        if before.channel and not after.channel:
+        if before.channel:
             await self._check_channel(member, before, private_voice)
 
     async def _check_channel(
