@@ -34,10 +34,13 @@ def is_enabled():
 
         command_name = bot.get_transformed_command_name(ctx)
         guild_data = await bot.mongo.get_guild_data(ctx.guild_id)
-        if guild_data is None:
+        if guild_data is None or not guild_data.configuration.disabled_commands:
             return True
-        if not guild_data.configuration.disabled_commands:
-            return True
+
+        if cog_data := guild_data.cogs_data.get(ctx.cog.name):
+            if cog_data.get("disabled", False):
+                raise CogDisabledOnGuild
+
         disabled_commands = guild_data.configuration.disabled_commands
         if command_name in disabled_commands:
             raise CommandDisabled
@@ -78,7 +81,8 @@ def cog_is_enabled(func):
 async def _cog_is_enabled(self, guild_id: int):
     bot: AsteroidBot = self.bot
     guild_data = await bot.mongo.get_guild_data(guild_id)
-    cog_data = guild_data.cogs_data.get(self.name, True)
-    if not cog_data:
+    cog_data = guild_data.cogs_data.get(self.name, {})
+
+    if cog_data and cog_data.get("disabled"):
         raise CogDisabledOnGuild
-    return cog_data
+    return True

@@ -42,3 +42,15 @@ multiplier = {
     "m": 60,
     "s": 1,
 }
+
+PUBLIC_EXTENSIONS = [
+    "AutoRole",
+    "Genshin",
+    "Misc",
+    "Moderation",
+    "Music",
+    "PrivateRooms",
+    "Tags",
+    "Utilities",
+    "Levels",
+]

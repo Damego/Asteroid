@@ -674,9 +674,7 @@ class Utilities(Cog):
         await ctx.defer()
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         await guild_data.configuration.set_language(language)
-
         content = get_content("SET_LANGUAGE_COMMAND", lang=guild_data.configuration.language)
-
         await ctx.send(content["LANGUAGE_CHANGED"])
 
     @slash_command(name="embed_color", description="Set color for embeds")
@@ -739,7 +737,55 @@ class Utilities(Cog):
         channel = self.bot.get_channel(SystemChannels.ISSUES_REPORT_CHANNEL)
         await channel.send(embed=embed)
 
-        await ctx.send("Your issue was send to developers!", hidden=True)
+        await ctx.send("Your issue was send to developer!", hidden=True)
+        # TODO: Translate command
+
+    @slash_subcommand(
+        base="plugin",
+        name="disable",
+        description="Disables plugin on your server",
+        guild_ids=consts.test_guild_id,
+        options=[
+            create_option(
+                name="plugin",
+                description="The name of plugin",
+                option_type=SlashCommandOptionType.STRING,
+                choices=[
+                    create_choice(name=extension, value=extension)
+                    for extension in consts.PUBLIC_EXTENSIONS
+                ],
+            )
+        ],
+    )
+    async def plugin_disable(self, ctx: SlashContext, plugin: str):
+        await ctx.defer(hidden=True)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        await guild_data.set_cog_data(plugin, {"disabled": True})
+        await ctx.send(f"Plugin `{plugin}` disabled!", hidden=True)
+        # TODO: Translate command
+
+    @slash_subcommand(
+        base="plugin",
+        name="enable",
+        description="Enables plugin on your server",
+        guild_ids=consts.test_guild_id,
+        options=[
+            create_option(
+                name="plugin",
+                description="The name of plugin",
+                option_type=SlashCommandOptionType.STRING,
+                choices=[
+                    create_choice(name=extension, value=extension)
+                    for extension in consts.PUBLIC_EXTENSIONS
+                ],
+            )
+        ],
+    )
+    async def plugin_enable(self, ctx: SlashContext, plugin: str):
+        await ctx.defer(hidden=True)
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        await guild_data.set_cog_data(plugin, {"disabled": False})
+        await ctx.send(f"Plugin `{plugin}` enabled!", hidden=True)
         # TODO: Translate command
 
 

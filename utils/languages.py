@@ -125,7 +125,7 @@ LANGUAGES = {
             "PRIVATE_ROOMS_CONTROL_SET_LIMIT": "Установить лимит комнаты",
         },
         "ERRORS_DESCRIPTIONS": {
-            "COG_DISABLED": "Эта команда отключена на этом сервере!",
+            "COG_DISABLED": "Этот плагин отключён на этом сервере!",
             "COMMAND_DISABLED": "Эта команда или группа команд была отключена на этом сервере!",
             "TAG_NOT_FOUND": "Тег не найден!",
             "FORBIDDEN_TAG": "Этот тег нельзя использовать!",
@@ -559,7 +559,7 @@ LANGUAGES = {
     },
     "English": {
         "ERRORS_DESCRIPTIONS": {
-            "COG_DISABLED": "This command disabled on this server!",
+            "COG_DISABLED": "This plugin disabled on this server!",
             "COMMAND_DISABLED": "This command or group of commands was disabled on this server!",
             "TAG_NOT_FOUND": "Tag not found!",
             "FORBIDDEN_TAG": "This tag cannot be used!",

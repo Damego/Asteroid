@@ -172,7 +172,10 @@ class GuildData:
                 self.tags.remove(tag)
 
     async def set_cog_data(self, cog_name: str, data: dict):
-        self.cogs_data[cog_name] = self.cogs_data[cog_name] | data
+        self.cogs_data[cog_name] = (
+            self.cogs_data[cog_name] | data if self.cogs_data.get(cog_name) else data
+        )
+
         await self._main_collection.update_one(
             {"_id": "cogs_data"},
             {OperatorType.SET.value: {cog_name: self.cogs_data[cog_name]}},
