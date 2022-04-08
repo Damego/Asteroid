@@ -744,7 +744,6 @@ class Utilities(Cog):
         base="plugin",
         name="disable",
         description="Disables plugin on your server",
-        guild_ids=consts.test_guild_id,
         options=[
             create_option(
                 name="plugin",
@@ -768,7 +767,6 @@ class Utilities(Cog):
         base="plugin",
         name="enable",
         description="Enables plugin on your server",
-        guild_ids=consts.test_guild_id,
         options=[
             create_option(
                 name="plugin",
