@@ -201,8 +201,8 @@ class Misc(Cog):
         )
         embed = Embed(title=content["BOT_INFORMATION_TITLE"], color=DiscordColors.EMBED_COLOR)
 
-        commits = self._format_commits()
-        embed.description = f"{content['GITHUB_UPDATES']}\n{commits}"
+        if commits := self._format_commits():
+            embed.description = f"{content['GITHUB_UPDATES']}\n{commits}"
         users_count = sum(guild.member_count for guild in self.bot.guilds)
         embed.add_field(
             name=content["GENERAL_INFORMATION"],
