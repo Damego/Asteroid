@@ -192,32 +192,6 @@ class Misc(Cog):
             value=f"{user_level_text}\n{user_exp_text}\n{user_voice_time_count}",
         )
 
-    @staticmethod
-    def _get_user_badges(public_flags: PublicUserFlags) -> str:
-        badges = ""
-        if public_flags.staff:
-            badges += "<:Discordstaff:904695373350707210> "
-        if public_flags.partner:
-            badges += "<:New_partner_badge:904695373363298304>"
-        if public_flags.hypesquad:
-            badges += "<:HypeSquad_Event_Badge:904695519270551612>"
-        if public_flags.bug_hunter:
-            badges += "<:Bug_hunter_badge:904695373300383744> "
-        if public_flags.hypesquad_bravery:
-            badges += "<:Hypesquad_bravery_badge:904695373606555648>"
-        if public_flags.hypesquad_brilliance:
-            badges += "<:Hypesquad_brilliance_badge:904695373321367582>"
-        if public_flags.hypesquad_balance:
-            badges += "<:Hypesquad_balance_badge:904695373367509002>"
-        if public_flags.early_supporter:
-            badges += "<:Early_supporter_badge:904695372931280947>"
-        if public_flags.bug_hunter_level_2:
-            badges += "<:Bug_buster_badge:904695373312950312>"
-        if public_flags.early_verified_bot_developer:
-            badges += "<:Verified_developer_badge:904695373401038848>"
-
-        return badges
-
     @slash_subcommand(base="info", name="bot", description="Show information of bot")
     @is_enabled()
     async def bot_info(self, ctx: SlashContext):
