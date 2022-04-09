@@ -1,4 +1,5 @@
 import datetime
+import re
 from typing import List
 
 from discord import (
@@ -38,6 +39,8 @@ from utils import (
     get_content,
     is_enabled,
 )
+
+regex = re.compile(r"^#[a-fA-F0-9_-]{6}$")
 
 
 class Utilities(Cog):
@@ -682,13 +685,9 @@ class Utilities(Cog):
     async def set_embed_color(self, ctx: SlashContext, color: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("SET_EMBED_COLOR_COMMAND", guild_data.configuration.language)
-
-        if color.startswith("#") and len(color) == 7:
-            color = color.replace("#", "")
-        elif len(color) != 6 and any(char not in "1234567890ABCDEFabcdef" for char in color):
-            await ctx.send(content["WRONG_COLOR"])
-            return
-        color = f"0x{color}"
+        if not regex.fullmatch(color):
+            return await ctx.send(content["WRONG_COLOR"])
+        color = f"0x{color.replace('#', '')}"
 
         await guild_data.configuration.set_embed_color(color)
         embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=int(color, 16))
@@ -716,8 +715,8 @@ class Utilities(Cog):
         )
         await ctx.popup(modal)
 
-    @Cog.listener()
-    async def on_modal(self, ctx: ModalContext):
+    @Cog.listener(name="on_modal")
+    async def on_issue_modal(self, ctx: ModalContext):
         if ctx.custom_id != "issue_modal":
             return
 
