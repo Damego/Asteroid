@@ -17,15 +17,16 @@ class GuildData:
         self._users_collection: Collection = self._connection["users"]
         self.__raw_main_data = data["main"]
         self.__raw_users_data = data["users"]
-        self.guild_id = guild_id
+        self.guild_id: int = guild_id
         self.configuration: GuildConfiguration = None
         self.private_voice: GuildPrivateVoice = None
         self.starboard: GuildStarboard = None
         self.tags: List[GuildTag] = []
         self.cogs_data: Dict[str, Dict[str, str]] = {}
         self.autoroles: List[GuildAutoRole] = []
-        self.roles_by_level = {}
-        self.users_voice_time = {}
+        self.roles_by_level: Dict[str, str] = {}
+        self.users_voice_time: Dict[str, int] = {}
+        self.embed_templates: Dict[str, dict] = {}
 
         for document in data["main"]:
             if document["_id"] == "configuration":
@@ -179,6 +180,7 @@ class GuildData:
         await self._main_collection.update_one(
             {"_id": "cogs_data"},
             {OperatorType.SET.value: {cog_name: self.cogs_data[cog_name]}},
+            upsert=True,
         )
 
     async def add_level_role(self, level: int, role_id: int):
