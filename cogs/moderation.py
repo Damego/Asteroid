@@ -9,7 +9,7 @@ from utils import AsteroidBot, Cog, bot_owner_or_permissions, get_content
 class Moderation(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
-        self.emoji = 900384185804525678
+        self.emoji = 962648455879225344
         self.name = "Moderation"
 
     @slash_subcommand(base="mod", name="ban", description="Ban member")

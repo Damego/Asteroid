@@ -642,10 +642,7 @@ class Music(Cog):
     async def _get_music_info(
         self, ctx: SlashContext, track: lavalink.AudioTrack, content: dict
     ) -> Embed:
-        if not track.stream:
-            duration = self._get_track_duration(track)
-        else:
-            duration = content["LIVE_TEXT"]
+        duration = content["LIVE_TEXT"] if track.stream else self._get_track_duration(track)
 
         embed = Embed(
             title=content["PLAYING_TEXT"],
