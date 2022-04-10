@@ -219,7 +219,7 @@ class GuildConfiguration:
         self._connection = connection
         self._embed_color: int = int(data.get("embed_color", "0x5865F2"), 16)
         self._on_join_roles: List[int] = data.get("on_join_roles", [])
-        self._language: str = data.get("language", "English")
+        self._language: str = data.get("language", "en-US")
         self._disabled_commands: List[int] = data.get("disabled_commands", [])
         self._start_level_role: int = data.get("start_level_role", None)
 

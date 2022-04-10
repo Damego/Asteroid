@@ -20,10 +20,12 @@ from utils import (  # noqa: F401
     SystemChannels,
     errors,
     get_content,
+    load_localization,
     slash_override,
     transform_permission,
 )
 
+load_localization()
 bot = AsteroidBot(command_prefix="asteroid!", intents=Intents.all())
 
 

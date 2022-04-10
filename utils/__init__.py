@@ -31,4 +31,4 @@ from .errors import (  # noqa: F401
     UIDNotBinded,
 )
 from .functions import transform_permission  # noqa: F401
-from .languages import get_content  # noqa: F401
+from .locales import get_content, load_localization  # noqa: F401

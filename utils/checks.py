@@ -1,3 +1,6 @@
+import functools
+from typing import Coroutine
+
 from discord.ext.commands import MissingPermissions, check, has_guild_permissions
 from discord_slash import SlashContext
 
@@ -31,15 +34,18 @@ def is_enabled():
         base = None
         group = None
         name = None
-
         command_name = bot.get_transformed_command_name(ctx)
         guild_data = await bot.mongo.get_guild_data(ctx.guild_id)
-        if guild_data is None or not guild_data.configuration.disabled_commands:
+
+        if guild_data is None:
             return True
 
         if cog_data := guild_data.cogs_data.get(ctx.cog.name):
             if cog_data.get("disabled", False):
                 raise CogDisabledOnGuild
+
+        if not guild_data.configuration.disabled_commands:
+            return True
 
         disabled_commands = guild_data.configuration.disabled_commands
         if command_name in disabled_commands:
@@ -63,16 +69,20 @@ def is_enabled():
     return check(predicate)
 
 
-def cog_is_enabled(func):
-    async def wrapper(self, ctx: SlashContext, **kwargs):
-        bot: AsteroidBot = self.bot
-        guild_data = await bot.mongo.get_guild_data(ctx.guild_id)
-        cog_data = guild_data.cogs_data.get(self.name, True)
-        if not cog_data:
-            raise CogDisabledOnGuild
-        if not kwargs:
-            return await func(self, ctx)
-        return await func(self, ctx, **kwargs)
+def cog_is_enabled():
+    def wrapper(coro: Coroutine):
+        @functools.wraps(coro)
+        async def wrapped(self, ctx, *args, **kwargs):
+            bot: AsteroidBot = self.bot
+            if not ctx.guild:
+                return
+            guild_data = await bot.mongo.get_guild_data(ctx.guild.id)
+            if cog_data := guild_data.cogs_data.get(self.name, {}):
+                if cog_data.get("disabled"):
+                    return
+            return await coro(self, ctx, *args, **kwargs)
+
+        return wrapped
 
     return wrapper
 

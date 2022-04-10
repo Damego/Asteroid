@@ -14,7 +14,14 @@ from discord_slash import (
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_choice, create_option
 
-from utils import AsteroidBot, Cog, bot_owner_or_permissions, get_content, is_enabled
+from utils import (
+    AsteroidBot,
+    Cog,
+    bot_owner_or_permissions,
+    cog_is_enabled,
+    get_content,
+    is_enabled,
+)
 
 
 class AutoRole(Cog):
@@ -25,6 +32,7 @@ class AutoRole(Cog):
 
     # ON JOIN ROLE
     @Cog.listener()
+    @cog_is_enabled()
     async def on_member_join(self, member: Member):
         if member.bot:
             return
@@ -39,6 +47,7 @@ class AutoRole(Cog):
             await member.add_roles(role)
 
     @Cog.listener(name="on_autocomplete")
+    @cog_is_enabled()
     async def autorole_select_autocomplete(self, ctx: AutoCompleteContext):
         if ctx.name != "autorole":
             return
@@ -144,6 +153,7 @@ class AutoRole(Cog):
     # SELECT ROLE
 
     @Cog.listener()
+    @cog_is_enabled()
     async def on_select_option(self, ctx: ComponentContext):
         if ctx.custom_id != "autorole_select":
             return
@@ -565,6 +575,7 @@ class AutoRole(Cog):
 
     # Button AutoRole
     @Cog.listener()
+    @cog_is_enabled()
     async def on_button_click(self, ctx: ComponentContext):
         if not ctx.custom_id.startswith("autorole_button"):
             return

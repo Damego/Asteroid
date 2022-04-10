@@ -13,8 +13,8 @@ from utils import (
     Cog,
     CogDisabledOnGuild,
     NoData,
-    _cog_is_enabled,
     bot_owner_or_permissions,
+    cog_is_enabled,
     get_content,
     is_enabled,
 )
@@ -33,12 +33,9 @@ class Levels(Cog):
         self.time_factor = 10
 
     @Cog.listener()
+    @cog_is_enabled()
     async def on_member_join(self, member: Member):
         if member.bot:
-            return
-        try:
-            await _cog_is_enabled(self, member.guild.id)
-        except CogDisabledOnGuild:
             return
         guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
         await guild_data.get_user(member.id)
@@ -47,22 +44,16 @@ class Levels(Cog):
             await member.add_roles(role)
 
     @Cog.listener()
+    @cog_is_enabled()
     async def on_member_remove(self, member: Member):
         if member.bot:
-            return
-        try:
-            await _cog_is_enabled(self, member.guild.id)
-        except CogDisabledOnGuild:
             return
         guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
         await guild_data.remove_user(member.id)
 
     @Cog.listener()
+    @cog_is_enabled()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
-        try:
-            await _cog_is_enabled(self, member.guild.id)
-        except CogDisabledOnGuild:
-            return
         if member.bot:
             return
 
@@ -116,6 +107,7 @@ class Levels(Cog):
         await guild_data.remove_user_to_voice(member.id)
 
     @Cog.listener()
+    @cog_is_enabled()
     async def on_message(self, message: Message):
         if message.author.bot:
             return
@@ -246,6 +238,7 @@ class Levels(Cog):
         await ctx.send("✅", hidden=True)
 
     @Cog.listener(name="on_autocomplete")
+    @cog_is_enabled()
     async def level_autocomplete(self, ctx: AutoCompleteContext):
         if self.bot.get_transformed_command_name(ctx) != "levels":
             return
@@ -345,11 +338,9 @@ class Levels(Cog):
         base="levels",
         name="leaderboard",
         description="Shows top members by level",
-        options=[],
     )
     @is_enabled()
     async def leaderboard_members(self, ctx: SlashContext):
-        # TODO Rewrite this command due to can collect data about all users of server
         await ctx.defer()
 
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)

@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import os
 import sys
 from datetime import datetime, timedelta, timezone
@@ -8,7 +9,7 @@ from discord.ext.commands import is_owner
 from discord_slash import Button, ButtonStyle, ComponentContext, Select, SelectOption, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
-from utils import AsteroidBot, Cog
+from utils import AsteroidBot, Cog, DiscordColors
 
 
 class Settings(Cog):
@@ -78,7 +79,7 @@ class Settings(Cog):
         extensions = self.bot.extensions
         extensions_amount = len(extensions)
         content = ""
-        try:
+        with contextlib.suppress(RuntimeError):
             for count, extension in enumerate(extensions, start=1):
                 try:
                     self.bot.reload_extension(extension)
@@ -87,9 +88,6 @@ class Settings(Cog):
                     content += f"\n*Ошибка:* `{e}`"
                 else:
                     content += f"\n`{count}/{extensions_amount}. {extension} `✅"
-        except RuntimeError:
-            pass
-
         embed = Embed(title="Перезагрузка расширений", description=content, color=0x2F3136)
         await ctx.send(embed=embed)
 
@@ -101,11 +99,9 @@ class Settings(Cog):
         result = "NO DATA" if preresult == "" else "\n".join(preresult)
         content = f"```\n{result}\n```"
         embed = Embed(title="Git Sync", description=content, color=0x2F3136)
+        await ctx.send(embed=embed, components=self._get_bot_menu_components())
 
         self.__update_commits_cache()
-
-        message = await ctx.send(embed=embed, components=self._get_bot_menu_components())
-        await self._run_bot_menu(ctx, message)
 
     def __update_commits_cache(self):
         today = datetime.now(timezone.utc)
@@ -142,21 +138,20 @@ class Settings(Cog):
 
     @slash_subcommand(
         base="staff",
-        name="pip",
-        description="This command allows use pip to manage python libraries",
+        name="shell",
+        description="This command allows use shell. Only for Bot Owner",
     )
     @is_owner()
     async def pip_manage(self, ctx: SlashContext, command: str):
         await ctx.defer()
-        response = await self.run_shell(f"python3.9 -m pip {command}")
+        response = await self.run_shell(command)
         format_response = "\n".join(response)
         if len(format_response) > 2 << 11:
             format_response = response[-3:]
         content = f"```\n{format_response}\n```"
 
-        embed = Embed(title="PIP", description=content, color=0x2F3136)
-        message = await ctx.send(embed=embed, components=self._get_bot_menu_components())
-        await self._run_bot_menu(ctx, message)
+        embed = Embed(title="PowerShell", description=content, color=DiscordColors.EMBED_COLOR)
+        await ctx.send(embed=embed, components=self._get_bot_menu_components())
 
     def _get_bot_menu_components(self):
         return [
@@ -184,31 +179,39 @@ class Settings(Cog):
             ],
         ]
 
-    async def _run_bot_menu(self, ctx: SlashContext, message):
-        while True:
-            button_ctx: ComponentContext = await self.bot.wait_for(
-                "component",
-                check=lambda inter: inter.origin_message.id == message.id
-                and inter.author_id == ctx.author_id,
-            )
-            if button_ctx.custom_id == "select_reload_extensions":
-                extensions = button_ctx.values
-                for extension in extensions:
-                    self.bot.reload_extension(extension)
-                await button_ctx.send(f'**Reloaded:**\n `{", ".join(extensions)}`')
-            elif button_ctx.custom_id == "button_reload_bot":
-                await button_ctx.defer(edit_origin=True)
-                await button_ctx.origin_message.disable_components()
-                await ctx.channel.send("Reloading...")
-                os.execv(sys.executable, ["python3.9"] + sys.argv)
-            elif button_ctx.custom_id == "button_sync_commands":
-                await button_ctx.defer()
-                await self.bot.slash.sync_all_commands()
-                await button_ctx.send("Slash Commands were synced!", hidden=True)
-            elif button_ctx.custom_id == "button_exit":
-                await button_ctx.defer(edit_origin=True)
-                await button_ctx.origin_message.disable_components()
-                return
+    @Cog.listener()
+    async def on_button_click(self, ctx: ComponentContext):
+        if ctx.custom_id not in [
+            "select_reload_extensions",
+            "button_reload_bot",
+            "button_sync_commands",
+            "button_exit",
+        ]:
+            return
+
+        if (
+            ctx.origin_message_id != ctx.origin_message.interaction.id
+            and ctx.author_id != ctx.origin_message.interaction.author_id
+        ):
+            return
+
+        if ctx.custom_id == "select_reload_extensions":
+            extensions = ctx.values
+            for extension in extensions:
+                self.bot.reload_extension(extension)
+            await ctx.send(f'**Reloaded:**\n `{", ".join(extensions)}`')
+        elif ctx.custom_id == "button_reload_bot":
+            await ctx.defer()
+            await ctx.origin_message.disable_components()
+            await ctx.send("Reloading...")
+            os.execv(sys.executable, ["python3.9"] + sys.argv)
+        elif ctx.custom_id == "button_sync_commands":
+            await ctx.defer()
+            await self.bot.slash.sync_all_commands()
+            await ctx.send("Slash Commands were synced!", hidden=True)
+        elif ctx.custom_id == "button_exit":
+            await ctx.defer(edit_origin=True)
+            await ctx.origin_message.disable_components()
 
 
 def setup(bot):
