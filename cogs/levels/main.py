@@ -180,7 +180,12 @@ class Levels(Cog):
                 option_type=SlashCommandOptionType.INTEGER,
                 required=True,
             ),
-            create_option(name="role", description="Role to level", option_type=8, required=True),
+            create_option(
+                name="role",
+                description="Role to level",
+                option_type=SlashCommandOptionType.ROLE,
+                required=True,
+            ),
         ],
     )
     @is_enabled()
@@ -195,7 +200,14 @@ class Levels(Cog):
         subcommand_group="role",
         name="remove",
         description="Remove Role of a level",
-        options=[create_option(name="level", description="level", option_type=5, required=True)],
+        options=[
+            create_option(
+                name="level",
+                description="level",
+                option_type=SlashCommandOptionType.INTEGER,
+                required=True,
+            )
+        ],
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
