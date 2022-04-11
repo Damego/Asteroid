@@ -3,13 +3,14 @@ import contextlib
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+from typing import List
 
 from discord import Embed, Forbidden
 from discord.ext.commands import is_owner
 from discord_slash import Button, ButtonStyle, ComponentContext, Select, SelectOption, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 
-from utils import AsteroidBot, Cog, DiscordColors
+from utils import AsteroidBot, Cog, DiscordColors, consts, load_localization
 
 
 class Settings(Cog):
@@ -127,6 +128,7 @@ class Settings(Cog):
         return stdout, stderr
 
     @slash_subcommand(base="staff", name="sync_commands")
+    @is_owner()
     async def sync_commands(self, ctx: SlashContext):
         await ctx.defer()
         try:
@@ -179,8 +181,8 @@ class Settings(Cog):
             ],
         ]
 
-    @Cog.listener()
-    async def on_button_click(self, ctx: ComponentContext):
+    @Cog.listener(name="on_component")
+    async def old_on_component(self, ctx: ComponentContext):
         if ctx.custom_id not in [
             "select_reload_extensions",
             "button_reload_bot",
@@ -212,6 +214,137 @@ class Settings(Cog):
         elif ctx.custom_id == "button_exit":
             await ctx.defer(edit_origin=True)
             await ctx.origin_message.disable_components()
+
+    @slash_subcommand(base="staff", name="reload_locales")
+    @is_owner()
+    async def reload_locales(self, ctx: SlashContext):
+        await ctx.defer(hidden=True)
+        load_localization()
+        await ctx.send("Локализация перезагружена", hidden=True)
+
+    @slash_subcommand(
+        base="staff",
+        name="control",
+    )
+    @is_owner()
+    async def open_control_menu(self, ctx: SlashContext):
+        components = [
+            [
+                Button(
+                    style=ButtonStyle.green,
+                    label="Check updates",
+                    custom_id="update_bot",
+                    emoji="📥",
+                ),
+                Button(
+                    style=ButtonStyle.red,
+                    label="Reload Bot",
+                    custom_id="reload_bot",
+                    emoji=self.bot.get_emoji(963104705888804976),
+                ),
+                Button(
+                    style=ButtonStyle.blue,
+                    label="Sync commands",
+                    custom_id="sync_commands",
+                    emoji=self.bot.get_emoji(963104705406439425),
+                ),
+            ],
+            [
+                Button(
+                    style=ButtonStyle.gray,
+                    label="Reload all extensions",
+                    custom_id="reload_cogs",
+                    emoji="🧱",
+                ),
+                Button(
+                    style=ButtonStyle.gray,
+                    label="Reload localization",
+                    custom_id="reload_locales",
+                    emoji="🇺🇸",
+                ),
+            ],
+            [
+                Select(
+                    placeholder="Reload extensions",
+                    custom_id="reload_extensions",
+                    options=[
+                        SelectOption(label=extension[5:], value=extension)
+                        for extension in self.bot.extensions
+                    ],
+                    max_values=len(self.bot.extensions),
+                ),
+            ],
+        ]
+
+        embed = Embed(title="Bot Control Menu", color=DiscordColors.EMBED_COLOR)
+
+        await ctx.send(embed=embed, components=components)
+
+    @Cog.listener()
+    async def on_component(self, ctx: ComponentContext):
+        if ctx.author_id not in consts.owner_ids:
+            return await ctx.send("❌ You are not owner of this bot!", hidden=True)
+        if ctx.custom_id not in [
+            "reload_bot",
+            "sync_commands",
+            "update_bot",
+            "reload_all_extensions",
+            "reload_locales",
+            "reload_extensions",
+        ]:
+            return
+
+        custom_id: str = ctx.custom_id
+        await ctx.defer(hidden=True)
+
+        if custom_id == "reload_bot":
+            await ctx.send("Перезагрузка", hidden=True)
+            os.execv(sys.executable, ["python3.9"] + sys.argv)
+        elif custom_id == "sync_commands":
+            try:
+                await self.bot.slash.sync_all_commands()
+            except Forbidden:
+                await ctx.send("Невозможно синхронизовать слэш команды", hidden=True)
+            else:
+                await ctx.send("Слэш команды были синронизированы", hidden=True)
+        elif custom_id == "update_bot":
+            result = await self.run_shell("git pull")
+            result = "\n".join(result) if result else "NO DATA"
+            content = f"```\n{result}\n```"
+            embed = Embed(title="Git Sync", description=content, color=DiscordColors.EMBED_COLOR)
+            await ctx.send(embed=embed, hidden=True)
+            self.__update_commits_cache()
+        elif custom_id == "reload_all_extensions":
+            embed = self.__reload_extensions()
+            await ctx.send(embed=embed, hidden=True)
+        elif custom_id == "reload_locales":
+            if not_loaded := load_localization():
+                await ctx.send(
+                    f"Невозможно перезагрузить локализацию для `{', '.join(not_loaded)}`",
+                    hidden=True,
+                )
+            else:
+                await ctx.send("Локализация перезагружена", hidden=True)
+        elif custom_id == "reload_extensions":
+            embed = self.__reload_extensions(ctx.values)
+            await ctx.send(embed=embed, hidden=True)
+
+    def __reload_extensions(self, extensions: List[str] = None):
+        extensions = extensions or self.bot.extensions
+        extensions_amount = len(extensions)
+        content = ""
+        with contextlib.suppress(RuntimeError):
+            for count, extension in enumerate(extensions, start=1):
+                try:
+                    self.bot.reload_extension(extension)
+                except Exception as e:
+                    content += f"\n`{count}/{extensions_amount}. {extension} `❌"
+                    content += f"\n*Ошибка:* `{e}`"
+                else:
+                    content += f"\n`{count}/{extensions_amount}. {extension} `✅"
+        return Embed(
+            title="Перезагрузка расширений", description=content, color=DiscordColors.EMBED_COLOR
+        )
 
 
 def setup(bot):
