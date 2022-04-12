@@ -311,7 +311,8 @@
         "MUSIC": "Music",
         "TAGS": "Tags",
         "UTILITIES": "Utilities",
-        "PRIVATEROOMS": "Private Rooms"
+        "PRIVATEROOMS": "Private Rooms",
+        "STARBOARD": "StarBoard"
     }
 },
 "STARBOARD_FUNCTIONS": {
