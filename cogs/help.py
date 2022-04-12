@@ -92,7 +92,7 @@ class Help(Cog):
     def _init_embeds(self, ctx: SlashContext, guild_data: GuildData, content: dict):
         translated_commands = None
         guild_language = guild_data.configuration.language
-        if guild_language != "English":
+        if guild_language != "en-US":
             translated_commands = get_content("TRANSLATED_COMMANDS", guild_language)
         commands_data = self._get_commands_data()
         embeds = [self._get_main_menu(ctx, content)]
