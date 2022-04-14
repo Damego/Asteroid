@@ -329,7 +329,7 @@ class Settings(Cog):
         elif custom_id == "update_discord_py":
             result = await self.start_shell("pip uninstall --yes discord.py")
             result += await self.start_shell(
-                "pip install --upgrade git+htpps://github.com/Damego/discord.py.git"
+                "pip install --upgrade git+https://github.com/Damego/discord.py.git"
             )
             embed = Embed(
                 title="discord.py Update", description=result, color=DiscordColors.EMBED_COLOR
@@ -338,7 +338,7 @@ class Settings(Cog):
         elif custom_id == "update_discord_slash":
             result = await self.start_shell("pip uninstall --yes discord-py-slash-command")
             result += await self.start_shell(
-                "pip install --upgrade git+htpps://github.com/Damego/discord-py-interactions.git"
+                "pip install --upgrade git+https://github.com/Damego/discord-py-interactions.git"
             )
             embed = Embed(
                 title="discord-slash Update", description=result, color=DiscordColors.EMBED_COLOR
