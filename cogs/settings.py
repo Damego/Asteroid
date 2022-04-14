@@ -111,22 +111,6 @@ class Settings(Cog):
             self.bot.github_repo.get_commits(until=today, since=delta_7)
         )
 
-    @staticmethod
-    async def run_shell(command: str):
-        process = await asyncio.create_subprocess_shell(
-            command, stderr=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
-        )
-        stdout, stderr = await process.communicate()
-        try:
-            stdout = stdout.decode(encoding="UTF-8")
-        except UnicodeDecodeError:
-            stdout = ""
-        try:
-            stderr = stderr.decode(encoding="UTF-8")
-        except UnicodeDecodeError:
-            stderr = ""
-        return stdout, stderr
-
     @slash_subcommand(base="staff", name="sync_commands")
     @is_owner()
     async def sync_commands(self, ctx: SlashContext):
@@ -232,24 +216,30 @@ class Settings(Cog):
             [
                 Button(
                     style=ButtonStyle.green,
-                    label="Check updates",
+                    label="Check Bot updates",
                     custom_id="update_bot",
                     emoji="📥",
                 ),
+                Button(
+                    style=ButtonStyle.gray,
+                    label="Check discord.py updates",
+                    custom_id="update_discord_py",
+                    emoji=self.bot.get_emoji(964091772416454676),
+                ),
+                Button(
+                    style=ButtonStyle.gray,
+                    label="Check discord-slash updates",
+                    custom_id="update_discord_slash",
+                    emoji=self.bot.get_emoji(963104705406439425),
+                ),
+            ],
+            [
                 Button(
                     style=ButtonStyle.red,
                     label="Reload Bot",
                     custom_id="reload_bot",
                     emoji=self.bot.get_emoji(963104705888804976),
                 ),
-                Button(
-                    style=ButtonStyle.blue,
-                    label="Sync commands",
-                    custom_id="sync_commands",
-                    emoji=self.bot.get_emoji(963104705406439425),
-                ),
-            ],
-            [
                 Button(
                     style=ButtonStyle.gray,
                     label="Reload all extensions",
@@ -261,6 +251,14 @@ class Settings(Cog):
                     label="Reload localization",
                     custom_id="reload_locales",
                     emoji="🇺🇸",
+                ),
+            ],
+            [
+                Button(
+                    style=ButtonStyle.blue,
+                    label="Sync commands",
+                    custom_id="sync_commands",
+                    emoji=self.bot.get_emoji(963104705406439425),
                 ),
             ],
             [
@@ -288,6 +286,8 @@ class Settings(Cog):
             "reload_bot",
             "sync_commands",
             "update_bot",
+            "update_discord_py",
+            "update_discord_slash",
             "reload_all_extensions",
             "reload_locales",
             "reload_extensions",
@@ -308,10 +308,8 @@ class Settings(Cog):
             else:
                 await ctx.send("Слэш команды были синронизированы", hidden=True)
         elif custom_id == "update_bot":
-            result = await self.run_shell("git pull")
-            result = "\n".join(result) if result else "NO DATA"
-            content = f"```\n{result}\n```"
-            embed = Embed(title="Git Sync", description=content, color=DiscordColors.EMBED_COLOR)
+            result = await self.start_shell("git pull")
+            embed = Embed(title="Git Sync", description=result, color=DiscordColors.EMBED_COLOR)
             await ctx.send(embed=embed, hidden=True)
             self.__update_commits_cache()
         elif custom_id == "reload_all_extensions":
@@ -328,6 +326,44 @@ class Settings(Cog):
         elif custom_id == "reload_extensions":
             embed = self.__reload_extensions(ctx.values)
             await ctx.send(embed=embed, hidden=True)
+        elif custom_id == "update_discord_py":
+            result = await self.start_shell("pip uninstall --yes discord.py")
+            result += await self.start_shell(
+                "pip install --upgrade git+htpps://github.com/Damego/discord.py.git"
+            )
+            embed = Embed(
+                title="discord.py Update", description=result, color=DiscordColors.EMBED_COLOR
+            )
+            await ctx.send(embed=embed, hidden=True)
+        elif custom_id == "update_discord_slash":
+            result = await self.start_shell("pip uninstall --yes discord-py-slash-command")
+            result += await self.start_shell(
+                "pip install --upgrade git+htpps://github.com/Damego/discord-py-interactions.git"
+            )
+            embed = Embed(
+                title="discord-slash Update", description=result, color=DiscordColors.EMBED_COLOR
+            )
+            await ctx.send(embed=embed, hidden=True)
+
+    async def start_shell(self, command: str) -> str:
+        result = await self.__run_shell(command)
+        return f"```\n{''.join(result)}\n```" if result else "NO DATA"
+
+    @staticmethod
+    async def __run_shell(command: str):
+        process = await asyncio.create_subprocess_shell(
+            command, stderr=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await process.communicate()
+        try:
+            stdout = stdout.decode(encoding="UTF-8")
+        except UnicodeDecodeError:
+            stdout = ""
+        try:
+            stderr = stderr.decode(encoding="UTF-8")
+        except UnicodeDecodeError:
+            stderr = ""
+        return stdout, stderr
 
     def __reload_extensions(self, extensions: List[str] = None):
         extensions = extensions or self.bot.extensions
