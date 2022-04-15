@@ -50,8 +50,6 @@ class Tags(Cog):
     )
     @is_enabled()
     async def view_tag(self, ctx: SlashContext, tag_name: str):
-        tag_name = self.convert_tag_name(tag_name)
-
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         tag = None
         for tag in guild_data.tags:
@@ -95,8 +93,6 @@ class Tags(Cog):
     )
     @is_enabled()
     async def create_new_tag(self, ctx: SlashContext, tag_name: str, type: str):
-        tag_name = self.convert_tag_name(tag_name)
-
         await self._is_can_manage_tags(ctx)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
 
@@ -158,8 +154,6 @@ class Tags(Cog):
     )
     @is_enabled()
     async def edit_tag(self, ctx: SlashContext, tag_name: str):
-        tag_name = self.convert_tag_name(tag_name)
-
         await self._is_can_manage_tags(ctx)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
 
@@ -256,7 +250,6 @@ class Tags(Cog):
     )
     @is_enabled()
     async def tag_remove(self, ctx: SlashContext, tag_name: str):
-        tag_name = self.convert_tag_name(tag_name)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
 
         for tag in guild_data.tags:
@@ -312,9 +305,6 @@ class Tags(Cog):
     )
     @is_enabled()
     async def rename(self, ctx: SlashContext, tag_name: str, new_tag_name: str):
-        tag_name = self.convert_tag_name(tag_name)
-        new_tag_name = self.convert_tag_name(new_tag_name)
-
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("TAG_RENAME_TAG", guild_data.configuration.language)
 
@@ -348,7 +338,6 @@ class Tags(Cog):
     )
     @is_enabled()
     async def raw(self, ctx: SlashContext, tag_name: str):
-        tag_name = self.convert_tag_name(tag_name)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         for tag in guild_data.tags:
             if tag.name == tag_name:
@@ -401,19 +390,6 @@ class Tags(Cog):
             return
         if tags_data.get("is_public") is False:
             raise TagsIsPrivate
-
-    @staticmethod
-    def convert_tag_name(tag_name: str):
-        tag_name = tag_name.lower().strip()
-
-        if " " in tag_name:
-            tag_name = tag_name.replace(" ", "")
-        if "-" in tag_name:
-            tag_name = tag_name.replace("-", "")
-        if "_" in tag_name:
-            tag_name = tag_name.replace("_", "")
-
-        return tag_name
 
 
 def setup(bot):

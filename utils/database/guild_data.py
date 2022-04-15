@@ -218,33 +218,33 @@ class GuildConfiguration:
     def __init__(self, connection, data: dict) -> None:
         self._connection = connection
         self._embed_color: int = int(data.get("embed_color", "0x5865F2"), 16)
-        self._on_join_roles: List[int] = data.get("on_join_roles", [])
         self._language: str = data.get("language", "en-US")
-        self._disabled_commands: List[int] = data.get("disabled_commands", [])
+        self._on_join_roles: List[int] = data.get("on_join_roles", [])
+        self._disabled_commands: List[str] = data.get("disabled_commands", [])
         self._start_level_role: int = data.get("start_level_role", None)
 
     @property
-    def embed_color(self):
+    def embed_color(self) -> int:
         return self._embed_color
 
     @property
-    def language(self):
+    def language(self) -> str:
         return self._language
 
     @property
-    def on_join_roles(self):
+    def on_join_roles(self) -> List[int]:
         return self._on_join_roles
 
     @property
-    def disabled_commands(self):
+    def disabled_commands(self) -> List[str]:
         return self._disabled_commands
 
     @property
-    def start_role(self):
+    def start_role(self) -> int:
         return self._start_level_role
 
     @property
-    def start_level_role(self):
+    def start_level_role(self) -> int:
         return self._start_level_role
 
     async def _update(self, type: OperatorType, data: dict):
@@ -282,13 +282,33 @@ class GuildConfiguration:
 class GuildStarboard:
     def __init__(self, connection, data: dict) -> None:
         self._connection = connection
-        self.channel_id: int = data.get("channel_id")
-        self.is_enabled: bool = data.get("is_enabled")
-        self.limit: int = data.get("limit")
-        self.messages: Dict[str, Dict[str, int]] = data.get("messages", {})
-        self.blacklist: Dict[str, List[int]] = data.get(
+        self._channel_id: int = data.get("channel_id")
+        self._is_enabled: bool = data.get("is_enabled")
+        self._limit: int = data.get("limit")
+        self._messages: Dict[str, Dict[str, int]] = data.get("messages", {})
+        self._blacklist: Dict[str, List[int]] = data.get(
             "blacklist", {"members": [], "channels": [], "roles": []}
         )
+
+    @property
+    def channel_id(self) -> int:
+        return self._channel_id
+
+    @property
+    def is_enabled(self) -> bool:
+        return self._is_enabled
+
+    @property
+    def limit(self) -> int:
+        return self._limit
+
+    @property
+    def messages(self) -> Dict[str, Dict[str, int]]:
+        return self._messages
+
+    @property
+    def blacklist(self) -> Dict[str, List[int]]:
+        return self._blacklist
 
     async def _update(self, type: OperatorType, data: dict):
         await self._connection.update_one({"_id": "starboard"}, {type.value: data}, upsert=True)
@@ -298,112 +318,152 @@ class GuildStarboard:
             OperatorType.SET,
             {f"messages.{message_id}.starboard_message": starboard_message_id},
         )
-        self.messages[str(message_id)] = {"starboard_message": starboard_message_id}
+        self._messages[str(message_id)] = {"starboard_message": starboard_message_id}
 
     async def set_status(self, is_enabled: bool):
         await self._update(OperatorType.SET, {"is_enabled": is_enabled})
-        self.is_enabled = is_enabled
+        self._is_enabled = is_enabled
 
     async def set_channel_id(self, channel_id: int):
         await self._update(OperatorType.SET, {"channel_id": channel_id})
-        self.channel_id = channel_id
+        self._channel_id = channel_id
 
     async def set_limit(self, limit: int):
         await self._update(OperatorType.SET, {"limit": limit})
-        self.limit = limit
+        self._limit = limit
 
     async def add_member_to_blacklist(self, member_id: int):
         await self._update(OperatorType.PUSH, {"blacklist.members": member_id})
-        if "members" not in self.blacklist:
-            self.blacklist["members"] = []
-        self.blacklist["members"].append(member_id)
+        if "members" not in self._blacklist:
+            self._blacklist["members"] = []
+        self._blacklist["members"].append(member_id)
 
     async def remove_member_from_blacklist(self, member_id: int):
         await self._update(OperatorType.PULL, {"blacklist.members": member_id})
-        if "members" in self.blacklist and member_id in self.blacklist["members"]:
-            self.blacklist["members"].remove(member_id)
+        if "members" in self._blacklist and member_id in self._blacklist["members"]:
+            self._blacklist["members"].remove(member_id)
 
     async def add_channel_to_blacklist(self, channel_id: int):
         await self._update(OperatorType.PUSH, {"blacklist.channels": channel_id})
-        if "channels" not in self.blacklist:
-            self.blacklist["channels"] = []
-        self.blacklist["channels"].append(channel_id)
+        if "channels" not in self._blacklist:
+            self._blacklist["channels"] = []
+        self._blacklist["channels"].append(channel_id)
 
     async def remove_channel_from_blacklist(self, channel_id: int):
         await self._update(OperatorType.PULL, {"blacklist.channels": channel_id})
-        if "channels" in self.blacklist and channel_id in self.blacklist["channels"]:
-            self.blacklist["channels"].remove(channel_id)
+        if "channels" in self._blacklist and channel_id in self._blacklist["channels"]:
+            self._blacklist["channels"].remove(channel_id)
 
     async def add_role_to_blacklist(self, role_id: int):
         await self._update(OperatorType.PUSH, {"blacklist.roles": role_id})
-        if "roles" not in self.blacklist:
-            self.blacklist["roles"] = []
-        self.blacklist["roles"].append(role_id)
+        if "roles" not in self._blacklist:
+            self._blacklist["roles"] = []
+        self._blacklist["roles"].append(role_id)
 
     async def remove_role_from_blacklist(self, role_id: int):
         await self._update(OperatorType.PULL, {"blacklist.roles": role_id})
-        if "roles" in self.blacklist and role_id in self.blacklist["roles"]:
-            self.blacklist["roles"].remove(role_id)
+        if "roles" in self._blacklist and role_id in self._blacklist["roles"]:
+            self._blacklist["roles"].remove(role_id)
 
 
 class GuildAutoRole:
     def __init__(self, connection, name: str, data: dict) -> None:
         self._connection = connection
-        self.name = name
-        self.content: str = data.get("content")
-        self.message_id: int = data.get("message_id")
-        self.type: str = data.get("autorole_type")
-        self.component: dict = data.get("component")
+        self._name: str = name
+        self._content: str = data.get("content")
+        self._message_id: int = data.get("message_id")
+        self._type: str = data.get("autorole_type")
+        self._component: dict = data.get("component")
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def content(self) -> str:
+        return self._content
+
+    @property
+    def message_id(self) -> int:
+        return self._message_id
+
+    @property
+    def type(self) -> str:
+        return self._type
+
+    @property
+    def component(self) -> dict:
+        return self._component
 
     async def _update(self, type: OperatorType, data: dict):
         await self._connection.update_one({"_id": "autorole"}, {type.value: data}, upsert=True)
 
     async def rename(self, name: int):
-        await self._update(OperatorType.RENAME, {self.name: name})
-        self.name = name
+        await self._update(OperatorType.RENAME, {self._name: name})
+        self._name = name
 
     async def update_component(self, component_data: Union[dict, list]):
-        await self._update(OperatorType.SET, {f"{self.name}.component": component_data})
-        self.component = component_data
+        await self._update(OperatorType.SET, {f"{self._name}.component": component_data})
+        self._component = component_data
 
 
 class GuildTag:
     def __init__(self, connection, name: str, data: dict) -> None:
         self._connection = connection
-        self.name: str = name
-        self.author_id: int = data["author_id"]
-        self.is_embed: bool = data["is_embed"]
-        self.title: str = data["title"]
-        self.description: str = data["description"]
+        self._name: str = name
+        self._author_id: int = data["author_id"]
+        self._is_embed: bool = data["is_embed"]
+        self._title: str = data["title"]
+        self._description: str = data["description"]
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def author_id(self) -> int:
+        return self._author_id
+
+    @property
+    def is_embed(self) -> bool:
+        return self._is_embed
+
+    @property
+    def title(self) -> str:
+        return self._title
+
+    @property
+    def description(self) -> str:
+        return self._description
 
     async def _update(self, type: OperatorType, data: dict):
         await self._connection.update_one({"_id": "tags"}, {type.value: data}, upsert=True)
 
     async def rename(self, name: int):
-        await self._update(OperatorType.RENAME, {self.name: name})
-        self.name = name
+        await self._update(OperatorType.RENAME, {self._name: name})
+        self._name = name
 
     async def set_author_id(self, author_id: int):
-        await self._update(OperatorType.SET, {f"{self.name}.author_id": author_id})
-        self.author_id = author_id
+        await self._update(OperatorType.SET, {f"{self._name}.author_id": author_id})
+        self._author_id = author_id
 
     async def set_embed(self, is_embed: bool):
-        await self._update(OperatorType.SET, {f"{self.name}.is_embed": is_embed})
-        self.is_embed = is_embed
+        await self._update(OperatorType.SET, {f"{self._name}.is_embed": is_embed})
+        self._is_embed = is_embed
 
     async def set_title(self, title: str):
-        await self._update(OperatorType.SET, {f"{self.name}.title": title})
-        self.title = title
+        await self._update(OperatorType.SET, {f"{self._name}.title": title})
+        self._title = title
 
     async def set_description(self, description: str):
-        await self._update(OperatorType.SET, {f"{self.name}.description": description})
-        self.description = description
+        await self._update(OperatorType.SET, {f"{self._name}.description": description})
+        self._description = description
 
 
 class GuildUser:
     def __init__(self, connection, data: dict) -> None:
         self._connection = connection
-        self._id: str = data["_id"]
+        self._id: int = int(data["_id"])
         self._level: int = 1
         self._xp: int = 0
         self._xp_amount: int = 0
@@ -432,43 +492,43 @@ class GuildUser:
                 self._music_playlists[name] = tracks
 
     @property
-    def id(self):
+    def id(self) -> int:
         return self._id
 
     @property
-    def level(self):
+    def level(self) -> int:
         return self._level
 
     @property
-    def xp(self):
+    def xp(self) -> int:
         return self._xp
 
     @property
-    def xp_amount(self):
+    def xp_amount(self) -> int:
         return self._xp_amount
 
     @property
-    def role(self):
+    def role(self) -> int:
         return self._role
 
     @property
-    def voice_time_count(self):
+    def voice_time_count(self) -> int:
         return self._voice_time_count
 
     @property
-    def hoyolab_uid(self):
+    def hoyolab_uid(self) -> int:
         return self._hoyolab_uid
 
     @property
-    def genshin_uid(self):
+    def genshin_uid(self) -> int:
         return self._genshin_uid
 
     @property
-    def notes(self):
+    def notes(self) -> List[dict]:
         return self._notes
 
     @property
-    def music_playlists(self):
+    def music_playlists(self) -> Dict[str, list]:
         return self._music_playlists
 
     async def _update(self, type: OperatorType, data: dict):
@@ -580,9 +640,9 @@ class GuildUser:
 class GuildPrivateVoice:
     def __init__(self, connection, data: dict) -> None:
         self._connection = connection
-        self.text_channel_id: int = data.get("text_channel_id")
-        self.voice_channel_id: int = data.get("voice_channel_id")
-        self.active_channels: dict = data.get("active_channels", {})
+        self._text_channel_id: int = data.get("text_channel_id")
+        self._voice_channel_id: int = data.get("voice_channel_id")
+        self._active_channels: dict = data.get("active_channels", {})
 
     async def _update(self, type: OperatorType, data: dict):
         await self._connection.update_one({"_id": "private_voice"}, {type.value: data}, upsert=True)
@@ -593,8 +653,8 @@ class GuildPrivateVoice:
         channel_id: int,
     ):
         await self._update(OperatorType.SET, {f"active_channels.{member_id}": channel_id})
-        self.active_channels[str(member_id)] = channel_id
+        self._active_channels[str(member_id)] = channel_id
 
     async def delete_private_voice_channel(self, member_id: int):
         await self._update(OperatorType.UNSET, {f"active_channels.{member_id}": ""})
-        del self.active_channels[str(member_id)]
+        del self._active_channels[str(member_id)]
