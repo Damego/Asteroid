@@ -4,7 +4,7 @@ from typing import List, Union
 
 import lavalink
 from discord import Embed, Guild, Member, Permissions, VoiceChannel, VoiceClient, VoiceState
-from discord.ext.commands import BotMissingPermissions
+from discord.ext.commands import BotMissingPermissions, has_guild_permissions
 from discord_slash import AutoCompleteContext, SlashCommandOptionType, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_choice, create_option
@@ -549,9 +549,13 @@ class Music(Cog):
         await user_data.remove_playlist(playlist)
 
     def __can_connect(self, ctx: SlashContext):
+        bot_user: Member = ctx.guild.me
+        if bot_user.guild_permissions.administrator:
+            return True
+
         channel: VoiceChannel = ctx.author.voice.channel
-        permissions: List[Permissions] = channel.permissions_for(ctx.guild.me)
-        return Permissions.connect in permissions
+        permissions: Permissions = channel.permissions_for(ctx.guild.me)
+        return permissions.connect
 
     async def _play_music(
         self, ctx: SlashContext, query: Union[str, List[str]], is_playlist: bool = False
