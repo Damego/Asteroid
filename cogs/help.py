@@ -246,12 +246,8 @@ class Help(Cog):
                     commands_data[group_data.cog][base_name][group_name] = group_data
         return commands_data
 
-    @staticmethod
-    def _cog_is_private(ctx: SlashContext, cog: Cog):
-        return cog.private_guild_id and ctx.guild_id not in cog.private_guild_id
-
     def _cog_check(self, guild_data: GuildData, cog: Cog, commands_data: dict = None):
-        if cog.hidden or self._cog_is_private(guild_data.guild_id, cog):
+        if cog.hidden or (cog.private_guild_id and guild_data.guild_id not in cog.private_guild_id):
             return True
         if commands_data and cog not in commands_data:
             return True
