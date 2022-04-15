@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Asteroid | Discord Bot</h1>
-  <img src="https://cdn.discordapp.com/avatars/833349109347778591/513bc15072091ed7398e8728430bf8dd.webp?size=128">
+  <img src="https://cdn.discordapp.com/attachments/829309399959863307/964580080032571422/1asteroid-8d.png?size=64">
 </div>
 
 <h2>About</h2>
@@ -9,7 +9,8 @@
 <h2>Main libraries</h2>
 
 - discord.py v1.7.3 - Base client
-- custom discord-py-interactions v3 - Slash commands and components
+- <a href="https://github.com/Damego/discord-py-interactions">custom discord-py-interactions v3</a>  - Slash commands and components
 
 <h2>Setup Bot</h2>
+
 Figure it out for yourself
