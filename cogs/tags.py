@@ -25,7 +25,6 @@ class Tags(Cog):
     async def tag_autocomplete(self, ctx: AutoCompleteContext):
         if ctx.name != "tag" and ctx.focused_option != "tag_name":
             return
-        choices = None
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         tags = guild_data.tags
         if choices := [
