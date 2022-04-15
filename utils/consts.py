@@ -43,13 +43,14 @@ multiplier = {
 }
 
 PUBLIC_EXTENSIONS = [
+    "Fun",
+    "Levels",
     "AutoRole",
     "Genshin",
     "Misc",
     "Moderation",
     "Music",
     "PrivateRooms",
-    "Tags",
+    "StarBoard" "Tags",
     "Utilities",
-    "Levels",
 ]

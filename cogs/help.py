@@ -22,7 +22,7 @@ class Help(Cog):
 
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("HELP_COMMAND", guild_data.configuration.language)
-        components = self._init_components(ctx, guild_data, content)
+        components = self._init_components(guild_data, content)
         embeds = self._init_embeds(ctx, guild_data, content)
         message = await ctx.send(embed=embeds[0], components=components)
 
@@ -54,11 +54,7 @@ class Help(Cog):
 
             await button_ctx.edit_origin(embed=embed, components=components)
 
-    @staticmethod
-    def _cog_is_private(ctx: SlashContext, cog: Cog):
-        return cog.private_guild_id and ctx.guild_id not in cog.private_guild_id
-
-    def _init_components(self, ctx: SlashContext, guild_data: GuildData, content: dict):
+    def _init_components(self, guild_data: GuildData, content: dict):
         options_translation = content["PLUGINS"]
         options = [
             SelectOption(
@@ -70,11 +66,8 @@ class Help(Cog):
         ]
 
         for cog_name, cog in self.bot.cogs.items():
-            if cog.hidden or self._cog_is_private(ctx, cog):
+            if self._cog_check(guild_data, cog):
                 continue
-            if cog_data := guild_data.cogs_data.get(cog_name):
-                if cog_data.get("disabled"):
-                    continue
 
             emoji = cog.emoji
             if isinstance(emoji, int):
@@ -95,15 +88,12 @@ class Help(Cog):
         if guild_language != "en-US":
             translated_commands = get_content("TRANSLATED_COMMANDS", guild_language)
         commands_data = self._get_commands_data()
-        embeds = [self._get_main_menu(ctx, content)]
+        embeds = [self._get_main_menu(ctx, guild_data, content)]
         cog_translations = content["PLUGINS"]
 
         for cog_name, cog in self.bot.cogs.items():
-            if cog.hidden or self._cog_is_private(ctx, cog) or cog not in commands_data:
+            if self._cog_check(guild_data, cog, commands_data):
                 continue
-            if cog_data := guild_data.cogs_data.get(cog_name):
-                if cog_data.get("disabled"):
-                    continue
 
             embed = Embed(
                 title=f"{cog_translations[cog_name.upper()]} | Asteroid Bot",
@@ -176,7 +166,7 @@ class Help(Cog):
                 )
         return embed
 
-    def _get_main_menu(self, ctx: SlashContext, content: dict) -> Embed:
+    def _get_main_menu(self, ctx: SlashContext, guild_data: GuildData, content: dict) -> Embed:
         embed = Embed(
             title="Help | Asteroid Bot",
             timestamp=datetime.datetime.utcnow(),
@@ -194,13 +184,11 @@ class Help(Cog):
         )
 
         cog_translations = content["PLUGINS"]
-        cogs = ""
-        for cog_name, cog in self.bot.cogs.items():
-            if cog.hidden:
-                continue
-            if cog.private_guild_id and ctx.guild_id not in cog.private_guild_id:
-                continue
-            cogs += f"**» {cog_translations[cog_name.upper()]}**\n"
+        cogs = "".join(
+            f"**» {cog_translations[cog_name.upper()]}**\n"
+            for cog_name, cog in self.bot.cogs.items()
+            if not self._cog_check(guild_data, cog)
+        )
 
         embed.add_field(name=content["PLUGINS_TEXT"], value=cogs)
         return embed
@@ -257,6 +245,19 @@ class Help(Cog):
                         commands_data[group_data.cog][base_name] = {}
                     commands_data[group_data.cog][base_name][group_name] = group_data
         return commands_data
+
+    @staticmethod
+    def _cog_is_private(ctx: SlashContext, cog: Cog):
+        return cog.private_guild_id and ctx.guild_id not in cog.private_guild_id
+
+    def _cog_check(self, guild_data: GuildData, cog: Cog, commands_data: dict = None):
+        if cog.hidden or self._cog_is_private(guild_data.guild_id, cog):
+            return True
+        if commands_data and cog not in commands_data:
+            return True
+        if cog_data := guild_data.cogs_data.get(cog.name):
+            if cog_data.get("disabled"):
+                return True
 
 
 def setup(bot):
