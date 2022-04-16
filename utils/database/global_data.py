@@ -10,6 +10,8 @@ class GlobalData:
     Class representing connection to global users collection
     """
 
+    __slots__ = ("_connection", "users")
+
     def __init__(self, connection, users: List[dict]) -> None:
         self._connection: Collection = connection["USERS"]
         self.users = {
@@ -39,6 +41,8 @@ class GlobalUserData:
     """
     Class representing global user data
     """
+
+    __slots__ = ("_connection", "_id", "_notes", "_music_playlists")
 
     def __init__(self, connection, data: dict) -> None:
         self._connection: Collection = connection

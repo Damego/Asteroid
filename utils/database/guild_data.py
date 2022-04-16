@@ -9,6 +9,24 @@ from .enums import OperatorType
 
 
 class GuildData:
+    __slots__ = (
+        "_connection",
+        "_main_collection",
+        "_users_collection",
+        "__raw_main_data",
+        "__raw_users_data",
+        "guild_id",
+        "configuration",
+        "private_voice",
+        "starboard",
+        "tags",
+        "cogs_data",
+        "autoroles",
+        "roles_by_level",
+        "users_voice_time",
+        "embed_templates",
+    )
+
     def __init__(self, connection, data: dict, guild_id: int) -> None:
         if guild_id is None:
             raise NotGuild
@@ -215,6 +233,15 @@ class GuildData:
 
 
 class GuildConfiguration:
+    __slots__ = (
+        "_connection",
+        "_embed_color",
+        "_language",
+        "_on_join_roles",
+        "_disabled_commands",
+        "_start_level_role",
+    )
+
     def __init__(self, connection, data: dict) -> None:
         self._connection = connection
         self._embed_color: int = int(data.get("embed_color", "0x5865F2"), 16)
@@ -280,6 +307,8 @@ class GuildConfiguration:
 
 
 class GuildStarboard:
+    __slots__ = ("_connection", "_channel_id", "_is_enabled", "_limit", "_messages", "_blacklist")
+
     def __init__(self, connection, data: dict) -> None:
         self._connection = connection
         self._channel_id: int = data.get("channel_id")
@@ -367,6 +396,8 @@ class GuildStarboard:
 
 
 class GuildAutoRole:
+    __slots__ = ("_connection", "_name", "_content", "_message_id", "_type", "_component")
+
     def __init__(self, connection, name: str, data: dict) -> None:
         self._connection = connection
         self._name: str = name
@@ -408,6 +439,8 @@ class GuildAutoRole:
 
 
 class GuildTag:
+    __slots__ = ("_connection", "_name", "_author_id", "_is_embed", "_title", "_description")
+
     def __init__(self, connection, name: str, data: dict) -> None:
         self._connection = connection
         self._name: str = name
@@ -461,6 +494,20 @@ class GuildTag:
 
 
 class GuildUser:
+    __slots__ = (
+        "_connection",
+        "_id",
+        "_level",
+        "_xp",
+        "_xp_amount",
+        "_role",
+        "_voice_time_count",
+        "_hoyolab_uid",
+        "_genshin_uid",
+        "_notes",
+        "_music_playlists",
+    )
+
     def __init__(self, connection, data: dict) -> None:
         self._connection = connection
         self._id: int = int(data["_id"])
@@ -638,14 +685,36 @@ class GuildUser:
 
 
 class GuildPrivateVoice:
+    __slots__ = ("_connection", "_text_channel_id", "_voice_channel_id", "_active_channels")
+
     def __init__(self, connection, data: dict) -> None:
         self._connection = connection
         self._text_channel_id: int = data.get("text_channel_id")
         self._voice_channel_id: int = data.get("voice_channel_id")
         self._active_channels: dict = data.get("active_channels", {})
 
+    @property
+    def text_channel_id(self) -> int:
+        return self._text_channel_id
+
+    @property
+    def voice_channel_id(self) -> int:
+        return self._voice_channel_id
+
+    @property
+    def active_channels(self) -> dict:
+        return self._active_channels
+
     async def _update(self, type: OperatorType, data: dict):
         await self._connection.update_one({"_id": "private_voice"}, {type.value: data}, upsert=True)
+
+    async def set_text_channel(self, channel_id: int):
+        await self._update(OperatorType.SET, {"text_channel_id": channel_id})
+        self._text_channel_id = channel_id
+
+    async def set_voice_channel(self, channel_id: int):
+        await self._update(OperatorType.SET, {"voice_channel_id": channel_id})
+        self._voice_channel_id = channel_id
 
     async def set_private_voice_channel(
         self,

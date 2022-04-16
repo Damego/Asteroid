@@ -4,7 +4,7 @@ from typing import List, Union
 
 import lavalink
 from discord import Embed, Guild, Member, Permissions, VoiceChannel, VoiceClient, VoiceState
-from discord.ext.commands import BotMissingPermissions, has_guild_permissions
+from discord.ext.commands import BotMissingPermissions
 from discord_slash import AutoCompleteContext, SlashCommandOptionType, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_choice, create_option

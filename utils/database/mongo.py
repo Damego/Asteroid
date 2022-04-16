@@ -10,12 +10,23 @@ load_dotenv()
 
 
 class Mongo:
+    __slots__ = (
+        "_connection",
+        "_guilds",
+        "global_data",
+        "_global_data_connection",
+        "_global_users_connection",
+        "_cache",
+    )
+
     def __init__(self) -> None:
         self._connection = AsyncIOMotorClient(getenv("MONGODB_URL"), tlsCAFile=certifi.where())
         self._guilds = self._connection["guilds"]
-        self._cache = {}
+        self.global_data: GlobalData = None
         self._global_data_connection = self._connection["GLOBAL"]
         self._global_users_connection = self._global_data_connection["USERS"]
+
+        self._cache = {}
 
     @property
     def connection(self):
