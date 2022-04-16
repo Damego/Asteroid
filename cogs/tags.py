@@ -25,14 +25,15 @@ class Tags(Cog):
     async def tag_autocomplete(self, ctx: AutoCompleteContext):
         if ctx.name != "tag" and ctx.focused_option != "tag_name":
             return
+        choices = []
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         tags = guild_data.tags
-        if choices := [
+        choices = [
             create_choice(name=tag.name, value=tag.name)
             for tag in tags
             if tag.name.startswith(ctx.user_input)
-        ][:25]:
-            await ctx.populate(choices)
+        ][:25]
+        await ctx.populate(choices)
 
     @slash_subcommand(
         base="tag",
@@ -51,11 +52,10 @@ class Tags(Cog):
     @is_enabled()
     async def view_tag(self, ctx: SlashContext, tag_name: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        tag = None
         for tag in guild_data.tags:
             if tag.name == tag_name:
                 break
-        if tag is None:
+        else:
             raise TagNotFound
         if tag.is_embed is False:
             return await ctx.send(tag.description)
