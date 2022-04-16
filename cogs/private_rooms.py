@@ -27,7 +27,6 @@ from utils import (
     PrivateVoiceNotSetup,
     bot_owner_or_permissions,
     cog_is_enabled,
-    consts,
     get_content,
     is_enabled,
 )
