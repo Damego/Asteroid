@@ -1,12 +1,9 @@
-from os import getenv
-
 import certifi
-from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCursor
+from pymongo import MongoClient
+from pymongo.collection import Collection
 
 from . import GlobalData, GuildData
-
-load_dotenv()
 
 
 class Mongo:
@@ -19,12 +16,14 @@ class Mongo:
         "_cache",
     )
 
-    def __init__(self) -> None:
-        self._connection = AsyncIOMotorClient(getenv("MONGODB_URL"), tlsCAFile=certifi.where())
+    def __init__(self, token: str) -> None:
+        self._connection: AsyncIOMotorClient | MongoClient = AsyncIOMotorClient(
+            token, tlsCAFile=certifi.where()
+        )
         self._guilds = self._connection["guilds"]
         self.global_data: GlobalData = None
-        self._global_data_connection = self._connection["GLOBAL"]
-        self._global_users_connection = self._global_data_connection["USERS"]
+        self._global_data_connection: Collection = self._connection["GLOBAL"]
+        self._global_users_connection: Collection = self._global_data_connection["USERS"]
 
         self._cache = {}
 
