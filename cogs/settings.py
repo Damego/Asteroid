@@ -280,8 +280,6 @@ class Settings(Cog):
 
     @Cog.listener()
     async def on_component(self, ctx: ComponentContext):
-        if ctx.author_id not in consts.owner_ids:
-            return await ctx.send("❌ You are not owner of this bot!", hidden=True)
         if ctx.custom_id not in [
             "reload_bot",
             "sync_commands",
@@ -293,6 +291,9 @@ class Settings(Cog):
             "reload_extensions",
         ]:
             return
+
+        if ctx.author_id not in consts.owner_ids:
+            return await ctx.send("❌ You are not owner of this bot!", hidden=True)
 
         custom_id: str = ctx.custom_id
         await ctx.defer(hidden=True)
