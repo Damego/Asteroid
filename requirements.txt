@@ -1,0 +1,12 @@
+aiohttp==3.8.1
+certifi
+genshin
+git+https://github.com/Damego/discord-py-interactions.git
+git+https://github.com/Damego/discord.py.git
+lavalink
+motor
+pre-commit
+PyGithub
+pymongo
+qrcode
+requests
