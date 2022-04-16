@@ -25,6 +25,7 @@ class GuildData:
         "roles_by_level",
         "users_voice_time",
         "embed_templates",
+        "users",
     )
 
     def __init__(self, connection, data: dict, guild_id: int) -> None:
