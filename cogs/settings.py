@@ -96,7 +96,7 @@ class Settings(Cog):
     @is_owner()
     async def git_pull_updates(self, ctx: SlashContext):
         await ctx.defer()
-        preresult = await self.run_shell("git pull")
+        preresult = await self.start_shell("git pull")
         result = "NO DATA" if preresult == "" else "\n".join(preresult)
         content = f"```\n{result}\n```"
         embed = Embed(title="Git Sync", description=content, color=0x2F3136)
@@ -130,7 +130,7 @@ class Settings(Cog):
     @is_owner()
     async def pip_manage(self, ctx: SlashContext, command: str):
         await ctx.defer()
-        response = await self.run_shell(command)
+        response = await self.start_shell(command)
         format_response = "\n".join(response)
         if len(format_response) > 2 << 11:
             format_response = response[-3:]
