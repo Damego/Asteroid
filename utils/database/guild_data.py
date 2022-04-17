@@ -117,7 +117,7 @@ class GuildData:
 
     async def get_user(self, user_id: int):
         for user in self.users:
-            if user.id == str(user_id):
+            if user.id == user_id:
                 return user
         print(
             f"UserData for {user_id} not found in `GuildData {self.guild_id}`. Fetching in database..."

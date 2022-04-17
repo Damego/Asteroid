@@ -167,7 +167,10 @@
 			"CURRENT_LEVEL_TEXT": "<:level:863677232239869964> **Уровень:** `{level}`",
 			"CURRENT_EXP_TEXT": "<:exp:863672576941490176> **Опыт:** `{exp}/{exp_to_next_level}` Всего: `{exp_amount}`",
 			"LEVELING_INFO_TITLE_TEXT": "Уровневая информация",
-			"TOTAL_VOICE_TIME": "<:voice_time:863674908969926656> **Время в голосом канале:** `{voice_time:.2f}` час."
+			"TOTAL_VOICE_TIME": "<:voice_time:863674908969926656> **Время в голосом канале:** `{voice_time}`",
+			"DAYS": "дн.",
+			"HOURS": "час.",
+			"MINUTES": "мин."
 		}
 	},
 	"BOT_INFO_COMMAND": {

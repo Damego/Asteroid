@@ -47,7 +47,10 @@
         "CURRENT_LEVEL_TEXT": "<:level:863677232239869964> **Level:** `{level}`",
         "CURRENT_EXP_TEXT": "<:exp:863672576941490176> **Exp:** `{exp}/{exp_to_next_level}` Total: `{exp_amount}`",
         "LEVELING_INFO_TITLE_TEXT": "Level Information",
-        "TOTAL_VOICE_TIME": "<:voice_time:863674908969926656> **Time in voice channel:** `{voice_time:.2f}` hour."
+        "TOTAL_VOICE_TIME": "<:voice_time:863674908969926656> **Time in voice channel:** `{voice_time}`",
+        "DAYS": "days",
+        "HOURS": "hours",
+        "MINUTES": "minutes"
     }
 },
 "BOT_INFO_COMMAND": {
