@@ -133,7 +133,7 @@ class Listeners(Cog):
         embed.add_field(name="User", value=f"Name: `{ctx.author.name}`\n ID:`{ctx.author_id}`")
         embed.add_field(name="Short Description", value=f"`{error}`")
 
-        return Embed
+        return embed
 
 
 def setup(bot):
