@@ -330,7 +330,6 @@ class PrivateRooms(Cog):
             return await ctx.send(content["DONT_HAVE_PRIVATE_ROOM"], hidden=True)
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
-
         match ctx.custom_id:
             case "voice_close":
                 await voice_channel.set_permissions(ctx.guild.default_role, connect=False)
@@ -382,7 +381,7 @@ class PrivateRooms(Cog):
                         SelectOption(label="10", value=10),
                     ],
                 )
-        await ctx.send(content["SETUP_ROOM_LIMIT"], components=[select], hidden=True)
+                await ctx.send(content["SETUP_ROOM_LIMIT"], components=[select], hidden=True)
 
     @Cog.listener()
     @cog_is_enabled()
