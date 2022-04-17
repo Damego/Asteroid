@@ -1,6 +1,6 @@
 from typing import List
 
-from discord import Member, Embed, Role, Guild, TextChannel, Forbidden
+from discord import Embed, Forbidden, Guild, Member, Role, TextChannel
 from discord.ext.commands import is_owner
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
@@ -14,9 +14,7 @@ class Staff(Cog):
         self.name = "Staff Commands"
         self.private_guild_id = [consts.test_global_guilds_ids]
 
-    @slash_subcommand(
-        base="staff_1", name="send_message", guild_ids=consts.test_global_guilds_ids
-    )
+    @slash_subcommand(base="staff_1", name="send_message", guild_ids=consts.test_global_guilds_ids)
     @is_owner()
     async def send_message(self, ctx: SlashContext, channel_id: str, message: str):
         if not channel_id.isdigit():
@@ -40,15 +38,11 @@ class Staff(Cog):
             return await ctx.send("INPUT NUMBER", hidden=True)
         guild: Guild = self.bot.get_guild(int(guild_id))
         channels: List[TextChannel] = guild.channels
-        channels_data = "\n".join(
-            [f"{channel.name} | {channel.id}" for channel in channels]
-        )
+        channels_data = "\n".join([f"{channel.name} | {channel.id}" for channel in channels])
         embed = Embed(title=f"Channels of {guild.name}", description=channels_data)
         await ctx.send(embed=embed)
 
-    @slash_subcommand(
-        base="staff_1", name="get_guilds", guild_ids=consts.test_global_guilds_ids
-    )
+    @slash_subcommand(base="staff_1", name="get_guilds", guild_ids=consts.test_global_guilds_ids)
     async def get_guilds(self, ctx: SlashContext):
         guilds = self.bot.guilds
         embed = Embed(
@@ -126,12 +120,8 @@ class Staff(Cog):
                 )
         await ctx.send(embed=embed)
 
-    @slash_subcommand(
-        base="staff_1", name="give_role", guild_ids=consts.test_global_guilds_ids
-    )
-    async def give_role(
-        self, ctx: SlashContext, guild_id: str, member_id: str, role_id: str
-    ):
+    @slash_subcommand(base="staff_1", name="give_role", guild_ids=consts.test_global_guilds_ids)
+    async def give_role(self, ctx: SlashContext, guild_id: str, member_id: str, role_id: str):
         if not guild_id.isdigit() or not member_id.isdigit() or not role_id.isdigit():
             return await ctx.send("INPUT NUMBER", hidden=True)
 
@@ -146,17 +136,11 @@ class Staff(Cog):
         else:
             await ctx.send("Successfully")
 
-    @slash_subcommand(
-        base="staff_1", name="move_to", guild_ids=consts.test_global_guilds_ids
-    )
+    @slash_subcommand(base="staff_1", name="move_to", guild_ids=consts.test_global_guilds_ids)
     async def move_member_to(
         self, ctx: SlashContext, guild_id: str, member_id: str, channel_id: str
     ):
-        if (
-            not guild_id.isdigit()
-            or not member_id.isdigit()
-            or not channel_id.isdigit()
-        ):
+        if not guild_id.isdigit() or not member_id.isdigit() or not channel_id.isdigit():
             return await ctx.send("INPUT NUMBER", hidden=True)
 
         guild: Guild = self.bot.get_guild(int(guild_id))
