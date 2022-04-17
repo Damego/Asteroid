@@ -44,7 +44,8 @@ class Misc(Cog):
         self.name = "Misc"
         self.slash_use_channel: TextChannel = None
         self.project_lines_count = 0
-        self.__get_lines_count()
+        #self.__get_lines_count()  # Ubuntu and Windows has different output format.
+        # TODO: Make support for Ubuntu
 
     def __get_lines_count(self):
         os.system("pygount --format=summary --suffix=py --out=lines_count.txt")
