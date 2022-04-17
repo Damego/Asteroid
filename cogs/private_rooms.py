@@ -331,62 +331,58 @@ class PrivateRooms(Cog):
 
         voice_channel: VoiceChannel = ctx.guild.get_channel(active_channels[str(ctx.author_id)])
 
-        if ctx.custom_id == "voice_close":
-            await voice_channel.set_permissions(ctx.guild.default_role, connect=False)
-            await ctx.send(content["ROOM_CLOSED"], hidden=True)
-        elif ctx.custom_id == "voice_open":
-            await voice_channel.set_permissions(ctx.guild.default_role, connect=True)
-            await ctx.send(content["ROOM_OPENED"], hidden=True)
-        elif ctx.custom_id == "voice_hide":
-            await voice_channel.set_permissions(ctx.guild.default_role, view_channel=False)
-            await ctx.send(content["ROOM_HIDED"], hidden=True)
-        elif ctx.custom_id == "voice_unhide":
-            await voice_channel.set_permissions(ctx.guild.default_role, view_channel=True)
-            await ctx.send(content["ROOM_UNHIDED"], hidden=True)
-        elif ctx.custom_id == "voice_change_room_name":
-            modal = Modal(
-                custom_id="voice_modal_change_room_name",
-                title=content["PRIVATE_ROOM_CONTROL_MODAL"],
-                components=[
-                    TextInput(
-                        custom_id="channel_name",
-                        label=content["ROOM_NAME"],
-                        style=TextInputStyle.SHORT,
-                    )
-                ],
-            )
-            await ctx.popup(modal)
-        elif ctx.custom_id in [
-            "voice_ban",
-            "voice_unban",
-            "voice_kick",
-            "voice_transfer",
-        ]:
-            modal = Modal(
-                custom_id=f"voice_modal_{ctx.custom_id.replace('voice', '')}",
-                title=content["PRIVATE_ROOM_CONTROL_MODAL"],
-                components=[
-                    TextInput(
-                        custom_id="user_id",
-                        label=content["MEMBER_ID"],
-                        style=TextInputStyle.SHORT,
-                    )
-                ],
-            )
-            await ctx.popup(modal)
-        elif ctx.custom_id == "voice_set_room_limit":
-            select = Select(
-                custom_id="voice_select_set_room_limit",
-                options=[
-                    SelectOption(label=content["REMOVE_LIMIT"], value=0),
-                    SelectOption(label="2", value=2),
-                    SelectOption(label="3", value=3),
-                    SelectOption(label="4", value=4),
-                    SelectOption(label="5", value=5),
-                    SelectOption(label="10", value=10),
-                ],
-            )
-            await ctx.send(content["SETUP_ROOM_LIMIT"], components=[select], hidden=True)
+        match ctx.custom_id:
+            case "voice_close":
+                await voice_channel.set_permissions(ctx.guild.default_role, connect=False)
+                await ctx.send(content["ROOM_CLOSED"], hidden=True)
+            case "voice_open":
+                await voice_channel.set_permissions(ctx.guild.default_role, connect=True)
+                await ctx.send(content["ROOM_OPENED"], hidden=True)
+            case "voice_hide":
+                await voice_channel.set_permissions(ctx.guild.default_role, view_channel=False)
+                await ctx.send(content["ROOM_HIDED"], hidden=True)
+            case "voice_unhide":
+                await voice_channel.set_permissions(ctx.guild.default_role, view_channel=True)
+                await ctx.send(content["ROOM_UNHIDED"], hidden=True)
+            case "voice_change_room_name":
+                modal = Modal(
+                    custom_id="voice_modal_change_room_name",
+                    title=content["PRIVATE_ROOM_CONTROL_MODAL"],
+                    components=[
+                        TextInput(
+                            custom_id="channel_name",
+                            label=content["ROOM_NAME"],
+                            style=TextInputStyle.SHORT,
+                        )
+                    ],
+                )
+                await ctx.popup(modal)
+            case "voice_ban" | "voice_unban" | "voice_kick" | "voice_transfer":
+                modal = Modal(
+                    custom_id=f"voice_modal_{ctx.custom_id.replace('voice', '')}",
+                    title=content["PRIVATE_ROOM_CONTROL_MODAL"],
+                    components=[
+                        TextInput(
+                            custom_id="user_id",
+                            label=content["MEMBER_ID"],
+                            style=TextInputStyle.SHORT,
+                        )
+                    ],
+                )
+                await ctx.popup(modal)
+            case "voice_set_room_limit":
+                select = Select(
+                    custom_id="voice_select_set_room_limit",
+                    options=[
+                        SelectOption(label=content["REMOVE_LIMIT"], value=0),
+                        SelectOption(label="2", value=2),
+                        SelectOption(label="3", value=3),
+                        SelectOption(label="4", value=4),
+                        SelectOption(label="5", value=5),
+                        SelectOption(label="10", value=10),
+                    ],
+                )
+        await ctx.send(content["SETUP_ROOM_LIMIT"], components=[select], hidden=True)
 
     @Cog.listener()
     @cog_is_enabled()
