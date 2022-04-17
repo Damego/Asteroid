@@ -223,13 +223,13 @@ class Settings(Cog):
                 Button(
                     style=ButtonStyle.gray,
                     label="Check discord.py updates",
-                    custom_id="update_discord_py",
+                    custom_id="update_discord.py",
                     emoji=self.bot.get_emoji(964091772416454676),
                 ),
                 Button(
                     style=ButtonStyle.gray,
                     label="Check discord-slash updates",
-                    custom_id="update_discord_slash",
+                    custom_id="update_discord-slash",
                     emoji=self.bot.get_emoji(963104705406439425),
                 ),
             ],
@@ -284,8 +284,8 @@ class Settings(Cog):
             "reload_bot",
             "sync_commands",
             "update_bot",
-            "update_discord_py",
-            "update_discord_slash",
+            "update_discord.py",
+            "update_discord-slash",
             "reload_all_extensions",
             "reload_locales",
             "reload_extensions",
@@ -295,56 +295,56 @@ class Settings(Cog):
         if ctx.author_id not in consts.owner_ids:
             return await ctx.send("❌ You are not owner of this bot!", hidden=True)
 
-        custom_id: str = ctx.custom_id
         await ctx.defer(hidden=True)
 
-        if custom_id == "reload_bot":
-            await ctx.send("Перезагрузка", hidden=True)
-            os.execv(sys.executable, ["python3.9"] + sys.argv)
-        elif custom_id == "sync_commands":
-            try:
-                await self.bot.slash.sync_all_commands()
-            except Forbidden:
-                await ctx.send("Невозможно синхронизовать слэш команды", hidden=True)
-            else:
-                await ctx.send("Слэш команды были синронизированы", hidden=True)
-        elif custom_id == "update_bot":
-            result = await self.start_shell("git pull")
-            embed = Embed(title="Git Sync", description=result, color=DiscordColors.EMBED_COLOR)
-            await ctx.send(embed=embed, hidden=True)
-            self.__update_commits_cache()
-        elif custom_id == "reload_all_extensions":
-            embed = self.__reload_extensions()
-            await ctx.send(embed=embed, hidden=True)
-        elif custom_id == "reload_locales":
-            if not_loaded := load_localization():
-                await ctx.send(
-                    f"Невозможно перезагрузить локализацию для `{', '.join(not_loaded)}`",
-                    hidden=True,
+        match ctx.custom_id:
+            case "reload_bot":
+                await ctx.send("Перезагрузка", hidden=True)
+                os.execv(sys.executable, ["python3.9"] + sys.argv)
+            case "sync_commands":
+                try:
+                    await self.bot.slash.sync_all_commands()
+                except Forbidden:
+                    await ctx.send("Невозможно синхронизовать слэш команды", hidden=True)
+                else:
+                    await ctx.send("Слэш команды были синронизированы", hidden=True)
+            case "update_bot":
+                result = await self.start_shell("git pull")
+                embed = Embed(title="Git Sync", description=result, color=DiscordColors.EMBED_COLOR)
+                await ctx.send(embed=embed, hidden=True)
+                self.__update_commits_cache()
+            case "reload_all_extensions" | "reload_extensions":
+                embed = self.__reload_extensions(ctx.values if ctx.values else None)
+                await ctx.send(embed=embed, hidden=True)
+            case "reload_locales":
+                if not_loaded := load_localization():
+                    await ctx.send(
+                        f"Невозможно перезагрузить локализацию для `{', '.join(not_loaded)}`",
+                        hidden=True,
+                    )
+                else:
+                    await ctx.send("Локализация перезагружена", hidden=True)
+            case "update_discord.py" | "update_discord-slash":
+                to_remove = (
+                    "discord.py"
+                    if ctx.custom_id == "update_discord_py"
+                    else "discord-py-slash-command"
                 )
-            else:
-                await ctx.send("Локализация перезагружена", hidden=True)
-        elif custom_id == "reload_extensions":
-            embed = self.__reload_extensions(ctx.values)
-            await ctx.send(embed=embed, hidden=True)
-        elif custom_id == "update_discord_py":
-            result = await self.start_shell("pip uninstall --yes discord.py")
-            result += await self.start_shell(
-                "pip install --upgrade git+https://github.com/Damego/discord.py.git"
-            )
-            embed = Embed(
-                title="discord.py Update", description=result, color=DiscordColors.EMBED_COLOR
-            )
-            await ctx.send(embed=embed, hidden=True)
-        elif custom_id == "update_discord_slash":
-            result = await self.start_shell("pip uninstall --yes discord-py-slash-command")
-            result += await self.start_shell(
-                "pip install --upgrade git+https://github.com/Damego/discord-py-interactions.git"
-            )
-            embed = Embed(
-                title="discord-slash Update", description=result, color=DiscordColors.EMBED_COLOR
-            )
-            await ctx.send(embed=embed, hidden=True)
+                to_install = (
+                    "discord.py"
+                    if ctx.custom_id == "update_discord_py"
+                    else "discord-py-interactions"
+                )
+                library = ctx.custom_id.replace("_", " ").capitalize()
+                embed_uninstall = Embed(title=library, color=DiscordColors.EMBED_COLOR)
+                embed_install = Embed(title=library, color=DiscordColors.EMBED_COLOR)
+                embed_uninstall.description = await self.start_shell(
+                    f"pip uninstall --yes {to_remove}"
+                )
+                embed_install.description = await self.start_shell(
+                    f"pip install --upgrade git+https://github.com/Damego/{to_install}.git"
+                )
+                await ctx.send(embeds=[embed_uninstall, embed_install], hidden=True)
 
     async def start_shell(self, command: str) -> str:
         result = await self.__run_shell(command)
