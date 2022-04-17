@@ -88,7 +88,7 @@ class GenshinStats(Cog):
             if region.explored == 0.0:
                 continue
 
-            description = f'{content["EXPLORED_TEXT"]}: `{region.explored / 10}%`'
+            description = f'{content["EXPLORED_TEXT"]}: `{region.explored}%`'
             if region.name == content["Dragonspine"]:
                 description += content["FROSTBEARING_TREE_LEVEL_TEXT"].format(level=region.level)
             elif region.name == content["Inazuma"]:
