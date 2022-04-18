@@ -1,9 +1,10 @@
+import json
 import os
 from datetime import datetime
 from re import compile
 from typing import List, Union
 
-from discord import Attachment, Embed, Guild, Member, PublicUserFlags, Role, TextChannel
+from discord import Attachment, Embed, Guild, Member, Role, TextChannel
 from discord_slash import (
     Button,
     ButtonStyle,
@@ -44,14 +45,13 @@ class Misc(Cog):
         self.name = "Misc"
         self.slash_use_channel: TextChannel = None
         self.project_lines_count = 0
-        #self.__get_lines_count()  # Ubuntu and Windows has different output format.
-        # TODO: Make support for Ubuntu
+        self.__get_lines_count()
 
     def __get_lines_count(self):
-        os.system("pygount --format=summary --suffix=py --out=lines_count.txt")
-        with open("lines_count.txt") as f:
-            lines = f.readlines()
-        self.project_lines_count = int(lines[-1].split()[-2])
+        os.system("pygount --format=json -s=py --out=pygount_lines.json")
+        with open("pygount_lines.json") as json_file:
+            data = json.load(json_file)
+        self.project_lines_count = data["summary"]["totalSourceCount"]
 
     @Cog.listener()
     async def on_guild_join(self, guild: Guild):
