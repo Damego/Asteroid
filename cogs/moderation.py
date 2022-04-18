@@ -14,6 +14,7 @@ class Moderation(Cog):
 
     @slash_subcommand(base="mod", name="ban", description="Ban member")
     @bot_owner_or_permissions(ban_members=True)
+    @bot_has_guild_permissions(ban_members=True)
     async def ban(self, ctx: SlashContext, member: Member, reason: str = None):
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content("FUNC_MODERATION_BAN_MEMBER", lang)
