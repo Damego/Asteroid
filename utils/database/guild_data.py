@@ -34,8 +34,6 @@ class GuildData:
         self._connection = connection[str(guild_id)]
         self._main_collection: Collection = self._connection["configuration"]
         self._users_collection: Collection = self._connection["users"]
-        self.__raw_main_data = data["main"]
-        self.__raw_users_data = data["users"]
         self.guild_id: int = guild_id
         self.configuration: GuildConfiguration = None
         self.private_voice: GuildPrivateVoice = None
@@ -46,7 +44,11 @@ class GuildData:
         self.roles_by_level: Dict[str, str] = {}
         self.users_voice_time: Dict[str, int] = {}
         self.embed_templates: Dict[str, dict] = {}
+        self.users: List[GuildUser] = []
 
+        self._load_data(data)
+
+    def _load_data(self, data: dict):
         for document in data["main"]:
             if document["_id"] == "configuration":
                 self.configuration = GuildConfiguration(self._main_collection, document)
@@ -117,7 +119,7 @@ class GuildData:
 
     async def get_user(self, user_id: int):
         for user in self.users:
-            if user.id == str(user_id):
+            if user.id == user_id:
                 return user
         print(
             f"UserData for {user_id} not found in `GuildData {self.guild_id}`. Fetching in database..."
@@ -137,7 +139,7 @@ class GuildData:
     async def remove_user(self, user_id: int):
         await self._users_collection.delete_one({"_id": str(user_id)})
         for user in self.users:
-            if user.id == str(user_id):
+            if user.id == user_id:
                 self.users.remove(user)
                 break
 
@@ -521,12 +523,16 @@ class GuildUser:
         self._genshin_uid: int = None
         self._notes: List[dict] = []
         self._music_playlists: Dict[str, list] = {}
+
+        self._load_data(data)
+
+    def _load_data(self, data: dict):
         if leveling := data.get("leveling"):
             self._level = leveling.get("level", 1)
-            self._xp = leveling.get("xp", 0)
-            self._xp_amount = leveling.get("xp_amount", 0)
+            self._xp = int(leveling.get("xp", 0))
+            self._xp_amount = int(leveling.get("xp_amount", 0))
             self._role = leveling.get("role", None)
-        self._voice_time_count = data.get("voice_time_count", 0)
+        self._voice_time_count = int(data.get("voice_time_count", 0))
 
         if genshin := data.get("genshin"):
             self._hoyolab_uid = genshin.get("hoyolab_uid")
