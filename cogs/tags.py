@@ -98,7 +98,6 @@ class Tags(Cog):
 
         content = get_content("TAG_ADD_COMMAND", guild_data.configuration.language)
 
-        tag = None
         for tag in guild_data.tags:
             if tag.name == tag_name:
                 return await ctx.send(content["TAG_ALREADY_EXISTS_TEXT"], hidden=True)
@@ -157,11 +156,10 @@ class Tags(Cog):
         await self._is_can_manage_tags(ctx)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
 
-        tag = None
         for tag in guild_data.tags:
             if tag.name == tag_name:
                 break
-        if tag is None:
+        else:
             raise TagNotFound
 
         content = get_content("TAG_ADD_COMMAND", guild_data.configuration.language)
