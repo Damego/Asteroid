@@ -56,7 +56,7 @@ class Mongo:
         collection = self._guilds[str(guild_id)]["configuration"]
         await collection.update_one(
             {"_id": "configuration"},
-            {"$set": {"embed_color": "0x5865F2", "language": "English"}},
+            {"$set": {"embed_color": "0x5865F2", "language": "en-US"}},
             upsert=True,
         )
 
