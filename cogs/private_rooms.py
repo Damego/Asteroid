@@ -430,27 +430,28 @@ class PrivateRooms(Cog):
         if member is None:
             return await ctx.send(content["NOT_MEMBER_ID"], hidden=True)
 
-        if ctx.custom_id == "voice_modal_ban":
-            await voice_channel.set_permissions(member, connect=False)
-            if member.voice and member.voice.channel.id == voice_channel_id:
-                await member.move_to(None)
-            await ctx.send(content["MEMBER_WAS_BANNED"], hidden=True)
-        elif ctx.custom_id == "voice_modal_unban":
-            await voice_channel.set_permissions(member, connect=True)
-            await ctx.send(content["MEMBER_WAS_UNBANNED"], hidden=True)
-        elif ctx.custom_id == "voice_modal_kick":
-            if member.voice and member.voice.channel.id == voice_channel_id:
-                await member.move_to(None)
-            await ctx.send(content["MEMBER_WAS_KICKED"], hidden=True)
-        elif ctx.custom_id == "voice_modal_transfer":
-            await guild_data.private_voice.set_private_voice_channel(user_id, voice_channel_id)
-            await voice_channel.set_permissions(
-                member, manage_channels=True, connect=True, move_members=True
-            )
-            await voice_channel.set_permissions(
-                ctx.author, manage_channels=False, connect=False, move_members=False
-            )
-            await ctx.send(content["OWNERSHIP_TRANSFERED"], hidden=True)
+        match ctx.custom_id:
+            case "voice_modal_ban":
+                await voice_channel.set_permissions(member, connect=False)
+                if member.voice and member.voice.channel.id == voice_channel_id:
+                    await member.move_to(None)
+                await ctx.send(content["MEMBER_WAS_BANNED"], hidden=True)
+            case "voice_modal_unban":
+                await voice_channel.set_permissions(member, connect=True)
+                await ctx.send(content["MEMBER_WAS_UNBANNED"], hidden=True)
+            case "voice_modal_kick":
+                if member.voice and member.voice.channel.id == voice_channel_id:
+                    await member.move_to(None)
+                await ctx.send(content["MEMBER_WAS_KICKED"], hidden=True)
+            case "voice_modal_transfer":
+                await guild_data.private_voice.set_private_voice_channel(user_id, voice_channel_id)
+                await voice_channel.set_permissions(
+                    member, manage_channels=True, connect=True, move_members=True
+                )
+                await voice_channel.set_permissions(
+                    ctx.author, manage_channels=False, connect=False, move_members=False
+                )
+                await ctx.send(content["OWNERSHIP_TRANSFERED"], hidden=True)
 
 
 def setup(bot):
