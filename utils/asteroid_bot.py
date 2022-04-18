@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from os import listdir
 from typing import Union
 
 from aiohttp import ClientSession
@@ -12,11 +11,7 @@ from utils.database.mongo import Mongo
 
 
 class AsteroidBot(Bot):
-    def __init__(
-        self,
-        mongodb_token: str,
-        github_token: str,
-    ):
+    def __init__(self, *, mongodb_token: str, github_token: str, repo_name: str):
         super().__init__(command_prefix="asteroid!", intents=Intents.all())
         self.__default_invite_link = None
         self.mongo = Mongo(mongodb_token)
@@ -26,11 +21,10 @@ class AsteroidBot(Bot):
         delta_7 = today - timedelta(days=7)
 
         self.github_client = Github(github_token)
-        self.github_repo = self.github_client.get_repo("Damego/Asteroid-Discord-Bot")
+        self.github_repo = self.github_client.get_repo(repo_name)
         self.github_repo_commits = list(self.github_repo.get_commits(until=today, since=delta_7))
 
         self.add_listener(self.on_ready, "on_ready")
-        self._load_extensions()
 
     async def on_ready(self):
         self.__default_invite_link = (
@@ -45,20 +39,6 @@ class AsteroidBot(Bot):
         self.recommended_invite_link = self.__default_invite_link.format(
             bot_id=self.user.id, scope=506850391
         )
-
-    def _load_extensions(self):
-        for filename in listdir("./cogs"):
-            try:
-                if filename.startswith("_"):
-                    continue
-                if filename.endswith(".py"):
-                    self.load_extension(f"cogs.{filename[:-3]}")
-                elif "." in filename:
-                    continue
-                else:
-                    self.load_extension(f"cogs.{filename}")
-            except Exception as e:
-                print(f"Extension {filename} not loaded!\nError: {e}")
 
     async def get_embed_color(self, guild_id: int):
         guild_data = await self.mongo.get_guild_data(guild_id)
