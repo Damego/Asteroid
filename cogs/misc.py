@@ -1,9 +1,10 @@
+import json
 import os
 from datetime import datetime
 from re import compile
 from typing import List, Union
 
-from discord import Attachment, Embed, Guild, Member, PublicUserFlags, Role, TextChannel
+from discord import Attachment, Embed, Guild, Member, Role, TextChannel
 from discord_slash import (
     Button,
     ButtonStyle,
@@ -47,10 +48,10 @@ class Misc(Cog):
         self.__get_lines_count()
 
     def __get_lines_count(self):
-        os.system("pygount --format=summary --suffix=py --out=lines_count.txt")
-        with open("lines_count.txt") as f:
-            lines = f.readlines()
-        self.project_lines_count = int(lines[-1].split()[-2])
+        os.system("pygount --format=json -s=py --out=pygount_lines.json")
+        with open("pygount_lines.json") as json_file:
+            data = json.load(json_file)
+        self.project_lines_count = data["summary"]["totalSourceCount"]
 
     @Cog.listener()
     async def on_guild_join(self, guild: Guild):
@@ -175,22 +176,33 @@ class Misc(Cog):
         user_data = await guild_data.get_user(user_id)
 
         user_level = user_data.level
-        user_exp, user_exp_amount, user_voice_time = map(
-            int,
-            [user_data.xp, user_data.xp_amount, user_data.voice_time_count],
-        )
         xp_to_next_level = formula_of_experience(user_level)
 
         user_level_text = content["CURRENT_LEVEL_TEXT"].format(level=user_level)
         user_exp_text = content["CURRENT_EXP_TEXT"].format(
-            exp=user_exp, exp_to_next_level=xp_to_next_level, exp_amount=user_exp_amount
+            exp=user_data.xp, exp_to_next_level=xp_to_next_level, exp_amount=user_data.xp_amount
         )
-        user_voice_time_count = content["TOTAL_VOICE_TIME"].format(voice_time=user_voice_time / 60)
+        user_voice_time_count = content["TOTAL_VOICE_TIME"].format(
+            voice_time=self._format_voice_time(user_data.voice_time_count, content)
+        )
 
         embed.add_field(
             name=content["LEVELING_INFO_TITLE_TEXT"],
             value=f"{user_level_text}\n{user_exp_text}\n{user_voice_time_count}",
         )
+
+    def _format_voice_time(self, voice_time: int, content: dict):
+        days = (voice_time // 60) // 24
+        hours = (voice_time // 60) % 24
+        minutes = voice_time % 60
+        formatted = ""
+        if days != 0:
+            formatted += f" {days} {content['DAYS']}"
+        if hours != 0:
+            formatted += f" {hours:02} {content['HOURS']}"
+        if minutes != 0:
+            formatted += f" {minutes:02} {content['MINUTES']}"
+        return formatted.strip() if formatted else "-"
 
     @slash_subcommand(base="info", name="bot", description="Show information of bot")
     @is_enabled()
