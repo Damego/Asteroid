@@ -23,6 +23,7 @@ class GenshinStats(Cog):
             "ltoken": "3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU",
         }
         self.genshin_client = genshin.GenshinClient(cookies)
+        self.genshin_langs = {"ru": "ru-ru", "en-US": "en-us"}
 
         self.get_genshin_daily_reward.start()
 
@@ -49,7 +50,6 @@ class GenshinStats(Cog):
     @is_enabled()
     async def bind_uid(self, ctx: SlashContext, hoyolab_uid: int):
         record_card = await self.genshin_client.get_record_card(hoyolab_uid)
-
         if not record_card.public or not record_card.has_uid:
             raise NoData
 
@@ -71,11 +71,9 @@ class GenshinStats(Cog):
         if uid is None:
             uid = await self._get_UID(ctx)
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
+        genshin_lang = self.genshin_langs[lang]
         content = get_content("GENSHIN_STATISTICS_COMMAND", lang)
-        genshin_data_lang = "ru-ru" if lang == "Russian" else "en-us"
-
-        user_data = await self.genshin_client.get_user(uid, lang=genshin_data_lang)
-
+        user_data = await self.genshin_client.get_user(uid, lang=genshin_lang)
         user_explorations = reversed(user_data.explorations)
         user_stats = user_data.stats
 
@@ -88,7 +86,7 @@ class GenshinStats(Cog):
             if region.explored == 0.0:
                 continue
 
-            description = f'{content["EXPLORED_TEXT"]}: `{region.explored}%`'
+            description = f'{content["EXPLORED_TEXT"]}: `{region.explored / 10}%`'
             if region.name == content["Dragonspine"]:
                 description += content["FROSTBEARING_TREE_LEVEL_TEXT"].format(level=region.level)
             elif region.name == content["Inazuma"]:
@@ -137,13 +135,12 @@ class GenshinStats(Cog):
             uid = await self._get_UID(ctx)
 
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
+        genshin_lang = self.genshin_langs[lang]
         content = get_content("GENSHIN_CHARACTERS_LIST_COMMAND", lang)
         chars_vision_content = get_content("GENSHIN_CHARACTERS_COMMAND", lang)[
             "GENSHIN_CHARACTER_VISION"
         ]
-        _lang = "ru-ru" if lang == "Russian" else "en-us"
-
-        characters = await self.genshin_client.get_characters(uid, lang=_lang)
+        characters = await self.genshin_client.get_characters(uid, lang=genshin_lang)
 
         embed = Embed(
             title=content["EMBED_GENSHIN_CHARACTERS_LIST_TITLE"],
@@ -175,9 +172,9 @@ class GenshinStats(Cog):
             uid = await self._get_UID(ctx)
 
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
+        genshin_lang = self.genshin_langs[lang]
         content = get_content("GENSHIN_CHARACTERS_COMMAND", lang)
-        _lang = "ru-ru" if lang == "Russian" else "en-us"
-        characters = await self.genshin_client.get_characters(uid, lang=_lang)
+        characters = await self.genshin_client.get_characters(uid, lang=genshin_lang)
         embeds = []
         pages = len(characters)
 
@@ -201,14 +198,13 @@ class GenshinStats(Cog):
         if hoyolab_uid is None:
             hoyolab_uid = await self._get_UID(ctx, is_game_uid=False)
 
-        card = await self.genshin_client.get_record_card(hoyolab_uid)
-
-        user_data = await self.genshin_client.get_user(int(card.uid))
-        user_stats = user_data.stats
-
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
+        genshin_lang = self.genshin_langs[lang]
         content = get_content("GENSHIN_INFO_COMMAND", lang)
 
+        card = await self.genshin_client.get_record_card(hoyolab_uid, lang=genshin_lang)
+        user_data = await self.genshin_client.get_user(int(card.uid), lang=genshin_lang)
+        user_stats = user_data.stats
         description = f"""
         **{content['ADVENTURE_RANK_TEXT']}: {card.nickname}**
 
@@ -236,11 +232,16 @@ class GenshinStats(Cog):
         return uid
 
     def get_character_info(self, content: dict, embed: Embed, character: genshin.models.Character):
+        character_element = (
+            f"» {content['CHARACTER_VISION']}: {content['GENSHIN_CHARACTER_VISION'][character.element]}"
+            if character.element
+            else ""
+        )
         embed.description = f"""
             {content['INFORMATION_TEXT']}
             » <:character_exp:871389287978008616> {content['CHARACTER_LEVEL']}: `{character.level}`
             » {content['CHARACTER_CONSTELLATION']}: `C{character.constellation}`
-            » {content['CHARACTER_VISION']}: {content['GENSHIN_CHARACTER_VISION'][character.element]}
+            {character_element}
             » <:friendship_exp:871389291740291082> {content['CHARACTER_FRIENDSHIP']}: `{character.friendship}`
 
             **{content['WEAPON_TEXT']}**
