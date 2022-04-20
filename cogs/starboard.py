@@ -31,6 +31,7 @@ class StarBoard(Cog):
     def __init__(self, bot: AsteroidBot) -> None:
         self.bot = bot
         self.name = "StarBoard"
+        self.emoji = "⭐"
 
     @Cog.listener("on_autocomplete")
     async def starboard_autocomplete(self, ctx: AutoCompleteContext):

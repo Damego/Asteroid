@@ -20,6 +20,7 @@ class Tags(Cog):
         self.bot = bot
         self.hidden = False
         self.name = "Tags"
+        self.emoji = "🏷️"
 
     @Cog.listener(name="on_autocomplete")
     async def tag_autocomplete(self, ctx: AutoCompleteContext):
