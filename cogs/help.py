@@ -2,7 +2,7 @@ import contextlib
 import datetime
 from asyncio import TimeoutError
 
-from discord import Forbidden
+from discord import Forbidden, HTTPException
 from discord_slash import ComponentContext, Select, SelectOption, SlashContext
 from discord_slash.cog_ext import cog_slash as slash_command
 
@@ -35,7 +35,7 @@ class Help(Cog):
                     timeout=60,
                 )
             except TimeoutError:
-                with contextlib.suppress(Forbidden):
+                with contextlib.suppress(Forbidden, HTTPException):
                     return await message.edit(components=[])
 
             value = button_ctx.values[0]
