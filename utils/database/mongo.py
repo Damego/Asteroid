@@ -10,7 +10,7 @@ class Mongo:
     __slots__ = (
         "_connection",
         "_guilds",
-        "global_data",
+        "_global_data",
         "_global_data_connection",
         "_global_users_connection",
         "_cache",
@@ -21,29 +21,12 @@ class Mongo:
             token, tlsCAFile=certifi.where()
         )
         self._guilds = self._connection["guilds"]
-        self.global_data: GlobalData = None
+        self._global_data: GlobalData = None
         self._global_data_connection: Collection = self._connection["GLOBAL"]
         self._global_users_connection: Collection = self._global_data_connection["USERS"]
-
         self._cache = {}
 
-    @property
-    def connection(self):
-        return self._connection
-
-    @property
-    def guilds(self):
-        return self._guilds
-
     async def update_user(self, guild_id: int, user_id: int, update_type: str, data: dict):
-        """
-        ## Parameters
-        - guild_id: int -- ID of server
-        - user_id: int -- ID of user
-        - update_type: str -- type of update ('$set', '$inc', etc.)
-        - data: dict -- data for update
-        """
-
         collection = self._guilds[str(guild_id)]["users"]
         await collection.update_one({"_id": str(user_id)}, {update_type: data}, upsert=True)
 
@@ -85,5 +68,5 @@ class Mongo:
     async def get_global_data(self):
         users_data_cursor = self._global_users_connection.find()
         users = [user_data async for user_data in users_data_cursor]
-        self.global_data = GlobalData(self._global_data_connection, users)
-        return self.global_data
+        self._global_data = GlobalData(self._global_data_connection, users)
+        return self._global_data
