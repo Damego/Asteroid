@@ -92,24 +92,53 @@ class Utilities(Cog):
 
     @slash_subcommand(base="note", name="new", description="Create a note")
     @is_enabled()
-    async def add_todo(self, ctx: SlashContext, name: str, note_content: str):
+    async def create_note(self, ctx: SlashContext, is_global: bool = False):
+        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
+        modal = Modal(
+            custom_id=f"create_note_modal|{'global' if is_global else 'guild'}",
+            title=content["CREATE_NOTE_TITLE"],
+            components=[
+                TextInput(
+                    style=TextInputStyle.SHORT,
+                    custom_id="note_name",
+                    label=content["NOTE_NAME_LABEL"],
+                ),
+                TextInput(
+                    style=TextInputStyle.PARAGRAPH,
+                    custom_id="note_content",
+                    label=content["NOTE_CONTENT_LABEL"],
+                ),
+            ],
+        )
+        await ctx.popup(modal)
+
+    @Cog.listener(name="on_modal")
+    async def on_note_modal(self, ctx: ModalContext):
+        if not ctx.custom_id.startswith("create_note_modal"):
+            return
+
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
         embed = Embed(
-            title=content["NOTE_CREATED_TEXT"].format(name=name),
-            description=note_content,
+            title=content["NOTE_CREATED_TEXT"].format(name=ctx.values["note_name"]),
+            description=ctx.values["note_content"],
             color=guild_data.configuration.embed_color,
         )
         message = await ctx.send(embed=embed)
 
         data = {
-            "name": name,
+            "name": ctx.values["note_name"],
             "created_at": datetime.datetime.now().strftime("%d.%m.%Y %H:%M"),
             "created_at_timestamp": datetime.datetime.now().timestamp(),
             "jump_url": message.jump_url,
-            "content": note_content,
+            "content": ctx.values["note_content"],
         }
-        user_data = await guild_data.get_user(ctx.author_id)
+        if ctx.custom_id.endswith("guild"):
+            user_data = await guild_data.get_user(ctx.author_id)
+        else:
+            global_data = await self.bot.mongo.get_global_data()
+            user_data = await global_data.get_user(ctx.author_id)
         await user_data.add_note(data)
 
     @Cog.listener(name="on_autocomplete")
@@ -119,9 +148,11 @@ class Utilities(Cog):
         if ctx.focused_option != "name":
             return
 
+        global_data = await self.bot.mongo.get_global_data()
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        user_data = await guild_data.get_user(ctx.author_id)
-        if not user_data.notes:
+        user_guild_data = await guild_data.get_user(ctx.author_id)
+        user_global_data = await global_data.get_user(ctx.author_id)
+        if not user_guild_data.notes and not user_global_data.notes:
             return
 
         choices = [
@@ -129,7 +160,7 @@ class Utilities(Cog):
                 name=f"{count}. | {note['created_at']} | {note['name']}",
                 value=note["name"],
             )
-            for count, note in enumerate(user_data.notes, start=1)
+            for count, note in enumerate(user_guild_data.notes + user_global_data.notes, start=1)
             if ctx.user_input in f"{count}. {note['created_at']} | {note['name']}"
         ][:25]
 
@@ -152,12 +183,20 @@ class Utilities(Cog):
     @is_enabled()
     async def delete_note(self, ctx: SlashContext, name: str):
         await ctx.defer()
+        global_data = await self.bot.mongo.get_global_data()
+        user_global_data = await global_data.get_user(ctx.author_id)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        user_data = await guild_data.get_user(ctx.author_id)
-        if not user_data.notes:
+        user_guild_data = await guild_data.get_user(ctx.author_id)
+        if not user_guild_data.notes and not user_global_data.notes:
             raise NoData
 
-        await user_data.remove_note(name)
+        if name in [note["name"] for note in user_guild_data.notes]:
+            await user_guild_data.remove_note(name)
+        elif name in [note["name"] for note in user_global_data.notes]:
+            await user_global_data.remove_note(name)
+        else:
+            raise NoData
+
         content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
         await ctx.send(content["NOTE_DELETED"])
 
@@ -165,9 +204,11 @@ class Utilities(Cog):
     @is_enabled()
     async def notes_list(self, ctx: SlashContext):
         await ctx.defer()
+        global_data = await self.bot.mongo.get_global_data()
+        user_global_data = await global_data.get_user(ctx.author_id)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        user_data = await guild_data.get_user(ctx.author_id)
-        if not user_data.notes:
+        user_guild_data = await guild_data.get_user(ctx.author_id)
+        if not user_guild_data.notes and not user_global_data.notes:
             raise NoData
 
         content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
@@ -178,10 +219,10 @@ class Utilities(Cog):
             timestamp=datetime.datetime.utcnow(),
         )
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
-        for count, todo_data in enumerate(user_data.notes, start=1):
+        for count, note in enumerate(user_guild_data.notes + user_global_data.notes, start=1):
             embed.add_field(
-                name=f"{count}. *(<t:{int(todo_data['created_at_timestamp'])}:R>)*",
-                value=f" ```{todo_data['content']}``` [{content['JUMP_TO']}]({todo_data['jump_url']})",
+                name=f"{count}. *(<t:{int(note['created_at_timestamp'])}:R>)*",
+                value=f" ```{note['content']}``` [{content['JUMP_TO']}]({note['jump_url']})",
                 inline=False,
             )
 

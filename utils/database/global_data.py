@@ -47,7 +47,6 @@ class GlobalUserData:
     def __init__(self, connection, data: dict) -> None:
         self._connection: Collection = connection
         self._id = data.get("_id")
-        # TODO: Implement methods for notes
         self._notes = data.get("notes", [])
         self._music_playlists = data.get("music_playlists", {})
 
@@ -64,7 +63,7 @@ class GlobalUserData:
         return self._music_playlists
 
     async def _update(self, type: OperatorType, data: dict):
-        await self._connection.update_one({"_id": self._id}, {type.value: data}, upsert=True)
+        await self._connection.update_one({"_id": str(self._id)}, {type.value: data}, upsert=True)
 
     async def add_track_to_playlist(self, playlist: str, track: str):
         await self._update(OperatorType.PUSH, {f"music_playlists.{playlist}": track})
@@ -91,3 +90,14 @@ class GlobalUserData:
         await self._update(OperatorType.UNSET, {f"music_playlists.{playlist}": ""})
         if playlist in self._music_playlists:
             del self._music_playlists[playlist]
+
+    async def add_note(self, data: dict):
+        await self._update(OperatorType.PUSH, {"notes": data})
+        self._notes.append(data)
+
+    async def remove_note(self, note_name: str):
+        for note in self.notes:
+            if note["name"] == note_name:
+                await self._update(OperatorType.PULL, {"notes": note})
+                self._notes.remove(note)
+                break
