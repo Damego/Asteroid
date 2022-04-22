@@ -388,7 +388,10 @@
     "NOTE_CREATED_TEXT": "**Note created:** `{name}`",
     "NOTE_DELETED": "Note deleted!",
     "USER_NOTE_LIST": "Notes {}",
-    "JUMP_TO": "Jump To Message"
+    "JUMP_TO": "Jump To Message",
+    "CREATE_NOTE_TITLE": "New Note",
+    "NOTE_NAME_LABEL": "Name",
+    "NOTE_CONTENT_LABEL": "Content"
 },
 "PRIVATE_VOICE": {
     "PRIVATE_ROOMS": "Private Rooms",

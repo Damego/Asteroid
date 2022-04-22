@@ -651,7 +651,7 @@ class GuildUser:
         self._role = ""
         self._voice_time_count = 0
 
-    async def add_note(self, data: str):
+    async def add_note(self, data: dict):
         await self._update(OperatorType.PUSH, {"notes": data})
         self._notes.append(data)
 

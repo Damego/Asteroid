@@ -508,7 +508,10 @@
 		"NOTE_CREATED_TEXT": "**Заметка создана:** `{name}`",
 		"NOTE_DELETED": "Заметка удалена!",
 		"USER_NOTE_LIST": "Заметки {}",
-		"JUMP_TO": "Перейти к сообщению"
+		"JUMP_TO": "Перейти к сообщению",
+		"CREATE_NOTE_TITLE": "Новая заметка",
+		"NOTE_NAME_LABEL": "Название",
+		"NOTE_CONTENT_LABEL": "Содержание"
 	},
 	"PRIVATE_VOICE": {
 		"PRIVATE_ROOMS": "Приватные комнаты",
