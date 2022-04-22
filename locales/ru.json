@@ -127,7 +127,7 @@
 		"NOT_TAG_OWNER": "Вы не владелец тега!",
 		"UID_NOT_BINDED": "У вас не привязан UID!",
 		"GI_ACCOUNT_NOT_FOUND": "Аккаунт с таким UID не найден!",
-		"GI_DATA_NOT_PUBLIC": "Профиль закрыт! Откройте профиль на [сайте](https://www.hoyolab.com/genshin/accountCenter/gameRecord)",
+		"GI_DATA_NOT_PUBLIC": "Профиль закрыт! Откройте профиль на [сайте](https://www.hoyolab.com/accountCenter/)",
 		"NOT_BOT_OWNER": "Это команда доступна только владельцу бота!",
 		"BOT_MISS_PERMS": "**У бота недостаточно прав!**\nНеобходимые права: ",
 		"MISS_PERMS": "**У вас недостаточно прав!**\nНеобходимые права:",
