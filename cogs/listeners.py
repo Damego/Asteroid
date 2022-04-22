@@ -73,15 +73,15 @@ class Listeners(Cog):
                 embed.title = content["OTHER_ERRORS_TITLE"]
 
                 error_traceback = "".join(format_exception(type(error), error, error.__traceback__))
-                error_embed = self.get_embed(ctx, error, error_traceback)
-                await self.send_error_to_staff(error_embed)
+                error_embed = self.get_error_embed(ctx, error, error_traceback)
+                await self.send_error(error_embed)
 
         embed.description = desc
         with contextlib.suppress(Forbidden):
             await ctx.send(embed=embed)
 
     @staticmethod
-    def get_error_description(error, content: dict):
+    def get_error_description(error, content: dict) -> str:
         exceptions = {
             errors.CogDisabledOnGuild: content["COG_DISABLED"],
             errors.CommandDisabled: content["COMMAND_DISABLED"],
@@ -104,7 +104,7 @@ class Listeners(Cog):
         }
         return exceptions.get(type(error))
 
-    async def send_error_to_staff(self, embed: Embed):
+    async def send_error(self, embed: Embed):
         channel = self.bot.get_channel(SystemChannels.ERRORS_CHANNEL)
         if channel is None:
             channel = await self.bot.fetch_channel(SystemChannels.ERRORS_CHANNEL)
@@ -114,7 +114,7 @@ class Listeners(Cog):
             embed.description = "Checks logs"
             await channel.send(embed=embed)
 
-    def get_embed(self, ctx: SlashContext, error: Exception, traceback: str) -> Embed:
+    def get_error_embed(self, ctx: SlashContext, error: Exception, traceback: str) -> Embed:
         embed = Embed(
             title="Unexpected error",
             description=f"``` {traceback} ```",
