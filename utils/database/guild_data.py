@@ -580,7 +580,7 @@ class GuildUser:
         return self._music_playlists
 
     async def _update(self, type: OperatorType, data: dict):
-        await self._connection.update_one({"_id": self._id}, {type.value: data}, upsert=True)
+        await self._connection.update_one({"_id": str(self._id)}, {type.value: data}, upsert=True)
 
     async def set_genshin_uid(self, hoyolab_uid: int, game_uid: int):
         await self._update(
