@@ -7,7 +7,7 @@
     "NOT_TAG_OWNER": "You not owner of this tag!",
     "UID_NOT_BINDED": "You didn't tie UID!",
     "GI_ACCOUNT_NOT_FOUND": "Account with this UID not found!",
-    "GI_DATA_NOT_PUBLIC": "Profile is private! Open profile on [site](https://www.hoyolab.com/genshin/accountCenter/gameRecord)",
+    "GI_DATA_NOT_PUBLIC": "Profile is private! Open profile on [site](https://www.hoyolab.com/accountCenter/)",
     "NOT_BOT_OWNER": "Only owner can use this command!",
     "BOT_MISS_PERMS": "Bot don't have permission for this!**\nRequired permissions: ",
     "MISS_PERMS": "You don't have permission for this!**\nRequired permissions:",
