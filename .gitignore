@@ -145,3 +145,6 @@ desktop.files.json
 # Test files/folders
 /test
 test.*
+
+# pygount json file
+pygount_lines.json
