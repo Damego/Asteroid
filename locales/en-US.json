@@ -69,7 +69,7 @@
     "INVITE_BUTTON_NO_PERMS": "Without permissions",
     "INVITE_BUTTON_ADMIN": "Administrator",
     "INVITE_BUTTON_RECOMMENDED": "Recommended",
-    "CLICK_TO_INVITE_TEXT": "Click on button to invite bot!\nOld way {link}"
+    "CLICK_TO_INVITE_TEXT": "Click on button to invite bot!"
 },
 "FUNC_PING": "Bot latency is `{}` ms",
 "FUNC_ACTIVITIES": {

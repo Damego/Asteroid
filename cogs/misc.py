@@ -227,7 +227,7 @@ class Misc(Cog):
             f"{content['LINES_OF_CODE']} `{self.project_lines_count}`\n"
             f"{content['LIBRARIES']}\n"
             "・ `discord.py v1.7.3`\n"
-            "・ custom `discord-py-interactions v3`\n",
+            "・ [custom `discord-py-interactions v3`](https://github.com/Damego/discord-py-interactions)",
         )
 
         await ctx.send(embed=embed)
@@ -317,7 +317,7 @@ class Misc(Cog):
         ]
 
         await ctx.send(
-            content["CLICK_TO_INVITE_TEXT"].format(link=self.bot.no_perms_invite_link),
+            content["CLICK_TO_INVITE_TEXT"],
             components=components,
         )
 

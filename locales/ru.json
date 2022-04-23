@@ -189,7 +189,7 @@
 		"INVITE_BUTTON_NO_PERMS": "Без разрешений",
 		"INVITE_BUTTON_ADMIN": "Администратор",
 		"INVITE_BUTTON_RECOMMENDED": "Рекомендуемый",
-		"CLICK_TO_INVITE_TEXT": "Нажмите на кнопку, чтобы пригласить бота\nСтарый способ {link}"
+		"CLICK_TO_INVITE_TEXT": "Нажмите на кнопку, чтобы пригласить бота"
 	},
 	"FUNC_ACTIVITIES": {
 		"NOT_CONNECTED_TO_CHANNEL_TEXT": "Вы не подключены к голосовому каналу!",
