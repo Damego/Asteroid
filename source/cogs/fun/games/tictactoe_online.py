@@ -4,7 +4,6 @@ from typing import List
 
 from discord import Embed, Member
 from discord_slash import Button, ButtonStyle, ComponentContext, ComponentMessage, SlashContext
-
 from utils import AsteroidBot
 
 board_template = {

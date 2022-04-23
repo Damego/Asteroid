@@ -3,7 +3,6 @@ from copy import copy
 from random import shuffle
 
 from discord_slash import Button, ButtonStyle, ComponentContext, SlashContext
-
 from utils import AsteroidBot
 
 from .utils import spread_to_rows

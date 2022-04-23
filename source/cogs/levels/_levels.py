@@ -2,7 +2,6 @@ from time import time
 from typing import Union
 
 from discord import Guild, Member, Message, Role
-
 from utils import AsteroidBot, GuildUser, get_content
 
 last_user_message = {}

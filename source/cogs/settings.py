@@ -9,7 +9,6 @@ from discord import Embed, Forbidden
 from discord.ext.commands import is_owner
 from discord_slash import Button, ButtonStyle, ComponentContext, Select, SelectOption, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
-
 from utils import AsteroidBot, Cog, DiscordColors, consts, load_localization
 
 

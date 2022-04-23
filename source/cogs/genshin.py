@@ -6,7 +6,6 @@ from discord import Embed
 from discord.ext import tasks
 from discord_slash import SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
-
 from utils import AsteroidBot, Cog, SystemChannels, UIDNotBinded, get_content, is_enabled
 from utils.consts import DiscordColors
 from utils.errors import NoData

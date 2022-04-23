@@ -2,7 +2,6 @@ from time import time
 from typing import Dict, List, Union
 
 from pymongo.collection import Collection
-
 from utils.errors import NotGuild
 
 from .enums import OperatorType

@@ -18,7 +18,6 @@ from discord_slash import (
 )
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_choice, create_option
-
 from utils import AsteroidBot, Cog, get_content, is_enabled
 
 from .consts import bored_api_types, discord_activities_list

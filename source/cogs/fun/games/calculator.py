@@ -34,7 +34,6 @@ from math import e, pi, sqrt, tau
 
 from discord import Embed, Member
 from discord_slash import Button, ButtonStyle, ComponentContext, ComponentMessage, SlashContext
-
 from utils import AsteroidBot
 
 

@@ -1,7 +1,6 @@
 from os import getenv, listdir
 
 from dotenv import load_dotenv
-
 from utils import AsteroidBot, load_localization, slash_override  # noqa: F401
 
 

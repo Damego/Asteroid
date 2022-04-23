@@ -11,7 +11,6 @@ from typing import List
 
 from discord import Embed
 from discord_slash import Button, ButtonStyle, ComponentContext, ComponentMessage
-
 from utils import AsteroidBot
 
 BoardTemplate = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]

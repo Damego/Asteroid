@@ -17,7 +17,6 @@ from discord_slash.cog_ext import cog_context_menu as context_menu
 from discord_slash.cog_ext import cog_slash as slash_command
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_option
-
 from utils import (
     AsteroidBot,
     Cog,

@@ -6,7 +6,6 @@ from discord import Intents
 from discord.ext.commands import Bot
 from discord_slash import MenuContext, SlashCommand, SlashContext
 from github import Github
-
 from utils.database.mongo import Mongo
 
 
