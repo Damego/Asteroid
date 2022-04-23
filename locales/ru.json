@@ -32,7 +32,6 @@
 		"AUTOROLE_BUTTON_ADD_ROLE": "Добавляет новую кнопку с ролью к сообщению",
 		"AUTOROLE_BUTTON_REMOVE_ROLE": "Удаляет кнопку с ролью в сообщении",
 		"GENSHIN_BIND": "Привязывает Hoyolab UID к вашему аккаунту",
-		"GENSHIN_CHARACTERS_LIST": "Показывает список персонажей",
 		"GENSHIN_CHARACTERS": "Показывает подробный список персонажей",
 		"GENSHIN_INFO": "Показывает информацию об аккаунте",
 		"GENSHIN_STATISTICS": "Показывет статистику аккаунта",
@@ -330,10 +329,6 @@
 	"GENSHIN_STATISTICS_COMMAND": {
 		"EMBED_WORLD_EXPLORATION_TITLE": "Genshin Impact. Статистика мира",
 		"EXPLORED_TEXT": "Исследовано",
-		"Inazuma": "Инадзума",
-		"Dragonspine": "Драконий хребет",
-		"FROSTBEARING_TREE_LEVEL_TEXT": "\nУровень Дерева Вечной Мерзлоты: `{level}`",
-		"SACRED_SAKURA_LEVEL_TEXT": "\nУровень Благосклонности сакуры: `{level}`",
 		"REPUTATION_LEVEL_TEXT": "\nУровень репутации: `{level}`",
 		"ANEMOCULUS": "Анемокулов",
 		"GEOCULUS": "Геокулов",
@@ -347,13 +342,6 @@
 		"UNLOCKED_TELEPORTS": "Открыто телепортов",
 		"UNLOCKED_DOMAINS": "Открыто подземелий",
 		"MISC_INFO": "Остальное"
-	},
-	"GENSHIN_CHARACTERS_LIST_COMMAND": {
-		"EMBED_GENSHIN_CHARACTERS_LIST_TITLE": "Genshin Impact. Персонажи",
-		"CHARACTER_LEVEL": "Уровень",
-		"CHARACTER_CONSTELLATION": "Созвездие",
-		"CHARACTER_VISION": "Глаз бога",
-		"CHARACTER_WEAPON": "Оружие"
 	},
 	"GENSHIN_CHARACTERS_COMMAND": {
 		"INFORMATION_TEXT": "**Информация**",

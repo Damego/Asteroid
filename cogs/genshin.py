@@ -1,4 +1,5 @@
 import datetime
+from enum import IntEnum
 
 import genshin
 from discord import Embed
@@ -10,6 +11,14 @@ from utils import AsteroidBot, Cog, SystemChannels, UIDNotBinded, get_content, i
 from utils.consts import DiscordColors
 from utils.errors import NoData
 from utils.paginator import Paginator, PaginatorStyle
+
+
+class GenshinEnums(IntEnum):
+    ANEMOCULUS = 66
+    GEOCULUS = 131
+    ELECTROCULUS = 181
+    TELEPORTS = 168
+    DOMAINS = 33
 
 
 class GenshinStats(Cog):
@@ -86,78 +95,34 @@ class GenshinStats(Cog):
             if region.explored == 0.0:
                 continue
 
-            description = f'{content["EXPLORED_TEXT"]}: `{region.explored / 10}%`'
-            if region.name == content["Dragonspine"]:
-                description += content["FROSTBEARING_TREE_LEVEL_TEXT"].format(level=region.level)
-            elif region.name == content["Inazuma"]:
-                description += content["SACRED_SAKURA_LEVEL_TEXT"].format(
-                    level=region.offerings[0].level
-                )
+            description = f'{content["EXPLORED_TEXT"]}: `{region.explored}%`'
+            if region.offerings:
+                for offering in region.offerings:
+                    description += f"\n{offering.name}: `{offering.level}`"
             if region.type == "Reputation":
                 description += content["REPUTATION_LEVEL_TEXT"].format(level=region.level)
 
             embed.add_field(name=region.name, value=description)
 
         oculus_content = f"""
-        <:Item_Anemoculus:870989767960059944> {content['ANEMOCULUS']}: `{user_stats.anemoculi}/66`
-        <:Item_Geoculus:870989769570676757> {content['GEOCULUS']}: `{user_stats.geoculi}/131`
-        <:Item_Electroculus:870989768387878912> {content['ELECTROCULUS']}: `{user_stats.electroculi}/181`
+        <:Item_Anemoculus:870989767960059944> {content['ANEMOCULUS']}: `{user_stats.anemoculi}/{GenshinEnums.ANEMOCULUS}`
+        <:Item_Geoculus:870989769570676757> {content['GEOCULUS']}: `{user_stats.geoculi}/{GenshinEnums.GEOCULUS}`
+        <:Item_Electroculus:870989768387878912> {content['ELECTROCULUS']}: `{user_stats.electroculi}/{GenshinEnums.ELECTROCULUS}`
         """
-
         embed.add_field(name=content["COLLECTED_OCULUS_TEXT"], value=oculus_content, inline=False)
-
         chests_opened = f"""
         {content['COMMON_CHEST']}: `{user_stats.common_chests}`
         {content['EXQUISITE_CHEST']}: `{user_stats.exquisite_chests}`
         {content['PRECIOUS_CHEST']}: `{user_stats.precious_chests}`
         {content['LUXURIOUS_CHEST']}: `{user_stats.luxurious_chests}`
         """
-
         embed.add_field(name=content["CHESTS_OPENED"], value=chests_opened, inline=False)
-
         misc_content = f"""
-        <:teleport:871385272376504341> {content['UNLOCKED_TELEPORTS']}: `{user_stats.unlocked_waypoints}/168`
-        <:domains:871370995192193034> {content['UNLOCKED_DOMAINS']}: `{user_stats.unlocked_domains}/33`
+        <:teleport:871385272376504341> {content['UNLOCKED_TELEPORTS']}: `{user_stats.unlocked_waypoints}/{GenshinEnums.TELEPORTS}`
+        <:domains:871370995192193034> {content['UNLOCKED_DOMAINS']}: `{user_stats.unlocked_domains}/{GenshinEnums.DOMAINS}`
         """
-
         embed.add_field(name=content["MISC_INFO"], value=misc_content, inline=False)
-        await ctx.send(embed=embed)
 
-    @slash_subcommand(
-        base="genshin",
-        name="characters_list",
-        description="Show your characters list of Genshin Impact",
-    )
-    @is_enabled()
-    async def characters(self, ctx: SlashContext, uid: int = None):
-        await ctx.defer()
-        if uid is None:
-            uid = await self._get_UID(ctx)
-
-        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
-        genshin_lang = self.genshin_langs[lang]
-        content = get_content("GENSHIN_CHARACTERS_LIST_COMMAND", lang)
-        chars_vision_content = get_content("GENSHIN_CHARACTERS_COMMAND", lang)[
-            "GENSHIN_CHARACTER_VISION"
-        ]
-        characters = await self.genshin_client.get_characters(uid, lang=genshin_lang)
-
-        embed = Embed(
-            title=content["EMBED_GENSHIN_CHARACTERS_LIST_TITLE"],
-            color=await self.bot.get_embed_color(ctx.guild.id),
-        )
-        embed.set_footer(text=f"UID: {uid}")
-
-        for character in characters:
-            embed.add_field(
-                name=f'{character.name} {"⭐" * character.rarity}',
-                value=f"""
-            ┕ {content['CHARACTER_LEVEL']}: `{character.level}`
-            ┕ {content['CHARACTER_CONSTELLATION']}: `C{character.constellation}`
-            ┕ {content['CHARACTER_VISION']}: {chars_vision_content[character.element]}
-            ┕ {content['CHARACTER_WEAPON']}: `{character.weapon.name} {"⭐" * character.weapon.rarity}`
-            """,
-            )
         await ctx.send(embed=embed)
 
     @slash_subcommand(
@@ -205,8 +170,9 @@ class GenshinStats(Cog):
         card = await self.genshin_client.get_record_card(hoyolab_uid, lang=genshin_lang)
         user_data = await self.genshin_client.get_user(int(card.uid), lang=genshin_lang)
         user_stats = user_data.stats
+
         description = f"""
-        **{content['ADVENTURE_RANK_TEXT']}: {card.nickname}**
+        **{content['NICKNAME_TEXT']}: {card.nickname}**
 
         <:adventure_exp:876142502736965672> {content['ADVENTURE_RANK_TEXT']}: `{card.level}`
         <:achievements:871370992839176242> {content['ACHIEVEMENTS_TEXT']}: `{user_stats.achievements}`
@@ -219,7 +185,7 @@ class GenshinStats(Cog):
             description=description,
             color=await self.bot.get_embed_color(ctx.guild.id),
         )
-        embed.set_footer(text=f"Hoyolab UID: {hoyolab_uid}")
+        embed.set_footer(text=f"Hoyolab UID: {hoyolab_uid} | Game UID: {card.uid}")
         await ctx.send(embed=embed)
 
     async def _get_UID(self, ctx: SlashContext, *, is_game_uid: bool = True):

@@ -210,10 +210,6 @@
 "GENSHIN_STATISTICS_COMMAND": {
     "EMBED_WORLD_EXPLORATION_TITLE": "Genshin Impact. World exploration",
     "EXPLORED_TEXT": "Explored",
-    "Inazuma": "Inazuma",
-    "Dragonspine": "Dragonspine",
-    "FROSTBEARING_TREE_LEVEL_TEXT": "\nLevel of Frostbearing Tree: `{level}`",
-    "SACRED_SAKURA_LEVEL_TEXT": "\nLevel of Sacred Sakura's Favor: `{level}`",
     "REPUTATION_LEVEL_TEXT": "\nReputation level: `{level}`",
     "ANEMOCULUS": "Anemoculus",
     "GEOCULUS": "Geoculus",
@@ -227,13 +223,6 @@
     "UNLOCKED_TELEPORTS": "Unlocked waypoints teleports",
     "UNLOCKED_DOMAINS": "Unlocked domains",
     "MISC_INFO": "Misc"
-},
-"GENSHIN_CHARACTERS_LIST_COMMAND": {
-    "EMBED_GENSHIN_CHARACTERS_LIST_TITLE": "Genshin Impact. Characters",
-    "CHARACTER_LEVEL": "Level",
-    "CHARACTER_CONSTELLATION": "Constellation",
-    "CHARACTER_VISION": "Vision",
-    "CHARACTER_WEAPON": "Weapon"
 },
 "GENSHIN_CHARACTERS_COMMAND": {
     "INFORMATION_TEXT": "**Information**",
