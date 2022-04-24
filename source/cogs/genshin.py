@@ -97,7 +97,8 @@ class GenshinStats(Cog):
             description = f'{content["EXPLORED_TEXT"]}: `{region.explored}%`'
             if region.offerings:
                 for offering in region.offerings:
-                    description += f"\n{offering.name}: `{offering.level}`"
+                    if region.name != "Reputation":
+                        description += f"\n{offering.name}: `{offering.level}`"
             if region.type == "Reputation":
                 description += content["REPUTATION_LEVEL_TEXT"].format(level=region.level)
 

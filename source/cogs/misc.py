@@ -233,10 +233,12 @@ class Misc(Cog):
 
     def _format_commits(self):
         commits = self.bot.github_repo_commits
-        return "".join(
-            f"[`{commit.sha[:7]}`]({commit.commit.html_url[:-33]}) **{commit.commit.message.splitlines()[0]}**\n"
-            for commit in commits
-        )
+        base = ""
+        for commit in commits:
+            commit_data = f"[`{commit.sha[:7]}`]({commit.commit.html_url[:-33]}) **{commit.commit.message.splitlines()[0]}**\n"
+            if len(base + commit_data) <= 4096:
+                base += commit_data
+        return base
 
     @slash_subcommand(base="misc", name="ping", description="Show bot latency")
     @is_enabled()
