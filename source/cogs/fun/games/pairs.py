@@ -280,7 +280,7 @@ class Pairs:
         self.cards = cards[:12] * 2
         self.first_card = self.second_card = self.first_card_ind = self.second_card_ind = None
         self.attempts = 0
-        self.base_message = f"Collect a pairs! Attempts: `{self.attempts}`"
+        self.base_message = "Collect a pairs! Attempts: `{attempts}`"
 
     def _render_start_components(self):
         components = [Button(label=" ", custom_id=f"pairs|{ind}") for ind in range(24)]
@@ -311,11 +311,12 @@ class Pairs:
                 return
 
         self.raw_components[-1].disabled = True
-        self.base_message = f"You won! Attempts: `{self.attempts}`"
+        self.base_message = "You won! Attempts: `{attempts}`"
 
     async def start(self):
         self.message = await self.ctx.send(
-            self.base_message, components=self._render_start_components()
+            self.base_message.format(attempts=self.attempts),
+            components=self._render_start_components(),
         )
 
         while True:
@@ -342,7 +343,8 @@ class Pairs:
                 self.raw_components[self.second_card_ind].disabled = True
 
             await ctx.edit_origin(
-                content=self.base_message, components=spread_to_rows(self.raw_components)
+                content=self.base_message.format(attempts=self.attempts),
+                components=spread_to_rows(self.raw_components),
             )
             if self.first_card is not None and self.second_card is not None:
                 if not self.is_equal():
@@ -350,7 +352,8 @@ class Pairs:
                 else:
                     self.is_won()
                 await ctx.origin_message.edit(
-                    self.base_message, components=spread_to_rows(self.raw_components)
+                    self.base_message.format(attempts=self.attempts),
+                    components=spread_to_rows(self.raw_components),
                 )
 
     async def _wait_button_click(self) -> ComponentContext:
