@@ -5,7 +5,7 @@ from random import shuffle
 from discord_slash import Button, ButtonStyle, ComponentContext, SlashContext
 from utils import AsteroidBot
 
-from .utils import spread_to_rows
+from .game_utils import spread_to_rows
 
 # board_3x3 = list(range(9))
 board_4x4 = list(range(16))

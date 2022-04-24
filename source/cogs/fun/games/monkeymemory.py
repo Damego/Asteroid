@@ -6,7 +6,7 @@ from uuid import uuid1
 from discord_slash import Button, ButtonStyle, ComponentContext, SlashContext
 from utils import AsteroidBot
 
-from .utils import spread_to_rows
+from .game_utils import spread_to_rows
 
 template = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
