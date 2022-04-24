@@ -189,7 +189,7 @@ class Settings(Cog):
             await ctx.defer()
             await ctx.origin_message.disable_components()
             await ctx.send("Reloading...")
-            os.execv(sys.executable, ["python3.9"] + sys.argv)
+            os.execv(sys.executable, ["python"] + sys.argv)
         elif ctx.custom_id == "button_sync_commands":
             await ctx.defer()
             await self.bot.slash.sync_all_commands()
@@ -299,7 +299,7 @@ class Settings(Cog):
         match ctx.custom_id:
             case "reload_bot":
                 await ctx.send("Перезагрузка", hidden=True)
-                os.execv(sys.executable, ["python3.9"] + sys.argv)
+                os.execv(sys.executable, ["python"] + sys.argv)
             case "sync_commands":
                 try:
                     await self.bot.slash.sync_all_commands()

@@ -51,6 +51,7 @@ PUBLIC_EXTENSIONS = [
     "Moderation",
     "Music",
     "PrivateRooms",
-    "StarBoard" "Tags",
+    "StarBoard",
+    "Tags",
     "Utilities",
 ]
