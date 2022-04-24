@@ -25,6 +25,7 @@ from .games import (
     BoardMode,
     Calculator,
     MonkeyMemory,
+    Pairs,
     RockPaperScissors,
     TicTacToeAI,
     TicTacToeMode,
@@ -551,3 +552,9 @@ class Fun(Cog):
     async def start_tiles(self, ctx: SlashContext):
         game = Tiles(ctx)
         await game.start()
+
+    @slash_subcommand(base="game", name="pairs", description="Start a game Pairs")
+    @is_enabled()
+    async def start_pairs(self, ctx: SlashContext):
+        pairs = Pairs(ctx)
+        await pairs.start()
