@@ -277,7 +277,7 @@ class Pairs:
         cards = all_cards.copy()
         shuffle(cards)
         shuffle(cards)
-        self.cards = cards[24:]
+        self.cards = cards[12:] * 2
         self.first_card = self.second_card = self.first_card_ind = self.second_card_ind = None
         self.attempts = 0
         self.base_message = f"Collect a pairs! Attempts: `{self.attempts}`"
