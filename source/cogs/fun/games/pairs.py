@@ -312,6 +312,7 @@ class Pairs:
 
         self.raw_components[-1].disabled = True
         self.base_message = "You won! Attempts: `{attempts}`"
+        return True
 
     async def start(self):
         self.message = await self.ctx.send(
@@ -347,14 +348,16 @@ class Pairs:
                 components=spread_to_rows(self.raw_components),
             )
             if self.first_card is not None and self.second_card is not None:
+                res = None
                 if not self.is_equal():
                     await asyncio.sleep(0.5)
                 else:
-                    self.is_won()
+                    res = self.is_won()
                 await ctx.origin_message.edit(
                     self.base_message.format(attempts=self.attempts),
                     components=spread_to_rows(self.raw_components),
                 )
+                if res: return
 
     async def _wait_button_click(self) -> ComponentContext:
         def check(ctx: ComponentContext):
