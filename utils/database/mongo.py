@@ -84,6 +84,8 @@ class Mongo:
         return self._cache[str(guild_id)]
 
     async def get_global_data(self):
+        if self._global_data is not None:
+            return self._global_data
         users_data_cursor = self._global_users_connection.find()
         users = [user_data async for user_data in users_data_cursor]
         self.global_data = GlobalData(self._global_data_connection, users)
