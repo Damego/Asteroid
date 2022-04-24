@@ -555,6 +555,10 @@ class Fun(Cog):
 
     @slash_subcommand(base="game", name="pairs", description="Start a game Pairs")
     @is_enabled()
-    async def start_pairs(self, ctx: SlashContext):
-        pairs = Pairs(ctx)
+    async def start_pairs(self, ctx: SlashContext, is_hardcore: bool):
+        if is_hardcore:
+            cards = ["🇦🇨", "🇦🇮", "🇦🇺", "🇨🇰", "🇫🇰", "🇬🇸", "🇰🇾", "🇲🇸", "🇳🇿", "🇹🇦", "🇹🇨", "🇻🇬"]
+            pairs = Pairs(ctx, cards=cards)
+        else:
+            pairs = Pairs(ctx)
         await pairs.start()
