@@ -68,6 +68,7 @@ class MonkeyMemory:
                     _, _id = component.custom_id.split("|")
                     if not _id.startswith("empty"):
                         component.emoji = emoji[_id]
+                        component.label = None
         return self.components
 
     def _disable_components(self):
