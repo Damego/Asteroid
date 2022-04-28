@@ -56,7 +56,7 @@ class Parsers(Cog):
         )
         await channel.send(embed=embed)
 
-    @tasks.loop(hours=6)
+    @tasks.loop(hours=12)
     async def check_fmtm(self):
         last_chapter = await self.get_last_chapter_fmtm()
         current_chapter = self.get_current_chapter_fmtm().replace("\n", "")
