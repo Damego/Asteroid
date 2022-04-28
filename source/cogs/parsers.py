@@ -59,7 +59,7 @@ class Parsers(Cog):
     @tasks.loop(hours=6)
     async def check_fmtm(self):
         last_chapter = await self.get_last_chapter_fmtm()
-        current_chapter = self.get_current_chapter_fmtm()
+        current_chapter = self.get_current_chapter_fmtm().replace("\n", "")
         if last_chapter != current_chapter:
             self.write_last_chapter_fmtm(last_chapter)
             await self.send_message(current_chapter, last_chapter)
