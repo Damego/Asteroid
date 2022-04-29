@@ -11,7 +11,8 @@ class Parsers(Cog):
         self.hidden = True
         self.name = str(self.__class__.name)
 
-        self.fmtm_url = "https://ru.niadd.com/manga/%D0%A3%D0%BD%D0%B5%D1%81%D0%B8%20%D0%BC%D0%B5%D0%BD%D1%8F%20%D0%BD%D0%B0%20%D0%9B%D1%83%D0%BD%D1%83.html"
+        self.current_chapter_fmtm = None
+        self.fmtm_url = "https://tonikakumanga.com/"
         self.check_fmtm.start()
 
     # * Fly Me to The Moon -> fmtm
@@ -25,16 +26,20 @@ class Parsers(Cog):
     def parse_fmtm(self, html: str):
         """Parse html and gets the last chapter of the manga `Fly Me to The Moon`"""
         soup = BeautifulSoup(html, "html.parser")
-        return soup.find("div", class_="latest-asset-name").text
+        titles = soup.find("ul", class_="menu-items").text.splitlines()
+        return titles[2].split()[-1]
 
     def get_current_chapter_fmtm(self):
+        if self.current_chapter_fmtm is not None:
+            return self.current_chapter_fmtm
         with open("mangas.txt") as mangas_file:  # TODO: Rewrite for database
-            current_chapter = mangas_file.readline()
-        return current_chapter
+            self.current_chapter_fmtm = mangas_file.readline().replace("\n", "")
+        return self.current_chapter_fmtm
 
     def write_last_chapter_fmtm(self, chapter: str):
         with open("mangas.txt", "w") as mangas_file:  # TODO: Rewrite for database
             mangas_file.write(chapter)
+            self.current_chapter_fmtm = chapter
 
     async def send_message(self, current_chapter: str, last_chapter: str):
         channel = self.bot.get_channel(SystemChannels.MANGAS_UPDATES)
@@ -52,14 +57,14 @@ class Parsers(Cog):
         )
         embed.set_author(name="Унеси меня на луну", url=self.fmtm_url)
         embed.set_image(
-            url="https://img11.mangarussia.com/files/img/logo/20180319/201803190606147792.jpg"
+            url="https://static.wikia.nocookie.net/tonikaku-kawaii/images/e/e0/Volume19.png/revision/latest/scale-to-width-down/290?cb=20220128064146"
         )
         await channel.send(embed=embed)
 
-    @tasks.loop(hours=12)
+    @tasks.loop(hours=24)
     async def check_fmtm(self):
         last_chapter = await self.get_last_chapter_fmtm()
-        current_chapter = self.get_current_chapter_fmtm().replace("\n", "")
+        current_chapter = self.get_current_chapter_fmtm()
         if last_chapter != current_chapter:
             self.write_last_chapter_fmtm(last_chapter)
             await self.send_message(current_chapter, last_chapter)
