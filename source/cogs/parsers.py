@@ -2,6 +2,7 @@ from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from discord import Embed, Forbidden
 from discord.ext import tasks
+from discord_slash import Button, ButtonStyle
 from utils import AsteroidBot, Cog, DiscordColors, SystemChannels
 
 
@@ -21,13 +22,15 @@ class Parsers(Cog):
         """Send request to the site to get html"""
         async with ClientSession() as session:
             async with session.get(self.fmtm_url) as response:
-                return self.parse_fmtm(await response.text())
+                return self.parse_main_fmtm(await response.text())
 
-    def parse_fmtm(self, html: str):
+    def parse_main_fmtm(self, html: str):
         """Parse html and gets the last chapter of the manga `Fly Me to The Moon`"""
         soup = BeautifulSoup(html, "html.parser")
-        titles = soup.find("ul", class_="menu-items").text.splitlines()
-        return titles[2].split()[-1]
+        data = soup.find("ul", class_="menu-items").find_all("a")[2]
+        url = data["href"]
+        chapter = data.text.split()[-1]
+        return chapter, url
 
     def get_current_chapter_fmtm(self):
         if self.current_chapter_fmtm is not None:
@@ -41,7 +44,7 @@ class Parsers(Cog):
             mangas_file.write(chapter)
             self.current_chapter_fmtm = chapter
 
-    async def send_message(self, current_chapter: str, last_chapter: str):
+    async def send_message(self, current_chapter: str, last_chapter: str, chapter_url: str):
         channel = self.bot.get_channel(SystemChannels.MANGAS_UPDATES)
         if channel is None:
             try:
@@ -50,6 +53,7 @@ class Parsers(Cog):
                 errors_channel = self.bot.get_channel(SystemChannels.ERRORS_CHANNEL)
                 await errors_channel.send("Cannot get mangas channel!")
                 return
+        components = [Button(label="Читать", style=ButtonStyle.URL, url=chapter_url, emoji="📖")]
         embed = Embed(
             title="Новая глава!",
             description=f"**`{current_chapter}` -> `{last_chapter}`**",
@@ -59,15 +63,15 @@ class Parsers(Cog):
         embed.set_image(
             url="https://static.wikia.nocookie.net/tonikaku-kawaii/images/e/e0/Volume19.png/revision/latest/scale-to-width-down/290?cb=20220128064146"
         )
-        await channel.send(embed=embed)
+        await channel.send(embed=embed, components=components)
 
     @tasks.loop(hours=24)
     async def check_fmtm(self):
-        last_chapter = await self.get_last_chapter_fmtm()
+        last_chapter, chapter_url = await self.get_last_chapter_fmtm()
         current_chapter = self.get_current_chapter_fmtm()
         if last_chapter != current_chapter:
             self.write_last_chapter_fmtm(last_chapter)
-            await self.send_message(current_chapter, last_chapter)
+            await self.send_message(current_chapter, last_chapter, chapter_url)
 
 
 def setup(bot):
