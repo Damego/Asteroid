@@ -1,6 +1,6 @@
 import asyncio
 import contextlib
-from random import shuffle
+import random
 
 from discord import Forbidden, HTTPException
 from discord_slash import Button, ButtonStyle, ComponentContext, SlashContext
@@ -276,9 +276,8 @@ class Pairs:
         self.bot: AsteroidBot = ctx.bot
         if cards is None:
             cards = all_cards.copy()
-        shuffle(cards)
-        shuffle(cards)
-        self.cards = cards[:12] * 2
+        random.shuffle(cards)
+        self.cards = random.sample(cards[:12] * 2, k=24)
         self.first_card = self.second_card = self.first_card_ind = self.second_card_ind = None
         self.attempts = 0
         self.base_message = "Collect a pairs! Attempts: `{attempts}`"
