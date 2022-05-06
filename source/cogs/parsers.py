@@ -1,5 +1,3 @@
-from socketserver import BaseRequestHandler
-
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from discord import Embed, Forbidden
