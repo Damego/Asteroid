@@ -1,4 +1,4 @@
-from discord import Embed, Member, Role
+from discord import Embed, Member, Role, TextChannel
 from discord.ext.commands import BadArgument
 from discord_slash import (
     AutoCompleteContext,
@@ -16,8 +16,10 @@ from discord_slash.utils.manage_commands import create_choice, create_option
 from utils import (
     AsteroidBot,
     Cog,
+    GuildData,
     bot_owner_or_permissions,
     cog_is_enabled,
+    errors,
     get_content,
     is_enabled,
 )
@@ -53,59 +55,53 @@ class AutoRole(Cog):
 
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         autoroles = guild_data.autoroles
-        choices = None
-        if ctx.focused_option == "name":
-            choices = [
-                create_choice(name=autorole.name, value=autorole.name)
-                for autorole in autoroles
-                if autorole.name.startswith(ctx.user_input)
-            ][:25]
-        elif ctx.focused_option == "option":
-            autorole = None
-            for autorole in autoroles:
-                if autorole.name == ctx.options.get("name"):
-                    break
-            else:
-                return
+        choices = []
+        match ctx.focused_option:
+            case "name":
+                choices = [
+                    create_choice(name=autorole.name, value=autorole.name)
+                    for autorole in autoroles
+                    if autorole.name.startswith(ctx.user_input)
+                    and autorole.type == ctx.subcommand_group
+                ]
+            case "option":
+                autorole = guild_data.get_autorole(ctx.options.get("name"))
+                if autorole and autorole.type == "dropdown":
+                    select_options = [option["label"] for option in autorole.component["options"]]
+                    choices = [
+                        create_choice(name=option_name, value=option_name)
+                        for option_name in select_options
+                        if option_name.startswith(ctx.user_input)
+                    ]
+            case "role":
+                on_join_roles = [
+                    ctx.guild.get_role(role_id)
+                    for role_id in guild_data.configuration.on_join_roles
+                ]
+                choices = [
+                    create_choice(name=role.name, value=str(role.id))
+                    for role in on_join_roles
+                    if role.name.startswith(ctx.user_input)
+                ]
+            case "label":
+                autorole = guild_data.get_autorole(ctx.options.get("name"))
+                if autorole and autorole.type == "button":
+                    labels = self.get_autorole_labels(autorole.component)
+                    choices = [create_choice(name=label, value=label) for label in labels]
 
-            select_options = [option["label"] for option in autorole.component["options"]]
-            choices = [
-                create_choice(name=option_name, value=option_name)
-                for option_name in select_options
-                if option_name.startswith(ctx.user_input)
-            ][:25]
-        elif ctx.focused_option == "role":
-            on_join_roles = [
-                ctx.guild.get_role(role_id) for role_id in guild_data.configuration.on_join_roles
-            ]
-            choices = [
-                create_choice(name=role.name, value=str(role.id))
-                for role in on_join_roles
-                if role.name.startswith(ctx.user_input)
-            ][:25]
-        if ctx.focused_option == "label":
-            name = ctx.options.get("name")
-            autoroles = guild_data.autoroles
-            for autorole in autoroles:
-                if autorole.name == name:
-                    break
-            else:
-                return
-            labels = []
-            components_json = autorole.component
-            for row in components_json:
-                if row["type"] == 1:
-                    for component in row["components"]:
-                        if component["type"] == 2:
-                            if component["label"] is None:
-                                labels.append(component["emoji"]["name"])
-                            else:
-                                labels.append(component["label"])
+        await ctx.populate(choices[:25])
 
-            choices = [create_choice(name=label, value=label) for label in labels][:25]
-
-        if choices:
-            await ctx.populate(choices)
+    def get_autorole_labels(self, autorole_components):
+        labels = []
+        for row in autorole_components:
+            if row["type"] == 1:
+                for component in row["components"]:
+                    if component["type"] == 2:
+                        if component["label"] is None:
+                            labels.append(component["emoji"]["name"])
+                        else:
+                            labels.append(component["label"])
+        return labels
 
     @slash_subcommand(
         base="autorole",
@@ -214,8 +210,9 @@ class AutoRole(Cog):
             name,
             {
                 "content": message_content,
+                "channel_id": ctx.channel.id,
                 "message_id": message.id,
-                "autorole_type": "select_menu",
+                "autorole_type": "dropdown",
                 "component": components[0].to_dict(),
             },
         )
@@ -268,53 +265,30 @@ class AutoRole(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
-        autoroles = guild_data.autoroles
-        if autoroles is None:
-            return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
-        autorole = None
-        for autorole in autoroles:
-            if autorole.name == name:
-                break
-
-        if autorole is None:
-            return await ctx.send(content["DROPDOWN_NOT_FOUND"])
-        message_id = autorole.message_id
-
-        original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
-        if not original_message.components:
-            return await ctx.send(content["MESSAGE_WITHOUT_DROPDOWN_TEXT"], hidden=True)
-
-        select_component: Select = original_message.components[0].components[0]
-        if select_component.custom_id != "autorole_select":
-            return await ctx.send(content["MESSAGE_WITHOUT_DROPDOWN_TEXT"], hidden=True)
+        autorole, select_component, original_message = await self.check_dropdown(
+            ctx, guild_data, name
+        )
 
         if len(select_component.options) == 25:
-            return await ctx.send(content["OPTIONS_OVERKILL_TEXT"], hidden=True)
+            raise errors.OptionsOverKill
 
         if emoji:
             emoji = self.get_emoji(emoji)
 
         if select_component.options[0].label == "None":
-            select_component.options = [
-                SelectOption(
-                    label=option_name,
-                    value=f"{role.id}",
-                    emoji=emoji,
-                    description=description,
-                )
-            ]
-        else:
-            select_component.options.append(
-                SelectOption(
-                    label=option_name,
-                    value=f"{role.id}",
-                    emoji=emoji,
-                    description=description,
-                )
+            select_component._options = []
+            select_component.disabled = False
+            if select_component.placeholder == content["NO_OPTIONS_TEXT"]:
+                select_component.placeholder = content["SELECT_ROLE_TEXT"]
+
+        select_component.options.append(
+            SelectOption(
+                label=option_name,
+                value=f"{role.id}",
+                emoji=emoji,
+                description=description,
             )
-        select_component.disabled = False
-        if select_component.placeholder == content["NO_OPTIONS_TEXT"]:
-            select_component.placeholder = content["SELECT_ROLE_TEXT"]
+        )
 
         select_component.max_values = len(select_component.options)
         await original_message.edit(components=[select_component])
@@ -350,24 +324,9 @@ class AutoRole(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
-        autoroles = guild_data.autoroles
-        if autoroles is None:
-            return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
-        autorole = None
-        for autorole in autoroles:
-            if autorole.name == name:
-                break
-        if autorole is None:
-            return await ctx.send(content["DROPDOWN_NOT_FOUND"])
-        message_id = autorole.message_id
-
-        original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
-        if not original_message.components:
-            return await ctx.send(content["MESSAGE_WITHOUT_DROPDOWN_TEXT"])
-
-        select_component: Select = original_message.components[0].components[0]
-        if select_component.custom_id != "autorole_select":
-            return await ctx.send(content["MESSAGE_WITHOUT_DROPDOWN_TEXT"], hidden=True)
+        autorole, select_component, original_message = await self.check_dropdown(
+            ctx, guild_data, name
+        )
 
         select_options = select_component.options
         for _option in select_options:
@@ -376,10 +335,10 @@ class AutoRole(Cog):
                 del select_options[option_index]
                 break
         else:
-            return await ctx.send(content["OPTION_NOT_FOUND_TEXT"], hidden=True)
+            raise errors.OptionNotFound
 
         if not select_options:
-            return await ctx.send(content["OPTIONS_LESS_THAN_1_TEXT"], hidden=True)
+            raise errors.OptionLessThanOne
 
         select_component.max_values = len(select_options)
         await original_message.edit(components=[select_component])
@@ -418,24 +377,7 @@ class AutoRole(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
 
-        autoroles = guild_data.autoroles
-        if autoroles is None:
-            return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
-        autorole = None
-        for autorole in autoroles:
-            if autorole.name == name:
-                break
-        if autorole is None:
-            return await ctx.send(content["DROPDOWN_NOT_FOUND"])
-        message_id = autorole.message_id
-
-        original_message: ComponentMessage = await ctx.channel.fetch_message(int(message_id))
-        if not original_message.components:
-            return await ctx.send(content["MESSAGE_WITHOUT_DROPDOWN_TEXT"], hidden=True)
-
-        select_component: Select = original_message.components[0].components[0]
-        if select_component.custom_id != "autorole_select":
-            return await ctx.send(content["MESSAGE_WITHOUT_DROPDOWN_TEXT"], hidden=True)
+        _, select_component, original_message = await self.check_dropdown(ctx, guild_data, name)
 
         select_component.disabled = status == "disable"
         message_content = (
@@ -470,13 +412,13 @@ class AutoRole(Cog):
 
         autoroles = guild_data.autoroles
         if autoroles is None:
-            return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
+            raise errors.NotSavedAutoRoles
         autorole = None
         for autorole in autoroles:
             if autorole.name == name:
                 break
-        if autorole is None:
-            return await ctx.send(content["DROPDOWN_NOT_FOUND"])
+        else:
+            raise errors.AutoRoleNotFound
 
         select_component = Select.from_json(autorole.component)
 
@@ -497,7 +439,7 @@ class AutoRole(Cog):
 
         autoroles = guild_data.autoroles
         if autoroles is None:
-            return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
+            raise errors.NotSavedAutoRoles
 
         embed = Embed(
             title=content["DROPDOWN_LIST"],
@@ -530,16 +472,16 @@ class AutoRole(Cog):
     async def autorole_dropdown_delete(self, ctx: SlashContext, name: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
-
         autoroles = guild_data.autoroles
+
         if autoroles is None:
-            return await ctx.send(content["NOT_SAVED_DROPDOWNS"])
-        autorole = None
+            raise errors.NotSavedAutoRoles
+
         for autorole in autoroles:
             if autorole.name == name:
                 break
-        if autorole is None:
-            return await ctx.send(content["DROPDOWN_NOT_FOUND"])
+        else:
+            raise errors.AutoRoleNotFound
 
         await guild_data.remove_autorole(name)
         await ctx.send(content["DROPDOWN_DELETED_TEXT"])
@@ -607,7 +549,8 @@ class AutoRole(Cog):
             name,
             {
                 "content": message_content,
-                "autorole_type": "buttons",
+                "autorole_type": "button",
+                "channel_id": ctx.channel.id,
                 "message_id": message.id,
                 "component": {},
             },
@@ -670,29 +613,17 @@ class AutoRole(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("AUTOROLE_BUTTON", guild_data.configuration.language)
         if not label and not emoji:
-            return await ctx.send(content["AT_LEAST_LABEL_EMOJI_TEXT"])
+            raise errors.LabelOrEmojiRequired
 
-        autoroles = guild_data.autoroles
-        if not autoroles:
-            return await ctx.send(content["NO_AUTOROLES"])
-        autorole = None
-        for autorole in autoroles:
-            if autorole.name == name:
-                break
-        if not autorole:
-            return await ctx.send(content["NO_AUTOROLES"])
+        autorole, original_message = await self.check_buttons(ctx, guild_data, name)
 
-        if autorole.type != "buttons":
-            return await ctx.send(content["NOT_BUTTONS_AUTOROLE"])
-
+        original_components = original_message.components
         button = Button(
             label=label,
             emoji=self.get_emoji(emoji) if emoji else None,
             style=style or ButtonStyle.gray,
             custom_id=f"autorole_button|{role.id}",
         )
-        original_message = await ctx.channel.fetch_message(int(autorole.message_id))
-        original_components = original_message.components
         if not original_components:
             original_components = [button]
         else:
@@ -702,7 +633,7 @@ class AutoRole(Cog):
                     break
             else:
                 if len(original_components) == 5:
-                    return await ctx.send(content["LIMIT_25_BUTTONS"])
+                    raise errors.ButtonsOverKill
                 else:
                     original_components.append([button])
 
@@ -740,19 +671,7 @@ class AutoRole(Cog):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("AUTOROLE_BUTTON", guild_data.configuration.language)
 
-        autoroles = guild_data.autoroles
-        if not autoroles:
-            return await ctx.send(content["NO_AUTOROLES"])
-        autorole = None
-        for autorole in autoroles:
-            if autorole.name == name:
-                break
-        if not autorole:
-            return await ctx.send(content["NO_AUTOROLES"])
-        if autorole.type != "buttons":
-            return await ctx.send(content["NOT_BUTTONS_AUTOROLE"])
-
-        original_message = await ctx.channel.fetch_message(int(autorole.message_id))
+        autorole, original_message = await self.check_buttons(ctx, guild_data, name)
         original_components = original_message.components
         for row in original_components:
             for component in row:
@@ -783,6 +702,40 @@ class AutoRole(Cog):
             _emoji = emoji.split(":")[-1].replace(">", "")
             emoji = self.bot.get_emoji(int(_emoji))
         return emoji
+
+    async def check_dropdown(self, ctx: SlashContext, guild_data: GuildData, autorole_name: str):
+        autoroles = guild_data.autoroles
+        if not autoroles:
+            raise errors.NotSavedAutoRoles
+        autorole = guild_data.get_autorole(autorole_name)
+        if autorole is None:
+            raise errors.AutoRoleNotFound
+        if autorole.type != "dropdown":
+            raise errors.NotDropDown
+
+        channel_id = autorole.channel_id
+        message_id = autorole.message_id
+        channel: TextChannel = ctx.guild.get_channel(channel_id)
+        original_message: ComponentMessage = await channel.fetch_message(int(message_id))
+        if not original_message.components:
+            raise errors.MessageWithoutAutoRole
+        select_component: Select = original_message.components[0].components[0]
+        return autorole, select_component, original_message
+
+    async def check_buttons(self, ctx: SlashContext, guild_data: GuildData, autorole_name: str):
+        autoroles = guild_data.autoroles
+        if not autoroles:
+            raise errors.NotSavedAutoRoles
+        autorole = guild_data.get_autorole(autorole_name)
+        if autorole is None:
+            raise errors.AutoRoleNotFound
+        if autorole.type != "button":
+            raise errors.NotButton
+
+        channel_id = autorole.channel_id
+        channel: TextChannel = ctx.guild.get_channel(channel_id)
+        original_message = await channel.fetch_message(int(autorole.message_id))
+        return autorole, original_message
 
 
 def setup(bot):

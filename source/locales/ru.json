@@ -143,7 +143,17 @@
 		"NO_DATA_FOUND": "Ничего не найдено!",
 		"GUILD_ONLY": "Эта команда только для сервера!",
 		"PRIVATE_VOICE_NOT_SETUP": "Приватные комнаты не установлены на сервере!",
-		"DONT_HAVE_PRIVATE_ROOM": "У вас нет приватной комнаты!"
+		"DONT_HAVE_PRIVATE_ROOM": "У вас нет приватной комнаты!",
+		"NOT_SAVED_AUTOROLES": "Нет сохранённых Авторолей",
+		"MESSAGE_WITHOUT_AUTOROLE": "Сообщение не имеет автороль!",
+		"AUTOROLE_NOT_FOUND": "Автороль с таким именем не найдено!",
+		"OPTIONS_OVERKILL": "Вы не можете добавить больше 25 опций в меню!",
+		"OPTION_NOT_FOUND": "Опция с таким именем не найдена",
+		"OPTIONS_LESS_THAN_1": "Опций в меню не может быть меньше 1",
+		"LIMIT_25_BUTTONS": "Вы достигли лимита в 25 кнопок на сообщение",
+		"AT_LEAST_LABEL_OR_EMOJI": "Должно быть хотя бы `label` или `emoji`",
+		"NOT_DROPDOWN": "Автороль должна быть типа `Меню`",
+		"NOT_BUTTON": "Автороль должна быть типа `Кнопка`"
 	},
 	"FUNC_RANDOM_NUMBER_OUT_CONTENT": "Рандомное число: `{}`",
 	"FUNC_MEMBER_INFO": {
@@ -447,20 +457,14 @@
 		"REMOVED_ROLES_TEXT": "\nУдалено: ",
 		"NO_OPTIONS_TEXT": "Нет опций",
 		"CREATED_DROPDOWN_TEXT": "Меню создано!",
-		"MESSAGE_WITHOUT_DROPDOWN_TEXT": "Сообщение не имеет меню!",
-		"OPTIONS_OVERKILL_TEXT": "Вы не можете добавить больше 25 опций в меню1",
 		"SELECT_ROLE_TEXT": "Выберите роль",
 		"ROLE_ADDED_TEXT": "Роль добавлена!",
-		"OPTION_NOT_FOUND_TEXT": "Не удалось найти опцию с таким именем!",
-		"OPTIONS_LESS_THAN_1_TEXT": "Опций в меню не может быть меньше 1",
 		"ROLE_REMOVED_TEXT": "Роль удалена!",
 		"DROPDOWN_ENABLED_TEXT": "Меню включено!",
 		"DROPDOWN_DISABLED_TEXT": "Меню выключено!",
 		"DROPDOWN_SAVED_TEXT": "Сохранено!",
-		"NOT_SAVED_DROPDOWNS": "Нет сохранённых меню!",
 		"DROPDOWN_LOADED_TEXT": "Меню загружено!",
 		"DROPDOWN_LIST": "Список меню с ролями",
-		"DROPDOWN_NOT_FOUND": "Меню с этим именем не найдено!",
 		"DROPDOWN_DELETED_TEXT": "Меню удалено! Не забудьте удалить сообщение!"
 	},
 	"AUTOROLE_ON_JOIN": {
@@ -482,14 +486,10 @@
 		"COMMAND_ENABLED": "Команда `{command_name}` была включена!"
 	},
 	"AUTOROLE_BUTTON": {
-		"EVENT_REMOVED_ROLE_TEXT": "Удалено: {}",
-		"EVENT_ADDED_ROLE_TEXT": "Добавлено: {}",
-		"LIMIT_25_BUTTONS": "Достигнут лимит в 25 кнопок!",
+		"EVENT_REMOVED_ROLE_TEXT": "Убраны роли: {}",
+		"EVENT_ADDED_ROLE_TEXT": "Добавлены роли: {}",
 		"COMMAND_ROLE_ADDED_TEXT": "Роль добавлена",
 		"COMMAND_ROLE_REMOVED_TEXT": "Роль удалена",
-		"AT_LEAST_LABEL_EMOJI_TEXT": "Должно быть хотя бы название кнопки(label) или эмодзи(emoji)",
-		"NO_AUTOROLES": "Автороли не найдены!",
-		"NOT_BUTTONS_AUTOROLE": "Название не соответствует автороли для кнопок!",
 		"AUTOROLE_CREATED": "Создано!"
 	},
 	"NOTES_COMMANDS": {

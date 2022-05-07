@@ -55,3 +55,43 @@ class PrivateVoiceNotSetup(Exception):
 
 class DontHavePrivateRoom(Exception):
     """Member doesnt have private room"""
+
+
+class MessageWithoutAutoRole(Exception):
+    ...
+
+
+class AutoRoleNotFound(Exception):
+    ...
+
+
+class OptionsOverKill(Exception):
+    ...
+
+
+class OptionNotFound(Exception):
+    ...
+
+
+class OptionLessThanOne(Exception):
+    ...
+
+
+class NotSavedAutoRoles(Exception):
+    ...
+
+
+class NotDropDown(Exception):
+    ...
+
+
+class NotButton(Exception):
+    ...
+
+
+class LabelOrEmojiRequired(Exception):
+    ...
+
+
+class ButtonsOverKill(Exception):
+    ...
