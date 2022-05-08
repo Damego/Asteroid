@@ -10,8 +10,11 @@ from utils.database.mongo import Mongo
 
 
 class AsteroidBot(Bot):
-    def __init__(self, *, mongodb_token: str, github_token: str, repo_name: str):
+    def __init__(
+        self, *, is_debug_mode: bool = False, mongodb_token: str, github_token: str, repo_name: str
+    ):
         super().__init__(command_prefix="asteroid!", intents=Intents.all())
+        self.is_debug_mode = is_debug_mode
         self.__default_invite_link = None
         self.mongo = Mongo(mongodb_token)
         self.slash = SlashCommand(self, sync_commands=False, sync_on_cog_reload=False)

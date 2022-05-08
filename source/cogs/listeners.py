@@ -46,6 +46,33 @@ class Listeners(Cog):
     async def on_guild_remove(self, guild: Guild):
         await self.bot.mongo.delete_guild(guild.id)
 
+    @Cog.listener()
+    async def on_slash_command(self, ctx: SlashContext):
+        if self.bot.is_debug_mode:
+            return
+
+        if self.slash_use_channel is None:
+            self.slash_use_channel = self.bot.get_channel(SystemChannels.COMMANDS_USING_CHANNEL)
+
+        embed = Embed(
+            title=self.bot.get_transformed_command_name(ctx),
+            color=DiscordColors.EMBED_COLOR,
+            timestamp=datetime.utcnow(),
+        )
+        embed.set_footer(
+            text=f"{ctx.author.name} | {ctx.author_id}", icon_url=ctx.author.avatar_url
+        )
+        if ctx.kwargs:
+            options = "\n".join([f"{option}: {value}" for option, value in ctx.kwargs.items()])
+            embed.add_field(name="Options", value=options)
+        if ctx.guild:
+            embed.add_field(
+                name="Guild Information",
+                value=f"Name: {ctx.guild.name}\nID: {ctx.guild_id}",
+            )
+
+        await self.slash_use_channel.send(embed=embed)
+
     @Cog.listener(name="on_slash_command_error")
     async def on_slash_command_error(self, ctx: SlashContext, error):
         embed = Embed(color=DiscordColors.RED)
@@ -68,6 +95,9 @@ class Listeners(Cog):
             case CheckFailure():
                 desc = content["CHECK_FAILURE"]
             case _:
+                if self.bot.is_debug_mode:
+                    raise error
+
                 desc = content["OTHER_ERRORS_DESCRIPTION"].format(error=error)
                 embed.title = content["OTHER_ERRORS_TITLE"]
 

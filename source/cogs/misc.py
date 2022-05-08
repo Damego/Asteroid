@@ -1,6 +1,5 @@
 import json
 import os
-from datetime import datetime
 from re import compile
 from typing import List, Union
 
@@ -80,30 +79,6 @@ class Misc(Cog):
 
         channel = self.bot.get_channel(SystemChannels.SERVERS_UPDATE_CHANNEL)
         await channel.send(embed=embed)
-
-    @Cog.listener()
-    async def on_slash_command(self, ctx: SlashContext):
-        if self.slash_use_channel is None:
-            self.slash_use_channel = self.bot.get_channel(SystemChannels.COMMANDS_USING_CHANNEL)
-
-        embed = Embed(
-            title=self.bot.get_transformed_command_name(ctx),
-            color=DiscordColors.EMBED_COLOR,
-            timestamp=datetime.utcnow(),
-        )
-        embed.set_footer(
-            text=f"{ctx.author.name} | {ctx.author_id}", icon_url=ctx.author.avatar_url
-        )
-        if ctx.kwargs:
-            options = "\n".join([f"{option}: {value}" for option, value in ctx.kwargs.items()])
-            embed.add_field(name="Options", value=options)
-        if ctx.guild:
-            embed.add_field(
-                name="Guild Information",
-                value=f"Name: {ctx.guild.name}\nID: {ctx.guild_id}",
-            )
-
-        await self.slash_use_channel.send(embed=embed)
 
     @slash_subcommand(base="info", name="user", description="Shows information about guild member")
     @is_enabled()
