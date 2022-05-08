@@ -6,6 +6,7 @@ from random import choice, randint
 
 import qrcode
 import requests
+from aiohttp import ClientSession
 from discord import ChannelType, Embed, File, Forbidden, Member, VoiceChannel
 from discord_slash import (
     Button,
@@ -292,18 +293,7 @@ class Fun(Cog):
         if not channel:
             channel = ctx.author.voice.channel
 
-        data = self._get_data(int(discord_activities_list[activity]))
-        headers = {
-            "Authorization": f'Bot {environ.get("BOT_TOKEN")}',
-            "Content-Type": "application/json",
-        }
-
-        response = requests.post(
-            f"https://discord.com/api/v8/channels/{channel.id}/invites",
-            data=json.dumps(data),
-            headers=headers,
-        )
-        code = json.loads(response.content).get("code")
+        code = await self._get_invite_code(channel.id, activity)
         if code == "50013":
             raise Forbidden
 
@@ -322,16 +312,30 @@ class Fun(Cog):
 
         await ctx.send(embed=embed)
 
-    @staticmethod
-    def _get_data(application_id: int):
-        return {
+    async def _get_invite_code(self, channel_id: int, activity: str):
+        data = {
             "max_age": 86400,
             "max_uses": 0,
-            "target_application_id": application_id,
+            "target_application_id": int(discord_activities_list[activity]),
             "target_type": 2,
             "temporary": False,
             "validate": None,
         }
+        headers = {
+            "Authorization": f'Bot {environ.get("BOT_TOKEN")}',
+            "Content-Type": "application/json",
+        }
+
+        async with ClientSession() as client:
+            async with client.post(
+                f"https://discord.com/api/v10/channels/{channel_id}/invites",
+                data=json.dumps(data),
+                headers=headers,
+            ) as response:
+                json_response = await response.json()
+                code = json_response["code"]
+
+        return code
 
     @slash_subcommand(base="phasmo", name="item", description="Random item in Phasmophobia")
     @is_enabled()
