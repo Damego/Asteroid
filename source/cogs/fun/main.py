@@ -44,6 +44,7 @@ class Fun(Cog):
         base="game",
         name="rps",
         description="Start play a Rock Paper Scissors",
+        base_dm_permission=False,
         options=[
             create_option(
                 name="member",
@@ -230,7 +231,12 @@ class Fun(Cog):
         await message.edit(content=declined_invite, components=[])
         return message, False
 
-    @slash_subcommand(base="fun", name="random_num", description="Generate random number")
+    @slash_subcommand(
+        base="fun",
+        name="random_num",
+        description="Generate random number",
+        base_dm_permission=False,
+    )
     @is_enabled()
     async def random_num(self, ctx: SlashContext, start: int, end: int):
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -333,7 +339,12 @@ class Fun(Cog):
             "validate": None,
         }
 
-    @slash_subcommand(base="phasmo", name="item", description="Random item in Phasmophobia")
+    @slash_subcommand(
+        base="phasmo",
+        name="item",
+        description="Random item in Phasmophobia",
+        base_dm_permission=False,
+    )
     @is_enabled()
     async def phasmophobia_random_item(self, ctx: SlashContext):
         await self._start_random(ctx)

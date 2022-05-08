@@ -58,6 +58,7 @@ class Utilities(Cog):
         base="command",
         name="disable",
         description="Disable command/base/group for your server",
+        base_dm_permission=False,
     )
     @bot_owner_or_permissions(manage_guild=True)
     async def disable_cmd(self, ctx: SlashContext, command_name: str):
@@ -89,7 +90,12 @@ class Utilities(Cog):
         content = get_content("COMMAND_CONTROL", lang=guild_data.configuration.language)
         await ctx.send(content["COMMAND_ENABLED"].format(command_name=command_name))
 
-    @slash_subcommand(base="note", name="new", description="Create a note")
+    @slash_subcommand(
+        base="note",
+        name="new",
+        description="Create a note",
+        base_dm_permission=False,
+    )
     @is_enabled()
     async def create_note(self, ctx: SlashContext, is_global: bool = False):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
@@ -240,6 +246,7 @@ class Utilities(Cog):
                 autocomplete=True,
             )
         ],
+        base_dm_permission=False,
     )
     async def global_music_playlist(self, ctx: SlashContext, playlist: str):
         await ctx.defer(hidden=True)
@@ -268,6 +275,7 @@ class Utilities(Cog):
                 ],
             )
         ],
+        dm_permission=False,
     )
     @bot_owner_or_permissions(manage_roles=True)
     async def set_bot_language(self, ctx: SlashContext, language: str):
@@ -277,7 +285,11 @@ class Utilities(Cog):
         content = get_content("SET_LANGUAGE_COMMAND", lang=guild_data.configuration.language)
         await ctx.send(content["LANGUAGE_CHANGED"])
 
-    @slash_command(name="embed_color", description="Set color for embeds")
+    @slash_command(
+        name="embed_color",
+        description="Set color for embeds",
+        dm_permission=False,
+    )
     @bot_owner_or_permissions(manage_roles=True)
     async def set_embed_color(self, ctx: SlashContext, color: str):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
@@ -290,7 +302,11 @@ class Utilities(Cog):
         embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=int(color, 16))
         await ctx.send(embed=embed, delete_after=10)
 
-    @slash_command(name="issue", description="Sends a issue to owner")
+    @slash_command(
+        name="issue",
+        description="Sends a issue to owner",
+        dm_permission=False,
+    )
     async def open_modal_bug(self, ctx: SlashContext):
         modal = Modal(
             custom_id="issue_modal",
@@ -351,6 +367,7 @@ class Utilities(Cog):
                 ],
             )
         ],
+        base_dm_permission=False,
     )
     async def plugin_disable(self, ctx: SlashContext, plugin: str):
         await ctx.defer(hidden=True)

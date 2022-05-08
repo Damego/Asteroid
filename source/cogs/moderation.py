@@ -11,7 +11,12 @@ class Moderation(Cog):
         self.emoji = 962648455879225344
         self.name = "Moderation"
 
-    @slash_subcommand(base="mod", name="ban", description="Ban member")
+    @slash_subcommand(
+        base="mod",
+        name="ban",
+        description="Ban member",
+        base_dm_permission=False,
+    )
     @bot_owner_or_permissions(ban_members=True)
     @bot_has_guild_permissions(ban_members=True)
     async def ban(self, ctx: SlashContext, member: Member, reason: str = None):

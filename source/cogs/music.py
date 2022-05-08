@@ -94,7 +94,9 @@ class Music(Cog):
         if guild.voice_client is not None:
             await guild.voice_client.disconnect(force=True)
 
-    @slash_subcommand(base="music", name="play", description="Start playing music")
+    @slash_subcommand(
+        base="music", name="play", description="Start playing music", base_dm_permission=False
+    )
     @is_enabled()
     async def play_music(self, ctx: SlashContext, query: str):
         await self._play_music(ctx, query)

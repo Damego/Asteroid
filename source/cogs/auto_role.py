@@ -112,6 +112,7 @@ class AutoRole(Cog):
         subcommand_group="on_join",
         name="add",
         description="Adds a new on join role",
+        base_dm_permission=False,
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
