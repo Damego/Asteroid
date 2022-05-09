@@ -3,7 +3,7 @@ import os
 from re import compile
 from typing import List, Union
 
-from discord import Attachment, Embed, Guild, Member, Role, TextChannel
+from discord import Attachment, Embed, Guild, Member, Role
 from discord_slash import (
     Button,
     ButtonStyle,
@@ -41,7 +41,6 @@ class Misc(Cog):
         self.hidden = False
         self.emoji = "💡"
         self.name = "Misc"
-        self.slash_use_channel: TextChannel = None
         self.project_lines_count = 0
         self.__get_lines_count()
 

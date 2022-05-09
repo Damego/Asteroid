@@ -2,7 +2,7 @@ import contextlib
 from datetime import datetime
 from traceback import format_exception
 
-from discord import Embed, Forbidden, Guild
+from discord import Embed, Forbidden, Guild, TextChannel
 from discord.ext.commands import (
     BadArgument,
     BotMissingPermissions,
@@ -27,6 +27,8 @@ class Listeners(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.hidden = True
+
+        self.slash_use_channel: TextChannel = None
 
     # EVENTS
     @Cog.listener()
