@@ -3,6 +3,7 @@ from discord_slash import (
     AutoCompleteContext,
     Modal,
     ModalContext,
+    Permissions,
     SlashCommandOptionType,
     SlashContext,
     TextInput,
@@ -39,6 +40,7 @@ class Tags(Cog):
         base="tag",
         name="view",
         description="View an existing tag",
+        base_dm_permission=False,
         options=[
             create_option(
                 name="tag_name",
@@ -353,6 +355,8 @@ class Tags(Cog):
         base="tags",
         name="set_control",
         description="Allows or disallows everyone to use tags",
+        base_dm_permission=False,
+        base_default_member_permissions=Permissions.ADMINISTRATOR,
         options=[
             create_option(
                 name="status",

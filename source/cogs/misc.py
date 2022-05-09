@@ -85,7 +85,7 @@ class Misc(Cog):
         embed = await self._get_embed_member_info(ctx, member or ctx.author)
         await ctx.send(embed=embed)
 
-    @context_menu(name="Profile", target=ContextMenuType.USER)
+    @context_menu(name="Profile", target=ContextMenuType.USER, dm_permission=False)
     @is_enabled()
     async def get_member_information_context(self, ctx: MenuContext):
         member = ctx.target_author
@@ -176,7 +176,9 @@ class Misc(Cog):
             formatted += f" {minutes:02} {content['MINUTES']}"
         return formatted.strip() if formatted else "-"
 
-    @slash_subcommand(base="info", name="bot", description="Show information of bot")
+    @slash_subcommand(
+        base="info", name="bot", description="Show information of bot", base_dm_permission=False
+    )
     @is_enabled()
     async def bot_info(self, ctx: SlashContext):
         await ctx.defer()
@@ -214,7 +216,9 @@ class Misc(Cog):
                 base += commit_data
         return base
 
-    @slash_subcommand(base="misc", name="ping", description="Show bot latency")
+    @slash_subcommand(
+        base="misc", name="ping", description="Show bot latency", base_dm_permission=False
+    )
     @is_enabled()
     async def ping(self, ctx: SlashContext):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
@@ -232,6 +236,7 @@ class Misc(Cog):
         base="server",
         name="offline_bots",
         description="Shows all offline bots in server",
+        base_dm_permission=False,
     )
     @is_enabled()
     async def check_bots(self, ctx: SlashContext):
@@ -264,7 +269,7 @@ class Misc(Cog):
 
         await ctx.send(embed=embed)
 
-    @slash_command(name="invite", description="Send's bot invite link")
+    @slash_command(name="invite", description="Send's bot invite link", dm_permission=False)
     @is_enabled()
     async def invite_bot(self, ctx: SlashContext):
         content = get_content(

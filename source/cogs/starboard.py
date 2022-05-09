@@ -12,7 +12,7 @@ from discord import (
     Role,
     TextChannel,
 )
-from discord_slash import AutoCompleteContext, SlashCommandOptionType, SlashContext
+from discord_slash import AutoCompleteContext, Permissions, SlashCommandOptionType, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_choice, create_option
 from utils import (
@@ -218,6 +218,8 @@ class StarBoard(Cog):
         base="starboard",
         name="channel",
         description="Starboard channel setting",
+        base_dm_permission=False,
+        base_default_member_permissions=Permissions.MANAGE_GUILD,
         options=[
             create_option(
                 name="channel",
@@ -229,7 +231,6 @@ class StarBoard(Cog):
         ],
     )
     @is_enabled()
-    @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_channel(self, ctx: SlashContext, channel: TextChannel):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
 
@@ -250,7 +251,6 @@ class StarBoard(Cog):
 
     @slash_subcommand(base="starboard", name="limit", description="Limit setting")
     @is_enabled()
-    @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_stars_limit(self, ctx: SlashContext, limit: int):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         if not guild_data.starboard:
@@ -279,7 +279,6 @@ class StarBoard(Cog):
         ],
     )
     @is_enabled()
-    @bot_owner_or_permissions(manage_guild=True)
     async def set_starboard_status(self, ctx: SlashContext, status: str):
         status = status == "True"
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
@@ -322,7 +321,6 @@ class StarBoard(Cog):
         ],
     )
     @is_enabled()
-    @bot_owner_or_permissions(manage_guild=True)
     async def starboard_blacklist_add(
         self,
         ctx: SlashContext,
@@ -380,7 +378,6 @@ class StarBoard(Cog):
         ],
     )
     @is_enabled()
-    @bot_owner_or_permissions(manage_guild=True)
     async def starboard_blacklist_remove(
         self,
         ctx: SlashContext,
@@ -417,7 +414,6 @@ class StarBoard(Cog):
         description="Shows starboard blacklist",
     )
     @is_enabled()
-    @bot_owner_or_permissions(manage_guild=True)
     async def starboard_blacklist_list(self, ctx: SlashContext, hidden: bool = False):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)

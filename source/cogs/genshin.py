@@ -54,7 +54,12 @@ class GenshinStats(Cog):
                 channel = await self.bot.fetch_channel(SystemChannels.GENSHIN_DAILY_REWARDS)
             await channel.send(embed=embed)
 
-    @slash_subcommand(base="genshin", name="bind", description="Bind Hoyolab UID to your account")
+    @slash_subcommand(
+        base="genshin",
+        name="bind",
+        description="Bind Hoyolab UID to your account",
+        base_dm_permission=False,
+    )
     @is_enabled()
     async def bind_uid(self, ctx: SlashContext, hoyolab_uid: int):
         record_card = await self.genshin_client.get_record_card(hoyolab_uid)

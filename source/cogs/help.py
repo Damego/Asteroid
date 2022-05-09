@@ -15,7 +15,7 @@ class Help(Cog):
         self.name = "Help"
         self.commands_cache: dict = None
 
-    @slash_command(name="help", description="Help and bot commands")
+    @slash_command(name="help", description="Help and bot commands", dm_permission=False)
     async def help_command(self, ctx: SlashContext):
         await ctx.defer()
 
