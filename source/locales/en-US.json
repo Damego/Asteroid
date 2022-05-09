@@ -24,7 +24,17 @@
     "NO_DATA_FOUND": "Nothing found!",
     "GUILD_ONLY": "This command only for server!",
     "PRIVATE_VOICE_NOT_SETUP": "Private Rooms are not setup!",
-    "DONT_HAVE_PRIVATE_ROOM": "You don't have a room!"
+    "DONT_HAVE_PRIVATE_ROOM": "You don't have a room!",
+    "NOT_SAVED_AUTOROLES": "Server don't have any autorole",
+    "MESSAGE_WITHOUT_AUTOROLE": "Message don't have Autorole (Dropdown or button)!",
+    "AUTOROLE_NOT_FOUND": "Autorole with this name not found!",
+    "OPTIONS_OVERKILL": "You can't add more than 25 options in dropdown!",
+    "OPTION_NOT_FOUND": "Could not find an option with this name",
+    "OPTIONS_LESS_THAN_1": "Options in dropdown can't be less than 1",
+    "LIMIT_25_BUTTONS": "You have reached limit in 25 buttons",
+    "AT_LEAST_LABEL_OR_EMOJI": "Should be at least label or emoji",
+    "NOT_DROPDOWN": "Autorole should be dropdown",
+    "NOT_BUTTON": "Autorole should be button"
 },
 "FUNC_RANDOM_NUMBER_OUT_CONTENT": "Random number is `{}`",
 "FUNC_MEMBER_INFO": {
@@ -328,20 +338,14 @@
     "REMOVED_ROLES_TEXT": "\nRemoved Roles: ",
     "NO_OPTIONS_TEXT": "No options",
     "CREATED_DROPDOWN_TEXT": "Dropdown created!",
-    "MESSAGE_WITHOUT_DROPDOWN_TEXT": "Message without dropdown!",
-    "OPTIONS_OVERKILL_TEXT": "You can't add more than 25 options in dropdown!",
     "SELECT_ROLE_TEXT": "Select role",
     "ROLE_ADDED_TEXT": "Role added!",
-    "OPTION_NOT_FOUND_TEXT": "Could not find an option with this name",
-    "OPTIONS_LESS_THAN_1_TEXT": "Options in dropdown can't be less than 1",
     "ROLE_REMOVED_TEXT": "Role removed!",
     "DROPDOWN_ENABLED_TEXT": "Dropdown enabled!",
     "DROPDOWN_DISABLED_TEXT": "Dropdown disabled!",
     "DROPDOWN_SAVED_TEXT": "Dropdown saved!",
-    "NOT_SAVED_DROPDOWNS": "No dropdowns saved!",
     "DROPDOWN_LOADED_TEXT": "Dropdown loaded!",
     "DROPDOWN_LIST": "Dropdowns list",
-    "DROPDOWN_NOT_FOUND": "Dropdown with this name not found!",
     "DROPDOWN_DELETED_TEXT": "Dropdown successully deleted! Don't forget to delete a message"
 },
 "AUTOROLE_ON_JOIN": {
@@ -363,14 +367,10 @@
     "COMMAND_ENABLED": "Command `{command_name}` was enabled!"
 },
 "AUTOROLE_BUTTON": {
-    "EVENT_REMOVED_ROLE_TEXT": "Removed: {}",
-    "EVENT_ADDED_ROLE_TEXT": "Added: {}",
-    "LIMIT_25_BUTTONS": "You have reached limit in 25 buttons",
+    "EVENT_REMOVED_ROLE_TEXT": "Removed roles: {}",
+    "EVENT_ADDED_ROLE_TEXT": "Added roles: {}",
     "COMMAND_ROLE_ADDED_TEXT": "Role added",
     "COMMAND_ROLE_REMOVED_TEXT": "Role removed",
-    "AT_LEAST_LABEL_EMOJI_TEXT": "Should be at least label or emoji",
-    "NO_AUTOROLES": "Autoroles doesn't exists!",
-    "NOT_BUTTONS_AUTOROLE": "That's not autorole name for buttons!",
     "AUTOROLE_CREATED": "Created!"
 },
 "NOTES_COMMANDS": {

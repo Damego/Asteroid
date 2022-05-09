@@ -148,6 +148,11 @@ class GuildData:
         )
         self.autoroles.append(GuildAutoRole(self._main_collection, name, data))
 
+    def get_autorole(self, name: str):
+        for autorole in self.autoroles:
+            if autorole.name == name:
+                return autorole
+
     async def remove_autorole(self, name: str):
         await self._main_collection.update_one(
             {"_id": "autorole"}, {OperatorType.UNSET.value: {name: ""}}, upsert=True
@@ -398,15 +403,28 @@ class GuildStarboard:
 
 
 class GuildAutoRole:
-    __slots__ = ("_connection", "_name", "_content", "_message_id", "_type", "_component")
+    __slots__ = (
+        "_connection",
+        "_name",
+        "_channel_id",
+        "_content",
+        "_message_id",
+        "_type",
+        "_component",
+    )
 
     def __init__(self, connection, name: str, data: dict) -> None:
         self._connection = connection
         self._name: str = name
+        self._channel_id: int = data.get("channel_id")
         self._content: str = data.get("content")
         self._message_id: int = data.get("message_id")
         self._type: str = data.get("autorole_type")
         self._component: dict = data.get("component")
+
+    @property
+    def channel_id(self) -> int:
+        return self._channel_id
 
     @property
     def name(self) -> str:

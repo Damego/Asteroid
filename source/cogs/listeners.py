@@ -105,6 +105,7 @@ class Listeners(Cog):
 
                 error_traceback = "".join(format_exception(type(error), error, error.__traceback__))
                 error_embed = self.get_error_embed(ctx, error, error_traceback)
+                raise error
                 await self.send_error(error_embed)
 
         embed.description = desc
@@ -129,6 +130,16 @@ class Listeners(Cog):
             errors.NotGuild: content["GUILD_ONLY"],
             errors.PrivateVoiceNotSetup: content["PRIVATE_VOICE_NOT_SETUP"],
             errors.DontHavePrivateRoom: content["DONT_HAVE_PRIVATE_ROOM"],
+            errors.MessageWithoutAutoRole: content["MESSAGE_WITHOUT_AUTOROLE"],
+            errors.AutoRoleNotFound: content["AUTOROLE_NOT_FOUND"],
+            errors.OptionsOverKill: content["OPTIONS_OVERKILL"],
+            errors.OptionNotFound: content["OPTION_NOT_FOUND"],
+            errors.OptionLessThanOne: content["OPTIONS_LESS_THAN_1"],
+            errors.NotSavedAutoRoles: content["NOT_SAVED_AUTOROLES"],
+            errors.NotDropDown: content["NOT_DROPDOWN"],
+            errors.NotButton: content["NOT_BUTTON"],
+            errors.LabelOrEmojiRequired: content["AT_LEAST_LABEL_OR_EMOJI"],
+            errors.ButtonsOverKill: content["LIMIT_25_BUTTONS"],
             NotOwner: content["NOT_BOT_OWNER"],
             BadArgument: content["BAD_ARGUMENT"],
             Forbidden: content["FORBIDDEN"],
