@@ -25,13 +25,14 @@ class GenshinStats(Cog):
         self.bot = bot
         self.emoji = 863429526632923136
         self.name = "GenshinStats"
-
-        cookies = {
-            "ltuid": 147861638,
-            "ltoken": "3t3eJHpFYrgoPdpLmbZWnfEbuO3wxUvIX7VkQXsU",
-        }
-        self.genshin_client = genshin.GenshinClient(cookies)
+        self.genshin_client: genshin.GenshinClient = None
         self.genshin_langs = {"ru": "ru-ru", "en-US": "en-us"}
+
+    @Cog.listener()
+    async def on_ready(self):
+        global_data = await self.bot.mongo.get_global_data()
+        self.cookies = global_data.genshin_cookies
+        self.genshin_client = genshin.GenshinClient(self.cookies)
 
         self.get_genshin_daily_reward.start()
 

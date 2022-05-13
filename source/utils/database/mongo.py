@@ -1,3 +1,5 @@
+import ssl
+
 import certifi
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCursor
 from pymongo import MongoClient
@@ -13,17 +15,19 @@ class Mongo:
         "_global_data",
         "_global_data_connection",
         "_global_users_connection",
+        "_global_other_connection",
         "_cache",
     )
 
     def __init__(self, token: str) -> None:
         self._connection: AsyncIOMotorClient | MongoClient = AsyncIOMotorClient(
-            token, tlsCAFile=certifi.where()
+            token, ssl_cert_reqs=ssl.CERT_NONE
         )
         self._guilds = self._connection["guilds"]
         self._global_data: GlobalData = None
-        self._global_data_connection: Collection = self._connection["GLOBAL"]
+        self._global_data_connection = self._connection["GLOBAL"]
         self._global_users_connection: Collection = self._global_data_connection["USERS"]
+        self._global_other_connection: Collection = self._global_data_connection["OTHER"]
         self._cache = {}
 
     async def update_user(self, guild_id: int, user_id: int, update_type: str, data: dict):
@@ -69,6 +73,10 @@ class Mongo:
         if self._global_data is not None:
             return self._global_data
         users_data_cursor = self._global_users_connection.find()
-        users = [user_data async for user_data in users_data_cursor]
-        self._global_data = GlobalData(self._global_data_connection, users)
+        other_data_cursor = self._global_other_connection.find()
+        data = {
+            "users": [user_data async for user_data in users_data_cursor],
+            "other": [data async for data in other_data_cursor],
+        }
+        self._global_data = GlobalData(self._global_data_connection, data)
         return self._global_data

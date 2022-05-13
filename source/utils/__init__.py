@@ -5,7 +5,7 @@ from .consts import DiscordColors, SystemChannels  # noqa: F401
 from .database import GuildAutoRole  # noqa: F401
 from .database import (  # noqa: F401
     GlobalData,
-    GlobalUserData,
+    GlobalUser,
     GuildConfiguration,
     GuildData,
     GuildPrivateVoice,
