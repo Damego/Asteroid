@@ -138,6 +138,7 @@ desktop.files.json
 # other files
 *.exe
 *.jar
+mangas.txt
 
 # logs files
 *.gz
