@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List, Union
 
 from pymongo.collection import Collection
 
@@ -10,34 +10,74 @@ class GlobalData:
     Class representing connection to global users collection
     """
 
-    __slots__ = ("_connection", "users")
+    __slots__ = (
+        "_users_connection",
+        "_other_connection",
+        "_users",
+        "_genshin_cookies",
+        "_fly_me_to_the_moon_chapter",
+    )
 
-    def __init__(self, connection, users: List[dict]) -> None:
-        self._connection: Collection = connection["USERS"]
-        self.users = {
-            user_data["_id"]: GlobalUserData(self._connection, user_data) for user_data in users
-        }
+    def __init__(self, connection, data: Dict[str, Union[str, List[dict]]]) -> None:
+        self._users_connection: Collection = connection["USERS"]
+        self._other_connection: Collection = connection["OTHER"]
+        self._users: List[GlobalUser] = []
+        self._genshin_cookies: dict = {}
+        self._fly_me_to_the_moon_chapter: str = None
+
+        self.__load_data(data)
+
+    def __load_data(self, data: dict):
+        self._users = [GlobalUser(self._users_connection, user_data) for user_data in data["users"]]
+
+        for document in data["other"]:
+            if document["_id"] == "main":
+                self._genshin_cookies = document["genshin_cookies"]
+                self._fly_me_to_the_moon_chapter = document["fly_me_to_the_moon_chapter"]
+
+    @property
+    def users(self) -> List["GlobalUser"]:
+        return self._users
+
+    @property
+    def genshin_cookies(self) -> dict:
+        return self._genshin_cookies
+
+    @property
+    def fly_me_to_the_moon_chapter(self) -> str:
+        return self._fly_me_to_the_moon_chapter
 
     async def add_user(self, user_id: int):
         data = {"_id": str(user_id)}
-        await self._connection.insert_one(data)
-        user = GlobalUserData(self._connection, data)
-        self.users[str(user_id)] = user
+        await self._users_connection.insert_one(data)
+        user = GlobalUser(self._users_connection, data)
+        self._users.append(user)
         return user
 
     async def get_user(self, user_id: int):
-        for user, data in self.users.items():
-            if user == str(user_id):
-                return data
+        for user in self._users:
+            if user.id == user_id:
+                return user
 
         return await self.add_user(user_id)
 
     async def remove_user(self, user_id: int):
-        await self._connection.delete_one({"_id": str(user_id)})
+        await self._users_connection.delete_one({"_id": str(user_id)})
         del self.users[str(user_id)]
 
+    async def _update(self, type: OperatorType, data: dict):
+        await self._other_connection.update_one({"_id": "main"}, {type.value: data})
 
-class GlobalUserData:
+    async def set_genshin_cookies(self, cookies: dict):
+        await self._update(OperatorType.SET, {"genshin_cookies": cookies})
+        self._genshin_cookies = cookies
+
+    async def set_fmtm_chapter(self, chapter: str):
+        await self._update(OperatorType.SET, {"fly_me_to_the_moon_chapter": chapter})
+        self._fly_me_to_the_moon_chapter = chapter
+
+
+class GlobalUser:
     """
     Class representing global user data
     """
@@ -46,20 +86,20 @@ class GlobalUserData:
 
     def __init__(self, connection, data: dict) -> None:
         self._connection: Collection = connection
-        self._id = data.get("_id")
-        self._notes = data.get("notes", [])
-        self._music_playlists = data.get("music_playlists", {})
+        self._id = int(data.get("_id"))
+        self._notes: List[dict] = data.get("notes", [])
+        self._music_playlists: dict = data.get("music_playlists", {})
 
     @property
-    def id(self):
+    def id(self) -> int:
         return self._id
 
     @property
-    def notes(self):
+    def notes(self) -> List[dict]:
         return self._notes
 
     @property
-    def music_playlists(self):
+    def music_playlists(self) -> dict:
         return self._music_playlists
 
     async def _update(self, type: OperatorType, data: dict):

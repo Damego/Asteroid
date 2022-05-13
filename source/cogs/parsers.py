@@ -11,9 +11,11 @@ class Parsers(Cog):
         self.bot = bot
         self.hidden = True
         self.name = str(self.__class__.name)
-
-        self.current_chapter_fmtm = None
         self.fmtm_url = "https://w1.tonikakukawaii.com/"
+
+    @Cog.listener()
+    async def on_ready(self):
+        self.global_data = await self.bot.mongo.get_global_data()
         self.check_fmtm.start()
 
     # * Fly Me to The Moon -> fmtm
@@ -43,21 +45,7 @@ class Parsers(Cog):
         image = soup.find("img", class_="aligncenter")
         return image["src"]
 
-    def get_current_chapter_fmtm(self):
-        if self.current_chapter_fmtm is not None:
-            return self.current_chapter_fmtm
-        with open("mangas.txt") as mangas_file:  # TODO: Rewrite for database
-            self.current_chapter_fmtm = mangas_file.readline().replace("\n", "")
-        return self.current_chapter_fmtm
-
-    def write_last_chapter_fmtm(self, chapter: str):
-        with open("mangas.txt", "w") as mangas_file:  # TODO: Rewrite for database
-            mangas_file.write(chapter)
-            self.current_chapter_fmtm = chapter
-
-    async def send_message(
-        self, current_chapter: str, last_chapter: str, chapter_url: str, image_url: str
-    ):
+    async def send_message(self, chapter_url: str, image_url: str):
         channel = self.bot.get_channel(SystemChannels.MANGAS_UPDATES)
         if channel is None:
             try:
@@ -66,9 +54,10 @@ class Parsers(Cog):
                 errors_channel = self.bot.get_channel(SystemChannels.ERRORS_CHANNEL)
                 await errors_channel.send("Cannot get mangas channel!")
                 return
+        chapter = self.global_data.fly_me_to_the_moon_chapter
         components = [
             Button(
-                label=f"Читать {last_chapter} главу",
+                label=f"Читать {chapter} главу",
                 style=ButtonStyle.URL,
                 url=chapter_url,
                 emoji="📖",
@@ -76,7 +65,7 @@ class Parsers(Cog):
         ]
         embed = Embed(
             title="Унеси меня на луну",
-            description=f"**`{current_chapter}` -> `{last_chapter}`**",
+            description=f"**Глава {chapter}**",
             color=DiscordColors.FUCHSIA,
         )
         embed.set_thumbnail(url="https://cdn.myanimelist.net/images/anime/1765/122768l.jpg")
@@ -84,14 +73,13 @@ class Parsers(Cog):
         embed.set_image(url=image_url)
         await channel.send(embed=embed, components=components)
 
-    @tasks.loop(hours=1)  # * Need to do something with loop
+    @tasks.loop(hours=1)
     async def check_fmtm(self):
         last_chapter, chapter_url = await self.get_last_chapter_fmtm()
-        current_chapter = self.get_current_chapter_fmtm()
-        if last_chapter != current_chapter:
+        if last_chapter != self.global_data.fly_me_to_the_moon_chapter:
             image_url = await self.get_chapter_image_fmtm(chapter_url)
-            self.write_last_chapter_fmtm(last_chapter)
-            await self.send_message(current_chapter, last_chapter, chapter_url, image_url)
+            await self.global_data.set_fmtm_chapter(last_chapter)
+            await self.send_message(chapter_url, image_url)
 
 
 def setup(bot):
