@@ -130,7 +130,7 @@ class Settings(Cog):
     async def pip_manage(self, ctx: SlashContext, command: str):
         await ctx.defer()
         response = await self.start_shell(command)
-        format_response = "\n".join(response)
+        format_response = "\n".join(response) if isinstance(response, list) else response
         if len(format_response) > 2 << 11:
             format_response = response[-3:]
         content = f"```\n{format_response}\n```"
