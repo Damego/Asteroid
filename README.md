@@ -1,6 +1,8 @@
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Damego/Asteroid-Discord-Bot/main.svg)](https://results.pre-commit.ci/latest/github/Damego/Asteroid-Discord-Bot/main)
+
 <div align="center">
   <h1>Asteroid | Discord Bot</h1>
-  <img src="https://cdn.discordapp.com/attachments/829309399959863307/964580080032571422/1asteroid-8d.png?size=64">
+  <img src="https://cdn.discordapp.com/attachments/829309399959863307/964580080032571422/1asteroid-8d.png" style="height: 200px">
 </div>
 
 <h2>About</h2>
