@@ -42,7 +42,7 @@ class Parsers(Cog):
 
     def parse_chapter_image_fmtm(self, html: str):
         soup = BeautifulSoup(html, "html.parser")
-        image = soup.find("img", class_="aligncenter")
+        image = soup.find("img")
         return image["src"]
 
     async def send_message(self, chapter_url: str, image_url: str):
