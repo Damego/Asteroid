@@ -68,7 +68,7 @@ class Parsers(Cog):
             description=f"**Глава {chapter}**",
             color=DiscordColors.FUCHSIA,
         )
-        embed.set_thumbnail(url="https://cdn.myanimelist.net/images/anime/1765/122768l.jpg")
+        embed.set_thumbnail(url="https://shogakukan-comic.jp/book-images/w400/books/9784098511563.jpg")
         embed.set_author(name="Новая глава!", url=self.fmtm_url)
         embed.set_image(url=image_url)
         await channel.send(embed=embed, components=components)
