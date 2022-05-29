@@ -130,7 +130,7 @@ class Utilities(Cog):
             description=ctx.values["note_content"],
             color=guild_data.configuration.embed_color,
         )
-        message = await ctx.send(embed=embed, hidden=True)
+        message = await ctx.send(embed=embed)
 
         data = {
             "name": ctx.values["note_name"],
