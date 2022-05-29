@@ -1,3 +1,5 @@
+from typing import Union
+
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from discord import Embed, Forbidden
@@ -12,6 +14,7 @@ class Parsers(Cog):
         self.hidden = True
         self.name = str(self.__class__.name)
         self.fmtm_url = "https://w1.tonikakukawaii.com/"
+        self.fmtm_base_chapter_url = f"{self.fmtm_url}manga/tonikaku-kawaii-chapter-"
 
     @Cog.listener()
     async def on_ready(self):
@@ -35,17 +38,21 @@ class Parsers(Cog):
         chapter = data.text.split()[-1]
         return chapter, url
 
-    async def get_chapter_image_fmtm(self, url: str):
+    async def get_chapter_image_fmtm(self, url: str, chapter: str):
         async with ClientSession() as session:
             async with session.get(url) as response:
-                return self.parse_chapter_image_fmtm(await response.text())
+                return await self.parse_chapter_image_fmtm(await response.text(), chapter)
 
-    def parse_chapter_image_fmtm(self, html: str):
+    async def parse_chapter_image_fmtm(self, html: str, chapter: Union[str, int]):
         soup = BeautifulSoup(html, "html.parser")
         image = soup.find("img")
-        return image["src"]
+        if _ := soup.find("h2", class_="has-text-align-center"):  # Fake chapter
+            return await self.get_chapter_image_fmtm(
+                f"{self.fmtm_base_chapter_url}{int(chapter)-1}", int(chapter) - 1
+            )
+        return image["src"], str(chapter)
 
-    async def send_message(self, chapter_url: str, image_url: str):
+    async def send_message(self, chapter: str, image_url: str):
         channel = self.bot.get_channel(SystemChannels.MANGAS_UPDATES)
         if channel is None:
             try:
@@ -54,32 +61,39 @@ class Parsers(Cog):
                 errors_channel = self.bot.get_channel(SystemChannels.ERRORS_CHANNEL)
                 await errors_channel.send("Cannot get mangas channel!")
                 return
-        chapter = self.global_data.fly_me_to_the_moon_chapter
+
+        previous_chapter = self.global_data.fly_me_to_the_moon_chapter
         components = [
             Button(
-                label=f"Читать {chapter} главу",
+                label=f"Читать {chapt} главу",
                 style=ButtonStyle.URL,
-                url=chapter_url,
+                url=f"{self.fmtm_base_chapter_url}{chapt}",
                 emoji="📖",
             )
+            for chapt in range(int(previous_chapter) + 1, int(chapter) + 1)
         ]
+
         embed = Embed(
             title="Унеси меня на луну",
-            description=f"**Глава {chapter}**",
+            description=f"**Предыдущая глава {previous_chapter}**\n**Новая глава {chapter}**",
             color=DiscordColors.FUCHSIA,
         )
-        embed.set_thumbnail(url="https://shogakukan-comic.jp/book-images/w400/books/9784098511563.jpg")
+        embed.set_thumbnail(
+            url="https://shogakukan-comic.jp/book-images/w400/books/9784098511563.jpg"
+        )
         embed.set_author(name="Новая глава!", url=self.fmtm_url)
         embed.set_image(url=image_url)
-        await channel.send(embed=embed, components=components)
+        await channel.send(embed=embed, components=[components])
 
     @tasks.loop(hours=1)
     async def check_fmtm(self):
-        last_chapter, chapter_url = await self.get_last_chapter_fmtm()
-        if last_chapter != self.global_data.fly_me_to_the_moon_chapter:
-            image_url = await self.get_chapter_image_fmtm(chapter_url)
-            await self.global_data.set_fmtm_chapter(last_chapter)
-            await self.send_message(chapter_url, image_url)
+        chapter, image_url = await self.get_last_chapter_fmtm()
+        if chapter != self.global_data.fly_me_to_the_moon_chapter:
+            image_url, parsed_chapter = await self.get_chapter_image_fmtm(image_url, chapter)
+            if chapter != parsed_chapter:
+                chapter = parsed_chapter
+            await self.send_message(chapter, image_url)
+            await self.global_data.set_fmtm_chapter(chapter)
 
 
 def setup(bot):
