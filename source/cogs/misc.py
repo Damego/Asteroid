@@ -88,7 +88,7 @@ class Misc(Cog):
     @context_menu(name="Profile", target=ContextMenuType.USER, dm_permission=False)
     @is_enabled()
     async def get_member_information_context(self, ctx: MenuContext):
-        member = ctx.target_author
+        member = ctx.guild.get_member(ctx.target_author.id)
         embed = await self._get_embed_member_info(ctx, member)
         await ctx.send(embed=embed)
 
@@ -306,13 +306,21 @@ class Misc(Cog):
     async def send_server_roles(self, ctx: SlashContext):
         guild_roles: List[Role] = ctx.guild.roles[::-1]
         embeds: List[Embed] = []
-
+        color = await self.bot.get_embed_color(ctx.guild_id)
         for count, role in enumerate(guild_roles, start=1):
             if count == 1:
-                embed = Embed(title=f"Roles of {ctx.guild.name} server", description="")
+                embed = Embed(
+                    title=f"Roles of {ctx.guild.name} server",
+                    description="",
+                    color=color,
+                )
             if count % 25 == 0:
                 embeds.append(embed)
-                embed = Embed(title=f"Roles of {ctx.guild.name} server", description="")
+                embed = Embed(
+                    title=f"Roles of {ctx.guild.name} server",
+                    description="",
+                    color=color,
+                )
             embed.description += f"{count}. {role.mention} | {role.id} \n"
         if embed.description:
             embeds.append(embed)

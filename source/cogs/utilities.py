@@ -130,7 +130,7 @@ class Utilities(Cog):
             description=ctx.values["note_content"],
             color=guild_data.configuration.embed_color,
         )
-        message = await ctx.send(embed=embed)
+        message = await ctx.send(embed=embed, hidden=True)
 
         data = {
             "name": ctx.values["note_name"],
@@ -187,7 +187,7 @@ class Utilities(Cog):
     )
     @is_enabled()
     async def delete_note(self, ctx: SlashContext, name: str):
-        await ctx.defer()
+        await ctx.defer(hidden=True)
         global_data = await self.bot.mongo.get_global_data()
         user_global_data = await global_data.get_user(ctx.author_id)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
@@ -203,12 +203,12 @@ class Utilities(Cog):
             raise NoData
 
         content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
-        await ctx.send(content["NOTE_DELETED"])
+        await ctx.send(content["NOTE_DELETED"], hidden=True)
 
     @slash_subcommand(base="note", name="list", description="Show your notes")
     @is_enabled()
-    async def notes_list(self, ctx: SlashContext):
-        await ctx.defer()
+    async def notes_list(self, ctx: SlashContext, hidden: bool = True):
+        await ctx.defer(hidden=hidden)
         global_data = await self.bot.mongo.get_global_data()
         user_global_data = await global_data.get_user(ctx.author_id)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
@@ -226,12 +226,12 @@ class Utilities(Cog):
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
         for count, note in enumerate(user_guild_data.notes + user_global_data.notes, start=1):
             embed.add_field(
-                name=f"{count}. *(<t:{int(note['created_at_timestamp'])}:R>)*",
+                name=f"{count}. {note['name']} *(<t:{int(note['created_at_timestamp'])}:R>)*",
                 value=f" ```{note['content']}``` [{content['JUMP_TO']}]({note['jump_url']})",
                 inline=False,
             )
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, hidden=hidden)
 
     @slash_subcommand(
         base="global",
