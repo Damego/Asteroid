@@ -207,7 +207,7 @@ class Utilities(Cog):
 
     @slash_subcommand(base="note", name="list", description="Show your notes")
     @is_enabled()
-    async def notes_list(self, ctx: SlashContext, hidden: bool = False):
+    async def notes_list(self, ctx: SlashContext, hidden: bool = True):
         await ctx.defer(hidden=hidden)
         global_data = await self.bot.mongo.get_global_data()
         user_global_data = await global_data.get_user(ctx.author_id)
