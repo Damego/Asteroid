@@ -226,7 +226,7 @@ class Utilities(Cog):
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
         for count, note in enumerate(user_guild_data.notes + user_global_data.notes, start=1):
             embed.add_field(
-                name=f"{count}. *(<t:{int(note['created_at_timestamp'])}:R>)*",
+                name=f"{count}. {note['name']} *(<t:{int(note['created_at_timestamp'])}:R>)*",
                 value=f" ```{note['content']}``` [{content['JUMP_TO']}]({note['jump_url']})",
                 inline=False,
             )
