@@ -306,7 +306,7 @@ class Misc(Cog):
     async def send_server_roles(self, ctx: SlashContext):
         guild_roles: List[Role] = ctx.guild.roles[::-1]
         embeds: List[Embed] = []
-
+color = await self.bot.get_embed_color(ctx.guild_id)
         for count, role in enumerate(guild_roles, start=1):
             if count == 1:
                 embed = Embed(
