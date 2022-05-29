@@ -310,6 +310,8 @@ class Misc(Cog):
         for count, role in enumerate(guild_roles, start=1):
             if count == 1:
                 embed = Embed(
+                    title=f"Roles of {ctx.guild.name} server",
+                    description="",
                     color=await self.bot.get_embed_color(ctx.guild_id),
                 )
             if count % 25 == 0:
