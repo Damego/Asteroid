@@ -306,7 +306,7 @@ class Settings(Cog):
                 except Forbidden:
                     await ctx.send("Невозможно синхронизовать слэш команды", hidden=True)
                 else:
-                    await ctx.send("Слэш команды были синронизированы", hidden=True)
+                    await ctx.send("Слэш команды были синхронизированы", hidden=True)
             case "update_bot":
                 result = await self.start_shell("git pull")
                 embed = Embed(title="Git Sync", description=result, color=DiscordColors.EMBED_COLOR)
