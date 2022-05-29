@@ -312,7 +312,7 @@ class Misc(Cog):
                 embed = Embed(
                     title=f"Roles of {ctx.guild.name} server",
                     description="",
-                    color=await self.bot.get_embed_color(ctx.guild_id),
+                    color=color,
                 )
             if count % 25 == 0:
                 embeds.append(embed)
