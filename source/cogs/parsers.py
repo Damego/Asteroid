@@ -89,12 +89,16 @@ class Parsers(Cog):
     @tasks.loop(hours=1)
     async def check_fmtm(self):
         chapter, chapter_url = await self.get_last_chapter_fmtm()
-        if chapter != self.global_data.fly_me_to_the_moon_chapter:
-            image_url, parsed_chapter = await self.get_chapter_image_fmtm(chapter_url, chapter)
-            if chapter != parsed_chapter:  # If `chapter` is a fake chapter?
-                chapter = parsed_chapter
-            await self.send_message(chapter, image_url)
-            await self.global_data.set_fmtm_chapter(chapter)
+        if chapter == self.global_data.fly_me_to_the_moon_chapter:
+            return
+        image_url, parsed_chapter = await self.get_chapter_image_fmtm(chapter_url, chapter)
+        if parsed_chapter == self.global_data.fly_me_to_the_moon_chapter:
+            return
+        if chapter != parsed_chapter:  # If `chapter` is a fake chapter?
+            chapter = parsed_chapter
+
+        await self.send_message(chapter, image_url)
+        await self.global_data.set_fmtm_chapter(chapter)
 
 
 def setup(bot):
