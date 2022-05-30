@@ -334,6 +334,9 @@
     "CHANNELS": "Channels",
     "ROLES": "Roles"
 },
+"AUTOROLE_BASE": {
+    "SUCCESSFULLY_COPIED": "Autorole successfully copied!"
+},
 "AUTOROLE_DROPDOWN": {
     "ADDED_ROLES_TEXT": "Added Roles: ",
     "REMOVED_ROLES_TEXT": "\nRemoved Roles: ",

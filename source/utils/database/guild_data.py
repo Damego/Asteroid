@@ -63,7 +63,7 @@ class GuildData:
                 self.cogs_data = document
             elif document["_id"] == "autorole":
                 self.autoroles = [
-                    GuildAutoRole(self._main_collection, name, data)
+                    GuildAutoRole(self._main_collection, name=name, **data)
                     for name, data in document.items()
                     if name != "_id"
                 ]
@@ -142,11 +142,27 @@ class GuildData:
                 self.users.remove(user)
                 break
 
-    async def add_autorole(self, name: str, data: dict):
+    async def add_autorole(
+        self,
+        *,
+        name: str,
+        channel_id: int,
+        content: str,
+        message_id: int,
+        autorole_type: str,
+        component: dict,
+    ):
+        data = {
+            "channel_id": channel_id,
+            "content": content,
+            "message_id": message_id,
+            "autorole_type": autorole_type,
+            "component": component,
+        }
         await self._main_collection.update_one(
             {"_id": "autorole"}, {OperatorType.SET.value: {name: data}}, upsert=True
         )
-        self.autoroles.append(GuildAutoRole(self._main_collection, name, data))
+        self.autoroles.append(GuildAutoRole(self._main_collection, name=name, **data))
 
     def get_autorole(self, name: str):
         for autorole in self.autoroles:
@@ -413,14 +429,24 @@ class GuildAutoRole:
         "_component",
     )
 
-    def __init__(self, connection, name: str, data: dict) -> None:
+    def __init__(
+        self,
+        connection,
+        *,
+        name: str,
+        channel_id: int,
+        content: str,
+        message_id: int,
+        autorole_type: str,
+        component: dict,
+    ) -> None:
         self._connection = connection
         self._name: str = name
-        self._channel_id: int = data.get("channel_id")
-        self._content: str = data.get("content")
-        self._message_id: int = data.get("message_id")
-        self._type: str = data.get("autorole_type")
-        self._component: dict = data.get("component")
+        self._channel_id: int = channel_id
+        self._content: str = content
+        self._message_id: int = message_id
+        self._type: str = autorole_type
+        self._component: dict = component
 
     @property
     def channel_id(self) -> int:
