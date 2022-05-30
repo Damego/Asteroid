@@ -189,6 +189,7 @@
 		"CREATED_AT": "**Создан**",
 		"SERVERS_COUNT": "**Серверов:**",
 		"USERS_COUNT": "**Пользователей:**",
+		"DEVELOPER": "**Разработчик:**",
 		"TECHNICAL_INFORMATION": "Техническая информация",
 		"BOT_VERSION": "**Версия бота:**",
 		"LINES_OF_CODE": "**Строк кода:**",

@@ -154,8 +154,11 @@ class Misc(Cog):
         user_exp_text = content["CURRENT_EXP_TEXT"].format(
             exp=user_data.xp, exp_to_next_level=xp_to_next_level, exp_amount=user_data.xp_amount
         )
-        user_voice_time_count = content["TOTAL_VOICE_TIME"].format(
-            voice_time=self._format_voice_time(user_data.voice_time_count, content)
+        voice_time = self._format_voice_time(user_data.voice_time_count, content)
+        user_voice_time_count = (
+            content["TOTAL_VOICE_TIME"].format(voice_time=voice_time)
+            if voice_time is not None
+            else ""
         )
 
         embed.add_field(
@@ -174,7 +177,7 @@ class Misc(Cog):
             formatted += f" {hours:02} {content['HOURS']}"
         if minutes != 0:
             formatted += f" {minutes:02} {content['MINUTES']}"
-        return formatted.strip() if formatted else "-"
+        return formatted.strip() if formatted else None
 
     @slash_subcommand(
         base="info", name="bot", description="Show information of bot", base_dm_permission=False
@@ -194,11 +197,12 @@ class Misc(Cog):
             name=content["GENERAL_INFORMATION"],
             value=f"{content['CREATED_AT']} <t:{int(self.bot.user.created_at.timestamp())}:F>\n"
             f"{content['SERVERS_COUNT']} `{len(self.bot.guilds)}`\n"
-            f"{content['USERS_COUNT']} `{users_count}`",
+            f"{content['USERS_COUNT']} `{users_count}`\n"
+            f"{content['DEVELOPER']} [Damego#8659](https://discordapp.com/users/143773579320754177)",
         )
         embed.add_field(
             name=content["TECHNICAL_INFORMATION"],
-            value=f"{content['BOT_VERSION']} `v2`\n"
+            value=f"{content['BOT_VERSION']} `2`\n"
             f"{content['LINES_OF_CODE']} `{self.project_lines_count}`\n"
             f"{content['LIBRARIES']}\n"
             "・ `discord.py v1.7.3`\n"
@@ -365,7 +369,7 @@ class Misc(Cog):
     @bot_owner_or_permissions(manage_nicknames=True)
     async def server_set_bot_nick(self, ctx: SlashContext, nick: str):
         if ctx.guild is None:
-            return await ctx.send("Availble only in guild!")
+            return await ctx.send("Available only in guild!")
         await ctx.me.edit(nick=nick)
         await ctx.send("Done", hidden=True)
 

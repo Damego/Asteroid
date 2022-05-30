@@ -70,6 +70,7 @@
     "CREATED_AT": "**Created at**",
     "SERVERS_COUNT": "**Servers:**",
     "USERS_COUNT": "**Users:**",
+    "DEVELOPER": "**Developer:**",
     "TECHNICAL_INFORMATION": "Technical information",
     "BOT_VERSION": "**Bot version:**",
     "LINES_OF_CODE": "**Lines of code:**",
