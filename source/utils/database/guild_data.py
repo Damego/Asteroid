@@ -12,8 +12,6 @@ class GuildData:
         "_connection",
         "_main_collection",
         "_users_collection",
-        "__raw_main_data",
-        "__raw_users_data",
         "guild_id",
         "configuration",
         "private_voice",
