@@ -430,7 +430,7 @@ class AutoRole(Cog):
     async def autorole_dropdown_load(self, ctx: SlashContext, type: str, autorole: str, name: str):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        autorole_obj, message = await self.__base_check(
+        autorole_obj = await self.__base_check(
             ctx, guild_data, autorole, type, return_message=False
         )
         message = await ctx.channel.send(
