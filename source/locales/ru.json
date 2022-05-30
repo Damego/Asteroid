@@ -453,6 +453,9 @@
 		"CHANNELS": "Каналы",
 		"ROLES": "Роли"
 	},
+	"AUTOROLE_BASE": {
+		"SUCCESSFULLY_COPIED": "Автороль успешно скопирована!"
+	},
 	"AUTOROLE_DROPDOWN": {
 		"ADDED_ROLES_TEXT": "Добавлено: ",
 		"REMOVED_ROLES_TEXT": "\nУдалено: ",

@@ -88,6 +88,13 @@ class AutoRole(Cog):
                 if autorole and autorole.type == "button":
                     labels = self.get_autorole_labels(autorole.component)
                     choices = [create_choice(name=label, value=label) for label in labels]
+            case "autorole":
+                autorole_type = ctx.options.get("type")
+                choices = [
+                    create_choice(name=autorole.name, value=autorole.name)
+                    for autorole in autoroles
+                    if autorole.type == autorole_type
+                ]
 
         await ctx.populate(choices[:25])
 
@@ -208,14 +215,12 @@ class AutoRole(Cog):
         await ctx.send(content["CREATED_DROPDOWN_TEXT"], hidden=True)
 
         await guild_data.add_autorole(
-            name,
-            {
-                "content": message_content,
-                "channel_id": ctx.channel.id,
-                "message_id": message.id,
-                "autorole_type": "dropdown",
-                "component": components[0].to_dict(),
-            },
+            name=name,
+            content=message_content,
+            channel_id=ctx.channel.id,
+            message_id=message.id,
+            autorole_type="dropdown",
+            component=components[0].to_dict(),
         )
 
     @slash_subcommand(
@@ -392,39 +397,55 @@ class AutoRole(Cog):
 
     @slash_subcommand(
         base="autorole",
-        subcommand_group="dropdown",
-        name="load",
-        description="Load dropdown from database",
+        name="copy",
+        description="Creates a autorole copy",
         options=[
             create_option(
-                name="name",
-                description="The name of dropdown",
+                name="type",
+                description="The type of autorole",
+                required=True,
+                option_type=SlashCommandOptionType.STRING,
+                choices=[
+                    create_choice(name=autorole_type, value=autorole_type)
+                    for autorole_type in ["dropdown", "button"]
+                ],
+            ),
+            create_option(
+                name="autorole",
+                description="The name of autorole to copy",
                 required=True,
                 option_type=SlashCommandOptionType.STRING,
                 autocomplete=True,
-            )
+            ),
+            create_option(
+                name="name",
+                description="The name of autorole",
+                required=True,
+                option_type=SlashCommandOptionType.STRING,
+            ),
         ],
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_dropdown_load(self, ctx: SlashContext, name: str):
+    async def autorole_dropdown_load(self, ctx: SlashContext, type: str, autorole: str, name: str):
+        await ctx.defer(hidden=True)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
-
-        autoroles = guild_data.autoroles
-        if autoroles is None:
-            raise errors.NotSavedAutoRoles
-        autorole = None
-        for autorole in autoroles:
-            if autorole.name == name:
-                break
-        else:
-            raise errors.AutoRoleNotFound
-
-        select_component = Select.from_json(autorole.component)
-
-        await ctx.channel.send(content=autorole.content, components=[select_component])
-        await ctx.send(content["DROPDOWN_LOADED_TEXT"], hidden=True)
+        autorole_obj, message = await self.__base_check(
+            ctx, guild_data, autorole, type, return_message=False
+        )
+        message = await ctx.channel.send(
+            content=autorole_obj.content, components=message.components
+        )
+        await guild_data.add_autorole(
+            name=name,
+            channel_id=ctx.channel_id,
+            content=autorole_obj.content,
+            message_id=message.id,
+            autorole_type=type,
+            component=autorole_obj.component,
+        )
+        content: dict = get_content("AUTOROLE_BASE", guild_data.configuration.language)
+        await ctx.send(content["SUCCESSFULLY_COPIED"])
 
     @slash_subcommand(
         base="autorole",
@@ -547,14 +568,12 @@ class AutoRole(Cog):
         message = await ctx.channel.send(message_content)
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
         await guild_data.add_autorole(
-            name,
-            {
-                "content": message_content,
-                "autorole_type": "button",
-                "channel_id": ctx.channel.id,
-                "message_id": message.id,
-                "component": {},
-            },
+            name=name,
+            content=message_content,
+            autorole_type="button",
+            channel_id=ctx.channel.id,
+            message_id=message.id,
+            component={},
         )
         content = get_content("AUTOROLE_BUTTON", guild_data.configuration.language)
         await ctx.send(content["AUTOROLE_CREATED"], hidden=True)
@@ -704,39 +723,44 @@ class AutoRole(Cog):
             emoji = self.bot.get_emoji(int(_emoji))
         return emoji
 
-    async def check_dropdown(self, ctx: SlashContext, guild_data: GuildData, autorole_name: str):
+    async def __base_check(
+        self,
+        ctx: SlashContext,
+        guild_data: GuildData,
+        autorole_name: str,
+        autorole_type: str,
+        *,
+        return_message: bool = True,
+    ):
+        exceptions = {"dropdown": errors.NotDropDown, "button": errors.NotButton}
         autoroles = guild_data.autoroles
         if not autoroles:
             raise errors.NotSavedAutoRoles
         autorole = guild_data.get_autorole(autorole_name)
         if autorole is None:
             raise errors.AutoRoleNotFound
-        if autorole.type != "dropdown":
-            raise errors.NotDropDown
+        if autorole.type != autorole_type:
+            raise exceptions[autorole_type]
+
+        if not return_message:
+            return autorole
 
         channel_id = autorole.channel_id
-        message_id = autorole.message_id
         channel: TextChannel = ctx.guild.get_channel(channel_id)
-        original_message: ComponentMessage = await channel.fetch_message(int(message_id))
-        if not original_message.components:
-            raise errors.MessageWithoutAutoRole
+        original_message: ComponentMessage = await channel.fetch_message(int(autorole.message_id))
+        # if not original_message.components: # ? Why I write that?
+        #    raise errors.MessageWithoutAutoRole
+        return autorole, original_message
+
+    async def check_dropdown(self, ctx: SlashContext, guild_data: GuildData, autorole_name: str):
+        autorole, original_message = await self.__base_check(
+            ctx, guild_data, autorole_name, "dropdown"
+        )
         select_component: Select = original_message.components[0].components[0]
         return autorole, select_component, original_message
 
     async def check_buttons(self, ctx: SlashContext, guild_data: GuildData, autorole_name: str):
-        autoroles = guild_data.autoroles
-        if not autoroles:
-            raise errors.NotSavedAutoRoles
-        autorole = guild_data.get_autorole(autorole_name)
-        if autorole is None:
-            raise errors.AutoRoleNotFound
-        if autorole.type != "button":
-            raise errors.NotButton
-
-        channel_id = autorole.channel_id
-        channel: TextChannel = ctx.guild.get_channel(channel_id)
-        original_message = await channel.fetch_message(int(autorole.message_id))
-        return autorole, original_message
+        return await self.__base_check(ctx, guild_data, autorole_name, "button")
 
 
 def setup(bot):
