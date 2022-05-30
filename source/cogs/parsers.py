@@ -41,18 +41,19 @@ class Parsers(Cog):
     async def get_chapter_image_fmtm(self, url: str, chapter: str):
         async with ClientSession() as session:
             async with session.get(url) as response:
-                return await self.parse_chapter_image_fmtm(await response.text(), chapter)
+                return await self.parse_chapter(await response.text(), chapter)
 
-    async def parse_chapter_image_fmtm(self, html: str, chapter: Union[str, int]):
+    async def parse_chapter(self, html: str, chapter: Union[str, int]):
         soup = BeautifulSoup(html, "html.parser")
         image = soup.find("img")
-        if _ := soup.find("h2", class_="has-text-align-center"):  # Fake chapter
+        if soup.find("h2", class_="has-text-align-center") is not None:  # Fake chapter
             return await self.get_chapter_image_fmtm(
-                f"{self.fmtm_base_chapter_url}{int(chapter)-1}", int(chapter) - 1
+                f"{self.fmtm_base_chapter_url}{int(chapter)-1}",
+                int(chapter) - 1,  # Moving to previous chapter
             )
         return image["src"], str(chapter)
 
-    async def send_message(self, chapter: str, image_url: str):
+    async def send_message(self, latest_chapter: str, image_url: str):
         channel = self.bot.get_channel(SystemChannels.MANGAS_UPDATES)
         if channel is None:
             try:
@@ -62,20 +63,20 @@ class Parsers(Cog):
                 await errors_channel.send("Cannot get mangas channel!")
                 return
 
-        previous_chapter = self.global_data.fly_me_to_the_moon_chapter
+        current_chapter = self.global_data.fly_me_to_the_moon_chapter
         components = [
             Button(
-                label=f"Читать {chapt} главу",
+                label=f"Читать {chapter} главу",
                 style=ButtonStyle.URL,
-                url=f"{self.fmtm_base_chapter_url}{chapt}",
+                url=f"{self.fmtm_base_chapter_url}{chapter}",
                 emoji="📖",
             )
-            for chapt in range(int(previous_chapter) + 1, int(chapter) + 1)
+            for chapter in range(int(current_chapter) + 1, int(latest_chapter) + 1)
         ]
 
         embed = Embed(
             title="Унеси меня на луну",
-            description=f"**Предыдущая глава {previous_chapter}**\n**Новая глава {chapter}**",
+            description=f"**Текущая глава {current_chapter}**\n**Новая глава {latest_chapter}**",
             color=DiscordColors.FUCHSIA,
         )
         embed.set_thumbnail(
@@ -90,7 +91,7 @@ class Parsers(Cog):
         chapter, chapter_url = await self.get_last_chapter_fmtm()
         if chapter != self.global_data.fly_me_to_the_moon_chapter:
             image_url, parsed_chapter = await self.get_chapter_image_fmtm(chapter_url, chapter)
-            if chapter != parsed_chapter:
+            if chapter != parsed_chapter:  # If `chapter` is a fake chapter?
                 chapter = parsed_chapter
             await self.send_message(chapter, image_url)
             await self.global_data.set_fmtm_chapter(chapter)
