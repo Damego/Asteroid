@@ -26,8 +26,6 @@ class GuildData:
     )
 
     def __init__(self, connection, data: dict, guild_id: int) -> None:
-        if guild_id is None:
-            raise NotGuild
         self._connection = connection[str(guild_id)]
         self._main_collection: Collection = self._connection["configuration"]
         self._users_collection: Collection = self._connection["users"]
