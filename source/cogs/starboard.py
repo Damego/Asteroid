@@ -196,15 +196,18 @@ class StarBoard(Cog):
         starboard_channel: TextChannel,
     ):
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
-        embed_description = (
-            f"{message.content}\n\n"
-            f"**[{content['JUMP_TO_ORIGINAL_MESSAGE_TEXT']}]({message.jump_url})**"
-        )
-        embed = Embed(
-            description=embed_description,
-            color=0xEEE2A0,
-            timestamp=datetime.datetime.now(),
-        )
+        jump_to = f"\n\n**[{content['JUMP_TO_ORIGINAL_MESSAGE_TEXT']}]({message.jump_url})**"
+        if message.embeds:
+            embed: Embed = message.embeds[0]
+            embed.color = 0xEEE2A0
+            embed.timestamp = datetime.datetime.now()
+            embed.description = f"{embed.description}{jump_to}" if embed.description else jump_to
+        else:
+            embed = Embed(
+                description=f"{message.content}{jump_to}",
+                color=0xEEE2A0,
+                timestamp=datetime.datetime.now(),
+            )
         embed.set_author(name=message.author, icon_url=message.author.avatar_url)
         if message.attachments:
             embed.set_image(url=message.attachments[0].url)
