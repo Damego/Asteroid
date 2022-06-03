@@ -434,7 +434,8 @@ class AutoRole(Cog):
             ctx, guild_data, autorole, type, return_message=True
         )
         message = await ctx.channel.send(
-            content=autorole_obj.content, components=message.components # TODO: Add way to pass dict if message was removed
+            content=autorole_obj.content,
+            components=message.components,  # TODO: Add way to pass dict if message was removed
         )
         await guild_data.add_autorole(
             name=name,
