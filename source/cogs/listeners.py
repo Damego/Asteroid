@@ -105,7 +105,6 @@ class Listeners(Cog):
 
                 error_traceback = "".join(format_exception(type(error), error, error.__traceback__))
                 error_embed = self.get_error_embed(ctx, error, error_traceback)
-                raise error
                 await self.send_error(error_embed)
 
         embed.description = desc
