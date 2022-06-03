@@ -42,18 +42,18 @@ class GenshinStats(Cog):
             reward = await self.genshin_client.claim_daily_reward(lang="ru-ru")
         except genshin.AlreadyClaimed:
             print("Cannot take reward!")
-        else:
-            embed = Embed(
-                title="Награда!",
-                description=f"Название: {reward.name}\nКоличество: {reward.amount} шт.",
-                timestamp=datetime.datetime.utcnow(),
-                color=DiscordColors.BLURPLE,
-            )
-            embed.set_thumbnail(url=reward.icon)
-            channel = self.bot.get_channel(SystemChannels.GENSHIN_DAILY_REWARDS)
-            if channel is None:
-                channel = await self.bot.fetch_channel(SystemChannels.GENSHIN_DAILY_REWARDS)
-            await channel.send(embed=embed)
+            return
+        embed = Embed(
+            title="Награда!",
+            description=f"Название: {reward.name}\nКоличество: {reward.amount} шт.",
+            timestamp=datetime.datetime.utcnow(),
+            color=DiscordColors.BLURPLE,
+        )
+        embed.set_thumbnail(url=reward.icon)
+        channel = self.bot.get_channel(SystemChannels.GENSHIN_DAILY_REWARDS)
+        if channel is None:
+            channel = await self.bot.fetch_channel(SystemChannels.GENSHIN_DAILY_REWARDS)
+        await channel.send(embed=embed)
 
     @slash_subcommand(
         base="genshin",
