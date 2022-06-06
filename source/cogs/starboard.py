@@ -252,7 +252,21 @@ class StarBoard(Cog):
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
         await ctx.send(content["CHANNEL_WAS_SETUP_TEXT"])
 
-    @slash_subcommand(base="starboard", name="limit", description="Limit setting")
+    @slash_subcommand(
+        base="starboard",
+        name="limit",
+        description="Limit setting",
+        options=[
+            create_option(
+                name="limit",
+                description="The limit of stars",
+                option_type=SlashCommandOptionType.INTEGER,
+                required=True,
+                min_value=1,
+                max_value=99,
+            )
+        ],
+    )
     @is_enabled()
     async def set_starboard_stars_limit(self, ctx: SlashContext, limit: int):
         guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
