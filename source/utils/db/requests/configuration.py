@@ -1,4 +1,4 @@
-from ..enums import Document, OperatorType
+from ..enums import CollectionType, Document, OperatorType
 from .base import Request
 
 
@@ -7,7 +7,9 @@ class ConfigurationRequest(Request):
         super().__init__(_client)
 
     async def _update(type: OperatorType, guild_id: int, data: dict):
-        await super()._update(type, guild_id, Document.CONFIGURATION, data)
+        await super()._update(
+            type, CollectionType.CONFIGURATION, guild_id, Document.CONFIGURATION, data
+        )
 
     async def modify_cog(self, guild_id: int, name: str, *, is_disabled: bool):
         ...  # TODO: What to pass here?

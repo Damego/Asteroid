@@ -24,3 +24,8 @@ class Document(Enum):
     TAGS = "tags"
     COGS_DATA = "cogs_data"
     ROLES_BY_LEVEL = "roles_by_level"
+
+
+class CollectionType(Enum):
+    CONFIGURATION = "configuration"
+    USERS = "users"

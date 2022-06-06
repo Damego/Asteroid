@@ -12,9 +12,11 @@ from .tags import TagsRequest
 class RequestClient:
     def __init__(self, _client: Database | AsyncIOMotorDatabase) -> None:
         self._client = _client
-        self.autorole = AutoRoleRequest(_client)
-        self.configuration = ConfigurationRequest(_client)
-        self.roles_by_level = LevelRolesRequest(_client)
-        self.private_voice = PrivateVoiceRequest(_client)
-        self.starboard = StarBoardRequest(_client)
-        self.tags = TagsRequest(_client)
+        self._guilds_client = self._client["guilds"]
+        self._global_client = self._client["GLOBAL"]
+        self.autorole = AutoRoleRequest(self._guilds_client)
+        self.configuration = ConfigurationRequest(self._guilds_client)
+        self.roles_by_level = LevelRolesRequest(self._guilds_client)
+        self.private_voice = PrivateVoiceRequest(self._guilds_client)
+        self.starboard = StarBoardRequest(self._guilds_client)
+        self.tags = TagsRequest(self._guilds_client)

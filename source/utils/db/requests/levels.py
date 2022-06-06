@@ -1,4 +1,4 @@
-from ..enums import Document, OperatorType
+from ..enums import CollectionType, Document, OperatorType
 from .base import Request
 
 
@@ -7,7 +7,9 @@ class LevelRolesRequest(Request):
         super().__init__(_client)
 
     async def _update(type: OperatorType, guild_id: int, data: dict):
-        await super()._update(type, guild_id, Document.ROLES_BY_LEVEL, data)
+        await super()._update(
+            type, CollectionType.CONFIGURATION, guild_id, Document.ROLES_BY_LEVEL, data
+        )
 
     async def add(self, guild_id: int, level: int, role_id: int):
         data = {str(level): role_id}
