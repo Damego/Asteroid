@@ -1,4 +1,4 @@
-from ..enums import Document, OperatorType
+from ..enums import CollectionType, Document, OperatorType
 from .base import Request
 
 
@@ -7,7 +7,7 @@ class PrivateVoiceRequest(Request):
         super().__init__(_client)
 
     async def _update(type: OperatorType, guild_id: int, data: dict):
-        await super()._update(type, guild_id, Document.TAGS, data)
+        await super()._update(type, CollectionType.CONFIGURATION, guild_id, Document.TAGS, data)
 
     async def create_private_voice(
         self, guild_id: int, text_channel_id: int, voice_channel_id: int
