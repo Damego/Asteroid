@@ -83,8 +83,8 @@ class UserRequest(Request):
         }
         await self._update(OperatorType.SET, guild_id, user_id, {f"notes.{name}": data})
 
-    async def remove_note(self, guild_id: int, user_id: int, name: str):
-        await self._update(OperatorType.UNSET, guild_id, user_id, {f"notes.{name}": ""})
+    async def remove_note(self, guild_id: int, user_id: int, note: dict):
+        await self._update(OperatorType.PULL, guild_id, user_id, {"notes": note})
 
     async def add_track_to_playlist(self, guild_id: int, user_id: int, playlist: str, track: str):
         await self._update(
