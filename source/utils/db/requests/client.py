@@ -7,6 +7,7 @@ from .levels import LevelRolesRequest
 from .private_voice import PrivateVoiceRequest
 from .starboard import StarBoardRequest
 from .tags import TagsRequest
+from .user import UserRequest
 
 
 class RequestClient:
@@ -20,3 +21,4 @@ class RequestClient:
         self.private_voice = PrivateVoiceRequest(self._guilds_client)
         self.starboard = StarBoardRequest(self._guilds_client)
         self.tags = TagsRequest(self._guilds_client)
+        self.user = UserRequest(self._guilds_client)
