@@ -1,3 +1,5 @@
+from typing import Union
+
 from ..enums import CollectionType, Document, OperatorType
 from .base import Request
 
@@ -21,41 +23,40 @@ class AutoRoleRequest(Request):
         component: dict,
     ):
         data = {
-            name: {
-                "channel_id": channel_id,
-                "content": content,
-                "message_id": message_id,
-                "autorole_type": autorole_type,
-                "component": component,
-            }
+            "name": name,
+            "channel_id": channel_id,
+            "content": content,
+            "message_id": message_id,
+            "autorole_type": autorole_type,
+            "component": component,
         }
-        await self._update(OperatorType.SET, guild_id, data)
+        await self._update(OperatorType.PUSH, guild_id, {"autoroles": data})
 
-    async def remove(self, guild_id: int, name: str):
-        data = {name: ""}
-        await self._update(OperatorType.UNSET, guild_id, data)
+    async def remove(self, guild_id: int, data: dict):
+        await self._update(OperatorType.PULL, guild_id, {"autoroles": data})
 
     async def modify(
         self,
         guild_id: int,
-        name: str,
+        current_name: str,
         *,
+        name: str = None,
         channel_id: int = None,
         content: str = None,
         message_id: int = None,
         autorole_type: str = None,
         component: dict = None,
     ):
-        data = {}
-        if channel_id is not None:
-            data[f"{name}.channel_id"] = channel_id
-        if content is not None:
-            data[f"{name}.content"] = content
-        if message_id is not None:
-            data[f"{name}.message_id"] = message_id
-        if autorole_type is not None:
-            data[f"{name}.autorole_type"] = autorole_type
-        if component is not None:
-            data[f"{name}.component"] = component
+        id = {"_id": Document.AUTOROLE.value, "autorole.name": current_name}
+        data = {
+            "autorole.$.name": name,
+            "autorole.$.channel_id": channel_id,
+            "autorole.$.content": content,
+            "autorole.$.message_id": message_id,
+            "autorole.$.autorole_type": autorole_type,
+            "autorole.$.component": component,
+        }
 
-        await self._update(guild_id, data)
+        await super()._advanced_update(
+            OperatorType.SET, CollectionType.CONFIGURATION, guild_id, id, data
+        )
