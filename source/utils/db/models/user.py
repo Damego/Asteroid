@@ -5,10 +5,12 @@ from .misc import DictMixin
 
 
 class GuildUser:
+    __slots__ = ("_request", "id", "guild_id", "leveling", "genshin", "notes", "music_playlists")
+
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
         self._request = _request.user
-        self._id: int = int(kwargs["_id"])
-        self._guild_id = guild_id
+        self.id: int = int(kwargs["_id"])
+        self.guild_id = guild_id
 
         self.leveling: UserLevelData = UserLevelData(**kwargs.get("leveling"))
         self.genshin: UserGenshinData = UserGenshinData(**kwargs.get("genshin"))
@@ -24,7 +26,7 @@ class GuildUser:
         )
 
     async def set_genshin_uid(self, hoyolab_uid: int, game_uid: int):
-        await self._request.set_genshin_uid(self._guild_id, self.id, hoyolab_uid, game_uid)
+        await self._request.set_genshin_uid(self.guild_id, self.id, hoyolab_uid, game_uid)
         self.genshin.hoyolab_uid = hoyolab_uid
         self.genshin.game_uid = game_uid
 
@@ -32,7 +34,7 @@ class GuildUser:
         self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0
     ):
         await self._request.increase_leveling(
-            self._guild_id, self.id, level=level, xp=xp, xp_amount=xp_amount, voice_time=voice_time
+            self.guild_id, self.id, level=level, xp=xp, xp_amount=xp_amount, voice_time=voice_time
         )
         self.leveling.level += level
         self.leveling.xp += xp
@@ -43,7 +45,7 @@ class GuildUser:
         self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0
     ):
         await self._request.set_leveling(
-            self._guild_id, self.id, level=level, xp=xp, xp_amount=xp_amount, voice_time=voice_time
+            self.guild_id, self.id, level=level, xp=xp, xp_amount=xp_amount, voice_time=voice_time
         )
         self.leveling.level = level
         self.leveling.xp = xp
@@ -51,7 +53,7 @@ class GuildUser:
         self.leveling.voice_time = voice_time
 
     async def reset_leveling(self):
-        await self._request.reset_leveling(self._guild_id, self.id)
+        await self._request.reset_leveling(self.guild_id, self.id)
         self.leveling.level = 1
         self.leveling.xp = 0
         self.leveling.xp_amount = 0
@@ -63,7 +65,7 @@ class GuildUser:
                 raise  # TODO: Make error system
 
         await self._request.add_note(
-            self._guild_id, self.id, name, content=content, created_at=created_at, jump_url=jump_url
+            self.guild_id, self.id, name, content=content, created_at=created_at, jump_url=jump_url
         )
         self._notes.append(
             Note(name=name, content=content, created_at=created_at, jump_url=jump_url)
@@ -79,32 +81,32 @@ class GuildUser:
         note.content = "new content"
         await user.modify_note(old_name, note)
         """
-        await self._request.modify_note(self._guild_id, self.id, name, **note._json)
+        await self._request.modify_note(self.guild_id, self.id, name, **note._json)
 
     async def remove_note(self, note: Union["Note", dict]):
-        await self._request.remove_note(self._guild_id, self.id, note._json)
+        await self._request.remove_note(self.guild_id, self.id, note._json)
         self.notes.remove(note)
 
     async def add_track_to_playlist(self, playlist: str, track: str):
-        await self._request.add_track_to_playlist(self._guild_id, self.id, playlist, track)
+        await self._request.add_track_to_playlist(self.guild_id, self.id, playlist, track)
         if playlist not in self.music_playlists:
             self.music_playlists[playlist] = []
         self.music_playlists[playlist].append(track)
 
     async def add_many_tracks(self, playlist: str, tracks: list):
-        await self._request.add_many_tracks(self._guild_id, self.id, playlist, tracks)
+        await self._request.add_many_tracks(self.guild_id, self.id, playlist, tracks)
         if playlist not in self.music_playlists:
             self.music_playlists[playlist] = []
         self.music_playlists[playlist].extend(tracks)
 
     async def remove_track_from_playlist(self, playlist: str, track: str):
-        await self._request.remove_track_from_playlist(self._guild_id, self.id, playlist, track)
+        await self._request.remove_track_from_playlist(self.guild_id, self.id, playlist, track)
         if playlist not in self.music_playlists:
             self.music_playlists[playlist] = []
         self.music_playlists[playlist].remove(track)
 
     async def remove_playlist(self, playlist: str):
-        await self._request.remove_playlist(self._guild_id, self.id, playlist)
+        await self._request.remove_playlist(self.guild_id, self.id, playlist)
         if playlist in self.music_playlists:
             del self.music_playlists[playlist]
 

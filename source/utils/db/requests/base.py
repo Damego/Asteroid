@@ -7,6 +7,8 @@ from ..enums import CollectionType, Document, OperatorType
 
 
 class Request:
+    __slots__ = "_client"
+
     def __init__(self, _client: Database | AsyncIOMotorDatabase) -> None:
         self._client = _client
 

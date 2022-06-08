@@ -21,7 +21,7 @@ class GuildTag(DictMixin):
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
         self._request = _request.tags
-        self._guild_id = guild_id
+        self.guild_id = guild_id
         super().__init__(kwargs)
 
     async def modify(self, **kwargs):
@@ -33,6 +33,6 @@ class GuildTag(DictMixin):
         title: str
         description: str
         """
-        await self._request.modify(self._guild_id, self.name, **kwargs)
+        await self._request.modify(self.guild_id, self.name, **kwargs)
         for kwarg, value in kwargs.items():
             setattr(self, kwarg, value)
