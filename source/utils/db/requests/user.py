@@ -9,7 +9,7 @@ class UserRequest(Request):
     def __init__(self, _client: Database | AsyncIOMotorDatabase) -> None:
         self._client = _client
 
-    async def _update(self, type: OperatorType, guild_id: int, user_id: str, data: dict):
+    async def _update(self, type: OperatorType, guild_id: int, user_id: int, data: dict):
         await super()._update(type, CollectionType.USERS, guild_id, str(user_id), data)
 
     async def set_genshin_uid(self, guild_id: int, user_id: int, hoyolab_uid: int, game_uid: int):
@@ -70,18 +70,40 @@ class UserRequest(Request):
         self,
         guild_id: int,
         user_id: int,
-        name: str,
         *,
+        name: str,
         content: str,
         created_at: int,
         jump_url: str,
     ):
         data = {
+            "name": name,
             "content": content,
             "created_at": created_at,
             "jump_url": jump_url,
         }
-        await self._update(OperatorType.SET, guild_id, user_id, {f"notes.{name}": data})
+        await self._update(OperatorType.PUSH, guild_id, user_id, {"notes": data})
+
+    async def modify_note(
+        self,
+        guild_id: int,
+        user_id: int,
+        current_name: str,
+        *,
+        name: str,
+        content: str,
+        created_at: int,
+        jump_url: str,
+    ):
+        id = {"_id": user_id, "notes.name": current_name}
+        data = {
+            "notes.$.name": name,
+            "notes.$.content": content,
+            "notes.$.created_at": created_at,
+            "notes.$.jump_url": jump_url,
+        }
+
+        await super()._advanced_update(OperatorType.SET, CollectionType.USERS, guild_id, id, data)
 
     async def remove_note(self, guild_id: int, user_id: int, note: dict):
         await self._update(OperatorType.PULL, guild_id, user_id, {"notes": note})

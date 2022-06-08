@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from ..requests.client import RequestClient
 from .base import DictMixin
@@ -47,7 +47,7 @@ class GuildUser:
             self._genshin_uid = genshin.get("uid")
 
         if notes := data.get("notes", []):
-            self._notes = notes
+            self._notes = [Note(self._request, **note_data) for note_data in notes]
 
         if playlists := data.get("music_playlists", {}):
             for name, tracks in playlists.items():
@@ -139,6 +139,18 @@ class GuildUser:
         self._notes.append(
             Note(name=name, content=content, created_at=created_at, jump_url=jump_url)
         )
+
+    async def modify_note(self, name: str, note: "Note"):
+        """
+        Example of usage:
+        ```py
+        note = user.notes[0]
+        old_name = note.name
+        note.name = "new_name"
+        note.content = "new content"
+        await user.modify_note(old_name, note)
+        """
+        await self._request.modify_note(self._guild_id, self.id, name, **note._json)
 
     async def remove_note(self, name: str):
         for note in self._notes:
