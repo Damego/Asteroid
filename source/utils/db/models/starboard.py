@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 from ..requests.client import RequestClient
+from .base import DictMixin
 
 
 class GuildStarboard:
@@ -87,12 +88,11 @@ class GuildStarboard:
         self._blacklist.roles.remove(role_id)
 
 
-class StarBoardBlackList:
-    __slots__ = ("members", "channels", "roles")
+class StarBoardBlackList(DictMixin):
+    __slots__ = ("_json", "members", "channels", "roles")
+    members: List[int]
+    channels: List[int]
+    roles: List[int]
 
-    def __init__(
-        self, *, members: List[int] = None, channels: List[int] = None, roles: List[int] = None
-    ) -> None:
-        self.members = members
-        self.channels = channels
-        self.roles = roles
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)

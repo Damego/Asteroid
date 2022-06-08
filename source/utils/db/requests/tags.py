@@ -20,37 +20,25 @@ class TagsRequest(Request):
         is_embed: bool,
     ):
         data = {
-            name: {
-                "author_id": author_id,
-                "title": title,
-                "description": description,
-                "is_embed": is_embed,
-            }
+            "name": name,
+            "author_id": author_id,
+            "title": title,
+            "description": description,
+            "is_embed": is_embed,
         }
-        await self._update(OperatorType.SET, guild_id, data)
+        await self._update(OperatorType.PUSH, guild_id, {"tags": data})
 
-    async def remove(self, guild_id: int, name: str):
-        data = {name: ""}
-        await self._update(OperatorType.UNSET, guild_id, data)
+    async def remove(self, guild_id: int, data: dict):
+        await self._update(OperatorType.PULL, guild_id, {"tags": data})
 
     async def modify(
         self,
         guild_id: int,
-        name: str,
         *,
+        name: str = None,
         title: str = None,
         description: str = None,
         author_id: int = None,
         is_embed: bool = None,
     ):
-        data = {}
-        if title is not None:
-            data[f"{name}.title"] = title
-        if description is not None:
-            data[f"{name}.description"] = description
-        if author_id is not None:
-            data[f"{name}.author_id"] = author_id
-        if is_embed is not None:
-            data[f"{name}.is_embed"] = is_embed
-
-        await self._update(guild_id, data)
+        ...  # TODO: Make modify
