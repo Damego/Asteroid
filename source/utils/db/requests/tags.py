@@ -34,6 +34,7 @@ class TagsRequest(Request):
     async def modify(
         self,
         guild_id: int,
+        current_name: str,
         *,
         name: str = None,
         title: str = None,
@@ -41,4 +42,15 @@ class TagsRequest(Request):
         author_id: int = None,
         is_embed: bool = None,
     ):
-        ...  # TODO: Make modify
+        id = {"_id": Document.TAGS.value, "tags.name": current_name}
+        data = {
+            "autorole.$.name": name,
+            "autorole.$.title": title,
+            "autorole.$.description": description,
+            "autorole.$.author_id": author_id,
+            "autorole.$.is_embed": is_embed,
+        }
+
+        await super()._advanced_update(
+            OperatorType.SET, CollectionType.CONFIGURATION, guild_id, id, data
+        )

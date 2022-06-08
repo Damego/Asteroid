@@ -1,62 +1,30 @@
-from ..requests.client import RequestClient
+from ..requests import RequestClient
+from .misc import DictMixin
 
 
-class GuildAutoRole:
+class GuildAutoRole(DictMixin):
     __slots__ = (
+        "_json",
         "_request",
-        "_guild_id",
-        "_name",
-        "_channel_id",
-        "_content",
-        "_message_id",
-        "_type",
-        "_component",
+        "guild_id",
+        "name",
+        "channel_id",
+        "content",
+        "message_id",
+        "type",
+        "component",
     )
+    name: str
+    channel_id: int
+    content: str
+    message_id: int
+    type: str
+    component: dict
 
-    def __init__(
-        self,
-        _request: RequestClient,
-        guild_id: int,
-        name: str,
-        *,
-        channel_id: int,
-        content: str,
-        message_id: int,
-        autorole_type: str,
-        component: dict,
-    ) -> None:
+    def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
         self._request = _request.autorole
-        self._guild_id: int = guild_id
-        self._name: str = name
-        self._channel_id: int = channel_id
-        self._content: str = content
-        self._message_id: int = message_id
-        self._type: str = autorole_type
-        self._component: dict = component
-
-    @property
-    def channel_id(self) -> int:
-        return self._channel_id
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def content(self) -> str:
-        return self._content
-
-    @property
-    def message_id(self) -> int:
-        return self._message_id
-
-    @property
-    def type(self) -> str:
-        return self._type
-
-    @property
-    def component(self) -> dict:
-        return self._component
+        self._guild_id = guild_id
+        super().__init__(**kwargs)
 
     async def modify(self, **kwargs):
         """
@@ -71,6 +39,6 @@ class GuildAutoRole:
         autorole_type: str
         component: dict
         """
-        await self._request.modify(self._guild_id, **kwargs)
+        await self._request.modify(self._guild_id, self.name, **kwargs)
         for kwarg, value in kwargs.items():
-            setattr(self, f"_{kwarg}", value)
+            setattr(self, kwarg, value)
