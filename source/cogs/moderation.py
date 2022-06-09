@@ -1,7 +1,8 @@
 from discord import Embed, Forbidden, Member, Role, VoiceChannel
 from discord.ext.commands import bot_has_guild_permissions
-from discord_slash import SlashContext
+from discord_slash import SlashCommandOptionType, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
+from discord_slash.utils.manage_commands import create_option
 from utils import AsteroidBot, Cog, bot_owner_or_permissions, get_content
 
 
@@ -90,7 +91,24 @@ class Moderation(Cog):
         embed.description = content.format(member.mention, new_nick)
         await ctx.send(embed=embed)
 
-    @slash_subcommand(base="mod", name="clear", description="Deletes messages in channel")
+    @slash_subcommand(
+        base="mod",
+        name="clear",
+        description="Deletes messages in channel",
+        options=[
+            create_option(
+                name="amount",
+                description="The amount of messages to delete",
+                option_type=SlashCommandOptionType.INTEGER,
+            ),
+            create_option(
+                name="member",
+                description="The member to delete message",
+                option_type=SlashCommandOptionType.USER,
+                required=False,
+            ),
+        ],
+    )
     @bot_owner_or_permissions(manage_messages=True)
     @bot_has_guild_permissions(manage_messages=True)
     async def clear(self, ctx: SlashContext, amount: int, member: Member = None):
