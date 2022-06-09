@@ -1,11 +1,11 @@
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo.database import Database
 
-from ..enums import CollectionType, Document, OperatorType
-from .base import Request
+from ..enums import CollectionType, DocumentType, OperatorType
+from .base import BaseRequest
 
 
-class UserRequest(Request):
+class UserRequest(BaseRequest):
     def __init__(self, _client: Database | AsyncIOMotorDatabase) -> None:
         self._client = _client
 
@@ -16,6 +16,9 @@ class UserRequest(Request):
         return await super()._find(guild_id, CollectionType.USERS, str(user_id))
 
     async def add_user(self, guild_id: int, user_id: int = None, data: dict = None):
+        if user_id is None and data is None:
+            raise
+
         if user_id is None:
             _data = data
         else:
@@ -31,10 +34,6 @@ class UserRequest(Request):
 
     async def delete_user(self, guild_id: int, user_id: int):
         await super()._delete(guild_id, CollectionType.USERS, str(user_id))
-
-    async def set_genshin_uid(self, guild_id: int, user_id: int, hoyolab_uid: int, game_uid: int):
-        data = {"genshin": {"hoyolab_uid": hoyolab_uid, "uid": game_uid}}
-        await self._update(OperatorType.SET, guild_id, user_id, data)
 
     async def increase_leveling(
         self,

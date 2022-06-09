@@ -1,10 +1,6 @@
 from typing import Any
 
 
-class MISSING:
-    ...
-
-
 class DictMixin:
     __slots__ = "_json"
 
