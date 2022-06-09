@@ -4,16 +4,29 @@ from ..requests import RequestClient
 from .misc import DictMixin
 
 
-class GuildUser:
-    __slots__ = ("_request", "id", "guild_id", "leveling", "genshin", "notes", "music_playlists")
+class GuildUser(DictMixin):
+    __slots__ = (
+        "_json",
+        "_request",
+        "id",
+        "guild_id",
+        "leveling",
+        "genshin",
+        "notes",
+        "music_playlists",
+    )
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
         self._request = _request.user
         self.id: int = int(kwargs["_id"])
         self.guild_id = guild_id
 
-        self.leveling: UserLevelData = UserLevelData(**kwargs.get("leveling"))
-        self.genshin: UserGenshinData = UserGenshinData(**kwargs.get("genshin"))
+        self.leveling: UserLevelData = (
+            UserLevelData(**kwargs.get("leveling")) if "leveling" in kwargs else None
+        )
+        self.genshin: UserGenshinData = (
+            UserGenshinData(**kwargs.get("genshin")) if "genshin" in kwargs else None
+        )
         self.notes: List[Note] = (
             [Note(self._request, **note_data) for note_data in kwargs["notes"]]
             if "notes" in kwargs
