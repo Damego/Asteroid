@@ -17,7 +17,7 @@ class DictMixin:
 
         for slot in self.__slots__:
             if not slot.startswith("_") and slot not in kwargs:
-                setattr(self, slot, MISSING)
+                setattr(self, slot, None)
 
     def __repr__(self) -> str:
         kwargs = " ".join([f"{kwarg}={value}" for kwarg, value in self._json.items()])

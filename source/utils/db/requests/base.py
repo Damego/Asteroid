@@ -1,6 +1,5 @@
-from typing import Union
-
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from pymongo import ReturnDocument
 from pymongo.database import Database
 
 from ..enums import CollectionType, Document, OperatorType
@@ -12,17 +11,31 @@ class Request:
     def __init__(self, _client: Database | AsyncIOMotorDatabase) -> None:
         self._client = _client
 
+    async def _find(
+        self, guild_id: int, collection_type: CollectionType, id: dict | str
+    ) -> dict | None:
+        _id = {"_id": id} if isinstance(id, str) else id
+        return await self._client[str(guild_id)][collection_type.value].find_one(_id)
+
+    async def _insert(self, guild_id: int, collection_type: CollectionType, data: dict):
+        await self._client[str(guild_id)][collection_type.value].insert_one(data)
+
+    async def _delete(self, guild_id: int, collection_type: CollectionType, id: dict | str):
+        _id = {"_id": id} if isinstance(id, str) else id
+        await self._client[str(guild_id)][collection_type.value].delete_one(_id)
+
     async def _update(
         self,
         operator_type: OperatorType,
         collection_type: CollectionType,
         guild_id: int,
-        id: Union[Document, str],
+        id: Document | str,
         data: dict,
-    ):
-        await self._client[str(guild_id)][collection_type.value].update_one(
+    ) -> dict | None:
+        return await self._client[str(guild_id)][collection_type.value].find_one_and_update(
             {"_id": id.value if isinstance(id, Document) else id},
             {operator_type.value: data},
+            return_document=ReturnDocument.AFTER,
             upsert=True,
         )
 
@@ -31,9 +44,9 @@ class Request:
         operator_type: OperatorType,
         collection_type: CollectionType,
         guild_id: int,
-        id: Union[Document, str, dict],
+        id: Document | str | dict,
         data: dict,
-    ):
+    ) -> dict | None:
         if isinstance(id, Document):
             _id = {"_id": id.value}
         elif isinstance(id, str):
@@ -43,6 +56,6 @@ class Request:
         else:
             raise
 
-        await self._client[str(guild_id)][collection_type.value].update_one(
-            _id, {operator_type.value: data}, upsert=True
+        return await self._client[str(guild_id)][collection_type.value].find_one_and_update(
+            _id, {operator_type.value: data}, return_document=ReturnDocument.AFTER, upsert=True
         )
