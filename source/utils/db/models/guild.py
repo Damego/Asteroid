@@ -46,31 +46,31 @@ class GuildData:
 
         for document in data:
             if document["_id"] == "configuration":
-                self.configuration = GuildConfiguration(self._request, document)
+                self.configuration = GuildConfiguration(self._request, self.guild_id, **document)
             elif document["_id"] == "starboard":
-                self.starboard = GuildStarboard(self._request, document)
+                self.starboard = GuildStarboard(self._request, self.guild_id, **document)
             elif document["_id"] == "tags":
                 self.tags = [
-                    GuildTag(self._request, name, data)
-                    for name, data in document.items()
-                    if name != "_id"
+                    GuildTag(self._request, self.guild_id, **tag)
+                    for tag in document["tags"]
+                    if "tags" in document
                 ]
             elif document["_id"] == "cogs_data":
                 self.cogs_data = document
             elif document["_id"] == "autorole":
                 self.autoroles = [
-                    GuildAutoRole(self._request, name=name, **data)
-                    for name, data in document.items()
-                    if name != "_id"
+                    GuildAutoRole(self._request, self.guild_id, **autorole)
+                    for autorole in document["autoroles"]
+                    if "autoroles" in document
                 ]
             elif document["_id"] == "roles_by_level":
                 self.roles_by_level = document
             elif document["_id"] == "voice_time":
                 self.users_voice_time = document
             elif document["_id"] == "private_voice":
-                self.private_voice = GuildPrivateVoice(self._request, document)
+                self.private_voice = GuildPrivateVoice(self._request, self.guild_id, **document)
 
-        self.users = [GuildUser(self._request, user) for user in user_data]
+        self.users = [GuildUser(self._request, self.guild_id, **user) for user in user_data]
 
     async def create_private_voice(self, text_channel_id: int, voice_channel_id: int):
         data = await self._request.private_voice.create_private_voice(
