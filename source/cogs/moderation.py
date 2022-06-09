@@ -101,7 +101,7 @@ class Moderation(Cog):
                 description="The amount of messages to delete",
                 option_type=SlashCommandOptionType.INTEGER,
                 min_value=1,
-                max_value=100
+                max_value=100,
             ),
             create_option(
                 name="member",
