@@ -1,15 +1,17 @@
 from typing import Union
 
-from ..enums import CollectionType, Document, OperatorType
-from .base import Request
+from ..enums import CollectionType, DocumentType, OperatorType
+from .base import BaseRequest
 
 
-class AutoRoleRequest(Request):
+class AutoRoleRequest(BaseRequest):
     def __init__(self, _client) -> None:
         super().__init__(_client)
 
     async def _update(type: OperatorType, guild_id: int, data: dict):
-        await super()._update(type, CollectionType.CONFIGURATION, guild_id, Document.AUTOROLE, data)
+        await super()._update(
+            type, CollectionType.CONFIGURATION, guild_id, DocumentType.AUTOROLE, data
+        )
 
     async def add(
         self,
@@ -47,7 +49,7 @@ class AutoRoleRequest(Request):
         autorole_type: str = None,
         component: dict = None,
     ):
-        id = {"_id": Document.AUTOROLE.value, "autorole.name": current_name}
+        id = {"_id": DocumentType.AUTOROLE.value, "autorole.name": current_name}
         data = {
             "autorole.$.name": name,
             "autorole.$.channel_id": channel_id,

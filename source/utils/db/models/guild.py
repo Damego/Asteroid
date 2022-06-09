@@ -5,7 +5,6 @@ from typing import Dict, List
 from ..requests import RequestClient
 from .autorole import GuildAutoRole
 from .configuration import GuildConfiguration
-from .misc import DictMixin
 from .private_voice import GuildPrivateVoice
 from .starboard import GuildStarboard
 from .tag import GuildTag
@@ -14,9 +13,7 @@ from .user import GuildUser
 
 class GuildData:
     __slots__ = (
-        "_connection",
-        "_main_collection",
-        "_users_collection",
+        "_request",
         "guild_id",
         "configuration",
         "private_voice",

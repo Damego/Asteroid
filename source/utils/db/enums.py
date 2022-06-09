@@ -15,7 +15,7 @@ class OperatorType(Enum):
     INC = "$inc"
 
 
-class Document(Enum):
+class DocumentType(Enum):
     CONFIGURATION = "configuration"
     PRIVATE_VOICE = "private_voice"
     VOICE_TIME = "voice_time"
@@ -29,3 +29,12 @@ class Document(Enum):
 class CollectionType(Enum):
     CONFIGURATION = "configuration"
     USERS = "users"
+
+
+class GlobalCollectionType(Enum):
+    USERS = "USERS"
+    OTHER = "OTHER"
+
+
+class GlobalDocumentType(Enum):
+    MAIN = "main"

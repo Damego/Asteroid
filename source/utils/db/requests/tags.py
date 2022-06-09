@@ -1,13 +1,13 @@
-from ..enums import CollectionType, Document, OperatorType
-from .base import Request
+from ..enums import CollectionType, DocumentType, OperatorType
+from .base import BaseRequest
 
 
-class TagsRequest(Request):
+class TagsRequest(BaseRequest):
     def __init__(self, _client) -> None:
         super().__init__(_client)
 
     async def _update(type: OperatorType, guild_id: int, data: dict):
-        await super()._update(type, CollectionType.CONFIGURATION, guild_id, Document.TAGS, data)
+        await super()._update(type, CollectionType.CONFIGURATION, guild_id, DocumentType.TAGS, data)
 
     async def add(
         self,
@@ -42,7 +42,7 @@ class TagsRequest(Request):
         author_id: int = None,
         is_embed: bool = None,
     ):
-        id = {"_id": Document.TAGS.value, "tags.name": current_name}
+        id = {"_id": DocumentType.TAGS.value, "tags.name": current_name}
         data = {
             "autorole.$.name": name,
             "autorole.$.title": title,

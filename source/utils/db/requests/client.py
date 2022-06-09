@@ -3,6 +3,8 @@ from pymongo.database import Database
 
 from .autorole import AutoRoleRequest
 from .configuration import ConfigurationRequest
+from .global_ import GlobalRequest
+from .guild import GuildRequest
 from .levels import LevelRolesRequest
 from .private_voice import PrivateVoiceRequest
 from .starboard import StarBoardRequest
@@ -15,6 +17,7 @@ class RequestClient:
         self._client = _client
         self._guilds_client = self._client["guilds"]
         self._global_client = self._client["GLOBAL"]
+        self.guild = GuildRequest(self._guilds_client)
         self.autorole = AutoRoleRequest(self._guilds_client)
         self.configuration = ConfigurationRequest(self._guilds_client)
         self.roles_by_level = LevelRolesRequest(self._guilds_client)
@@ -22,3 +25,4 @@ class RequestClient:
         self.starboard = StarBoardRequest(self._guilds_client)
         self.tags = TagsRequest(self._guilds_client)
         self.user = UserRequest(self._guilds_client)
+        self.global_ = GlobalRequest(self._global_client)

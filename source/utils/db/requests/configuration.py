@@ -1,14 +1,14 @@
-from ..enums import CollectionType, Document, OperatorType
-from .base import Request
+from ..enums import CollectionType, DocumentType, OperatorType
+from .base import BaseRequest
 
 
-class ConfigurationRequest(Request):
+class ConfigurationRequest(BaseRequest):
     def __init__(self, _client) -> None:
         super().__init__(_client)
 
     async def _update(type: OperatorType, guild_id: int, data: dict):
         await super()._update(
-            type, CollectionType.CONFIGURATION, guild_id, Document.CONFIGURATION, data
+            type, CollectionType.CONFIGURATION, guild_id, DocumentType.CONFIGURATION, data
         )
 
     async def modify_cog(self, guild_id: int, name: str, *, is_disabled: bool):
@@ -17,7 +17,7 @@ class ConfigurationRequest(Request):
             OperatorType.SET,
             CollectionType.CONFIGURATION,
             guild_id,
-            Document.COGS_DATA,
+            DocumentType.COGS_DATA,
             {name: data},
         )
 
