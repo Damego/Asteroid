@@ -10,7 +10,27 @@ class UserRequest(Request):
         self._client = _client
 
     async def _update(self, type: OperatorType, guild_id: int, user_id: int, data: dict):
-        await super()._update(type, CollectionType.USERS, guild_id, str(user_id), data)
+        return await super()._update(type, CollectionType.USERS, guild_id, str(user_id), data)
+
+    async def get_user(self, guild_id: int, user_id: int):
+        return await super()._find(guild_id, CollectionType.USERS, str(user_id))
+
+    async def add_user(self, guild_id: int, user_id: int = None, data: dict = None):
+        if user_id is None:
+            _data = data
+        else:
+            _data = (
+                {
+                    "_id": str(user_id),
+                }
+                | data
+                if data is not None
+                else {}
+            )
+        await super()._insert(guild_id, CollectionType.USERS, _data)
+
+    async def delete_user(self, guild_id: int, user_id: int):
+        await super()._delete(guild_id, CollectionType.USERS, str(user_id))
 
     async def set_genshin_uid(self, guild_id: int, user_id: int, hoyolab_uid: int, game_uid: int):
         data = {"genshin": {"hoyolab_uid": hoyolab_uid, "uid": game_uid}}

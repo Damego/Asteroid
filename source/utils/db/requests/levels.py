@@ -22,6 +22,13 @@ class LevelRolesRequest(Request):
     async def reset(self, guild_id: int):
         await self._client[str(guild_id)].delete_one({"_id": Document.ROLES_BY_LEVEL.value})
 
+    async def replace(self, guild_id: int, role_id: int, old_level: int, new_level: int):
+        data = {
+            OperatorType.UNSET.value: {str(old_level): ""},
+            OperatorType.SET.value: {str(new_level): role_id},
+        }
+        await self._update(guild_id, data)
+
     async def add_user_to_voice(self, guild_id: int, user_id: int, time: int):
         """This is a part of levels so thats why this method here"""
         data = {str(user_id): time}

@@ -12,7 +12,14 @@ class ConfigurationRequest(Request):
         )
 
     async def modify_cog(self, guild_id: int, name: str, *, is_disabled: bool):
-        ...  # TODO: What to pass here?
+        data = {"disabled": is_disabled}
+        await super()._update(
+            OperatorType.SET,
+            CollectionType.CONFIGURATION,
+            guild_id,
+            Document.COGS_DATA,
+            {name: data},
+        )
 
     async def set_embed_color(self, guild_id: int, color: int):
         await self._update(OperatorType.SET, guild_id, {"embed_color": color})

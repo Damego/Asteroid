@@ -11,28 +11,32 @@ class GuildUser(DictMixin):
         "id",
         "guild_id",
         "leveling",
+        "voice_time",
         "genshin",
         "notes",
         "music_playlists",
     )
+    id: int
+    guild_id: int
+    leveling: "UserLevelData"
+    voice_time: int
+    genshin: "UserGenshinData"
+    notes: List["Note"]
+    music_playlists: Dict[str, List[str]]
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
         self._request = _request.user
-        self.id: int = int(kwargs["_id"])
+        self.id = int(kwargs["_id"])
         self.guild_id = guild_id
 
-        self.leveling: UserLevelData = (
-            UserLevelData(**kwargs.get("leveling")) if "leveling" in kwargs else None
-        )
-        self.genshin: UserGenshinData = (
-            UserGenshinData(**kwargs.get("genshin")) if "genshin" in kwargs else None
-        )
-        self.notes: List[Note] = (
+        self.leveling = UserLevelData(**kwargs.get("leveling") if "leveling" in kwargs else {})
+        self.genshin = UserGenshinData(**kwargs.get("genshin")) if "genshin" in kwargs else None
+        self.notes = (
             [Note(self._request, **note_data) for note_data in kwargs["notes"]]
             if "notes" in kwargs
             else []
         )
-        self.music_playlists: Dict[str, List[str]] = (
+        self.music_playlists = (
             {name: tracks for name, tracks in kwargs["music_playlists"]}
             if "music_playlists" in kwargs
             else {}
@@ -40,8 +44,7 @@ class GuildUser(DictMixin):
 
     async def set_genshin_uid(self, hoyolab_uid: int, game_uid: int):
         await self._request.set_genshin_uid(self.guild_id, self.id, hoyolab_uid, game_uid)
-        self.genshin.hoyolab_uid = hoyolab_uid
-        self.genshin.game_uid = game_uid
+        self.genshin = UserGenshinData(hoyolab_uid=hoyolab_uid, game_uid=game_uid)
 
     async def increase_leveling(
         self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0
@@ -55,22 +58,24 @@ class GuildUser(DictMixin):
         self.leveling.voice_time += voice_time
 
     async def set_leveling(
-        self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0
+        self, *, level: int = 1, xp: int = 0, xp_amount: int = 0, voice_time: int = 0, role_id: int
     ):
         await self._request.set_leveling(
-            self.guild_id, self.id, level=level, xp=xp, xp_amount=xp_amount, voice_time=voice_time
+            self.guild_id,
+            self.id,
+            level=level,
+            xp=xp,
+            xp_amount=xp_amount,
+            voice_time=voice_time,
+            role_id=role_id,
         )
-        self.leveling.level = level
-        self.leveling.xp = xp
-        self.leveling.xp_amount = xp_amount
-        self.leveling.voice_time = voice_time
+        self.leveling = UserLevelData(
+            level=level, xp=xp, xp_amount=xp_amount, voice_time=voice_time, role=role_id
+        )
 
     async def reset_leveling(self):
         await self._request.reset_leveling(self.guild_id, self.id)
-        self.leveling.level = 1
-        self.leveling.xp = 0
-        self.leveling.xp_amount = 0
-        self.leveling.voice_time = 0
+        self.leveling = UserLevelData(level=1, xp=0, xp_amount=0, voice_time=0)
 
     async def add_note(self, name: str, content: str, created_at: int, jump_url: str):
         for note in self.notes:
@@ -136,18 +141,23 @@ class Note(DictMixin):
 
 
 class UserLevelData(DictMixin):
-    __slots__ = ("_json", "level", "xp", "xp_amount", "voice_time")
+    __slots__ = ("_json", "level", "xp", "xp_amount", "role")
     level: int
     xp: int
     xp_amount: int
-    voice_time: int
+    role: int
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
         for slot in self.__slots__:
             if not slot.startswith("_") and slot not in kwargs:
-                setattr(self, slot, 1 if slot == "level" else 0)
+                if slot == "level":
+                    setattr(self, slot, 1)
+                elif slot == "role":
+                    setattr(self, slot, None)
+                else:
+                    setattr(self, slot, 0)
 
 
 class UserGenshinData(DictMixin):
