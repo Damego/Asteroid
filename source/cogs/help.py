@@ -36,6 +36,8 @@ class Help(Cog):
             except TimeoutError:
                 with contextlib.suppress(Forbidden, HTTPException):
                     return await message.edit(components=[])
+            except Exception as e:  # noqa: F841
+                raise
 
             value = button_ctx.values[0]
 
