@@ -22,8 +22,8 @@ class DataBaseClient:
         self.global_data = GlobalData(self.request_client, **global_data_json)
 
     async def get_guild_data(self, guild_id: int):
-        if str(guild_id) in self.guilds:
-            return self.guilds[str(guild_id)]
+        if guild_data := self.guilds.get(str(guild_id)):
+            return guild_data
         main_data, users_data = await self.request_client.guild.get_guild(guild_id)
         guild_data = GuildData(self.request_client, guild_id, main_data, users_data)
         self.guilds[str(guild_id)] = guild_data

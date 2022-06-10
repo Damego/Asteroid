@@ -50,14 +50,19 @@ class AutoRoleRequest(BaseRequest):
         component: dict = None,
     ):
         id = {"_id": DocumentType.AUTOROLE.value, "autorole.name": current_name}
-        data = {
-            "autorole.$.name": name,
-            "autorole.$.channel_id": channel_id,
-            "autorole.$.content": content,
-            "autorole.$.message_id": message_id,
-            "autorole.$.autorole_type": autorole_type,
-            "autorole.$.component": component,
-        }
+        data = {}
+        if name is not None:
+            data["autorole.$.name"] = name
+        if channel_id is not None:
+            data["autorole.$.channel_id"] = channel_id
+        if content is not None:
+            data["autorole.$.content"] = content
+        if message_id is not None:
+            data["autorole.$.message_id"] = message_id
+        if autorole_type is not None:
+            data["autorole.$.autorole_type"] = autorole_type
+        if component is not None:
+            data["autorole.$.component"] = component
 
         await super()._advanced_update(
             OperatorType.SET, CollectionType.CONFIGURATION, guild_id, id, data
