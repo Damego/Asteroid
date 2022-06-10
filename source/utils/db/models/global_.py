@@ -50,3 +50,6 @@ class MainData(DictMixin):
     __slots__ = ("_json", "genshin_cookies", "fly_me_to_the_moon_chapter")
     genshin_cookies: Dict[str, str | int]
     fly_me_to_the_moon_chapter: str
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)

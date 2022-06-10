@@ -109,7 +109,7 @@ class UserRequest(BaseRequest):
         user_id: int,
         current_name: str,
         *,
-        name: str,
+        name: str,  # ? Should be these optional?
         content: str,
         created_at: int,
         jump_url: str,
