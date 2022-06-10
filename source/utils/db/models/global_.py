@@ -20,7 +20,7 @@ class GlobalData:
 
 
 class GlobalUser(BaseUser):
-    __slots__ = ("_json", "_request", "id", "notes", "music_playlists")
+    __slots__ = ("_json", "_request", "id", "notes", "music_playlists", "genshin")
     id: int
     notes: List[Note]
     music_playlists: Dict[str, List[str]]

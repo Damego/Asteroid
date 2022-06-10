@@ -1,6 +1,32 @@
 from ..enums import CollectionType, DocumentType, OperatorType
 from .base import BaseRequest
 
+# * A bit of reflection
+"""
+What if I made some changes to leveling?
+
+BEFORE:
+{
+    "_id": "roles_by_level",
+    "1": 12345,
+    "2": 23456,
+    "3": 34567
+}
+
+AFTER:
+{
+    "_id": "leveling",
+    "roles_by_level": {
+        1: 12345
+        2: 23456
+        3: 34567
+    },
+    "is_disabled": False
+}
+
+This can expand leveling and I can new stuff to leveling in the future.
+"""
+
 
 class LevelRolesRequest(BaseRequest):
     def __init__(self, _client) -> None:
