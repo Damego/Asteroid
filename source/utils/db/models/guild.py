@@ -98,20 +98,7 @@ class GuildData:
         for user in self.users:
             if user.id == user_id:
                 return user
-
-        print(
-            f"GuildUser for {user_id} not found in `GuildData {self.guild_id}`. Fetching in database..."
-        )  # TODO: Use logger
-        user_json = await self._request.user.get_user(self.guild_id, user_id)
-        if user_json is None:
-            print(f"No data for user {user_id}. Adding user to database...")
-            user = await self.add_user(user_id)
-        else:
-            print(
-                f"Founded data for user {user_id} in database. Adding user to `GuildData {self.guild_id}`..."
-            )
-            user = GuildUser(self._request, self.guild_id, **user_json)
-            self.users.append(user)
+        user = await self.add_user(user_id)
         return user
 
     async def remove_user(self, user_id: int):
@@ -123,7 +110,6 @@ class GuildData:
 
     async def add_autorole(
         self,
-        *,
         name: str,
         channel_id: int,
         content: str,
