@@ -22,18 +22,23 @@ class GuildStarboard(DictMixin):
     blacklist: "StarBoardBlackList"
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
+        super().__init__(**kwargs)
         self._request = _request.starboard
         self.guild_id = guild_id
-        super().__init__(**kwargs)
-        self.blacklist: StarBoardBlackList = (
-            StarBoardBlackList(**kwargs["blacklist"]) if "blacklist" in kwargs else None
-        )
+        self.blacklist = StarBoardBlackList(**kwargs.get("blacklist", {}))
 
     async def add_starboard_message(self, message_id: int, starboard_message_id: int):
         await self._request.add_message(self.guild_id, message_id, starboard_message_id)
         self.messages[str(message_id)] = {"starboard_message": starboard_message_id}
 
     async def modify(self, **kwargs):
+        """
+        Parameters:
+
+        is_enabled: bool
+        channel_id: int
+        limit: int
+        """
         await self._request.modify(self.guild_id, **kwargs)
         for kwarg, value in kwargs.items():
             setattr(self, kwarg, value)
@@ -71,3 +76,7 @@ class StarBoardBlackList(DictMixin):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+
+        for slot in self.__slots__:
+            if not slot.startswith("_") and slot not in kwargs:
+                setattr(self, slot, list())

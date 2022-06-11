@@ -1,5 +1,3 @@
-from typing import Union
-
 from ..enums import CollectionType, DocumentType, OperatorType
 from .base import BaseRequest
 

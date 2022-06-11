@@ -109,18 +109,21 @@ class UserRequest(BaseRequest):
         user_id: int,
         current_name: str,
         *,
-        name: str,  # ? Should be these optional?
-        content: str,
-        created_at: int,
-        jump_url: str,
+        name: str = None,
+        content: str = None,
+        created_at: int = None,
+        jump_url: str = None,
     ):
         id = {"_id": user_id, "notes.name": current_name}
-        data = {
-            "notes.$.name": name,
-            "notes.$.content": content,
-            "notes.$.created_at": created_at,
-            "notes.$.jump_url": jump_url,
-        }
+        data = {}
+        if name is not None:
+            data["notes.$.name"] = name
+        if content is not None:
+            data["notes.$.content"] = content
+        if created_at is not None:
+            data["notes.$.created_at"] = created_at
+        if jump_url is not None:
+            data["notes.$.jump_url"] = jump_url
 
         await super()._advanced_update(OperatorType.SET, CollectionType.USERS, guild_id, id, data)
 

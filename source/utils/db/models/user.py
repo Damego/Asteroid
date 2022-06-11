@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from ..requests import RequestClient
 from .misc import DictMixin
@@ -17,11 +17,12 @@ class BaseUser(DictMixin):
     music_playlists: Dict[str, List[str]]
 
     def __init__(self, _request: RequestClient, **kwargs) -> None:
-        self._request = _request
         super().__init__(**kwargs)
-
+        self._request = _request
         self.notes = [Note(**note) for note in kwargs.get("notes", [])]
-        self.music_playlists = {name: tracks for name, tracks in kwargs.get("music_playlists", {})}
+        self.music_playlists = {
+            name: tracks for name, tracks in kwargs.get("music_playlists", {}).items()
+        }
 
     async def add_note(self, name: str, content: str, created_at: int, jump_url: str):
         for note in self.notes:
@@ -47,7 +48,7 @@ class BaseUser(DictMixin):
         """
         await self._request.modify_note(self.guild_id, self.id, name, **note._json)
 
-    async def remove_note(self, note: "Note" | dict):
+    async def remove_note(self, note: Union["Note", dict]):
         note_data = note._json if isinstance(note, Note) else note
         await self._request.remove_note(self.guild_id, self.id, note_data)
         self.notes.remove(note)
@@ -83,22 +84,23 @@ class GuildUser(BaseUser):
         "id",
         "guild_id",
         "leveling",
-        "voice_time",
+        "voice_time_count",
         "notes",
         "music_playlists",
     )
     id: int
     guild_id: int
     leveling: "UserLevelData"
-    voice_time: int
+    voice_time_count: int
     notes: List["Note"]
     music_playlists: Dict[str, List[str]]
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
+        super().__init__(_request, **kwargs)
         self._request = _request.user
         self.id = int(kwargs["_id"])
         self.guild_id = guild_id
-        self.leveling = UserLevelData(**kwargs.get("leveling") if "leveling" in kwargs else {})
+        self.leveling = UserLevelData(**kwargs.get("leveling", {}))
 
     async def increase_leveling(
         self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0

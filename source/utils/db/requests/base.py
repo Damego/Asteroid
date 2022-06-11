@@ -1,5 +1,5 @@
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from pymongo import ReturnDocumentType
+from pymongo import ReturnDocument
 from pymongo.database import Database
 
 from ..enums import (
@@ -41,7 +41,7 @@ class BaseRequest:
         return await self._client[str(guild_id)][collection_type.value].find_one_and_update(
             {"_id": id.value if isinstance(id, DocumentType) else id},
             {operator_type.value: data},
-            return_document=ReturnDocumentType.AFTER,
+            return_document=ReturnDocument.AFTER,
             upsert=True,
         )
 
@@ -63,7 +63,7 @@ class BaseRequest:
             raise
 
         return await self._client[str(guild_id)][collection_type.value].find_one_and_update(
-            _id, {operator_type.value: data}, return_document=ReturnDocumentType.AFTER, upsert=True
+            _id, {operator_type.value: data}, return_document=ReturnDocument.AFTER, upsert=True
         )
 
 
@@ -92,7 +92,7 @@ class GlobalBaseRequest(BaseRequest):
         return await self._client[collection_type.value].find_one_and_update(
             {"_id": id.value if isinstance(id, GlobalDocumentType) else id},
             {operator_type.value: data},
-            return_document=ReturnDocumentType.AFTER,
+            return_document=ReturnDocument.AFTER,
             upsert=True,
         )
 
@@ -113,5 +113,5 @@ class GlobalBaseRequest(BaseRequest):
             raise
 
         return await self._client[collection_type.value].find_one_and_update(
-            _id, {operator_type.value: data}, return_document=ReturnDocumentType.AFTER, upsert=True
+            _id, {operator_type.value: data}, return_document=ReturnDocument.AFTER, upsert=True
         )

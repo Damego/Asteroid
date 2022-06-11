@@ -26,9 +26,9 @@ class GuildTag(DictMixin):
     uses_count: int
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
+        super().__init__(kwargs)
         self._request = _request.tags
         self.guild_id = guild_id
-        super().__init__(kwargs)
 
     async def modify(self, **kwargs):
         """
