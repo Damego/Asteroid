@@ -18,9 +18,9 @@ class GuildPrivateVoice(DictMixin):
     active_channels: List[int]
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
+        super().__init__(**kwargs)
         self._request = _request.private_voice
         self.guild_id = guild_id
-        super().__init__(**kwargs)
 
     async def set_text_channel(self, channel_id: int):
         await self._request.set_text_channel(self.guild_id, channel_id)

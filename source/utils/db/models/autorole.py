@@ -22,9 +22,9 @@ class GuildAutoRole(DictMixin):
     component: dict
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
+        super().__init__(**kwargs)
         self._request = _request.autorole
         self.guild_id = guild_id
-        super().__init__(**kwargs)
 
     async def modify(self, **kwargs):
         """

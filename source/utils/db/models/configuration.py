@@ -8,7 +8,8 @@ class GuildConfiguration(DictMixin):
     __slots__ = (
         "_json",
         "_request",
-        "guild_id" "embed_color",
+        "guild_id",
+        "embed_color",
         "language",
         "on_join_roles",
         "disabled_commands",
@@ -21,11 +22,10 @@ class GuildConfiguration(DictMixin):
     start_level_role: int
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
-        self._request = _request.configuration
-        self.guild_id = guild_id
-
         super().__init__(**kwargs)
 
+        self._request = _request.configuration
+        self.guild_id = guild_id
         self.embed_color = int(kwargs.get("embed_color", "0x5865F2"), 16)
         self.language = kwargs.get("language", "en-US")
         self.on_join_roles = kwargs.get("on_join_roles", [])

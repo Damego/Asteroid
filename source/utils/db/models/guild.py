@@ -2,6 +2,7 @@ import logging
 from time import time
 from typing import Dict, List
 
+from ..errors import DuplicateKey
 from ..requests import RequestClient
 from .autorole import GuildAutoRole
 from .configuration import GuildConfiguration
@@ -26,15 +27,15 @@ class GuildData:
         "users",
     )
     guild_id: int
-    configuration: GuildConfiguration = None
-    private_voice: GuildPrivateVoice = None
-    starboard: GuildStarboard = None
-    tags: List[GuildTag] = []
-    cogs_data: Dict[str, Dict[str, str]] = {}
-    autoroles: List[GuildAutoRole] = []
-    roles_by_level: Dict[str, str] = {}
-    users_voice_time: Dict[str, int] = {}
-    users: List[GuildUser] = []
+    configuration: GuildConfiguration
+    private_voice: GuildPrivateVoice
+    starboard: GuildStarboard
+    tags: List[GuildTag]
+    cogs_data: Dict[str, Dict[str, str]]
+    autoroles: List[GuildAutoRole]
+    roles_by_level: Dict[str, str]
+    users_voice_time: Dict[str, int]
+    users: List[GuildUser]
 
     def __init__(
         self, _request: RequestClient, guild_id: int, data: List[dict], user_data: List[dict]
@@ -50,16 +51,14 @@ class GuildData:
             elif document["_id"] == "tags":
                 self.tags = [
                     GuildTag(self._request, self.guild_id, **tag)
-                    for tag in document["tags"]
-                    if "tags" in document
+                    for tag in document.get("tags", [])
                 ]
             elif document["_id"] == "cogs_data":
                 self.cogs_data = document
             elif document["_id"] == "autorole":
                 self.autoroles = [
                     GuildAutoRole(self._request, self.guild_id, **autorole)
-                    for autorole in document["autoroles"]
-                    if "autoroles" in document
+                    for autorole in document.get("autoroles", [])
                 ]
             elif document["_id"] == "roles_by_level":
                 self.roles_by_level = document
