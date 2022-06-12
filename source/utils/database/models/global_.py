@@ -6,9 +6,9 @@ from .user import BaseUser, Note
 
 
 class GlobalData:
-    __slots__ = ("_request", "users", "other")
+    __slots__ = ("_request", "users", "main")
     users: List["GlobalUser"]
-    other: "MainData"
+    main: "MainData"
 
     def __init__(self, _request: RequestClient, users: List[dict], other_data: List[dict]) -> None:
         self._request = _request
@@ -16,7 +16,19 @@ class GlobalData:
 
         for document in other_data:
             if document["_id"] == "main":
-                self.other = MainData(**document)
+                self.main = MainData(**document)
+
+    async def add_user(self, user_id: int):
+        await self._request.global_.add_user(user_id)
+        user = GlobalUser(self._request, {"_id": user_id})
+        self.users.append(user)
+        return user
+
+    async def get_user(self, user_id: int):
+        for user in self.users:
+            if user.id == user_id:
+                return user
+        return await self.add_user(user_id)
 
 
 class GlobalUser(BaseUser):
@@ -27,9 +39,9 @@ class GlobalUser(BaseUser):
     genshin: "UserGenshinData"
 
     def __init__(self, _request: RequestClient, **kwargs) -> None:
+        super().__init__(_request, **kwargs)
         self._request = _request.global_
-        super().__init__(**kwargs)
-
+        self.id = int(kwargs["_id"])
         self.genshin = UserGenshinData(**kwargs.get("genshin", {}))
 
     async def set_genshin_uid(self, hoyolab_uid: int, game_uid: int):

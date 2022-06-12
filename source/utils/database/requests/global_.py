@@ -11,7 +11,7 @@ class GlobalRequest(GlobalBaseRequest):
         other_data_cursor = self._client["OTHER"].find()
         return {
             "users": [user_data async for user_data in users_data_cursor],
-            "other": [data async for data in other_data_cursor],
+            "other_data": [data async for data in other_data_cursor],
         }
 
     async def _set_data_users(self, user_id: int, data: dict):

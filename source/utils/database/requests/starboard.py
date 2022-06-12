@@ -6,7 +6,7 @@ class StarBoardRequest(BaseRequest):
     def __init__(self, _client) -> None:
         super().__init__(_client)
 
-    async def _update(type: OperatorType, guild_id: int, data: dict):
+    async def _update(self, type: OperatorType, guild_id: int, data: dict):
         await super()._update(
             type, CollectionType.CONFIGURATION, guild_id, DocumentType.STARBOARD, data
         )
@@ -32,7 +32,7 @@ class StarBoardRequest(BaseRequest):
         if limit is not None:
             data["limit"] = limit
 
-        await self._update(guild_id, data)
+        await self._update(OperatorType.SET, guild_id, data)
 
     async def add_member_to_blacklist(self, guild_id: int, member_id: int):
         await self._update(OperatorType.PUSH, guild_id, {"blacklist.members": member_id})

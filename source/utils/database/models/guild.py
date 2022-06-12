@@ -68,6 +68,25 @@ class GuildData:
                 self.private_voice = GuildPrivateVoice(self._request, self.guild_id, **document)
 
         self.users = [GuildUser(self._request, self.guild_id, **user) for user in user_data]
+        self.set_default()
+
+    def set_default(self):
+        if getattr(self, "configuration", None) is None:
+            self.configuration = GuildConfiguration(self._request, self.guild_id)
+        if getattr(self, "starboard", None) is None:
+            self.starboard = GuildStarboard(self._request, self.guild_id)
+        if getattr(self, "tags", None) is None:
+            self.tags = []
+        if getattr(self, "cogs_data", None) is None:
+            self.cogs_data = {}
+        if getattr(self, "autorole", None) is None:
+            self.autoroles = []
+        if getattr(self, "roles_by_level", None) is None:
+            self.roles_by_level = {}
+        if getattr(self, "voice_time", None) is None:
+            self.users_voice_time = {}
+        if getattr(self, "private_voice", None) is None:
+            self.private_voice = GuildPrivateVoice(self._request, self.guild_id)
 
     async def create_private_voice(self, text_channel_id: int, voice_channel_id: int):
         data = await self._request.private_voice.create_private_voice(
@@ -152,11 +171,13 @@ class GuildData:
 
     async def add_tag(
         self,
+        *,
         name: str,
         author_id: int,
+        title: str,
         description: str,
-        is_embed: bool = False,
-        title: str = "None",
+        is_embed: bool,
+        created_at: int,
     ) -> GuildTag:
         for tag in self.tags:
             if tag.name == name:
@@ -164,9 +185,12 @@ class GuildData:
         data = {
             "name": name,
             "author_id": author_id,
+            "title": title,
             "description": description,
             "is_embed": is_embed,
-            "title": title,
+            "created_at": created_at,
+            "last_edited_at": None,
+            "uses_count": 0,
         }
         await self._request.tags.add(self.guild_id, **data)
         tag = GuildTag(self._request, self.guild_id, **data)
@@ -183,11 +207,13 @@ class GuildData:
         await self._request.tags.remove(self.guild_id, tag._json)
         self.tags.remove(tag)
 
-    async def modify_cog(self, cog_name: str, *, is_disabled: bool = None):
+    async def modify_cog(self, cog_name: str, *, is_disabled: bool = None, is_public: bool = None):
         if cog_name not in self.cogs_data:
             self.cogs_data[cog_name] = {}
         if is_disabled is not None:
             self.cogs_data[cog_name]["is_disabled"] = is_disabled
+        if is_public is not None:
+            self.cogs_data[cog_name]["is_public"] = is_public
         await self._request.configuration.modify_cog(
             self.guild_id, cog_name, is_disabled=is_disabled
         )

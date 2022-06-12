@@ -7,6 +7,10 @@ from discord.ext import tasks
 from discord_slash import Button, ButtonStyle
 from utils import AsteroidBot, Cog, DiscordColors, SystemChannels
 
+"""
+Remove after June, 17 since the manga will be finished.
+"""
+
 
 class Parsers(Cog):
     def __init__(self, bot: AsteroidBot) -> None:
@@ -18,8 +22,8 @@ class Parsers(Cog):
 
     @Cog.listener()
     async def on_ready(self):
-        self.global_data = await self.bot.mongo.get_global_data()
-        self.check_fmtm.start()
+        self.global_data = self.bot.database.global_data
+        # self.check_fmtm.start()
 
     # * Fly Me to The Moon -> fmtm
 

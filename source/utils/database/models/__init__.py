@@ -1,6 +1,6 @@
 from .autorole import GuildAutoRole  # noqa: F401
 from .global_ import GlobalData, GlobalUser, UserGenshinData
-from .guild import GuildData
+from .guild import GuildConfiguration, GuildData
 from .misc import DictMixin  # noqa: F401
 from .private_voice import GuildPrivateVoice
 from .starboard import GuildStarboard, StarBoardBlackList  # noqa: F401

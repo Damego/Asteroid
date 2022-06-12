@@ -30,8 +30,13 @@ class GenshinStats(Cog):
 
     @Cog.listener()
     async def on_ready(self):
-        global_data = await self.bot.mongo.get_global_data()
-        self.cookies = global_data.genshin_cookies
+        if self.bot.database.global_data is None:
+            await self.bot.database.init_global_data()
+        if self.genshin_client is not None:
+            # on_ready was called in the runtime
+            return
+        global_data = self.bot.database.global_data
+        self.cookies = global_data.main.genshin_cookies
         self.genshin_client = genshin.GenshinClient(self.cookies)
 
         self.get_genshin_daily_reward.start()

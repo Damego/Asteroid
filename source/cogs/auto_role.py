@@ -150,8 +150,7 @@ class AutoRole(Cog):
         await guild_data.configuration.delete_on_join_role(int(role))
 
         content: dict = get_content("AUTOROLE_ON_JOIN", guild_data.configuration.language)
-        role = ctx.guild.get_role(int(role))
-        await ctx.send(content["ROLE_REMOVED_TEXT"].format(role=role.mention))
+        await ctx.send(content["ROLE_REMOVED_TEXT"].format(role="<@{role}>"))
 
     # SELECT ROLE
 
@@ -242,7 +241,12 @@ class AutoRole(Cog):
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
             ),
-            create_option(name="role", description="Role for option", option_type=8, required=True),
+            create_option(
+                name="role",
+                description="Role for option",
+                option_type=SlashCommandOptionType.ROLE,
+                required=True,
+            ),
             create_option(
                 name="emoji",
                 description="The emoji for option",
