@@ -753,7 +753,9 @@ class AutoRole(Cog):
         channel_id = autorole.channel_id
         channel: TextChannel = ctx.guild.get_channel(channel_id)
         try:
-            original_message: ComponentMessage = await channel.fetch_message(int(autorole.message_id))
+            original_message: ComponentMessage = await channel.fetch_message(
+                int(autorole.message_id)
+            )
         except Exception:
             raise errors.AutoRoleNotFound
         # if not original_message.components: # ? Why I write that?
