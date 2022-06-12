@@ -15,7 +15,7 @@ class GlobalRequest(GlobalBaseRequest):
         }
 
     async def _set_data_users(self, user_id: int, data: dict):
-        return await super()._update(
+        await super()._update(
             OperatorType.SET, GlobalCollectionType.USERS, str(user_id), data
         )
 
