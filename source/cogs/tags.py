@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from discord import Embed
 from discord_slash import (
     AutoCompleteContext,
@@ -24,15 +26,14 @@ class Tags(Cog):
 
     @Cog.listener(name="on_autocomplete")
     async def tag_autocomplete(self, ctx: AutoCompleteContext):
-        if ctx.name != "tag" and ctx.focused_option != "tag_name":
+        if ctx.name != "tag" and ctx.focused_option != "name":
             return
         choices = []
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        tags = guild_data.tags
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         choices = [
             create_choice(name=tag.name, value=tag.name)
-            for tag in tags
-            if tag.name.startswith(ctx.user_input)
+            for tag in guild_data.tags
+            if ctx.user_input in tag.name
         ][:25]
         await ctx.populate(choices)
 
@@ -43,7 +44,7 @@ class Tags(Cog):
         base_dm_permission=False,
         options=[
             create_option(
-                name="tag_name",
+                name="name",
                 description="The name of tag",
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
@@ -52,14 +53,12 @@ class Tags(Cog):
         ],
     )
     @is_enabled()
-    async def view_tag(self, ctx: SlashContext, tag_name: str):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        for tag in guild_data.tags:
-            if tag.name == tag_name:
-                break
-        else:
+    async def view_tag(self, ctx: SlashContext, name: str):
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        tag = guild_data.get_tag(name)
+        if tag is None:
             raise TagNotFound
-        if tag.is_embed is False:
+        if not tag.is_embed:
             return await ctx.send(tag.description)
 
         embed = Embed(
@@ -70,13 +69,15 @@ class Tags(Cog):
 
         await ctx.send(embed=embed)
 
+        await tag.modify(uses_count=tag.uses_count + 1)
+
     @slash_subcommand(
         base="tag",
         name="create",
         description="Create new tag",
         options=[
             create_option(
-                name="tag_name",
+                name="name",
                 description="The name of tag",
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
@@ -87,26 +88,26 @@ class Tags(Cog):
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
                 choices=[
-                    create_choice(name="Normal", value="Normal"),
+                    create_choice(name="Simple", value="Simple"),
                     create_choice(name="Embed", value="Embed"),
                 ],
             ),
         ],
     )
     @is_enabled()
-    async def create_new_tag(self, ctx: SlashContext, tag_name: str, type: str):
+    async def create_new_tag(self, ctx: SlashContext, name: str, type: str):
         await self._is_can_manage_tags(ctx)
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
 
         content = get_content("TAG_ADD_COMMAND", guild_data.configuration.language)
 
-        for tag in guild_data.tags:
-            if tag.name == tag_name:
-                return await ctx.send(content["TAG_ALREADY_EXISTS_TEXT"], hidden=True)
+        tag = guild_data.get_tag(name)
+        if tag is not None:
+            return await ctx.send(content["TAG_ALREADY_EXISTS_TEXT"], hidden=True)
 
         if type == "Embed":
             modal = Modal(
-                custom_id=f"modal_new_tag|embed|{tag_name}",
+                custom_id=f"modal_new_tag|embed|{name}",
                 title=content["MODAL_TITLE"],
                 components=[
                     TextInput(
@@ -126,7 +127,7 @@ class Tags(Cog):
             )
         elif type == "Normal":
             modal = Modal(
-                custom_id=f"modal_new_tag|normal|{tag_name}",
+                custom_id=f"modal_new_tag|normal|{name}",
                 title=content["MODAL_TITLE"],
                 components=[
                     TextInput(
@@ -145,7 +146,7 @@ class Tags(Cog):
         description="Edit a current tag",
         options=[
             create_option(
-                name="tag_name",
+                name="name",
                 description="The name of tag",
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
@@ -154,21 +155,18 @@ class Tags(Cog):
         ],
     )
     @is_enabled()
-    async def edit_tag(self, ctx: SlashContext, tag_name: str):
+    async def edit_tag(self, ctx: SlashContext, name: str):
         await self._is_can_manage_tags(ctx)
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-
-        for tag in guild_data.tags:
-            if tag.name == tag_name:
-                break
-        else:
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        tag = guild_data.get_tag(name)
+        if tag is None:
             raise TagNotFound
 
         content = get_content("TAG_ADD_COMMAND", guild_data.configuration.language)
 
         if tag.is_embed:
             modal = Modal(
-                custom_id=f"modal_edit_tag|embed|{tag_name}",
+                custom_id=f"modal_edit_tag|embed|{name}",
                 title=content["MODAL_TITLE"],
                 components=[
                     TextInput(
@@ -190,7 +188,7 @@ class Tags(Cog):
             )
         else:
             modal = Modal(
-                custom_id=f"modal_edit_tag|normal|{tag_name}",
+                custom_id=f"modal_edit_tag|normal|{name}",
                 title=content["MODAL_TITLE"],
                 components=[
                     TextInput(
@@ -210,29 +208,29 @@ class Tags(Cog):
         if not any(_id in ctx.custom_id for _id in ["modal_new_tag", "modal_edit_tag"]):
             return
 
-        custom_id, type, tag_name = ctx.custom_id.split("|")
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        custom_id, type, name = ctx.custom_id.split("|")
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("TAG_ADD_COMMAND", guild_data.configuration.language)
 
         if custom_id == "modal_new_tag":
             await self._is_can_manage_tags(ctx)
             await guild_data.add_tag(
-                name=tag_name,
+                name=name,
                 author_id=ctx.author_id,
+                title=ctx.values["title"] if type == "embed" else "No title",
                 description=ctx.values["description"],
                 is_embed=type == "embed",
-                title=ctx.values["title"] if type == "embed" else "No title",
+                created_at=int(datetime.utcnow().timestamp()),
             )
-            await ctx.send(content["TAG_CREATED_TEXT"].format(tag_name=tag_name), hidden=True)
+            await ctx.send(content["TAG_CREATED_TEXT"].format(tag_name=name), hidden=True)
         elif custom_id == "modal_edit_tag":
-            tag = None
-            for tag in guild_data.tags:
-                if tag.name == tag_name:
-                    break
-            if type == "embed":
-                await tag.set_title(ctx.values["title"])
-            await tag.set_description(ctx.values["description"])
-            await ctx.send(content["TAG_EDITED_TEXT"].format(tag_name=tag_name), hidden=True)
+            tag = guild_data.get_tag(name)
+            await tag.modify(
+                title=ctx.values["title"] if type == "embed" else None,
+                description=ctx.values["description"],
+                last_edited_at=int(datetime.utcnow().timestamp()),
+            )
+            await ctx.send(content["TAG_EDITED_TEXT"].format(tag_name=name), hidden=True)
 
     @slash_subcommand(
         base="tag",
@@ -240,7 +238,7 @@ class Tags(Cog):
         description="Removes tag",
         options=[
             create_option(
-                name="tag_name",
+                name="name",
                 description="The name of tag",
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
@@ -249,24 +247,22 @@ class Tags(Cog):
         ],
     )
     @is_enabled()
-    async def tag_remove(self, ctx: SlashContext, tag_name: str):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+    async def tag_remove(self, ctx: SlashContext, name: str):
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        tag = guild_data.get_tag(name)
 
-        for tag in guild_data.tags:
-            if tag.name == tag_name:
-                await guild_data.remove_tag(tag_name)
-                break
-        else:
+        if tag is None:
             raise TagNotFound
         await self._is_can_manage_tags(ctx, tag)
+        await guild_data.remove_tag(name)
 
         content = get_content("TAG_REMOVE_COMMAND", lang=guild_data.configuration.language)
-        await ctx.send(content["TAG_REMOVED_TEXT"].format(tag_name=tag_name))
+        await ctx.send(content["TAG_REMOVED_TEXT"].format(tag_name=name))
 
     @slash_subcommand(base="tag", name="list", description="Shows list of exists tags")
     @is_enabled()
     async def tag_list(self, ctx: SlashContext):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("FUNC_TAG_LIST", guild_data.configuration.language)
 
         description = ""
@@ -289,14 +285,14 @@ class Tags(Cog):
         description="Renames tag's name",
         options=[
             create_option(
-                name="tag_name",
+                name="name",
                 description="The name of tag",
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True,
             ),
             create_option(
-                name="new_tag_name",
+                name="new_name",
                 description="New name of tag",
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
@@ -304,23 +300,18 @@ class Tags(Cog):
         ],
     )
     @is_enabled()
-    async def rename(self, ctx: SlashContext, tag_name: str, new_tag_name: str):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+    async def rename(self, ctx: SlashContext, name: str, new_name: str):
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("TAG_RENAME_TAG", guild_data.configuration.language)
+        tag = guild_data.get_tag(name)
 
-        for tag in guild_data.tags:
-            if tag.name == tag_name:
-                await guild_data.remove_tag(tag_name)
-                break
-        else:
+        if tag is None:
             raise TagNotFound
 
         await self._is_can_manage_tags(ctx, tag)
 
-        await tag.rename(new_tag_name)
-        await ctx.send(
-            content["TAG_RENAMED_TEXT"].format(tag_name=tag_name, new_tag_name=new_tag_name)
-        )
+        await tag.modify(name=new_name)
+        await ctx.send(content["TAG_RENAMED_TEXT"].format(tag_name=name, new_tag_name=new_name))
 
     @slash_subcommand(
         base="tag",
@@ -328,7 +319,7 @@ class Tags(Cog):
         description="Show raw tag description",
         options=[
             create_option(
-                name="tag_name",
+                name="name",
                 description="The name of tag",
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
@@ -337,19 +328,43 @@ class Tags(Cog):
         ],
     )
     @is_enabled()
-    async def raw(self, ctx: SlashContext, tag_name: str):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        for tag in guild_data.tags:
-            if tag.name == tag_name:
-                await guild_data.remove_tag(tag_name)
-                break
-        else:
+    async def raw(self, ctx: SlashContext, name: str):
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        tag = guild_data.get_tag(name)
+        if tag is None:
             raise TagNotFound
 
-        await self._is_can_manage_tags(ctx, tag)
-
-        tag_content = tag.description
+        tag_content = tag.description.replace("`", "\`")  # noqa: W605
         await ctx.reply(f"```{tag_content}```")
+
+    @slash_subcommand(
+        base="tag",
+        name="info",
+        description="Show information about tag",
+        options=[
+            create_option(
+                name="name",
+                description="The name of tag",
+                option_type=SlashCommandOptionType.STRING,
+                required=True,
+                autocomplete=True,
+            )
+        ],
+    )
+    @is_enabled()
+    async def tag_info(self, ctx: SlashContext, name: str):
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        tag = guild_data.get_tag(name)
+        if tag is None:
+            raise TagNotFound
+
+        embed = Embed(title=tag.name, color=guild_data.configuration.embed_color)
+        embed.add_field(name="Author", value=f"<@{tag.author_id}>")
+        embed.add_field(name="Created at", value=f"<t:{tag.created_at}:R>")
+        if tag.last_edited_at is not None:
+            embed.add_field(name="Last edited at", value=f"<t:{tag.last_edited_at}:R>")
+        embed.add_field(name="Uses count", value=tag.uses_count)
+        await ctx.send(embed=embed)
 
     @slash_subcommand(
         base="tags",
@@ -374,8 +389,8 @@ class Tags(Cog):
     @is_administrator_or_bot_owner()
     async def allow_public_tags(self, ctx: SlashContext, status: str):
         status = status == "True"
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        await guild_data.set_cog_data("Tags", {"is_public": status})
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        await guild_data.modify_cog("Tags", is_public=status)
 
         content = get_content("PUBLIC_TAGS_COMMAND", guild_data.configuration.language)
         await ctx.send(content["TAGS_PUBLIC"] if status else content["TAGS_FOR_ADMINS"])
@@ -386,7 +401,7 @@ class Tags(Cog):
         if tag and tag.author_id != ctx.author_id:
             raise NotTagOwner
 
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         tags_data = guild_data.cogs_data.get("tags")
         if not tags_data or tags_data.get("is_public"):
             return

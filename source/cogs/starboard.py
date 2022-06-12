@@ -37,43 +37,35 @@ class StarBoard(Cog):
         if ctx.name != "starboard":
             return
 
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         starboard_data = guild_data.starboard
-        if not starboard_data:
-            return
         if starboard_data.blacklist is None:
-            return
+            return await ctx.populate([])
 
         if ctx.focused_option == "channel":
-            channel_ids = starboard_data.blacklist.get("channels")
-            if not channel_ids:
-                return
-            channels: List[TextChannel] = [
-                ctx.guild.get_channel(channel_id) for channel_id in channel_ids
-            ]
             choices = [
                 create_choice(name=channel.name, value=str(channel.id))
-                for channel in channels
+                for channel in [
+                    ctx.guild.get_channel(channel_id)
+                    for channel_id in starboard_data.blacklist.channels
+                ]
                 if channel.name.startswith(ctx.user_input)
             ][:25]
         elif ctx.focused_option == "member":
-            member_ids = starboard_data.blacklist.get("members")
-            if not member_ids:
-                return
-            members: List[Member] = [ctx.guild.get_member(member_id) for member_id in member_ids]
             choices = [
                 create_choice(name=member.display_name, value=str(member.id))
-                for member in members
+                for member in [
+                    ctx.guild.get_member(member_id)
+                    for member_id in starboard_data.blacklist.members
+                ]
                 if member.display_name.startswith(ctx.user_input)
             ][:25]
         elif ctx.focused_option == "role":
-            role_ids = starboard_data.blacklist.get("roles")
-            if not role_ids:
-                return
-            roles: List[Role] = [ctx.guild.get_role(role_id) for role_id in role_ids]
             choices = [
                 create_choice(name=role.name, value=str(role.id))
-                for role in roles
+                for role in [
+                    ctx.guild.get_role(role_id) for role_id in starboard_data.blacklist.roles
+                ]
                 if role.name.startswith(ctx.user_input)
             ][:25]
 
@@ -86,10 +78,8 @@ class StarBoard(Cog):
         if str(payload.emoji) != "⭐":
             return
 
-        guild_data = await self.bot.mongo.get_guild_data(payload.guild_id)
+        guild_data = await self.bot.get_guild_data(payload.guild_id)
         starboard_data = guild_data.starboard
-        if starboard_data is None:
-            return
         if not starboard_data.is_enabled:
             return
         if payload.channel_id == starboard_data.channel_id:
@@ -160,9 +150,9 @@ class StarBoard(Cog):
     ):
         if not starboard_data.blacklist:
             return False
-        blacklisted_channels = starboard_data.blacklist.get("channels", [])
-        blacklisted_roles = starboard_data.blacklist.get("roles", [])
-        blacklisted_members = starboard_data.blacklist.get("members", [])
+        blacklisted_channels = starboard_data.blacklist.channels
+        blacklisted_roles = starboard_data.blacklist.roles
+        blacklisted_members = starboard_data.blacklist.members
         member_roles = message.guild.get_member(payload.user_id).roles
         has_blacklisted_roles = [role for role in member_roles if role.id in blacklisted_roles]
         message_author_has_blacklisted_roles = [
@@ -235,19 +225,16 @@ class StarBoard(Cog):
     )
     @is_enabled()
     async def set_starboard_channel(self, ctx: SlashContext, channel: TextChannel):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
 
         try:
-            await channel.send("Test message to check permission. You can delete this.")
+            await channel.send("Test message to check permission.", delete_after=5)
         except Forbidden:
             return await ctx.send(
                 f"Bot doesn't have permission to send messages in {channel.mention}"
             )
 
-        if guild_data.starboard is None:
-            await guild_data.add_starboard(channel_id=channel.id, limit=3, is_enabled=True)
-        else:
-            await guild_data.starboard.set_channel_id(channel.id)
+        await guild_data.starboard.modify(channel_id=channel.id)
 
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
         await ctx.send(content["CHANNEL_WAS_SETUP_TEXT"])
@@ -269,11 +256,8 @@ class StarBoard(Cog):
     )
     @is_enabled()
     async def set_starboard_stars_limit(self, ctx: SlashContext, limit: int):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        if not guild_data.starboard:
-            await guild_data.add_starboard(limit=limit)
-        else:
-            await guild_data.starboard.set_limit(limit)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        await guild_data.starboard.modify(limit=limit)
 
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
         await ctx.send(content["LIMIT_WAS_SETUP_TEXT"].format(limit=limit))
@@ -298,13 +282,13 @@ class StarBoard(Cog):
     @is_enabled()
     async def set_starboard_status(self, ctx: SlashContext, status: str):
         status = status == "True"
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
         starboard_data = guild_data.starboard
-        if starboard_data is None or not starboard_data.channel_id or not starboard_data.limit:
+        if not starboard_data.channel_id or not starboard_data.limit:
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"])
-        await starboard_data.set_status(status)
+        await starboard_data.modify(is_enabled=status)
 
         await ctx.send(
             content["STARBOARD_ENABLED_TEXT"] if status else content["STARBOARD_DISABLED_TEXT"]
@@ -345,7 +329,7 @@ class StarBoard(Cog):
         role: Role = None,
         channel: TextChannel = None,
     ):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
         if not member and not role and not channel:
@@ -356,11 +340,11 @@ class StarBoard(Cog):
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"], hidden=True)
 
         blacklist = starboard_data.blacklist
-        if member and member.id not in blacklist.get("members", []):
+        if member and member.id not in blacklist.members:
             await starboard_data.add_member_to_blacklist(member.id)
-        if role and role.id not in blacklist.get("roles", []):
+        if role and role.id not in blacklist.roles:
             await starboard_data.add_role_to_blacklist(role.id)
-        if channel and channel.id not in blacklist.get("channels", []):
+        if channel and channel.id not in blacklist.channels:
             await starboard_data.add_channel_to_blacklist(channel.id)
 
         await ctx.send(content["BLACKLIST_ADDED_TEXT"], hidden=True)
@@ -402,24 +386,24 @@ class StarBoard(Cog):
         role: str = None,
         channel: str = None,
     ):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
         if not member and not role and not channel:
             return await ctx.send(content["BLACKLIST_NO_OPTIONS_TEXT"])
 
         starboard_data = guild_data.starboard
-        if starboard_data is None:
+        if not starboard_data.is_ready:
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"], hidden=True)
         if not starboard_data.blacklist:
             return await ctx.send(content["EMPTY_BLACKLIST_TEXT"], hidden=True)
 
         blacklist = starboard_data.blacklist
-        if member and int(member) in blacklist["members"]:
+        if member and int(member) in blacklist.members:
             await starboard_data.remove_member_from_blacklist(int(member))
-        if role and int(role) in blacklist["roles"]:
+        if role and int(role) in blacklist.roles:
             await starboard_data.remove_role_from_blacklist(int(role))
-        if channel and int(channel) in blacklist["channels"]:
+        if channel and int(channel) in blacklist.channels:
             await starboard_data.remove_channel_from_blacklist(int(channel))
 
         await ctx.send(content["BLACKLIST_REMOVED_TEXT"], hidden=True)
@@ -432,13 +416,17 @@ class StarBoard(Cog):
     )
     @is_enabled()
     async def starboard_blacklist_list(self, ctx: SlashContext, hidden: bool = False):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
         starboard_data = guild_data.starboard
-        if starboard_data is None:
+        if not starboard_data.is_ready:
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"], hidden=True)
-        if not starboard_data.blacklist:
+        blacklist = starboard_data.blacklist
+        blacklist_is_empty = (
+            not blacklist.roles and not blacklist.members and not blacklist.channels
+        )
+        if blacklist_is_empty:
             return await ctx.send(content["EMPTY_BLACKLIST_TEXT"], hidden=True)
 
         embed = Embed(
@@ -446,9 +434,9 @@ class StarBoard(Cog):
             color=guild_data.configuration.embed_color,
             timestamp=datetime.datetime.now(),
         )
-        members = starboard_data.blacklist.get("members")
-        channels = starboard_data.blacklist.get("channels")
-        roles = starboard_data.blacklist.get("roles")
+        members = starboard_data.blacklist.members
+        channels = starboard_data.blacklist.channels
+        roles = starboard_data.blacklist.roles
 
         if not members and not channels and not roles:
             return await ctx.send(content["EMPTY_BLACKLIST_TEXT"], hidden=True)

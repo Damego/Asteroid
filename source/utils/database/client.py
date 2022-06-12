@@ -17,7 +17,7 @@ class DataBaseClient:
         self.guilds: Dict[str, GuildData] = {}
         self.global_data: GlobalData = None
 
-    async def __init(self):
+    async def init_global_data(self):
         global_data_json = await self.request_client.global_.get_global_data_json()
         self.global_data = GlobalData(self.request_client, **global_data_json)
 

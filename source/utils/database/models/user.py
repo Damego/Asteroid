@@ -18,7 +18,7 @@ class BaseUser(DictMixin):
 
     def __init__(self, _request: RequestClient, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._request = _request
+        self._request = _request.user
         self.notes = [Note(**note) for note in kwargs.get("notes", [])]
         self.music_playlists = {
             name: tracks for name, tracks in kwargs.get("music_playlists", {}).items()
@@ -32,7 +32,7 @@ class BaseUser(DictMixin):
         await self._request.add_note(
             self.guild_id, self.id, name, content=content, created_at=created_at, jump_url=jump_url
         )
-        self._notes.append(
+        self.notes.append(
             Note(name=name, content=content, created_at=created_at, jump_url=jump_url)
         )
 

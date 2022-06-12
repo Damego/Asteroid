@@ -25,7 +25,12 @@ class GuildStarboard(DictMixin):
         super().__init__(**kwargs)
         self._request = _request.starboard
         self.guild_id = guild_id
+        self.messages = {} if self.messages is None else self.messages
         self.blacklist = StarBoardBlackList(**kwargs.get("blacklist", {}))
+
+    @property
+    def is_ready(self):
+        return self.channel_id is not None and self.limit is not None and self.is_enabled
 
     async def add_starboard_message(self, message_id: int, starboard_message_id: int):
         await self._request.add_message(self.guild_id, message_id, starboard_message_id)
