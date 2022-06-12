@@ -18,7 +18,7 @@ class GlobalRequest(GlobalBaseRequest):
         await super()._update(OperatorType.SET, GlobalCollectionType.USERS, str(user_id), data)
 
     async def _set_data_other(self, data: dict):
-        return await super()._update(
+        await super()._update(
             OperatorType.SET, GlobalCollectionType.OTHER, GlobalDocumentType.MAIN, data
         )
 
