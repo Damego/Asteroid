@@ -24,7 +24,7 @@ AFTER:
     "is_disabled": False
 }
 
-This can expand leveling and I can new stuff to leveling in the future.
+This can expand leveling and I can add new things to leveling in the future.
 """
 
 
