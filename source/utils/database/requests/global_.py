@@ -33,7 +33,7 @@ class GlobalRequest(GlobalBaseRequest):
 
     async def set_user_genshin_data(self, user_id: int, hoyolab_uid: int, game_uid: int):
         data = {"genshin": {"hoyolab_uid": hoyolab_uid, "game_uid": game_uid}}
-        return await self._set_data_users(user_id, data)
+        await self._set_data_users(user_id, data)
 
     async def set_genshin_cookies(self, cookies: dict):
         return await self._set_data_other({"genshin_cookies": cookies})
