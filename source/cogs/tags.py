@@ -28,7 +28,6 @@ class Tags(Cog):
     async def tag_autocomplete(self, ctx: AutoCompleteContext):
         if ctx.name != "tag" or ctx.focused_option != "name":
             return
-        choices = []
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         choices = [
             create_choice(name=tag.name, value=tag.name)
@@ -53,7 +52,7 @@ class Tags(Cog):
         ],
     )
     @is_enabled()
-    async def view_tag(self, ctx: SlashContext, name: str):
+    async def tag_view(self, ctx: SlashContext, name: str):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         tag = guild_data.get_tag(name)
         if tag is None:
@@ -95,7 +94,7 @@ class Tags(Cog):
         ],
     )
     @is_enabled()
-    async def create_new_tag(self, ctx: SlashContext, name: str, type: str):
+    async def tag_create(self, ctx: SlashContext, name: str, type: str):
         await self._is_can_manage_tags(ctx)
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
 
@@ -155,7 +154,7 @@ class Tags(Cog):
         ],
     )
     @is_enabled()
-    async def edit_tag(self, ctx: SlashContext, name: str):
+    async def tag_edit(self, ctx: SlashContext, name: str):
         await self._is_can_manage_tags(ctx)
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         tag = guild_data.get_tag(name)
@@ -300,7 +299,7 @@ class Tags(Cog):
         ],
     )
     @is_enabled()
-    async def rename(self, ctx: SlashContext, name: str, new_name: str):
+    async def tag_rename(self, ctx: SlashContext, name: str, new_name: str):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("TAG_RENAME_TAG", guild_data.configuration.language)
         tag = guild_data.get_tag(name)
@@ -328,7 +327,7 @@ class Tags(Cog):
         ],
     )
     @is_enabled()
-    async def raw(self, ctx: SlashContext, name: str):
+    async def tag_raw(self, ctx: SlashContext, name: str):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         tag = guild_data.get_tag(name)
         if tag is None:
@@ -387,7 +386,7 @@ class Tags(Cog):
     )
     @is_enabled()
     @is_administrator_or_bot_owner()
-    async def allow_public_tags(self, ctx: SlashContext, status: str):
+    async def tags_set__control(self, ctx: SlashContext, status: str):
         status = status == "True"
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         await guild_data.modify_cog("Tags", is_public=status)

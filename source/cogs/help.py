@@ -16,7 +16,7 @@ class Help(Cog):
         self.commands_cache: dict = None
 
     @slash_command(name="help", description="Help and bot commands", dm_permission=False)
-    async def help_command(self, ctx: SlashContext):
+    async def help(self, ctx: SlashContext):
         await ctx.defer()
 
         guild_data = await self.bot.get_guild_data(ctx.guild_id)

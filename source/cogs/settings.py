@@ -23,7 +23,7 @@ class Settings(Cog):
         base="staff", subcommand_group="ext", name="load", description="Load extension"
     )
     @is_owner()
-    async def _load_extension(self, ctx: SlashContext, extension):
+    async def staff_ext_load(self, ctx: SlashContext, extension):
         try:
             self.bot.load_extension(f"cogs.{extension}")
         except Exception as e:
@@ -42,7 +42,7 @@ class Settings(Cog):
         description="Unload extension",
     )
     @is_owner()
-    async def _unload_extension(self, ctx: SlashContext, extension):
+    async def staff_ext_unload(self, ctx: SlashContext, extension):
         try:
             self.bot.unload_extension(f"cogs.{extension}")
         except Exception:
@@ -57,7 +57,7 @@ class Settings(Cog):
         description="reload extension",
     )
     @is_owner()
-    async def _reload_extension(self, ctx: SlashContext, extension):
+    async def staff_ext_reload(self, ctx: SlashContext, extension):
         try:
             self.bot.reload_extension(f"cogs.{extension}")
             content = "Перезагружено!"
@@ -75,7 +75,7 @@ class Settings(Cog):
         description="Reload all extensions",
     )
     @is_owner()
-    async def _reload_all_extensions(self, ctx: SlashContext):
+    async def staff_ext_reload__all(self, ctx: SlashContext):
         extensions = self.bot.extensions
         extensions_amount = len(extensions)
         content = ""
@@ -93,7 +93,7 @@ class Settings(Cog):
 
     @slash_subcommand(base="staff", name="deploy", description="Deploy update from GIT")
     @is_owner()
-    async def git_pull_updates(self, ctx: SlashContext):
+    async def staff_deploy(self, ctx: SlashContext):
         await ctx.defer()
         preresult = await self.start_shell("git pull")
         result = "NO DATA" if preresult == "" else "\n".join(preresult)
@@ -112,7 +112,7 @@ class Settings(Cog):
 
     @slash_subcommand(base="staff", name="sync_commands")
     @is_owner()
-    async def sync_commands(self, ctx: SlashContext):
+    async def staff_sync__commands(self, ctx: SlashContext):
         await ctx.defer()
         try:
             await self.bot.slash.sync_all_commands()
@@ -127,7 +127,7 @@ class Settings(Cog):
         description="This command allows use shell. Only for Bot Owner",
     )
     @is_owner()
-    async def pip_manage(self, ctx: SlashContext, command: str):
+    async def staff_shell(self, ctx: SlashContext, command: str):
         await ctx.defer()
         response = await self.start_shell(command)
         format_response = "\n".join(response) if isinstance(response, list) else response
@@ -200,7 +200,7 @@ class Settings(Cog):
 
     @slash_subcommand(base="staff", name="reload_locales")
     @is_owner()
-    async def reload_locales(self, ctx: SlashContext):
+    async def staff_reload_locales(self, ctx: SlashContext):
         await ctx.defer(hidden=True)
         load_localization()
         await ctx.send("Локализация перезагружена", hidden=True)
@@ -210,7 +210,7 @@ class Settings(Cog):
         name="control",
     )
     @is_owner()
-    async def open_control_menu(self, ctx: SlashContext):
+    async def staff_control(self, ctx: SlashContext):
         components = [
             [
                 Button(

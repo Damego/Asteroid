@@ -69,7 +69,7 @@ class GenshinStats(Cog):
         base_dm_permission=False,
     )
     @is_enabled()
-    async def bind_uid(self, ctx: SlashContext, hoyolab_uid: int):
+    async def genshin_bind(self, ctx: SlashContext, hoyolab_uid: int):
         record_card = await self.genshin_client.get_record_card(hoyolab_uid)
         if not record_card.public or not record_card.has_uid:
             raise NoData
@@ -89,7 +89,7 @@ class GenshinStats(Cog):
         description="Show your statistics of Genshin Impact",
     )
     @is_enabled()
-    async def statistics(self, ctx: SlashContext, uid: int = None):
+    async def genshin_statistics(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
             uid = await self.get_uid(ctx)
@@ -146,7 +146,7 @@ class GenshinStats(Cog):
         description="Show your characters of Genshin Impact",
     )
     @is_enabled()
-    async def chars(self, ctx: SlashContext, uid: int = None):
+    async def genshin_characters(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
             uid = await self.get_uid(ctx)
@@ -173,7 +173,7 @@ class GenshinStats(Cog):
 
     @slash_subcommand(base="genshin", name="info", description="Show account information")
     @is_enabled()
-    async def info(self, ctx: SlashContext, hoyolab_uid: int = None):
+    async def genshin_info(self, ctx: SlashContext, hoyolab_uid: int = None):
         await ctx.defer()
         if hoyolab_uid is None:
             hoyolab_uid = await self.get_uid(ctx, is_game_uid=False)

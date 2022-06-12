@@ -18,7 +18,7 @@ class GuildStarboard(DictMixin):
     channel_id: int
     is_enabled: bool
     limit: int
-    messages: Dict[str, List[int]]
+    messages: Dict[str, Dict[str, int]]
     blacklist: "StarBoardBlackList"
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:

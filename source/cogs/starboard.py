@@ -224,7 +224,7 @@ class StarBoard(Cog):
         ],
     )
     @is_enabled()
-    async def set_starboard_channel(self, ctx: SlashContext, channel: TextChannel):
+    async def starboard_channel(self, ctx: SlashContext, channel: TextChannel):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
 
         try:
@@ -255,7 +255,7 @@ class StarBoard(Cog):
         ],
     )
     @is_enabled()
-    async def set_starboard_stars_limit(self, ctx: SlashContext, limit: int):
+    async def starboard_limit(self, ctx: SlashContext, limit: int):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         await guild_data.starboard.modify(limit=limit)
 
@@ -280,7 +280,7 @@ class StarBoard(Cog):
         ],
     )
     @is_enabled()
-    async def set_starboard_status(self, ctx: SlashContext, status: str):
+    async def starboard_status(self, ctx: SlashContext, status: str):
         status = status == "True"
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)

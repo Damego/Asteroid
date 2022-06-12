@@ -98,12 +98,12 @@ class Music(Cog):
         base="music", name="play", description="Start playing music", base_dm_permission=False
     )
     @is_enabled()
-    async def play_music(self, ctx: SlashContext, query: str):
+    async def music_play(self, ctx: SlashContext, query: str):
         await self._play_music(ctx, query)
 
     @slash_subcommand(base="music", name="stop", description="Stop playing music")
     @is_enabled()
-    async def stop_music(self, ctx: SlashContext):
+    async def music_stop(self, ctx: SlashContext):
         await ctx.defer()
 
         player = self.bot.lavalink.player_manager.get(ctx.guild_id)
@@ -119,7 +119,7 @@ class Music(Cog):
 
     @slash_subcommand(base="music", name="pause", description="Pause playing music")
     @is_enabled()
-    async def pause_music(self, ctx: SlashContext):
+    async def music_pause(self, ctx: SlashContext):
         await ctx.defer()
 
         player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild_id)
@@ -134,7 +134,7 @@ class Music(Cog):
 
     @slash_subcommand(base="music", name="resume", description="Resume playing music")
     @is_enabled()
-    async def resume_music(self, ctx: SlashContext):
+    async def music_resume(self, ctx: SlashContext):
         await ctx.defer()
 
         player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild_id)
@@ -149,7 +149,7 @@ class Music(Cog):
 
     @slash_subcommand(base="music", name="repeat", description="Toggle music repeat")
     @is_enabled()
-    async def repeat_music(self, ctx: SlashContext):
+    async def music_repeat(self, ctx: SlashContext):
         await ctx.defer()
 
         player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild_id)
@@ -167,7 +167,7 @@ class Music(Cog):
 
     @slash_subcommand(base="music", name="skip", description="Skip music")
     @is_enabled()
-    async def skip_music(self, ctx: SlashContext):
+    async def music_skip(self, ctx: SlashContext):
         await ctx.defer()
 
         player: lavalink.DefaultPlayer = self.bot.lavalink.player_manager.get(ctx.guild_id)
@@ -189,7 +189,7 @@ class Music(Cog):
         description="Show current queue",
     )
     @is_enabled()
-    async def show_queue_musis(self, ctx: SlashContext):
+    async def music_queue(self, ctx: SlashContext):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
 
@@ -306,7 +306,7 @@ class Music(Cog):
         ],
     )
     @is_enabled()
-    async def music_add_to_playlist(
+    async def music_playlist_add__track(
         self, ctx: SlashContext, playlist: str, query: str = None, hidden: bool = False
     ):
         if not query:
@@ -355,7 +355,7 @@ class Music(Cog):
         ],
     )
     @is_enabled()
-    async def music_delete_from_playlist(self, ctx: SlashContext, playlist: str, name: str):
+    async def music_playlist_delete__track(self, ctx: SlashContext, playlist: str, name: str):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         if playlist.endswith("GLOBAL"):
@@ -392,7 +392,7 @@ class Music(Cog):
         ],
     )
     @is_enabled()
-    async def music_play_playlist(self, ctx: SlashContext, playlist: str):
+    async def music_playlist_play(self, ctx: SlashContext, playlist: str):
         if playlist.endswith("GLOBAL"):
             data = self.bot.database.global_data
         else:
@@ -430,7 +430,7 @@ class Music(Cog):
         ],
     )
     @is_enabled()
-    async def show_user_playlist(self, ctx: SlashContext, playlist: str, hidden: bool = True):
+    async def music_playlist_info(self, ctx: SlashContext, playlist: str, hidden: bool = True):
         await ctx.defer(hidden=hidden)
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         if playlist.endswith("GLOBAL"):
@@ -487,7 +487,7 @@ class Music(Cog):
         ],
     )
     @is_enabled()
-    async def copy_member_playlist(
+    async def music_playlist_copy(
         self, ctx: SlashContext, member: Member, member_playlist: str, playlist: str
     ):
         await ctx.defer(hidden=True)
@@ -526,7 +526,7 @@ class Music(Cog):
         ],
     )
     @is_enabled()
-    async def delete_user_playlist(self, ctx: SlashContext, playlist: str):
+    async def music_playlist_delete(self, ctx: SlashContext, playlist: str):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         if playlist.endswith("GLOBAL"):
@@ -548,7 +548,8 @@ class Music(Cog):
 
         await user_data.remove_playlist(playlist)
 
-    def __can_connect(self, ctx: SlashContext):
+    @staticmethod
+    def __can_connect(ctx: SlashContext):
         bot_user: Member = ctx.guild.me
         if bot_user.guild_permissions.administrator:
             return True
@@ -592,7 +593,8 @@ class Music(Cog):
             await self._send_message(ctx, tracks[0], content)
             await player.play()
 
-    async def __get_tracks(self, ctx: SlashContext, player, query: str):
+    @staticmethod
+    async def __get_tracks(ctx: SlashContext, player, query: str):
         tracks = track = None
 
         if not url_rx.match(query):
@@ -665,7 +667,8 @@ class Music(Cog):
 
         return embed
 
-    def _get_track_duration(self, track: Union[lavalink.AudioTrack, int]):
+    @staticmethod
+    def _get_track_duration(track: Union[lavalink.AudioTrack, int]):
         if isinstance(track, lavalink.AudioTrack):
             original_duration = track.duration // 1000
         else:
@@ -676,7 +679,8 @@ class Music(Cog):
         duration_seconds = original_duration % 60
         return f"{duration_hours:02}:{duration_minutes:02}:{duration_seconds:02}"
 
-    def __check_music_status(self, ctx: SlashContext, player: lavalink.DefaultPlayer):
+    @staticmethod
+    def __check_music_status(ctx: SlashContext, player: lavalink.DefaultPlayer):
         if player is None:
             raise BotNotConnectedToVoice
         if not player.is_connected:

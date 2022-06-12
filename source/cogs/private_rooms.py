@@ -59,7 +59,7 @@ class PrivateRooms(Cog):
     )
     @is_enabled()
     @bot_has_guild_permissions(manage_channels=True)
-    async def room_control_close(self, ctx: SlashContext):
+    async def private__rooms_control_close(self, ctx: SlashContext):
         voice_channel, content = await self.__check(ctx)
 
         await voice_channel.set_permissions(ctx.guild.default_role, connect=False)
@@ -73,7 +73,7 @@ class PrivateRooms(Cog):
     )
     @is_enabled()
     @bot_has_guild_permissions(manage_channels=True)
-    async def room_control_open(self, ctx: SlashContext):
+    async def private__rooms_control_open(self, ctx: SlashContext):
         voice_channel, content = await self.__check(ctx)
 
         await voice_channel.set_permissions(ctx.guild.default_role, connect=True)
@@ -87,7 +87,7 @@ class PrivateRooms(Cog):
     )
     @is_enabled()
     @bot_has_guild_permissions(manage_channels=True)
-    async def room_control_hide(self, ctx: SlashContext):
+    async def private__rooms_control_hide(self, ctx: SlashContext):
         voice_channel, content = await self.__check(ctx)
 
         await voice_channel.set_permissions(ctx.guild.default_role, view_channel=False)
@@ -101,7 +101,7 @@ class PrivateRooms(Cog):
     )
     @is_enabled()
     @bot_has_guild_permissions(manage_channels=True)
-    async def room_control_unhide(self, ctx: SlashContext):
+    async def private__rooms_control_unhide(self, ctx: SlashContext):
         voice_channel, content = await self.__check(ctx)
 
         await voice_channel.set_permissions(ctx.guild.default_role, view_channel=True)
@@ -115,7 +115,7 @@ class PrivateRooms(Cog):
     )
     @is_enabled()
     @bot_has_guild_permissions(manage_channels=True)
-    async def room_control_change_name(self, ctx: SlashContext, name: str):
+    async def private__rooms_control_change__name(self, ctx: SlashContext, name: str):
         voice_channel, content = await self.__check(ctx)
 
         await voice_channel.edit(name=name)
@@ -129,7 +129,7 @@ class PrivateRooms(Cog):
     )
     @is_enabled()
     @bot_has_guild_permissions(move_members=True, manage_channels=True)
-    async def room_control_ban_member(self, ctx: SlashContext, member: Member):
+    async def private__rooms_control_ban(self, ctx: SlashContext, member: Member):
         voice_channel, content = await self.__check(ctx)
 
         await voice_channel.set_permissions(member, connect=False)
@@ -145,7 +145,7 @@ class PrivateRooms(Cog):
     )
     @is_enabled()
     @bot_has_guild_permissions(manage_channels=True)
-    async def room_control_unban_member(self, ctx: SlashContext, member: Member):
+    async def private__rooms_control_unban(self, ctx: SlashContext, member: Member):
         voice_channel, content = await self.__check(ctx)
 
         await voice_channel.set_permissions(member, connect=True)
@@ -159,7 +159,7 @@ class PrivateRooms(Cog):
     )
     @is_enabled()
     @bot_has_guild_permissions(move_members=True, manage_channels=True)
-    async def room_control_kick(self, ctx: SlashContext, member: Member):
+    async def private__rooms_control_kick(self, ctx: SlashContext, member: Member):
         voice_channel, content = await self.__check(ctx)
 
         if member.voice and member.voice.channel.id == voice_channel.id:
@@ -174,7 +174,7 @@ class PrivateRooms(Cog):
     )
     @is_enabled()
     @bot_has_guild_permissions(manage_channels=True)
-    async def room_control_transfer_ownership(self, ctx: SlashContext, member: Member):
+    async def private__rooms_control_transfer__ownership(self, ctx: SlashContext, member: Member):
         voice_channel, content, guild_data = await self.__check(ctx, return_guild_data=True)
 
         await guild_data.private_voice.set_private_voice_channel(member.id, voice_channel.id)
@@ -203,7 +203,7 @@ class PrivateRooms(Cog):
     )
     @is_enabled()
     @bot_has_guild_permissions(manage_channels=True)
-    async def room_control_set_limit(self, ctx: SlashContext, limit: int):
+    async def private__rooms_control_set__limit(self, ctx: SlashContext, limit: int):
         voice_channel, content = await self.__check(ctx)
 
         await voice_channel.edit(user_limit=limit)
@@ -217,7 +217,7 @@ class PrivateRooms(Cog):
     @is_enabled()
     @bot_has_guild_permissions(move_members=True, manage_channels=True)
     @bot_owner_or_permissions(manage_guild=True)
-    async def private_voice_create_menu(self, ctx: SlashContext):
+    async def private__rooms_create__menu(self, ctx: SlashContext):
         await ctx.defer(hidden=True)
 
         guild_data = await self.bot.get_guild_data(ctx.guild_id)

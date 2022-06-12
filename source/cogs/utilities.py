@@ -63,7 +63,7 @@ class Utilities(Cog):
         base_default_member_permissions=Permissions.MANAGE_GUILD,
     )
     @bot_owner_or_permissions(manage_guild=True)
-    async def disable_cmd(self, ctx: SlashContext, command_name: str):
+    async def command_disable(self, ctx: SlashContext, command_name: str):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         await guild_data.configuration.add_disabled_command(command_name)
 
@@ -85,7 +85,7 @@ class Utilities(Cog):
         ],
     )
     @bot_owner_or_permissions(manage_guild=True)
-    async def enable_cmd(self, ctx: SlashContext, command_name: str):
+    async def command_enable(self, ctx: SlashContext, command_name: str):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         await guild_data.configuration.remove_disabled_command(command_name)
 
@@ -99,7 +99,7 @@ class Utilities(Cog):
         base_dm_permission=False,
     )
     @is_enabled()
-    async def create_note(self, ctx: SlashContext, is_global: bool = False):
+    async def note_new(self, ctx: SlashContext, is_global: bool = False):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
         modal = Modal(
@@ -206,7 +206,7 @@ class Utilities(Cog):
         ],
     )
     @is_enabled()
-    async def delete_note(self, ctx: SlashContext, name: str):
+    async def note_delete(self, ctx: SlashContext, name: str):
         await ctx.defer(hidden=True)
         user_guild_data, user_global_data, guild_data = await self.__get_user_datas(
             ctx.guild_id, ctx.author_id, return_guild_data=True
@@ -226,7 +226,7 @@ class Utilities(Cog):
 
     @slash_subcommand(base="note", name="list", description="Show your notes")
     @is_enabled()
-    async def notes_list(self, ctx: SlashContext, hidden: bool = True):
+    async def note_list(self, ctx: SlashContext, hidden: bool = True):
         await ctx.defer(hidden=hidden)
         user_guild_data, user_global_data, guild_data = await self.__get_user_datas(
             ctx.guild_id, ctx.author_id, return_guild_data=True
@@ -267,7 +267,7 @@ class Utilities(Cog):
         base_dm_permission=False,
     )
     @is_enabled()
-    async def global_music_playlist(self, ctx: SlashContext, playlist: str):
+    async def global_music__playlist(self, ctx: SlashContext, playlist: str):
         await ctx.defer(hidden=True)
         user_guild_data, user_global_data = await self.__get_user_datas(ctx.guild_id, ctx.author_id)
         if playlist not in user_guild_data.music_playlists:
@@ -279,7 +279,7 @@ class Utilities(Cog):
 
     @slash_command(
         name="language",
-        description="Changes bot's language on your server.",
+        description="Set language for bot on your server.",
         options=[
             create_option(
                 name="language",
@@ -296,7 +296,7 @@ class Utilities(Cog):
     )
     @bot_owner_or_permissions(manage_roles=True)
     @is_enabled()
-    async def set_bot_language(self, ctx: SlashContext, language: str):
+    async def language(self, ctx: SlashContext, language: str):
         await ctx.defer()
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         await guild_data.configuration.set_language(language)
@@ -311,7 +311,7 @@ class Utilities(Cog):
     )
     @bot_owner_or_permissions(manage_roles=True)
     @is_enabled()
-    async def set_embed_color(self, ctx: SlashContext, color: str):
+    async def embed_color(self, ctx: SlashContext, color: str):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("SET_EMBED_COLOR_COMMAND", guild_data.configuration.language)
         if not regex.fullmatch(color):
@@ -327,7 +327,7 @@ class Utilities(Cog):
         description="Sends a issue to owner",
         dm_permission=False,
     )
-    async def open_modal_bug(self, ctx: SlashContext):
+    async def bug(self, ctx: SlashContext):
         modal = Modal(
             custom_id="issue_modal",
             title="Issue menu",
