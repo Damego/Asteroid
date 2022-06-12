@@ -6,7 +6,7 @@ class AutoRoleRequest(BaseRequest):
     def __init__(self, _client) -> None:
         super().__init__(_client)
 
-    async def _update(type: OperatorType, guild_id: int, data: dict):
+    async def _update(self, type: OperatorType, guild_id: int, data: dict):
         await super()._update(
             type, CollectionType.CONFIGURATION, guild_id, DocumentType.AUTOROLE, data
         )
@@ -47,20 +47,20 @@ class AutoRoleRequest(BaseRequest):
         autorole_type: str = None,
         component: dict = None,
     ):
-        id = {"_id": DocumentType.AUTOROLE.value, "autorole.name": current_name}
+        id = {"_id": DocumentType.AUTOROLE.value, "autoroles.name": current_name}
         data = {}
         if name is not None:
-            data["autorole.$.name"] = name
+            data["autoroles.$.name"] = name
         if channel_id is not None:
-            data["autorole.$.channel_id"] = channel_id
+            data["autoroles.$.channel_id"] = channel_id
         if content is not None:
-            data["autorole.$.content"] = content
+            data["autoroles.$.content"] = content
         if message_id is not None:
-            data["autorole.$.message_id"] = message_id
+            data["autoroles.$.message_id"] = message_id
         if autorole_type is not None:
-            data["autorole.$.autorole_type"] = autorole_type
+            data["autoroles.$.autorole_type"] = autorole_type
         if component is not None:
-            data["autorole.$.component"] = component
+            data["autoroles.$.component"] = component
 
         await super()._advanced_update(
             OperatorType.SET, CollectionType.CONFIGURATION, guild_id, id, data

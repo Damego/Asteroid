@@ -18,13 +18,17 @@ class GlobalData:
             if document["_id"] == "main":
                 self.main = MainData(**document)
 
-    async def add_user(self, user_id: int):
+    async def set_fmtm_chapter(self, chapter: str):
+        await self._request.global_.set_fmtm_chapter(chapter)
+        self.main.fly_me_to_the_moon_chapter = chapter
+
+    async def add_user(self, user_id: int) -> "GlobalUser":
         await self._request.global_.add_user(user_id)
-        user = GlobalUser(self._request, {"_id": user_id})
+        user = GlobalUser(self._request, **{"_id": user_id})
         self.users.append(user)
         return user
 
-    async def get_user(self, user_id: int):
+    async def get_user(self, user_id: int) -> "GlobalUser":
         for user in self.users:
             if user.id == user_id:
                 return user

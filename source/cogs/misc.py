@@ -145,7 +145,7 @@ class Misc(Cog):
 
     async def _get_levels_info(self, ctx: SlashContext, user_id: int, embed: Embed, content: dict):
         content = content["LEVELING"]
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         user_data = await guild_data.get_user(user_id)
         user_level = user_data.level
         xp_to_next_level = formula_of_experience(user_level)
@@ -225,7 +225,7 @@ class Misc(Cog):
     )
     @is_enabled()
     async def ping(self, ctx: SlashContext):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("FUNC_PING", lang=guild_data.configuration.language)
 
         embed = Embed(

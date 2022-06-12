@@ -210,7 +210,7 @@ class StarBoard(Cog):
     @slash_subcommand(
         base="starboard",
         name="channel",
-        description="Starboard channel setting",
+        description="Sets channel for starboard",
         base_dm_permission=False,
         base_default_member_permissions=Permissions.MANAGE_GUILD,
         options=[
@@ -286,7 +286,7 @@ class StarBoard(Cog):
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
         starboard_data = guild_data.starboard
-        if not starboard_data.channel_id or not starboard_data.limit:
+        if not starboard_data.is_ready:
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"])
         await starboard_data.modify(is_enabled=status)
 
@@ -336,7 +336,7 @@ class StarBoard(Cog):
             return await ctx.send(content["BLACKLIST_NO_OPTIONS_TEXT"], hidden=True)
 
         starboard_data = guild_data.starboard
-        if starboard_data is None:
+        if not starboard_data.is_ready:
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"], hidden=True)
 
         blacklist = starboard_data.blacklist
@@ -395,7 +395,7 @@ class StarBoard(Cog):
         starboard_data = guild_data.starboard
         if not starboard_data.is_ready:
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"], hidden=True)
-        if not starboard_data.blacklist:
+        if starboard_data.blacklist.is_empty:
             return await ctx.send(content["EMPTY_BLACKLIST_TEXT"], hidden=True)
 
         blacklist = starboard_data.blacklist
@@ -411,11 +411,11 @@ class StarBoard(Cog):
     @slash_subcommand(
         base="starboard",
         subcommand_group="blacklist",
-        name="list",
+        name="view",
         description="Shows starboard blacklist",
     )
     @is_enabled()
-    async def starboard_blacklist_list(self, ctx: SlashContext, hidden: bool = False):
+    async def starboard_blacklist_view(self, ctx: SlashContext, hidden: bool = False):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
@@ -423,10 +423,7 @@ class StarBoard(Cog):
         if not starboard_data.is_ready:
             return await ctx.send(content["STARBOARD_NOT_SETUP_TEXT"], hidden=True)
         blacklist = starboard_data.blacklist
-        blacklist_is_empty = (
-            not blacklist.roles and not blacklist.members and not blacklist.channels
-        )
-        if blacklist_is_empty:
+        if blacklist.is_empty:
             return await ctx.send(content["EMPTY_BLACKLIST_TEXT"], hidden=True)
 
         embed = Embed(
@@ -438,7 +435,7 @@ class StarBoard(Cog):
         channels = starboard_data.blacklist.channels
         roles = starboard_data.blacklist.roles
 
-        if not members and not channels and not roles:
+        if starboard_data.blacklist.is_empty:
             return await ctx.send(content["EMPTY_BLACKLIST_TEXT"], hidden=True)
         if members:
             embed.add_field(

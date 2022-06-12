@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Union
 
+import lavalink
 from aiohttp import ClientSession
 from discord import Intents
 from discord.ext.commands import Bot
@@ -16,8 +17,9 @@ class AsteroidBot(Bot):
         super().__init__(command_prefix="asteroid!", intents=Intents.all())
         self.is_debug_mode = is_debug_mode
         self.__default_invite_link = None
-        self.database = DataBaseClient(mongodb_token)
+        self.database: DataBaseClient = DataBaseClient(mongodb_token)
         self.slash = SlashCommand(self, sync_commands=False, sync_on_cog_reload=False)
+        self.lavalink: lavalink.Client = None
 
         today = datetime.now(timezone.utc)
         delta_7 = today - timedelta(days=7)
@@ -49,7 +51,7 @@ class AsteroidBot(Bot):
     async def get_guild_data(self, guild_id: int) -> GuildData:
         return await self.database.get_guild_data(guild_id)
 
-    async def get_embed_color(self, guild_id: int):
+    async def get_embed_color(self, guild_id: int) -> int:
         guild_data = await self.database.get_guild_data(guild_id)
         color = guild_data.configuration.embed_color
         if isinstance(color, int):
@@ -57,7 +59,7 @@ class AsteroidBot(Bot):
         elif isinstance(color, str):
             return int(color, 16)
 
-    async def get_guild_bot_lang(self, guild_id):
+    async def get_guild_bot_lang(self, guild_id) -> str:
         guild_data = await self.database.get_guild_data(guild_id)
         return guild_data.configuration.language
 

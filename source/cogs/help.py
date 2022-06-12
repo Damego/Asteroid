@@ -19,7 +19,7 @@ class Help(Cog):
     async def help_command(self, ctx: SlashContext):
         await ctx.defer()
 
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("HELP_COMMAND", guild_data.configuration.language)
         components = self._init_components(guild_data, content)
         embeds = self._init_embeds(ctx, guild_data, content)
@@ -35,9 +35,8 @@ class Help(Cog):
                 )
             except TimeoutError:
                 with contextlib.suppress(Forbidden, HTTPException):
-                    return await message.edit(components=[])
-            except Exception as e:  # noqa: F841
-                raise
+                    await message.edit(components=[])
+                return
 
             value = button_ctx.values[0]
 
@@ -48,7 +47,7 @@ class Help(Cog):
                     if embed.custom_id == value:
                         break
 
-            for option in components[0][0].options:
+            for option in components[0].options:
                 option.default = False
                 if option.value == value:
                     option.default = True
@@ -100,7 +99,7 @@ class Help(Cog):
                 title=f"{cog_translations[cog_name.upper()]} | Asteroid Bot",
                 description="",
                 timestamp=datetime.datetime.utcnow(),
-                color=DiscordColors.EMBED_COLOR,
+                color=guild_data.configuration.embed_color,
             )
             embed.set_footer(
                 text=content["REQUIRED_BY_TEXT"].format(user=ctx.author),

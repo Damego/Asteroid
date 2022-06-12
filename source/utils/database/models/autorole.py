@@ -1,3 +1,5 @@
+from typing import List
+
 from ..requests import RequestClient
 from .misc import DictMixin
 
@@ -11,15 +13,15 @@ class GuildAutoRole(DictMixin):
         "channel_id",
         "content",
         "message_id",
-        "type",
+        "autorole_type",
         "component",
     )
     name: str
     channel_id: int
     content: str
     message_id: int
-    type: str
-    component: dict
+    autorole_type: str
+    component: List[dict]
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -37,7 +39,7 @@ class GuildAutoRole(DictMixin):
         content: str
         message_id: int
         autorole_type: str
-        component: dict
+        component: List[dict]
         """
         await self._request.modify(self.guild_id, self.name, **kwargs)
         for kwarg, value in kwargs.items():

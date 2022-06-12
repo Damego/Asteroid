@@ -40,9 +40,7 @@ class PrivateRooms(Cog):
     async def __check(
         self, ctx: SlashContext, *, return_guild_data: bool = False
     ) -> Union[Tuple[VoiceChannel, dict], Tuple[VoiceChannel, dict, GuildData]]:
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        if not guild_data.private_voice:
-            raise PrivateVoiceNotSetup
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
@@ -222,7 +220,7 @@ class PrivateRooms(Cog):
     async def private_voice_create_menu(self, ctx: SlashContext):
         await ctx.defer(hidden=True)
 
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         components = [
             [
@@ -269,9 +267,7 @@ class PrivateRooms(Cog):
     @Cog.listener()
     @cog_is_enabled()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
-        guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
-        if not guild_data.private_voice:
-            return
+        guild_data = await self.bot.get_guild_data(member.guild.id)
         private_voice = guild_data.private_voice
         voice_channel_id = private_voice.voice_channel_id
         if after.channel and after.channel.id == voice_channel_id:
@@ -320,9 +316,7 @@ class PrivateRooms(Cog):
         if not ctx.custom_id.startswith("voice"):
             return
 
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        if not guild_data.private_voice:
-            raise PrivateVoiceNotSetup
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
@@ -388,9 +382,7 @@ class PrivateRooms(Cog):
         if not ctx.custom_id.startswith("voice"):
             return
 
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        if not guild_data.private_voice:
-            raise PrivateVoiceNotSetup
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         active_channels = guild_data.private_voice.active_channels
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if str(ctx.author_id) not in active_channels:
@@ -409,7 +401,7 @@ class PrivateRooms(Cog):
 
         await ctx.defer(hidden=True)
 
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         voice_channel_id = guild_data.private_voice.active_channels.get(str(ctx.author_id))
         content = get_content("PRIVATE_VOICE", guild_data.configuration.language)
         if voice_channel_id is None:

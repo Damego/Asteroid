@@ -32,7 +32,7 @@ class LevelRolesRequest(BaseRequest):
     def __init__(self, _client) -> None:
         super().__init__(_client)
 
-    async def _update(type: OperatorType, guild_id: int, data: dict):
+    async def _update(self, type: OperatorType, guild_id: int, data: dict):
         await super()._update(
             type, CollectionType.CONFIGURATION, guild_id, DocumentType.ROLES_BY_LEVEL, data
         )

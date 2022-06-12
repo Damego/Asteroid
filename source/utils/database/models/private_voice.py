@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict
 
 from ..requests import RequestClient
 from .misc import DictMixin
@@ -15,12 +15,13 @@ class GuildPrivateVoice(DictMixin):
     )
     text_channel_id: int
     voice_channel_id: int
-    active_channels: List[int]
+    active_channels: Dict[str, int]
 
     def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
         super().__init__(**kwargs)
         self._request = _request.private_voice
         self.guild_id = guild_id
+        self.active_channels = self.active_channels if self.active_channels is not None else {}
 
     async def set_text_channel(self, channel_id: int):
         await self._request.set_text_channel(self.guild_id, channel_id)

@@ -454,7 +454,8 @@
 		"ROLES": "Роли"
 	},
 	"AUTOROLE_BASE": {
-		"SUCCESSFULLY_COPIED": "Автороль успешно скопирована!"
+		"SUCCESSFULLY_COPIED": "Автороль успешно скопирована!",
+		"AUTOROLE_DELETED": "Автороль удалена!"
 	},
 	"AUTOROLE_DROPDOWN": {
 		"ADDED_ROLES_TEXT": "Добавлено: ",

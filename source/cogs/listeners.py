@@ -27,7 +27,6 @@ class Listeners(Cog):
     def __init__(self, bot: AsteroidBot):
         self.bot = bot
         self.hidden = True
-
         self.slash_use_channel: TextChannel = None
 
     # EVENTS
@@ -42,11 +41,11 @@ class Listeners(Cog):
 
     @Cog.listener()
     async def on_guild_join(self, guild: Guild):
-        await self.bot.mongo.add_guild(guild.id)
+        await self.bot.database.add_guild(guild.id)
 
     @Cog.listener()
     async def on_guild_remove(self, guild: Guild):
-        await self.bot.mongo.delete_guild(guild.id)
+        await self.bot.database.delete_guild(guild.id)
 
     @Cog.listener()
     async def on_slash_command(self, ctx: SlashContext):

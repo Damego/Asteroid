@@ -1,8 +1,6 @@
-import logging
 from time import time
-from typing import Dict, List
+from typing import Dict, List, Union
 
-from ..errors import DuplicateKey
 from ..requests import RequestClient
 from .autorole import GuildAutoRole
 from .configuration import GuildConfiguration
@@ -31,9 +29,9 @@ class GuildData:
     private_voice: GuildPrivateVoice
     starboard: GuildStarboard
     tags: List[GuildTag]
-    cogs_data: Dict[str, Dict[str, str]]
+    cogs_data: Dict[str, Dict[str, Union[bool, str]]]
     autoroles: List[GuildAutoRole]
-    roles_by_level: Dict[str, str]
+    roles_by_level: Dict[str, int]
     users_voice_time: Dict[str, int]
     users: List[GuildUser]
 
@@ -79,11 +77,11 @@ class GuildData:
             self.tags = []
         if getattr(self, "cogs_data", None) is None:
             self.cogs_data = {}
-        if getattr(self, "autorole", None) is None:
+        if getattr(self, "autoroles", None) is None:
             self.autoroles = []
         if getattr(self, "roles_by_level", None) is None:
             self.roles_by_level = {}
-        if getattr(self, "voice_time", None) is None:
+        if getattr(self, "users_voice_time", None) is None:
             self.users_voice_time = {}
         if getattr(self, "private_voice", None) is None:
             self.private_voice = GuildPrivateVoice(self._request, self.guild_id)
@@ -109,7 +107,7 @@ class GuildData:
             if not level.get("disabled", False):
                 data |= {"leveling": {"role": self.configuration.start_level_role}, "voice_time": 0}
         await self._request.user.add_user(self.guild_id, data=data)
-        user = GuildUser(self._users_collection, **data)
+        user = GuildUser(self._request, self.guild_id, **data)
         self.users.append(user)
         return user
 
@@ -129,6 +127,7 @@ class GuildData:
 
     async def add_autorole(
         self,
+        *,
         name: str,
         channel_id: int,
         content: str,
@@ -150,7 +149,7 @@ class GuildData:
         }
 
         await self._request.autorole.add(self.guild_id, **data)
-        self.autoroles.append(GuildAutoRole(self._request, **data))
+        self.autoroles.append(GuildAutoRole(self._request, self.guild_id, **data))
 
     def get_autorole(self, name: str):
         for autorole in self.autoroles:

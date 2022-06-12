@@ -62,8 +62,8 @@ class BaseRequest:
         else:
             raise
 
-        return await self._client[str(guild_id)][collection_type.value].find_one_and_update(
-            _id, {operator_type.value: data}, return_document=ReturnDocument.AFTER, upsert=True
+        await self._client[str(guild_id)][collection_type.value].update_one(
+            _id, {operator_type.value: data}, upsert=True
         )
 
 
@@ -112,6 +112,6 @@ class GlobalBaseRequest(BaseRequest):
         else:
             raise
 
-        return await self._client[collection_type.value].find_one_and_update(
-            _id, {operator_type.value: data}, return_document=ReturnDocument.AFTER, upsert=True
+        await self._client[collection_type.value].update_one(
+            _id, {operator_type.value: data}, upsert=True
         )

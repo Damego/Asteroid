@@ -26,7 +26,7 @@ class Tags(Cog):
 
     @Cog.listener(name="on_autocomplete")
     async def tag_autocomplete(self, ctx: AutoCompleteContext):
-        if ctx.name != "tag" and ctx.focused_option != "name":
+        if ctx.name != "tag" or ctx.focused_option != "name":
             return
         choices = []
         guild_data = await self.bot.get_guild_data(ctx.guild_id)

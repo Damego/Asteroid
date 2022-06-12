@@ -85,3 +85,7 @@ class StarBoardBlackList(DictMixin):
         for slot in self.__slots__:
             if not slot.startswith("_") and slot not in kwargs:
                 setattr(self, slot, list())
+
+    @property
+    def is_empty(self):
+        return not self.members and not self.roles and not self.channels

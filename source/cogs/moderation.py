@@ -84,7 +84,7 @@ class Moderation(Cog):
     @slash_subcommand(base="mod", name="nick", description="Change nick of member")
     async def nick(self, ctx: SlashContext, member: Member, new_nick: str):
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("FUNC_MODERATION_CHANGE_NICK_TEXT", lang)
+        content: str = get_content("FUNC_MODERATION_CHANGE_NICK_TEXT", lang)
 
         embed = Embed(color=await self.bot.get_embed_color(ctx.guild_id))
         await member.edit(nick=new_nick)
@@ -118,7 +118,7 @@ class Moderation(Cog):
             return message.author.id == member.id
 
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
-        content: dict = get_content("FUNC_MODERATION_CLEAR_MESSAGES", lang)
+        content: str = get_content("FUNC_MODERATION_CLEAR_MESSAGES", lang)
 
         await ctx.defer(hidden=True)
         deleted_messages = await ctx.channel.purge(limit=amount, check=check if member else None)

@@ -1,5 +1,5 @@
-from motor.motor_asyncio import AsyncIOMotorDatabase
-from pymongo.database import Database
+from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import MongoClient
 
 from .autorole import AutoRoleRequest
 from .configuration import ConfigurationRequest
@@ -13,7 +13,7 @@ from .user import UserRequest
 
 
 class RequestClient:
-    def __init__(self, _client: Database | AsyncIOMotorDatabase) -> None:
+    def __init__(self, _client: MongoClient | AsyncIOMotorClient) -> None:
         self._client = _client
         self._guilds_client = self._client["guilds"]
         self._global_client = self._client["GLOBAL"]

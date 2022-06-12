@@ -17,15 +17,15 @@ async def update_member(bot: AsteroidBot, member_or_message: Union[Member, Messa
         member = message.author
         if check_timeout(guild_id, member):
             return
-    elif isinstance(member_or_message, Member):
+    else:
         member = member_or_message
 
-    guild_data = await bot.mongo.get_guild_data(member_or_message.guild.id)
+    guild_data = await bot.get_guild_data(member_or_message.guild.id)
     user_data = await guild_data.get_user(member.id)
 
-    user_xp = user_data.xp + exp
-    xp_amount = user_data.xp_amount + exp
-    level = user_data.level
+    user_xp = user_data.leveling.xp + exp
+    xp_amount = user_data.leveling.xp_amount + exp
+    level = user_data.leveling.level
 
     exp_to_next_level = formula_of_experience(level)
     role = None
@@ -71,7 +71,7 @@ def check_timeout(guild_id: int, member: Member):
 
 
 async def update_member_role(user_data: GuildUser, member: Member, role: Role):
-    old_role_id = user_data.role
+    old_role_id = user_data.leveling.role
 
     for member_role in member.roles:
         if member_role.id == old_role_id:
