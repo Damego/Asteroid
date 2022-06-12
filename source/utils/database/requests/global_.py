@@ -34,7 +34,7 @@ class GlobalRequest(GlobalBaseRequest):
         await self._set_data_users(user_id, data)
 
     async def set_genshin_cookies(self, cookies: dict):
-        return await self._set_data_other({"genshin_cookies": cookies})
+        await self._set_data_other({"genshin_cookies": cookies})
 
     async def set_fmtm_chapter(self, chapter: str):  # TODO: Remove after June, 17.
         await self._set_data_other({"fly_me_to_the_moon_chapter": chapter})
