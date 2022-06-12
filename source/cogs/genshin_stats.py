@@ -171,7 +171,7 @@ class GenshinStats(Cog):
         paginator = Paginator(self.bot, ctx, PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds)
         await paginator.start()
 
-    @slash_subcommand(base="_genshin", name="info", description="Show account information")
+    @slash_subcommand(base="genshin", name="info", description="Show account information")
     @is_enabled()
     async def info(self, ctx: SlashContext, hoyolab_uid: int = None):
         await ctx.defer()

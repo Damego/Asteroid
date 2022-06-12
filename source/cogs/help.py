@@ -47,7 +47,8 @@ class Help(Cog):
                     if embed.custom_id == value:
                         break
 
-            for option in components[0].options:
+            # components now are List[ActionRow[Select]]
+            for option in components[0][0].options:  # type: ignore
                 option.default = False
                 if option.value == value:
                     option.default = True
