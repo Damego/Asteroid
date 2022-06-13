@@ -90,7 +90,7 @@ def cog_is_enabled():
 # No decorator check
 async def _cog_is_enabled(self, guild_id: int):
     bot: AsteroidBot = self.bot
-    guild_data = await bot.mongo.get_guild_data(guild_id)
+    guild_data = await bot.get_guild_data(guild_id)
     cog_data = guild_data.cogs_data.get(self.name, {})
 
     if cog_data and cog_data.get("disabled"):

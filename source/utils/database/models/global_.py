@@ -59,7 +59,7 @@ class GlobalUser(BaseUser):
                 raise AlreadyExistException
 
         await self._request.add_note(
-            self.id, name, content=content, created_at=created_at, jump_url=jump_url
+            self.id, name=name, content=content, created_at=created_at, jump_url=jump_url
         )
         self.notes.append(
             Note(name=name, content=content, created_at=created_at, jump_url=jump_url)
@@ -77,7 +77,7 @@ class GlobalUser(BaseUser):
         """
         await self._request.modify_note(self.id, name, **note._json)
 
-    async def remove_note(self, note: Union["Note", dict]):
+    async def remove_note(self, note: Union[Note, dict]):
         note_data = note._json if isinstance(note, Note) else note
         await self._request.remove_note(self.id, note_data)
         self.notes.remove(note)

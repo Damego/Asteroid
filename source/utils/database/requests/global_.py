@@ -41,7 +41,7 @@ class GlobalUserRequest(GlobalBaseRequest):
         await super()._delete(GlobalCollectionType.USERS, str(user_id))
 
     async def _set_data(self, operator_type: OperatorType, id: dict | int | str, data: dict):
-        await super()._update(operator_type.value, GlobalCollectionType.USERS, id, data)
+        await super()._update(operator_type, GlobalCollectionType.USERS, id, data)
 
     async def set_user_genshin_data(self, user_id: int, hoyolab_uid: int, game_uid: int):
         data = {"genshin": {"hoyolab_uid": hoyolab_uid, "game_uid": game_uid}}
@@ -68,7 +68,7 @@ class GlobalUserRequest(GlobalBaseRequest):
                 "jump_url": jump_url,
             }
         }
-        await self._set_data(OperatorType.SET, user_id, data)
+        await self._set_data(OperatorType.PUSH, user_id, data)
 
     async def modify_note(
         self,

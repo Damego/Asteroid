@@ -88,7 +88,12 @@ class GuildUser(BaseUser):
                 raise AlreadyExistException
 
         await self._request.add_note(
-            self.guild_id, self.id, name, content=content, created_at=created_at, jump_url=jump_url
+            self.guild_id,
+            self.id,
+            name=name,
+            content=content,
+            created_at=created_at,
+            jump_url=jump_url,
         )
         self.notes.append(
             Note(name=name, content=content, created_at=created_at, jump_url=jump_url)

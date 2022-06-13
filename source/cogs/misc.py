@@ -147,12 +147,14 @@ class Misc(Cog):
         content = content["LEVELING"]
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         user_data = await guild_data.get_user(user_id)
-        user_level = user_data.level
+        user_level = user_data.leveling.level
         xp_to_next_level = formula_of_experience(user_level)
 
         user_level_text = content["CURRENT_LEVEL_TEXT"].format(level=user_level)
         user_exp_text = content["CURRENT_EXP_TEXT"].format(
-            exp=user_data.xp, exp_to_next_level=xp_to_next_level, exp_amount=user_data.xp_amount
+            exp=user_data.leveling.xp,
+            exp_to_next_level=xp_to_next_level,
+            exp_amount=user_data.leveling.xp_amount,
         )
         voice_time = self._format_voice_time(user_data.voice_time_count, content)
         user_voice_time_count = (

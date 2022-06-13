@@ -1,5 +1,6 @@
 import datetime
 import re
+from typing import Tuple, Union
 
 from discord import Embed
 from discord_slash import (
@@ -19,6 +20,10 @@ from utils import (
     AsteroidBot,
     Cog,
     DiscordColors,
+    GlobalData,
+    GlobalUser,
+    GuildData,
+    GuildUser,
     NoData,
     SystemChannels,
     bot_owner_or_permissions,
@@ -143,7 +148,7 @@ class Utilities(Cog):
         await user_data.add_note(
             name=ctx.values["note_name"],
             content=ctx.values["note_content"],
-            created_at=datetime.datetime.now().timestamp(),
+            created_at=int(datetime.datetime.now().timestamp()),
             jump_url=message.jump_url,
         )
 
@@ -154,7 +159,12 @@ class Utilities(Cog):
         *,
         return_guild_data: bool = False,
         return_global_data: bool = False,
-    ):
+    ) -> Union[
+        Tuple[GuildUser, GlobalUser, GuildData, GlobalData],
+        Tuple[GuildUser, GlobalUser],
+        Tuple[GuildUser, GlobalUser, GuildData],
+        Tuple[GuildUser, GlobalUser, GlobalData],
+    ]:
         global_data = self.bot.database.global_data
         guild_data = await self.bot.get_guild_data(guild_id)
         user_guild_data = await guild_data.get_user(user_id)
@@ -182,11 +192,11 @@ class Utilities(Cog):
 
         choices = [
             create_choice(
-                name=f"{count}. | {note.name}",
+                name=note.name,
                 value=note.name,
             )
-            for count, note in enumerate(user_guild_data.notes + user_global_data.notes, start=1)
-            if ctx.user_input in f"{count}. {note.name}"
+            for note in user_guild_data.notes + user_global_data.notes
+            if ctx.user_input in note.name
         ][:25]
 
         await ctx.populate(choices)
@@ -214,12 +224,17 @@ class Utilities(Cog):
         if not user_guild_data.notes and not user_global_data.notes:
             raise NoData
 
-        if name in [note.name for note in user_guild_data.notes]:
-            await user_guild_data.remove_note(name)
-        elif name in [note.name for note in user_global_data.notes]:
-            await user_global_data.remove_note(name)
+        for note in user_guild_data.notes:
+            if name == note.name:
+                await user_guild_data.remove_note(note)
+                break
         else:
-            raise NoData
+            for note in user_global_data.notes:
+                if name == note.name:
+                    await user_global_data.remove_note(note)
+                    break
+            else:
+                raise NoData
 
         content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
         await ctx.send(content["NOTE_DELETED"], hidden=True)
