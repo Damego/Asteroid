@@ -15,7 +15,7 @@ class GuildRequest(BaseRequest):
         return main_data, users_data
 
     async def create_guild(self, guild_id: int, data: dict):
-        await super()._insert(CollectionType.CONFIGURATION, guild_id, data)
+        await super()._insert(guild_id, CollectionType.CONFIGURATION, data)
 
     async def remove_guild(self, guild_id: int):
         await self._client[str(guild_id)][CollectionType.CONFIGURATION.value].drop()

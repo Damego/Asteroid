@@ -1,5 +1,6 @@
 from typing import Dict, List, Union
 
+from ..errors import AlreadyExistException
 from ..requests import RequestClient
 from .misc import DictMixin
 
@@ -18,16 +19,73 @@ class BaseUser(DictMixin):
 
     def __init__(self, _request: RequestClient, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._request = _request.user
+        self._request = _request
         self.notes = [Note(**note) for note in kwargs.get("notes", [])]
         self.music_playlists = {
             name: tracks for name, tracks in kwargs.get("music_playlists", {}).items()
         }
 
+
+class GuildUser(BaseUser):
+    __slots__ = (
+        "_json",
+        "_request",
+        "id",
+        "guild_id",
+        "leveling",
+        "voice_time_count",
+        "notes",
+        "music_playlists",
+    )
+    id: int
+    guild_id: int
+    leveling: "UserLevelData"
+    voice_time_count: int
+    notes: List["Note"]
+    music_playlists: Dict[str, List[str]]
+
+    def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
+        super().__init__(_request, **kwargs)
+        self._request = _request.user
+        self.id = int(kwargs["_id"])
+        self.guild_id = guild_id
+        self.leveling = UserLevelData(**kwargs.get("leveling", {}))
+
+    async def increase_leveling(
+        self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0
+    ):
+        await self._request.increase_leveling(
+            self.guild_id, self.id, level=level, xp=xp, xp_amount=xp_amount, voice_time=voice_time
+        )
+        self.leveling.level += level
+        self.leveling.xp += xp
+        self.leveling.xp_amount += xp_amount
+        self.voice_time_count += voice_time
+
+    async def set_leveling(
+        self, *, level: int = 1, xp: int = 0, xp_amount: int = 0, voice_time: int = 0, role_id: int
+    ):
+        await self._request.set_leveling(
+            self.guild_id,
+            self.id,
+            level=level,
+            xp=xp,
+            xp_amount=xp_amount,
+            voice_time=voice_time,
+            role_id=role_id,
+        )
+        self.leveling = UserLevelData(level=level, xp=xp, xp_amount=xp_amount, role=role_id)
+        self.voice_time_count = voice_time
+
+    async def reset_leveling(self):
+        await self._request.reset_leveling(self.guild_id, self.id)
+        self.leveling = UserLevelData(level=1, xp=0, xp_amount=0, role=None)
+        self.voice_time_count = 0
+
     async def add_note(self, name: str, content: str, created_at: int, jump_url: str):
         for note in self.notes:
             if note.name == name:
-                raise  # TODO: Make error system
+                raise AlreadyExistException
 
         await self._request.add_note(
             self.guild_id, self.id, name, content=content, created_at=created_at, jump_url=jump_url
@@ -75,63 +133,6 @@ class BaseUser(DictMixin):
         await self._request.remove_playlist(self.guild_id, self.id, playlist)
         if playlist in self.music_playlists:
             del self.music_playlists[playlist]
-
-
-class GuildUser(BaseUser):
-    __slots__ = (
-        "_json",
-        "_request",
-        "id",
-        "guild_id",
-        "leveling",
-        "voice_time_count",
-        "notes",
-        "music_playlists",
-    )
-    id: int
-    guild_id: int
-    leveling: "UserLevelData"
-    voice_time_count: int
-    notes: List["Note"]
-    music_playlists: Dict[str, List[str]]
-
-    def __init__(self, _request: RequestClient, guild_id: int, **kwargs) -> None:
-        super().__init__(_request, **kwargs)
-        self._request = _request.user
-        self.id = int(kwargs["_id"])
-        self.guild_id = guild_id
-        self.leveling = UserLevelData(**kwargs.get("leveling", {}))
-
-    async def increase_leveling(
-        self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0
-    ):
-        await self._request.increase_leveling(
-            self.guild_id, self.id, level=level, xp=xp, xp_amount=xp_amount, voice_time=voice_time
-        )
-        self.leveling.level += level
-        self.leveling.xp += xp
-        self.leveling.xp_amount += xp_amount
-        self.leveling.voice_time += voice_time
-
-    async def set_leveling(
-        self, *, level: int = 1, xp: int = 0, xp_amount: int = 0, voice_time: int = 0, role_id: int
-    ):
-        await self._request.set_leveling(
-            self.guild_id,
-            self.id,
-            level=level,
-            xp=xp,
-            xp_amount=xp_amount,
-            voice_time=voice_time,
-            role_id=role_id,
-        )
-        self.leveling = UserLevelData(
-            level=level, xp=xp, xp_amount=xp_amount, voice_time=voice_time, role=role_id
-        )
-
-    async def reset_leveling(self):
-        await self._request.reset_leveling(self.guild_id, self.id)
-        self.leveling = UserLevelData(level=1, xp=0, xp_amount=0, voice_time=0)
 
 
 class Note(DictMixin):

@@ -171,7 +171,7 @@ class Help(Cog):
         embed = Embed(
             title="Help | Asteroid Bot",
             timestamp=datetime.datetime.utcnow(),
-            color=DiscordColors.EMBED_COLOR,
+            color=guild_data.configuration.embed_color,
         )
         embed.add_field(
             name=content["INFORMATION_TEXT"],

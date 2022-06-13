@@ -1,14 +1,10 @@
-class NotFoundException(Exception):
-    ...
+class AlreadyExistException(Exception):
+    """
+    Something already exists.
+    """
 
 
-class DataBaseException(Exception):
-    ...
-
-
-class DuplicateKey(DataBaseException):
-    ...
-
-
-class NotImplemented(Exception):
-    ...
+class NotFound(Exception):
+    """
+    Something not found.
+    """

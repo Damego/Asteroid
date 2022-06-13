@@ -1,16 +1,13 @@
-from motor.motor_asyncio import AsyncIOMotorDatabase
-from pymongo.database import Database
-
 from ..enums import CollectionType, DocumentType, OperatorType
 from .base import BaseRequest
 
 
 class UserRequest(BaseRequest):
-    def __init__(self, _client: Database | AsyncIOMotorDatabase) -> None:
-        self._client = _client
+    def __init__(self, _client) -> None:
+        super().__init__(_client)
 
     async def _update(self, type: OperatorType, guild_id: int, user_id: int, data: dict):
-        return await super()._update(type, CollectionType.USERS, guild_id, str(user_id), data)
+        await super()._update(type, CollectionType.USERS, guild_id, str(user_id), data)
 
     async def get_user(self, guild_id: int, user_id: int):
         return await super()._find(guild_id, CollectionType.USERS, str(user_id))

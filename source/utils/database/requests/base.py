@@ -37,11 +37,10 @@ class BaseRequest:
         guild_id: int,
         id: DocumentType | str,
         data: dict,
-    ) -> dict | None:
-        return await self._client[str(guild_id)][collection_type.value].find_one_and_update(
+    ):
+        await self._client[str(guild_id)][collection_type.value].update_one(
             {"_id": id.value if isinstance(id, DocumentType) else id},
             {operator_type.value: data},
-            return_document=ReturnDocument.AFTER,
             upsert=True,
         )
 
@@ -52,15 +51,13 @@ class BaseRequest:
         guild_id: int,
         id: DocumentType | str | dict,
         data: dict,
-    ) -> dict | None:
-        if isinstance(id, DocumentType):
+    ):
+        if isinstance(id, GlobalDocumentType):
             _id = {"_id": id.value}
-        elif isinstance(id, str):
-            _id = {"_id": id}
         elif isinstance(id, dict):
             _id = id
         else:
-            raise
+            _id = {"_id": str(id)}
 
         await self._client[str(guild_id)][collection_type.value].update_one(
             _id, {operator_type.value: data}, upsert=True
@@ -71,9 +68,9 @@ class GlobalBaseRequest(BaseRequest):
     def __init__(self, _client: Database | AsyncIOMotorDatabase) -> None:
         super().__init__(_client)
 
-    async def _find(self, collection_type: GlobalCollectionType, id: dict | str) -> dict | None:
+    async def _find(self, collection_type: GlobalCollectionType, id: dict | str):
         _id = {"_id": id} if isinstance(id, str) else id
-        return await self._client[collection_type.value].find_one(_id)
+        await self._client[collection_type.value].find_one(_id)
 
     async def _insert(self, collection_type: GlobalCollectionType, data: dict):
         await self._client[collection_type.value].insert_one(data)
@@ -88,11 +85,10 @@ class GlobalBaseRequest(BaseRequest):
         collection_type: GlobalCollectionType,
         id: GlobalDocumentType | str,
         data: dict,
-    ) -> dict | None:
-        return await self._client[collection_type.value].find_one_and_update(
-            {"_id": id.value if isinstance(id, GlobalDocumentType) else id},
+    ):
+        await self._client[collection_type.value].update_one(
+            {"_id": id.value if isinstance(id, GlobalDocumentType) else str(id)},
             {operator_type.value: data},
-            return_document=ReturnDocument.AFTER,
             upsert=True,
         )
 
@@ -102,15 +98,13 @@ class GlobalBaseRequest(BaseRequest):
         collection_type: GlobalCollectionType,
         id: GlobalDocumentType | str | dict,
         data: dict,
-    ) -> dict | None:
+    ):
         if isinstance(id, GlobalDocumentType):
             _id = {"_id": id.value}
-        elif isinstance(id, str):
-            _id = {"_id": id}
         elif isinstance(id, dict):
             _id = id
         else:
-            raise
+            _id = {"_id": str(id)}
 
         await self._client[collection_type.value].update_one(
             _id, {operator_type.value: data}, upsert=True

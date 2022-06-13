@@ -1,6 +1,7 @@
 from time import time
 from typing import Dict, List, Union
 
+from ..errors import AlreadyExistException
 from ..requests import RequestClient
 from .autorole import GuildAutoRole
 from .configuration import GuildConfiguration
@@ -137,7 +138,7 @@ class GuildData:
     ):
         for autorole in self.autoroles:
             if autorole.name == name:
-                raise  # TODO: Make Error System
+                raise AlreadyExistException
 
         data = {
             "name": name,
@@ -180,7 +181,7 @@ class GuildData:
     ) -> GuildTag:
         for tag in self.tags:
             if tag.name == name:
-                raise
+                raise AlreadyExistException
         data = {
             "name": name,
             "author_id": author_id,
