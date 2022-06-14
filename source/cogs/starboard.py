@@ -107,10 +107,8 @@ class StarBoard(Cog):
         if str(payload.emoji) != "⭐":
             return
 
-        guild_data = await self.bot.mongo.get_guild_data(payload.guild_id)
+        guild_data = await self.bot.get_guild_data(payload.guild_id)
         starboard_data = guild_data.starboard
-        if starboard_data is None:
-            return
         if not starboard_data.is_enabled:
             return
         if payload.channel_id == starboard_data.channel_id:
