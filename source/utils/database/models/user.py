@@ -25,6 +25,30 @@ class BaseUser(DictMixin):
             name: tracks for name, tracks in kwargs.get("music_playlists", {}).items()
         }
 
+    async def add_note(self, name: str, content: str, created_at: int, jump_url: str):
+        raise NotImplementedError
+
+    def get_note(self, name: str):
+        raise NotImplementedError
+
+    async def modify_note(self, name: str, note: "Note"):
+        raise NotImplementedError
+
+    async def remove_note(self, note: "Note"):
+        raise NotImplementedError
+
+    async def add_track_to_playlist(self, playlist: str, track: str):
+        raise NotImplementedError
+
+    async def add_many_tracks(self, playlist: str, tracks: List[str]):
+        raise NotImplementedError
+
+    async def remove_track_from_playlist(self, playlist: str, track: str):
+        raise NotImplementedError
+
+    async def remove_playlist(self, playlist: str):
+        raise NotImplementedError
+
 
 class GuildUser(BaseUser):
     __slots__ = (
