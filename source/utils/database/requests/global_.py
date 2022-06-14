@@ -1,5 +1,3 @@
-from typing import Union
-
 from ..enums import GlobalCollectionType, GlobalDocumentType, OperatorType
 from .base import GlobalBaseRequest
 

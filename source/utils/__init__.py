@@ -1,11 +1,16 @@
 from .asteroid_bot import AsteroidBot  # noqa: F401
-from .checks import bot_owner_or_permissions  # noqa: F401
-from .checks import _cog_is_enabled, cog_is_enabled, is_administrator_or_bot_owner, is_enabled
+from .checks import (  # noqa: F401
+    _cog_is_enabled,
+    bot_owner_or_permissions,
+    cog_is_enabled,
+    is_administrator_or_bot_owner,
+    is_enabled,
+)
 from .consts import DiscordColors, SystemChannels  # noqa: F401
-from .database import GuildAutoRole  # noqa: F401
 from .database import (  # noqa: F401
     GlobalData,
     GlobalUser,
+    GuildAutoRole,
     GuildConfiguration,
     GuildData,
     GuildPrivateVoice,

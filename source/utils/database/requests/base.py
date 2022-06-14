@@ -1,5 +1,4 @@
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from pymongo import ReturnDocument
 from pymongo.database import Database
 
 from ..enums import (

@@ -23,7 +23,6 @@ from utils import (
     DontHavePrivateRoom,
     GuildData,
     GuildPrivateVoice,
-    PrivateVoiceNotSetup,
     bot_owner_or_permissions,
     cog_is_enabled,
     get_content,

@@ -3,7 +3,6 @@ from random import randint
 from time import time
 
 from discord import Embed, Forbidden, Member, Message, NotFound, Role, VoiceState
-from discord.ext.commands import BadArgument
 from discord_slash import AutoCompleteContext, SlashCommandOptionType, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_choice, create_option

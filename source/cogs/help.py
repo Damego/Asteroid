@@ -5,7 +5,7 @@ from asyncio import TimeoutError
 from discord import Forbidden, HTTPException
 from discord_slash import ComponentContext, Select, SelectOption, SlashContext
 from discord_slash.cog_ext import cog_slash as slash_command
-from utils import AsteroidBot, Cog, DiscordColors, Embed, GuildData, get_content
+from utils import AsteroidBot, Cog, Embed, GuildData, get_content
 
 
 class Help(Cog):

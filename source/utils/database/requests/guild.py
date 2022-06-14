@@ -1,4 +1,4 @@
-from ..enums import CollectionType, DocumentType, OperatorType
+from ..enums import CollectionType
 from .base import BaseRequest
 
 

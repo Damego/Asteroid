@@ -1,4 +1,4 @@
-from .client import (
+from .client import (  # noqa: F401
     AutoRoleRequest,
     ConfigurationRequest,
     GlobalRequest,
