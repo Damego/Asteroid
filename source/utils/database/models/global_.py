@@ -24,7 +24,7 @@ class GlobalData:
         self.main.fly_me_to_the_moon_chapter = chapter
 
     async def add_user(self, user_id: int) -> "GlobalUser":
-        await self._request.global_.add_user(user_id)
+        await self._request.global_.user.add_user(user_id)
         user = GlobalUser(self._request, **{"_id": user_id})
         self.users.append(user)
         return user
