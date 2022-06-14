@@ -136,6 +136,7 @@ class Utilities(Cog):
             description=ctx.values["note_content"],
             color=guild_data.configuration.embed_color,
         )
+
         message = await ctx.send(embed=embed)
 
         if ctx.custom_id.endswith("guild"):
@@ -143,6 +144,10 @@ class Utilities(Cog):
         else:
             global_data = self.bot.database.global_data
             user_data = await global_data.get_user(ctx.author_id)
+
+        note = user_data.get_note(ctx.values["note_name"])
+        if note is not None:
+            return await ctx.send(content["NOTE_ALREADY_EXIST"], hidden=True)
 
         await user_data.add_note(
             name=ctx.values["note_name"],
@@ -223,17 +228,12 @@ class Utilities(Cog):
         if not user_guild_data.notes and not user_global_data.notes:
             raise NoData
 
-        for note in user_guild_data.notes:
-            if name == note.name:
-                await user_guild_data.remove_note(note)
-                break
+        if note := user_guild_data.get_note(name):
+            await user_guild_data.remove_note(note)
+        elif note := user_global_data.get_note(name):
+            await user_global_data.remove_note(note)
         else:
-            for note in user_global_data.notes:
-                if name == note.name:
-                    await user_global_data.remove_note(note)
-                    break
-            else:
-                raise NoData
+            raise NoData
 
         content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
         await ctx.send(content["NOTE_DELETED"], hidden=True)
@@ -251,7 +251,6 @@ class Utilities(Cog):
         content = get_content("NOTES_COMMANDS", guild_data.configuration.language)
         embed = Embed(
             title=content["USER_NOTE_LIST"].format(ctx.author.display_name),
-            description="",
             color=guild_data.configuration.embed_color,
             timestamp=datetime.datetime.utcnow(),
         )

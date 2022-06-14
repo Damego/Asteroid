@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, List
 
 from ..errors import AlreadyExistException
 from ..requests import RequestClient
@@ -82,7 +82,7 @@ class GuildUser(BaseUser):
         self.leveling = UserLevelData(level=1, xp=0, xp_amount=0, role=None)
         self.voice_time_count = 0
 
-    async def add_note(self, name: str, content: str, created_at: int, jump_url: str):
+    async def add_note(self, name: str, content: str, created_at: int, jump_url: str) -> "Note":
         for note in self.notes:
             if note.name == name:
                 raise AlreadyExistException
@@ -95,9 +95,14 @@ class GuildUser(BaseUser):
             created_at=created_at,
             jump_url=jump_url,
         )
-        self.notes.append(
-            Note(name=name, content=content, created_at=created_at, jump_url=jump_url)
-        )
+        note = Note(name=name, content=content, created_at=created_at, jump_url=jump_url)
+        self.notes.append(note)
+        return note
+
+    def get_note(self, name: str) -> "Note" | None:
+        for note in self.notes:
+            if note.name == name:
+                return note
 
     async def modify_note(self, name: str, note: "Note"):
         """
@@ -111,9 +116,8 @@ class GuildUser(BaseUser):
         """
         await self._request.modify_note(self.guild_id, self.id, name, **note._json)
 
-    async def remove_note(self, note: Union["Note", dict]):
-        note_data = note._json if isinstance(note, Note) else note
-        await self._request.remove_note(self.guild_id, self.id, note_data)
+    async def remove_note(self, note: "Note"):
+        await self._request.remove_note(self.guild_id, self.id, note._json)
         self.notes.remove(note)
 
     async def add_track_to_playlist(self, playlist: str, track: str):

@@ -385,7 +385,8 @@
     "JUMP_TO": "Jump To Message",
     "CREATE_NOTE_TITLE": "New Note",
     "NOTE_NAME_LABEL": "Name",
-    "NOTE_CONTENT_LABEL": "Content"
+    "NOTE_CONTENT_LABEL": "Content",
+    "NOTE_ALREADY_EXIST": "Note with this name already exist"
 },
 "PRIVATE_VOICE": {
     "PRIVATE_ROOMS": "Private Rooms",

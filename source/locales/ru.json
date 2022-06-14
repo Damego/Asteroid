@@ -503,7 +503,8 @@
 		"JUMP_TO": "Перейти к сообщению",
 		"CREATE_NOTE_TITLE": "Новая заметка",
 		"NOTE_NAME_LABEL": "Название",
-		"NOTE_CONTENT_LABEL": "Содержание"
+		"NOTE_CONTENT_LABEL": "Содержание",
+		"NOTE_ALREADY_EXIST": "Заметка с таким именем уже существует"
 	},
 	"PRIVATE_VOICE": {
 		"PRIVATE_ROOMS": "Приватные комнаты",

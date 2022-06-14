@@ -95,3 +95,7 @@ class LabelOrEmojiRequired(Exception):
 
 class ButtonsOverKill(Exception):
     ...
+
+
+class NoteAlreadyExist(Exception):
+    ...
