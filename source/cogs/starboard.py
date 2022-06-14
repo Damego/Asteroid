@@ -215,13 +215,12 @@ class StarBoard(Cog):
     @is_enabled()
     async def starboard_channel(self, ctx: SlashContext, channel: TextChannel):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        content = get_content("STARBOARD_FUNCTIONS", guild_data.configuration.language)
 
         try:
-            await channel.send("Test message to check permission.", delete_after=5)
+            await channel.send(content["TEST_MESSAGE_TEXT"], delete_after=5)
         except Forbidden:
-            return await ctx.send(
-                f"Bot doesn't have permission to send messages in {channel.mention}"
-            )
+            return await ctx.send(content["DONT_HAVE_PERMS_TEXT"].format(channel=channel.mention))
 
         await guild_data.starboard.modify(channel_id=channel.id)
 

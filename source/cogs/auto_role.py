@@ -469,7 +469,7 @@ class AutoRole(Cog):
                 ],
             ),
             create_option(
-                name="autorole",
+                name="name",
                 description="The name of autorole to copy",
                 required=True,
                 option_type=SlashCommandOptionType.STRING,
@@ -479,7 +479,9 @@ class AutoRole(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_delete(self, ctx: SlashContext, name: str):
+    async def autorole_delete(
+        self, ctx: SlashContext, type: str, name: str
+    ):  # `type` for better user UX exp.
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         autoroles = guild_data.autoroles
         if not autoroles:

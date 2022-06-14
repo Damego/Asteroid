@@ -332,7 +332,9 @@
     "BLACKLIST_TEXT": "⭐Starboard. Blacklist",
     "MEMBERS": "Members",
     "CHANNELS": "Channels",
-    "ROLES": "Roles"
+    "ROLES": "Roles",
+    "TEST_MESSAGE_TEXT": "This is test message to check bot permission. You can delete this message.",
+    "DONT_HAVE_PERMS_TEXT": "Bot doesn't have permission to send message in {channel}!"
 },
 "AUTOROLE_BASE": {
     "SUCCESSFULLY_COPIED": "Autorole successfully copied!",
@@ -369,7 +371,9 @@
 },
 "COMMAND_CONTROL": {
     "COMMAND_DISABLED": "Command `{command_name}` was disabled!",
-    "COMMAND_ENABLED": "Command `{command_name}` was enabled!"
+    "COMMAND_ENABLED": "Command `{command_name}` was enabled!",
+    "PLUGIN_DISABLED": "Plugin {plugin_name} was disabled",
+    "PLUGIN_ENABLED": "Plugin {plugin_name} was enabled"
 },
 "AUTOROLE_BUTTON": {
     "EVENT_REMOVED_ROLE_TEXT": "Removed roles: {}",
@@ -429,5 +433,11 @@
     "MEMBER_WAS_KICKED": "Member was kicked",
     "OWNERSHIP_TRANSFERED": "Room ownership was changed",
     "DONT_HAVE_PRIVATE_ROOM": "You don't have a room!"
-}
+},
+    "BUG_COMMAND": {
+		"MODAL_BUG_TITLE": "Bug report",
+		"MODAL_BUG_NAME": "The title of bug",
+		"MODAL_BUG_DESCRIPTION": "The description of bug",
+		"BUG_WAS_SENT_TEXT": "Your bug report was sent to developer."
+	}
 }

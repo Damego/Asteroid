@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from ..errors import AlreadyExistException
 from ..requests import RequestClient
@@ -123,7 +123,7 @@ class GuildUser(BaseUser):
         self.notes.append(note)
         return note
 
-    def get_note(self, name: str) -> "Note" | None:
+    def get_note(self, name: str) -> Union["Note", None]:
         for note in self.notes:
             if note.name == name:
                 return note

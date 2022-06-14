@@ -450,7 +450,9 @@
 		"BLACKLIST_TEXT": "⭐Starboard. Чёрный список",
 		"MEMBERS": "Участники",
 		"CHANNELS": "Каналы",
-		"ROLES": "Роли"
+		"ROLES": "Роли",
+		"TEST_MESSAGE_TEXT": "Это сообщение для проверки прав. Вы можете удалить его",
+    	"DONT_HAVE_PERMS_TEXT": "У бота нет прав, чтобы отправлять сообщения в {channel}!"
 	},
 	"AUTOROLE_BASE": {
 		"SUCCESSFULLY_COPIED": "Автороль успешно скопирована!",
@@ -487,7 +489,9 @@
 	},
 	"COMMAND_CONTROL": {
 		"COMMAND_DISABLED": "Команда `{command_name}` была выключена!",
-		"COMMAND_ENABLED": "Команда `{command_name}` была включена!"
+		"COMMAND_ENABLED": "Команда `{command_name}` была включена!",
+		"PLUGIN_DISABLED": "Плагин {plugin_name} был выключен",
+    	"PLUGIN_ENABLED": "Плагин {plugin_name} был включен"
 	},
 	"AUTOROLE_BUTTON": {
 		"EVENT_REMOVED_ROLE_TEXT": "Убраны роли: {}",
@@ -547,5 +551,11 @@
 		"MEMBER_WAS_KICKED": "Участник был кикнут",
 		"OWNERSHIP_TRANSFERED": "Владелец комнаты был смёнен",
 		"DONT_HAVE_PRIVATE_ROOM": "У вас нет комнаты"
+	},
+	"BUG_COMMAND": {
+		"MODAL_BUG_TITLE": "Сообщение о баге",
+		"MODAL_BUG_NAME": "Тема бага",
+		"MODAL_BUG_DESCRIPTION": "Описание бага",
+		"BUG_WAS_SENT_TEXT": "Ваше сообщение о баге было отправлено разработчику."
 	}
 }

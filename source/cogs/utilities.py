@@ -341,20 +341,21 @@ class Utilities(Cog):
         dm_permission=False,
     )
     async def bug(self, ctx: SlashContext):
+        content = get_content("BUG_COMMAND", await self.bot.get_guild_bot_lang(ctx.guild_id))
         modal = Modal(
-            custom_id="issue_modal",
-            title="Issue menu",
+            custom_id="bug_modal",
+            title=content["MODAL_BUG_TITLE"],
             components=[
                 TextInput(
                     style=TextInputStyle.SHORT,
-                    custom_id="issue_name",
-                    label="Title of the bug",
+                    custom_id="bug_name",
+                    label=content["MODAL_BUG_NAME"],
                     placeholder="[BUG] Command `info` doesn't work!",
                 ),
                 TextInput(
                     style=TextInputStyle.PARAGRAPH,
-                    custom_id="issue_description",
-                    label="Description",
+                    custom_id="bug_description",
+                    label=content["MODAL_BUG_DESCRIPTION"],
                     placeholder="I found a interesting bug!",
                 ),
             ],
@@ -363,13 +364,13 @@ class Utilities(Cog):
 
     @Cog.listener(name="on_modal")
     async def on_issue_modal(self, ctx: ModalContext):
-        if ctx.custom_id != "issue_modal":
+        if ctx.custom_id != "bug_modal":
             return
 
         await ctx.defer(hidden=True)
 
-        issue_name = ctx.values["issue_name"]
-        issue_description = ctx.values["issue_description"]
+        issue_name = ctx.values["bug_name"]
+        issue_description = ctx.values["bug_description"]
 
         embed = Embed(
             title=issue_name,
@@ -382,8 +383,8 @@ class Utilities(Cog):
         channel = self.bot.get_channel(SystemChannels.ISSUES_REPORT_CHANNEL)
         await channel.send(embed=embed)
 
-        await ctx.send("Your issue was send to developer!", hidden=True)
-        # TODO: Translate command
+        content = get_content("BUG_COMMAND")
+        await ctx.send(content["BUG_WAS_SENT_TEXT"], hidden=True)
 
     @slash_subcommand(
         base="plugin",
@@ -406,9 +407,9 @@ class Utilities(Cog):
     async def plugin_disable(self, ctx: SlashContext, plugin: str):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        content = get_content("COMMAND_CONTROL", lang=guild_data.configuration.language)
         await guild_data.modify_cog(plugin, is_disabled=True)
-        await ctx.send(f"Plugin `{plugin}` disabled!", hidden=True)
-        # TODO: Translate command
+        await ctx.send(content["PLUGIN_DISABLED"].format(plugin_name=plugin), hidden=True)
 
     @slash_subcommand(
         base="plugin",
@@ -430,9 +431,9 @@ class Utilities(Cog):
     async def plugin_enable(self, ctx: SlashContext, plugin: str):
         await ctx.defer(hidden=True)
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        content = get_content("COMMAND_CONTROL", lang=guild_data.configuration.language)
         await guild_data.modify_cog(plugin, is_disabled=False)
-        await ctx.send(f"Plugin `{plugin}` enabled!", hidden=True)
-        # TODO: Translate command
+        await ctx.send(content["PLUGIN_ENABLED"].format(plugin_name=plugin), hidden=True)
 
 
 def setup(bot):
