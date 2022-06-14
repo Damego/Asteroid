@@ -58,9 +58,17 @@ class LevelRolesRequest(BaseRequest):
     async def add_user_to_voice(self, guild_id: int, user_id: int, time: int):
         """This is a part of levels so thats why this method here"""
         data = {str(user_id): time}
-        await super()._update(OperatorType.SET, guild_id, DocumentType.VOICE_TIME, data)
+        await super()._update(
+            OperatorType.SET, CollectionType.CONFIGURATION, guild_id, DocumentType.VOICE_TIME, data
+        )
 
     async def remove_user_from_voice(self, guild_id: int, user_id: int):
         """This is a part of levels so thats why this method here"""
         data = {str(user_id): ""}
-        await super()._update(OperatorType.UNSET, guild_id, DocumentType.VOICE_TIME, data)
+        await super()._update(
+            OperatorType.UNSET,
+            CollectionType.CONFIGURATION,
+            guild_id,
+            DocumentType.VOICE_TIME,
+            data,
+        )

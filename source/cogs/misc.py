@@ -176,9 +176,9 @@ class Misc(Cog):
         if days != 0:
             formatted += f" {days} {content['DAYS']}"
         if hours != 0:
-            formatted += f" {hours:02} {content['HOURS']}"
+            formatted += f" {hours} {content['HOURS']}"
         if minutes != 0:
-            formatted += f" {minutes:02} {content['MINUTES']}"
+            formatted += f" {minutes} {content['MINUTES']}"
         return formatted.strip() if formatted else None
 
     @slash_subcommand(
