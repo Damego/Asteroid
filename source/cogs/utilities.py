@@ -383,7 +383,7 @@ class Utilities(Cog):
         channel = self.bot.get_channel(SystemChannels.ISSUES_REPORT_CHANNEL)
         await channel.send(embed=embed)
 
-        content = get_content("BUG_COMMAND")
+        content = get_content("BUG_COMMAND", await self.bot.get_guild_bot_lang(ctx.guild_id))
         await ctx.send(content["BUG_WAS_SENT_TEXT"], hidden=True)
 
     @slash_subcommand(
