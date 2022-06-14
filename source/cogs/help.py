@@ -5,7 +5,7 @@ from asyncio import TimeoutError
 from discord import Forbidden, HTTPException
 from discord_slash import ComponentContext, Select, SelectOption, SlashContext
 from discord_slash.cog_ext import cog_slash as slash_command
-from utils import AsteroidBot, Cog, DiscordColors, Embed, GuildData, get_content
+from utils import AsteroidBot, Cog, Embed, GuildData, get_content
 
 
 class Help(Cog):
@@ -16,10 +16,10 @@ class Help(Cog):
         self.commands_cache: dict = None
 
     @slash_command(name="help", description="Help and bot commands", dm_permission=False)
-    async def help_command(self, ctx: SlashContext):
+    async def help(self, ctx: SlashContext):
         await ctx.defer()
 
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("HELP_COMMAND", guild_data.configuration.language)
         components = self._init_components(guild_data, content)
         embeds = self._init_embeds(ctx, guild_data, content)
@@ -35,9 +35,8 @@ class Help(Cog):
                 )
             except TimeoutError:
                 with contextlib.suppress(Forbidden, HTTPException):
-                    return await message.edit(components=[])
-            except Exception as e:  # noqa: F841
-                raise
+                    await message.edit(components=[])
+                return
 
             value = button_ctx.values[0]
 
@@ -48,7 +47,8 @@ class Help(Cog):
                     if embed.custom_id == value:
                         break
 
-            for option in components[0][0].options:
+            # components now are List[ActionRow[Select]]
+            for option in components[0][0].options:  # type: ignore
                 option.default = False
                 if option.value == value:
                     option.default = True
@@ -100,7 +100,7 @@ class Help(Cog):
                 title=f"{cog_translations[cog_name.upper()]} | Asteroid Bot",
                 description="",
                 timestamp=datetime.datetime.utcnow(),
-                color=DiscordColors.EMBED_COLOR,
+                color=guild_data.configuration.embed_color,
             )
             embed.set_footer(
                 text=content["REQUIRED_BY_TEXT"].format(user=ctx.author),
@@ -171,7 +171,7 @@ class Help(Cog):
         embed = Embed(
             title="Help | Asteroid Bot",
             timestamp=datetime.datetime.utcnow(),
-            color=DiscordColors.EMBED_COLOR,
+            color=guild_data.configuration.embed_color,
         )
         embed.add_field(
             name=content["INFORMATION_TEXT"],

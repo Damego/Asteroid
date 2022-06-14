@@ -81,7 +81,7 @@ class Misc(Cog):
 
     @slash_subcommand(base="info", name="user", description="Shows information about guild member")
     @is_enabled()
-    async def get_member_information_slash(self, ctx: SlashContext, member: Member = None):
+    async def info_user(self, ctx: SlashContext, member: Member = None):
         embed = await self._get_embed_member_info(ctx, member or ctx.author)
         await ctx.send(embed=embed)
 
@@ -145,14 +145,16 @@ class Misc(Cog):
 
     async def _get_levels_info(self, ctx: SlashContext, user_id: int, embed: Embed, content: dict):
         content = content["LEVELING"]
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         user_data = await guild_data.get_user(user_id)
-        user_level = user_data.level
+        user_level = user_data.leveling.level
         xp_to_next_level = formula_of_experience(user_level)
 
         user_level_text = content["CURRENT_LEVEL_TEXT"].format(level=user_level)
         user_exp_text = content["CURRENT_EXP_TEXT"].format(
-            exp=user_data.xp, exp_to_next_level=xp_to_next_level, exp_amount=user_data.xp_amount
+            exp=user_data.leveling.xp,
+            exp_to_next_level=xp_to_next_level,
+            exp_amount=user_data.leveling.xp_amount,
         )
         voice_time = self._format_voice_time(user_data.voice_time_count, content)
         user_voice_time_count = (
@@ -174,16 +176,16 @@ class Misc(Cog):
         if days != 0:
             formatted += f" {days} {content['DAYS']}"
         if hours != 0:
-            formatted += f" {hours:02} {content['HOURS']}"
+            formatted += f" {hours} {content['HOURS']}"
         if minutes != 0:
-            formatted += f" {minutes:02} {content['MINUTES']}"
+            formatted += f" {minutes} {content['MINUTES']}"
         return formatted.strip() if formatted else None
 
     @slash_subcommand(
         base="info", name="bot", description="Show information of bot", base_dm_permission=False
     )
     @is_enabled()
-    async def bot_info(self, ctx: SlashContext):
+    async def info_bot(self, ctx: SlashContext):
         await ctx.defer()
         content = get_content(
             "BOT_INFO_COMMAND", lang=await self.bot.get_guild_bot_lang(ctx.guild_id)
@@ -224,8 +226,8 @@ class Misc(Cog):
         base="misc", name="ping", description="Show bot latency", base_dm_permission=False
     )
     @is_enabled()
-    async def ping(self, ctx: SlashContext):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+    async def misc_ping(self, ctx: SlashContext):
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("FUNC_PING", lang=guild_data.configuration.language)
 
         embed = Embed(
@@ -238,26 +240,11 @@ class Misc(Cog):
 
     @slash_subcommand(
         base="server",
-        name="offline_bots",
-        description="Shows all offline bots in server",
-        base_dm_permission=False,
-    )
-    @is_enabled()
-    async def check_bots(self, ctx: SlashContext):
-        bots_list = [member for member in ctx.guild.members if member.bot]
-
-        content = f"**Offline bots in {ctx.guild.name} server**\n"
-        content += ", ".join(f"{bot.mention}" for bot in bots_list if str(bot.status) == "offline")
-
-        await ctx.send(content=content)
-
-    @slash_subcommand(
-        base="server",
         name="role_perms",
         description="Shows a role permissions in the server",
     )
     @is_enabled()
-    async def guild_role_permissions(self, ctx: SlashContext, role: Role):
+    async def server_role__perms(self, ctx: SlashContext, role: Role):
         description = "".join(
             f"✅ {transform_permission(permission[0])}\n"
             if permission[1]
@@ -275,7 +262,7 @@ class Misc(Cog):
 
     @slash_command(name="invite", description="Send's bot invite link", dm_permission=False)
     @is_enabled()
-    async def invite_bot(self, ctx: SlashContext):
+    async def invite(self, ctx: SlashContext):
         content = get_content(
             "INVITE_COMMAND", lang=await self.bot.get_guild_bot_lang(ctx.guild_id)
         )
@@ -307,7 +294,7 @@ class Misc(Cog):
 
     @slash_subcommand(base="server", name="roles", description="Show's all server roles")
     @is_enabled()
-    async def send_server_roles(self, ctx: SlashContext):
+    async def server_roles(self, ctx: SlashContext):
         guild_roles: List[Role] = ctx.guild.roles[::-1]
         embeds: List[Embed] = []
         color = await self.bot.get_embed_color(ctx.guild_id)
@@ -339,7 +326,7 @@ class Misc(Cog):
 
     @slash_subcommand(base="misc", name="send_image", description="Send image in embed from link")
     @is_enabled()
-    async def send_image(self, ctx: SlashContext, url: str):
+    async def misc_send__image(self, ctx: SlashContext, url: str):
         if not url_rx.match(url):
             return await ctx.send("Not link", hidden=True)
 
@@ -360,14 +347,14 @@ class Misc(Cog):
             ),
         ],
     )
-    async def test_attachment(self, ctx: SlashContext, attachment: Attachment):
+    async def misc_attachment(self, ctx: SlashContext, attachment: Attachment):
         file = await attachment.to_file()
         await ctx.send(file=file)
 
     @slash_subcommand(base="server", name="bot_nick", description="Set nick to bot on your server")
     @is_enabled()
     @bot_owner_or_permissions(manage_nicknames=True)
-    async def server_set_bot_nick(self, ctx: SlashContext, nick: str):
+    async def server_bot__nick(self, ctx: SlashContext, nick: str):
         if ctx.guild is None:
             return await ctx.send("Available only in guild!")
         await ctx.me.edit(nick=nick)

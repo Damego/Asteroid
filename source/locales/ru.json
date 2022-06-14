@@ -13,10 +13,9 @@
 		"GAME_TTT_BOT": "Начинает игру Крестики-нолики с ботом",
 		"GAME_MONKEYMEMORY": "Начинает игру Monkey Memory",
 		"GAME_TILES": "Начинает игру Пятнашки (Игра в 15)",
-		"REACTIONROLE_ADD_ROLE": "Добавляет роль по реакции к сообщению",
-		"REACTIONROLE_ADD_POST": "Добавляет сообщение для реакции",
-		"REACTIONROLE_REMOVE_POST": "Удаляет сообщение для реакции",
-		"REACTIONROLE_REMOVE_ROLE": "Удаляет роль по реакции у сообщения",
+		"GAME_PAIRS": "Начинает игру Пары.",
+		"AUTOROLE_COPY": "Создаёт копию автороли и отправляет в данный канал.",
+		"AUTOROLE_DELETE": "Удаляет автороль из базы. Не удаляет сообщение!",
 		"AUTOROLE_ADD_ROLE_TO_EVERYONE": "Добавляет роль к каждому участнику сервера",
 		"AUTOROLE_DROPDOWN_CREATE": "Создаёт новое меню",
 		"AUTOROLE_DROPDOWN_ADD_OPTION": "Добавляет опцию для меню",
@@ -64,11 +63,8 @@
 		"MOD_CLEAR": "Удаляет сообщения в канале",
 		"MOD_CREATE_MUTED_ROLE": "Создаёт роль для мута",
 		"MOD_KICK": "Кикает участника с сервера",
-		"MOD_MUTE": "Выдаёт роль-мут участнику",
 		"MOD_NICK": "Меняет ник у участника",
 		"MOD_REMOVE_ROLE": "Удаляет роль у участника",
-		"MOD_UNMUTE": "Убирает роль-мут у участника",
-		"MUSIC_NPLAY": "Включает музыку с плеером",
 		"MUSIC_PAUSE": "Ставит воспроизведение музыки на паузу",
 		"MUSIC_PLAY": "Начинает воспроизведение музыки",
 		"MUSIC_REPEAT": "Ставит музыку на повтор",
@@ -93,16 +89,19 @@
 		"TAG_REMOVE": "Удаляет тег",
 		"TAG_VIEW": "Открывает существующий тег",
 		"TAG_EDIT": "Редактирует тег",
+		"TAG_INFO": "Показывает информацию о теге",
 		"TAG_SET_CONTROL": "Разрешает или запрещает роли @everyone управлять тегами",
 		"COMMAND_DISABLE": "Отключает команду/группу команд на вашем сервере",
 		"COMMAND_ENABLE": "Включает команду/группу команд на вашем сервере",
+		"PLUGIN_DISABLE": "Выключает плагин на сервере",
+		"PLUGIN_ENABLE": "Включает плагин на сервере",
 		"STARBOARD_CHANNEL": "Меняет канал для starboard сообщений",
 		"STARBOARD_LIMIT": "Устанавливает количество звезд, для появления в канале",
 		"STARBOARD_STATUS": "Включает/выключает starboard",
 		"STARBOARD_BLACKLIST_ADD": "Добавляет участника/роль/канал в чёрный список",
-		"STARBOARD_BLACKLIST_LIST": "Показывает чёрный список",
+		"STARBOARD_BLACKLIST_VIEW": "Показывает чёрный список",
 		"STARBOARD_BLACKLIST_REMOVE": "Удаляет участника/роль/канал из чёрного списка",
-		"NOTE_NEW": "Создаёт новую заметку",
+		"NOTE_NEW": "Создаёт новую заметку. `is_global` означает, что ваша заметка будет доступна на всех серверах.",
 		"NOTE_DELETE": "Удаляет заметку",
 		"NOTE_LIST": "Показывает список ваших заметок",
 		"GLOBAL_MUSIC_PLAYLIST": "Делает ваш плейлист глобальным. Вы можете слушать ваш плейлист где угодно!",
@@ -451,10 +450,13 @@
 		"BLACKLIST_TEXT": "⭐Starboard. Чёрный список",
 		"MEMBERS": "Участники",
 		"CHANNELS": "Каналы",
-		"ROLES": "Роли"
+		"ROLES": "Роли",
+		"TEST_MESSAGE_TEXT": "Это сообщение для проверки прав. Вы можете удалить его",
+    	"DONT_HAVE_PERMS_TEXT": "У бота нет прав, чтобы отправлять сообщения в {channel}!"
 	},
 	"AUTOROLE_BASE": {
-		"SUCCESSFULLY_COPIED": "Автороль успешно скопирована!"
+		"SUCCESSFULLY_COPIED": "Автороль успешно скопирована!",
+		"AUTOROLE_DELETED": "Автороль удалена!"
 	},
 	"AUTOROLE_DROPDOWN": {
 		"ADDED_ROLES_TEXT": "Добавлено: ",
@@ -487,7 +489,9 @@
 	},
 	"COMMAND_CONTROL": {
 		"COMMAND_DISABLED": "Команда `{command_name}` была выключена!",
-		"COMMAND_ENABLED": "Команда `{command_name}` была включена!"
+		"COMMAND_ENABLED": "Команда `{command_name}` была включена!",
+		"PLUGIN_DISABLED": "Плагин {plugin_name} был выключен",
+    	"PLUGIN_ENABLED": "Плагин {plugin_name} был включен"
 	},
 	"AUTOROLE_BUTTON": {
 		"EVENT_REMOVED_ROLE_TEXT": "Убраны роли: {}",
@@ -503,7 +507,8 @@
 		"JUMP_TO": "Перейти к сообщению",
 		"CREATE_NOTE_TITLE": "Новая заметка",
 		"NOTE_NAME_LABEL": "Название",
-		"NOTE_CONTENT_LABEL": "Содержание"
+		"NOTE_CONTENT_LABEL": "Содержание",
+		"NOTE_ALREADY_EXIST": "Заметка с таким именем уже существует"
 	},
 	"PRIVATE_VOICE": {
 		"PRIVATE_ROOMS": "Приватные комнаты",
@@ -546,5 +551,11 @@
 		"MEMBER_WAS_KICKED": "Участник был кикнут",
 		"OWNERSHIP_TRANSFERED": "Владелец комнаты был смёнен",
 		"DONT_HAVE_PRIVATE_ROOM": "У вас нет комнаты"
+	},
+	"BUG_COMMAND": {
+		"MODAL_BUG_TITLE": "Сообщение о баге",
+		"MODAL_BUG_NAME": "Тема бага",
+		"MODAL_BUG_DESCRIPTION": "Описание бага",
+		"BUG_WAS_SENT_TEXT": "Ваше сообщение о баге было отправлено разработчику."
 	}
 }

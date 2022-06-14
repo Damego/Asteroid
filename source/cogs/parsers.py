@@ -7,6 +7,10 @@ from discord.ext import tasks
 from discord_slash import Button, ButtonStyle
 from utils import AsteroidBot, Cog, DiscordColors, SystemChannels
 
+"""
+Remove after June, 17 since the manga will be finished.
+"""
+
 
 class Parsers(Cog):
     def __init__(self, bot: AsteroidBot) -> None:
@@ -18,7 +22,9 @@ class Parsers(Cog):
 
     @Cog.listener()
     async def on_ready(self):
-        self.global_data = await self.bot.mongo.get_global_data()
+        if self.bot.database.global_data is None:
+            await self.bot.database.init_global_data()
+        self.global_data = self.bot.database.global_data
         self.check_fmtm.start()
 
     # * Fly Me to The Moon -> fmtm
@@ -63,7 +69,7 @@ class Parsers(Cog):
                 await errors_channel.send("Cannot get mangas channel!")
                 return
 
-        current_chapter = self.global_data.fly_me_to_the_moon_chapter
+        current_chapter = self.global_data.main.fly_me_to_the_moon_chapter
         components = [
             Button(
                 label=f"Читать {chapter} главу",
@@ -89,10 +95,10 @@ class Parsers(Cog):
     @tasks.loop(hours=1)
     async def check_fmtm(self):
         chapter, chapter_url = await self.get_last_chapter_fmtm()
-        if chapter == self.global_data.fly_me_to_the_moon_chapter:
+        if chapter == self.global_data.main.fly_me_to_the_moon_chapter:
             return
         image_url, parsed_chapter = await self.get_chapter_image_fmtm(chapter_url, chapter)
-        if parsed_chapter == self.global_data.fly_me_to_the_moon_chapter:
+        if parsed_chapter == self.global_data.main.fly_me_to_the_moon_chapter:
             return
         if chapter != parsed_chapter:  # If `chapter` is a fake chapter?
             chapter = parsed_chapter

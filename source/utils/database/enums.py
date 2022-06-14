@@ -13,3 +13,28 @@ class OperatorType(Enum):
     EACH = "$each"
     RENAME = "$rename"
     INC = "$inc"
+
+
+class DocumentType(Enum):
+    CONFIGURATION = "configuration"
+    PRIVATE_VOICE = "private_voice"
+    VOICE_TIME = "voice_time"
+    AUTOROLE = "autorole"
+    STARBOARD = "starboard"
+    TAGS = "tags"
+    COGS_DATA = "cogs_data"
+    ROLES_BY_LEVEL = "roles_by_level"
+
+
+class CollectionType(Enum):
+    CONFIGURATION = "configuration"
+    USERS = "users"
+
+
+class GlobalCollectionType(Enum):
+    USERS = "USERS"
+    OTHER = "OTHER"
+
+
+class GlobalDocumentType(Enum):
+    MAIN = "main"

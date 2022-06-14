@@ -16,8 +16,8 @@ class GenshinEnums(IntEnum):
     ANEMOCULUS = 66
     GEOCULUS = 131
     ELECTROCULUS = 181
-    TELEPORTS = 168
-    DOMAINS = 33
+    TELEPORTS = 190
+    DOMAINS = 35
 
 
 class GenshinStats(Cog):
@@ -25,13 +25,19 @@ class GenshinStats(Cog):
         self.bot = bot
         self.emoji = 863429526632923136
         self.name = "GenshinStats"
-        self.genshin_client: genshin.GenshinClient = None
-        self.genshin_langs = {"ru": "ru-ru", "en-US": "en-us"}
+        self.genshin_client: genshin.GenshinClient = None  # type: ignore
+        self.genshin_languages = {"ru": "ru-ru", "en-US": "en-us"}
+        self.cookies = None
 
     @Cog.listener()
     async def on_ready(self):
-        global_data = await self.bot.mongo.get_global_data()
-        self.cookies = global_data.genshin_cookies
+        if self.bot.database.global_data is None:
+            await self.bot.database.init_global_data()
+        if self.genshin_client is not None:
+            # on_ready was called in the runtime
+            return
+        global_data = self.bot.database.global_data
+        self.cookies = global_data.main.genshin_cookies
         self.genshin_client = genshin.GenshinClient(self.cookies)
 
         self.get_genshin_daily_reward.start()
@@ -41,8 +47,9 @@ class GenshinStats(Cog):
         try:
             reward = await self.genshin_client.claim_daily_reward(lang="ru-ru")
         except genshin.AlreadyClaimed:
-            print("Cannot take reward!")
+            print("Reward already claimed!")
             return
+
         embed = Embed(
             title="Награда!",
             description=f"Название: {reward.name}\nКоличество: {reward.amount} шт.",
@@ -62,16 +69,18 @@ class GenshinStats(Cog):
         base_dm_permission=False,
     )
     @is_enabled()
-    async def bind_uid(self, ctx: SlashContext, hoyolab_uid: int):
+    async def genshin_bind(self, ctx: SlashContext, hoyolab_uid: int):
         record_card = await self.genshin_client.get_record_card(hoyolab_uid)
         if not record_card.public or not record_card.has_uid:
             raise NoData
 
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        user_data = await guild_data.get_user(ctx.author_id)
+        global_data = self.bot.database.global_data
+        user_data = await global_data.get_user(ctx.author_id)
 
         await user_data.set_genshin_uid(hoyolab_uid=hoyolab_uid, game_uid=record_card.uid)
-        content = get_content("GENSHIN_BIND_COMMAND", guild_data.configuration.language)
+        content = get_content(
+            "GENSHIN_BIND_COMMAND", await self.bot.get_guild_bot_lang(ctx.guild_id)
+        )
         await ctx.send(content)
 
     @slash_subcommand(
@@ -80,12 +89,12 @@ class GenshinStats(Cog):
         description="Show your statistics of Genshin Impact",
     )
     @is_enabled()
-    async def statistics(self, ctx: SlashContext, uid: int = None):
+    async def genshin_statistics(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
-            uid = await self._get_UID(ctx)
+            uid = await self.get_uid(ctx)
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
-        genshin_lang = self.genshin_langs[lang]
+        genshin_lang = self.genshin_languages[lang]
         content = get_content("GENSHIN_STATISTICS_COMMAND", lang)
         user_data = await self.genshin_client.get_user(uid, lang=genshin_lang)
         user_explorations = reversed(user_data.explorations)
@@ -137,13 +146,13 @@ class GenshinStats(Cog):
         description="Show your characters of Genshin Impact",
     )
     @is_enabled()
-    async def chars(self, ctx: SlashContext, uid: int = None):
+    async def genshin_characters(self, ctx: SlashContext, uid: int = None):
         await ctx.defer()
         if uid is None:
-            uid = await self._get_UID(ctx)
+            uid = await self.get_uid(ctx)
 
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
-        genshin_lang = self.genshin_langs[lang]
+        genshin_lang = self.genshin_languages[lang]
         content = get_content("GENSHIN_CHARACTERS_COMMAND", lang)
         characters = await self.genshin_client.get_characters(uid, lang=genshin_lang)
         embeds = []
@@ -164,13 +173,13 @@ class GenshinStats(Cog):
 
     @slash_subcommand(base="genshin", name="info", description="Show account information")
     @is_enabled()
-    async def info(self, ctx: SlashContext, hoyolab_uid: int = None):
+    async def genshin_info(self, ctx: SlashContext, hoyolab_uid: int = None):
         await ctx.defer()
         if hoyolab_uid is None:
-            hoyolab_uid = await self._get_UID(ctx, is_game_uid=False)
+            hoyolab_uid = await self.get_uid(ctx, is_game_uid=False)
 
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
-        genshin_lang = self.genshin_langs[lang]
+        genshin_lang = self.genshin_languages[lang]
         content = get_content("GENSHIN_INFO_COMMAND", lang)
 
         card = await self.genshin_client.get_record_card(hoyolab_uid, lang=genshin_lang)
@@ -194,16 +203,17 @@ class GenshinStats(Cog):
         embed.set_footer(text=f"Hoyolab UID: {hoyolab_uid} | Game UID: {card.uid}")
         await ctx.send(embed=embed)
 
-    async def _get_UID(self, ctx: SlashContext, *, is_game_uid: bool = True):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
-        user_data = await guild_data.get_user(ctx.author_id)
+    async def get_uid(self, ctx: SlashContext, *, is_game_uid: bool = True) -> int:
+        global_data = self.bot.database.global_data
+        user_data = await global_data.get_user(ctx.author_id)
 
-        uid = user_data.genshin_uid if is_game_uid else user_data.hoyolab_uid
+        uid = user_data.genshin.game_uid if is_game_uid else user_data.genshin.hoyolab_uid
         if uid is None:
             raise UIDNotBinded
         return uid
 
-    def get_character_info(self, content: dict, embed: Embed, character: genshin.models.Character):
+    @staticmethod
+    def get_character_info(content: dict, embed: Embed, character: genshin.models.Character):
         character_element = (
             f"» {content['CHARACTER_VISION']}: {content['GENSHIN_CHARACTER_VISION'][character.element]}"
             if character.element

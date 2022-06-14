@@ -2,15 +2,13 @@ import datetime
 from random import randint
 from time import time
 
-from discord import Embed, Member, Message, Role, VoiceState
-from discord.ext.commands import BadArgument
+from discord import Embed, Forbidden, Member, Message, NotFound, Role, VoiceState
 from discord_slash import AutoCompleteContext, SlashCommandOptionType, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_choice, create_option
 from utils import (
     AsteroidBot,
     Cog,
-    CogDisabledOnGuild,
     NoData,
     bot_owner_or_permissions,
     cog_is_enabled,
@@ -36,7 +34,7 @@ class Levels(Cog):
     async def on_member_join(self, member: Member):
         if member.bot:
             return
-        guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
+        guild_data = await self.bot.get_guild_data(member.guild.id)
         await guild_data.get_user(member.id)
         if guild_data.configuration.start_level_role is not None:
             role = member.guild.get_role(guild_data.configuration.start_level_role)
@@ -47,7 +45,7 @@ class Levels(Cog):
     async def on_member_remove(self, member: Member):
         if member.bot:
             return
-        guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
+        guild_data = await self.bot.get_guild_data(member.guild.id)
         await guild_data.remove_user(member.id)
 
     @Cog.listener()
@@ -56,7 +54,7 @@ class Levels(Cog):
         if member.bot:
             return
 
-        guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
+        guild_data = await self.bot.get_guild_data(member.guild.id)
 
         if (not before.channel) and after.channel:  # * If member join to channel
             members = after.channel.members
@@ -92,7 +90,7 @@ class Levels(Cog):
                 await self.check_time(after_members[0])
 
     async def check_time(self, member: Member):
-        guild_data = await self.bot.mongo.get_guild_data(member.guild.id)
+        guild_data = await self.bot.get_guild_data(member.guild.id)
 
         voice_user = guild_data.users_voice_time.get(str(member.id))
         if voice_user is None:
@@ -103,7 +101,7 @@ class Levels(Cog):
         await update_member(self.bot, member, earned_exp)
         user_data = await guild_data.get_user(member.id)
         await user_data.increase_leveling(voice_time=total_time // 60)
-        await guild_data.remove_user_to_voice(member.id)
+        await guild_data.remove_user_from_voice(member.id)
 
     @Cog.listener()
     @cog_is_enabled()
@@ -123,13 +121,13 @@ class Levels(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def reset_member_statistics(self, ctx: SlashContext, member: Member):
+    async def levels_reset__stats(self, ctx: SlashContext, member: Member):
         await ctx.defer(hidden=True)
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         user_data = await guild_data.get_user(member.id)
         start_level_role = guild_data.configuration.start_level_role
 
-        if current_role_id := user_data.role:
+        if current_role_id := user_data.leveling.role:
             role = ctx.guild.get_role(current_role_id)
             await member.remove_roles(role)
 
@@ -141,7 +139,7 @@ class Levels(Cog):
 
     @slash_subcommand(
         base="levels",
-        name="xp",
+        name="add_xp",
         description="Add exp to member",
         options=[
             create_option(
@@ -154,15 +152,14 @@ class Levels(Cog):
                 name="exp",
                 description="Exp to add",
                 option_type=SlashCommandOptionType.INTEGER,
-                required=True,
+                required=True,  # TODO: Implement autocomplete for this.
+                min_value=1,
             ),
         ],
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def levels_add_xp(self, ctx: SlashContext, member: Member, exp: int):
-        if exp <= 0:
-            raise BadArgument
+    async def levels_add__xp(self, ctx: SlashContext, member: Member, exp: int):
         await ctx.defer(hidden=True)
         await update_member(self.bot, member, exp)
         await ctx.send("✅", hidden=True)
@@ -178,6 +175,7 @@ class Levels(Cog):
                 description="level",
                 option_type=SlashCommandOptionType.INTEGER,
                 required=True,
+                min_value=2,
             ),
             create_option(
                 name="role",
@@ -189,8 +187,8 @@ class Levels(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def add_level_role(self, ctx: SlashContext, level: int, role: Role):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+    async def levels_role_add(self, ctx: SlashContext, level: int, role: Role):
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         await guild_data.add_level_role(level, role.id)
         await ctx.send("✅", hidden=True)
 
@@ -205,13 +203,14 @@ class Levels(Cog):
                 description="level",
                 option_type=SlashCommandOptionType.INTEGER,
                 required=True,
+                min_value=1,
             )
         ],
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def remove_level_role(self, ctx: SlashContext, level: int):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         if str(level) not in guild_data.roles_by_level:
             raise NoData
         await guild_data.remove_level_role(level)
@@ -229,19 +228,21 @@ class Levels(Cog):
                 option_type=SlashCommandOptionType.INTEGER,
                 required=True,
                 autocomplete=True,
+                min_value=2,
             ),
             create_option(
                 name="new_level",
                 description="new_level",
                 option_type=SlashCommandOptionType.INTEGER,
                 required=True,
+                min_value=2,
             ),
         ],
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def replace_level_role(self, ctx: SlashContext, current_level: int, new_level: int):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+    async def levels_role_replace(self, ctx: SlashContext, current_level: int, new_level: int):
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         try:
             await guild_data.replace_levels(current_level, new_level)
         except KeyError:
@@ -251,11 +252,11 @@ class Levels(Cog):
     @Cog.listener(name="on_autocomplete")
     @cog_is_enabled()
     async def level_autocomplete(self, ctx: AutoCompleteContext):
-        if self.bot.get_transformed_command_name(ctx) != "levels":
+        if ctx.name != "levels":
             return
         choices = []
         if ctx.focused_option in ["current_level", "remove"]:
-            guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+            guild_data = await self.bot.get_guild_data(ctx.guild_id)
             roles_by_level = guild_data.roles_by_level
             choices = [create_choice(name=level, value=int(level)) for level in roles_by_level]
         if choices:
@@ -269,8 +270,8 @@ class Levels(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def reset_levels(self, ctx: SlashContext):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+    async def levels_role_reset(self, ctx: SlashContext):
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         await guild_data.reset_roles_by_level()
         await ctx.send("✅", hidden=True)
 
@@ -281,8 +282,8 @@ class Levels(Cog):
         description="Show list of levels in server",
     )
     @is_enabled()
-    async def send_levels_list(self, ctx: SlashContext):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+    async def levels_role_list(self, ctx: SlashContext):
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         roles = guild_data.roles_by_level
         if not roles:
             return await ctx.send("No level roles")
@@ -305,8 +306,8 @@ class Levels(Cog):
     @slash_subcommand(base="levels", name="clear_members_stats")
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def clear_members_stats(self, ctx: SlashContext):
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+    async def levels_clear__members__stats(self, ctx: SlashContext):
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
 
         for member in ctx.guild.members:
             if member.bot:
@@ -314,8 +315,9 @@ class Levels(Cog):
 
             user_data = await guild_data.get_user(member.id)
             await user_data.reset_leveling()
+            # ?TODO? Why we don't add start role and don't remove current level role? Need to add later.
 
-        await ctx.send("✅", hidden=True)
+        await ctx.send("✅", hidden=True)  # TODO: Add text
 
     @slash_subcommand(
         base="levels",
@@ -327,7 +329,7 @@ class Levels(Cog):
     @bot_owner_or_permissions(manage_guild=True)
     async def levels_set_start_role(self, ctx: SlashContext, role: Role):
         await ctx.defer(hidden=True)
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         await guild_data.configuration.set_start_level_role(role.id)
         await ctx.send("✅", hidden=True)
 
@@ -335,13 +337,13 @@ class Levels(Cog):
         base="levels",
         subcommand_group="role",
         name="delete_start_role",
-        description="Delete's start level role",
+        description="Deletes start level role",
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
-    async def levels_delete_start_role(self, ctx: SlashContext):
+    async def levels_role_delete__start__role(self, ctx: SlashContext):
         await ctx.defer(hidden=True)
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         await guild_data.configuration.set_start_level_role(None)
         await ctx.send("✅", hidden=True)
 
@@ -351,17 +353,17 @@ class Levels(Cog):
         description="Shows top members by level",
     )
     @is_enabled()
-    async def leaderboard_members(self, ctx: SlashContext):
+    async def levels_leaderboard(self, ctx: SlashContext):
         await ctx.defer()
 
-        guild_data = await self.bot.mongo.get_guild_data(ctx.guild_id)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
         content = get_content("LEVELS", guild_data.configuration.language)["FUNC_TOP_MEMBERS"]
         embeds = []
         embed_desc = ""
         list_for_sort = [
-            (user_data.id, user_data.level, user_data.xp)
+            (user_data.id, user_data.leveling.level, user_data.leveling.xp)
             for user_data in guild_data.users
-            if user_data.level not in (0, 1)
+            if user_data.leveling.level not in (0, 1)
         ]
         list_for_sort.sort(key=lambda x: (x[1], x[-1]), reverse=True)
         for count, user_data in enumerate(list_for_sort, start=1):
@@ -369,7 +371,7 @@ class Levels(Cog):
             if member is None:
                 try:
                     member: Member = await ctx.guild.fetch_member(int(user_data[0]))
-                except Exception:
+                except (NotFound, Forbidden):
                     continue
 
             embed_desc += f"**#{count}・{member.mention}**\n╰**{content['LEVEL']}:** `{user_data[1]}` | **{content['XP']}:** `{int(user_data[2])}`\n"
