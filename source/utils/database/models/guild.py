@@ -211,7 +211,7 @@ class GuildData:
         if cog_name not in self.cogs_data:
             self.cogs_data[cog_name] = {}
         if is_disabled is not None:
-            self.cogs_data[cog_name]["is_disabled"] = is_disabled
+            self.cogs_data[cog_name]["disabled"] = is_disabled
         if is_public is not None:
             self.cogs_data[cog_name]["is_public"] = is_public
         await self._request.configuration.modify_cog(

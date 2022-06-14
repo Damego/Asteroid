@@ -36,10 +36,6 @@ def is_enabled():
         name = None
         command_name = bot.get_transformed_command_name(ctx)
         guild_data = await bot.database.get_guild_data(ctx.guild_id)
-
-        if guild_data is None:
-            return True
-
         if cog_data := guild_data.cogs_data.get(ctx.cog.name):
             if cog_data.get("disabled", False):
                 raise CogDisabledOnGuild

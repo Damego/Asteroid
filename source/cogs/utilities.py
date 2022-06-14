@@ -46,16 +46,15 @@ class Utilities(Cog):
 
     @Cog.listener(name="on_autocomplete")
     async def command_autocomplete(self, ctx: AutoCompleteContext):
-        if self.bot.get_transformed_command_name(ctx) != "command":
+        if ctx.name != "command":
             return
 
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         disabled_commands = guild_data.configuration.disabled_commands
-
         choices = [
             create_choice(name=command_name, value=command_name)
             for command_name in disabled_commands
-            if command_name.startswith(ctx.user_input)
+            if ctx.user_input in command_name
         ][:25]
 
         await ctx.populate(choices)
