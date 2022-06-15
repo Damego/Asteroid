@@ -74,6 +74,8 @@ class GuildUser(BaseUser):
         self.id = int(kwargs["_id"])
         self.guild_id = guild_id
         self.leveling = UserLevelData(**kwargs.get("leveling", {}))
+        if self.voice_time_count is None:
+            self.voice_time_count = 0
 
     async def increase_leveling(
         self, *, level: int = 0, xp: int = 0, xp_amount: int = 0, voice_time: int = 0
@@ -87,7 +89,13 @@ class GuildUser(BaseUser):
         self.voice_time_count += voice_time
 
     async def set_leveling(
-        self, *, level: int = 1, xp: int = 0, xp_amount: int = 0, voice_time: int = 0, role_id: int
+        self,
+        *,
+        level: int = None,
+        xp: int = None,
+        xp_amount: int = None,
+        voice_time: int = None,
+        role_id: int = None
     ):
         await self._request.set_leveling(
             self.guild_id,
@@ -98,8 +106,16 @@ class GuildUser(BaseUser):
             voice_time=voice_time,
             role_id=role_id,
         )
-        self.leveling = UserLevelData(level=level, xp=xp, xp_amount=xp_amount, role=role_id)
-        self.voice_time_count = voice_time
+        if level is not None:
+            self.leveling.level = level
+        if xp is not None:
+            self.leveling.xp = xp
+        if xp_amount is not None:
+            self.leveling.xp_amount = xp_amount
+        if role_id is not None:
+            self.leveling.role = role_id
+        if voice_time is not None:
+            self.voice_time_count = voice_time
 
     async def reset_leveling(self):
         await self._request.reset_leveling(self.guild_id, self.id)

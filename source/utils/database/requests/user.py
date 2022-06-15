@@ -77,7 +77,7 @@ class UserRequest(BaseRequest):
 
     async def reset_leveling(self, guild_id: int, user_id: int):
         data = {
-            "leveling": {"level": 1, "xp": 0, "xp_amount": 0, "role": ""},
+            "leveling": {"level": 1, "xp": 0, "xp_amount": 0, "role": None},
             "voice_time_count": 0,
         }
         await self._update(OperatorType.SET, guild_id, user_id, data)
