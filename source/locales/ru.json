@@ -414,6 +414,9 @@
 			"XP": "опыт",
 			"EMPTY_LEADERBOARD": "Тут пусто... Проявляйте активность на сервере, чтобы попасть в топ!",
 			"VOICE_TIME": "Время"
+		},
+		"AUTOCOMPLETE": {
+			"EXP_TO_LEVEL": "{exp} опыта до {level}-го уровня"
 		}
 	},
 	"HELP_COMMAND": {

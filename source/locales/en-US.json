@@ -296,7 +296,10 @@
         "XP": "xp",
         "EMPTY_LEADERBOARD": "Leaderboard is empty",
         "VOICE_TIME": "Time"
-    }
+    },
+    "AUTOCOMPLETE": {
+			"EXP_TO_LEVEL": "{exp} experience to level {level}"
+		}
 },
 "HELP_COMMAND": {
     "INFORMATION_TEXT": "Information",

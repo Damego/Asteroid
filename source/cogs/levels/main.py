@@ -113,6 +113,32 @@ class Levels(Cog):
         xp = randint(25, 35)
         await update_member(self.bot, message, xp)
 
+    @Cog.listener(name="on_autocomplete")
+    @cog_is_enabled()
+    async def level_autocomplete(self, ctx: AutoCompleteContext):
+        if ctx.name != "levels":
+            return
+        choices = []
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        if ctx.focused_option in ["current_level", "level"]:
+            choices = [
+                create_choice(name=level, value=int(level)) for level in guild_data.roles_by_level
+            ]
+        elif ctx.focused_option == "exp":
+            user_data = await guild_data.get_user(int(ctx.options["member"]))
+            user_current_level = user_data.leveling.level
+            exp = -user_data.leveling.xp
+            content = get_content("LEVELS", guild_data.configuration.language)["AUTOCOMPLETE"]
+            for level in range(user_current_level, user_current_level + 25):
+                exp += formula_of_experience(level)
+                choices.append(
+                    create_choice(
+                        name=content["EXP_TO_LEVEL"].format(exp=exp, level=level + 1), value=exp
+                    )  # idk why I need +1
+                )
+
+        await ctx.populate(choices)
+
     @slash_subcommand(
         base="levels",
         name="reset_stats",
@@ -252,27 +278,6 @@ class Levels(Cog):
         except KeyError:
             await ctx.send("❌", hidden=True)
         await ctx.send("✅", hidden=True)
-
-    @Cog.listener(name="on_autocomplete")
-    @cog_is_enabled()
-    async def level_autocomplete(self, ctx: AutoCompleteContext):
-        if ctx.name != "levels":
-            return
-        choices = []
-        guild_data = await self.bot.get_guild_data(ctx.guild_id)
-        if ctx.focused_option in ["current_level", "level"]:
-            choices = [
-                create_choice(name=level, value=int(level)) for level in guild_data.roles_by_level
-            ]
-        elif ctx.focused_option == "exp":
-            user_data = await guild_data.get_user(int(ctx.options["member"]))
-            user_current_level = user_data.leveling.level
-            exp = 0
-            for level in range(user_current_level + 1, user_current_level + 26):
-                exp += formula_of_experience(level)
-                choices.append(create_choice(name=f"{exp} exp to {level} level", value=exp))
-
-        await ctx.populate(choices)
 
     @slash_subcommand(
         base="levels",
