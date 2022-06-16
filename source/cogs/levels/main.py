@@ -425,7 +425,7 @@ class Levels(Cog):
         base="levels",
         subcommand_group="leaderboard",
         name="by_voice_time",
-        description="Shows top members by level",
+        description="Shows top members by time in voice channel",
     )
     @is_enabled()
     async def levels_leaderboard_by__voice__time(self, ctx: SlashContext):
