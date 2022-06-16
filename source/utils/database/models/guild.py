@@ -1,7 +1,7 @@
 from time import time
 from typing import Dict, List, Union
 
-from ..errors import AlreadyExistException
+from ..errors import AlreadyExistException, InvalidArgument
 from ..requests import RequestClient
 from .autorole import GuildAutoRole
 from .configuration import GuildConfiguration
@@ -53,6 +53,7 @@ class GuildData:
                     for tag in document.get("tags", [])
                 ]
             elif document["_id"] == "cogs_data":
+                del document["_id"]
                 self.cogs_data = document
             elif document["_id"] == "autorole":
                 self.autoroles = [
@@ -60,8 +61,10 @@ class GuildData:
                     for autorole in document.get("autoroles", [])
                 ]
             elif document["_id"] == "roles_by_level":
+                del document["_id"]
                 self.roles_by_level = document
             elif document["_id"] == "voice_time":
+                del document["_id"]
                 self.users_voice_time = document
             elif document["_id"] == "private_voice":
                 self.private_voice = GuildPrivateVoice(self._request, self.guild_id, **document)
@@ -103,6 +106,9 @@ class GuildData:
         del self.users_voice_time[str(user_id)]
 
     async def add_user(self, user_id: int):
+        if not isinstance(user_id, int):
+            raise InvalidArgument
+
         data = {"_id": str(user_id)}
         if level := self.cogs_data.get("Levels"):
             if not level.get("disabled", False):

@@ -2,7 +2,7 @@ import datetime
 from random import randint
 from time import time
 
-from discord import Embed, Member, Message, Role, VoiceState
+from discord import Embed, Forbidden, HTTPException, Member, Message, Role, VoiceState
 from discord_slash import AutoCompleteContext, SlashCommandOptionType, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_choice, create_option
@@ -72,7 +72,8 @@ class Levels(Cog):
             if len(members) == 1:
                 await self.check_time(member)
                 first_member = members[0]
-                await self.check_time(first_member)
+                if not first_member.bot:
+                    await self.check_time(first_member)
             elif len(members) > 1:
                 await self.check_time(member)
         elif member not in before.channel.members and member in after.channel.members:
@@ -153,8 +154,9 @@ class Levels(Cog):
                 name="exp",
                 description="Exp to add",
                 option_type=SlashCommandOptionType.INTEGER,
-                required=True,  # TODO: Implement autocomplete for this.
+                required=True,
                 min_value=1,
+                autocomplete=True,
             ),
         ],
     )
@@ -205,6 +207,7 @@ class Levels(Cog):
                 option_type=SlashCommandOptionType.INTEGER,
                 required=True,
                 min_value=1,
+                autocomplete=True,
             )
         ],
     )
@@ -256,12 +259,20 @@ class Levels(Cog):
         if ctx.name != "levels":
             return
         choices = []
-        if ctx.focused_option in ["current_level", "remove"]:
-            guild_data = await self.bot.get_guild_data(ctx.guild_id)
-            roles_by_level = guild_data.roles_by_level
-            choices = [create_choice(name=level, value=int(level)) for level in roles_by_level]
-        if choices:
-            await ctx.populate(choices)
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        if ctx.focused_option in ["current_level", "level"]:
+            choices = [
+                create_choice(name=level, value=int(level)) for level in guild_data.roles_by_level
+            ]
+        elif ctx.focused_option == "exp":
+            user_data = await guild_data.get_user(int(ctx.options["member"]))
+            user_current_level = user_data.leveling.level
+            exp = 0
+            for level in range(user_current_level + 1, user_current_level + 26):
+                exp += formula_of_experience(level)
+                choices.append(create_choice(name=f"{exp} exp to {level} level", value=exp))
+
+        await ctx.populate(choices)
 
     @slash_subcommand(
         base="levels",
@@ -308,15 +319,24 @@ class Levels(Cog):
     @is_enabled()
     @bot_owner_or_permissions(manage_guild=True)
     async def levels_clear__members__stats(self, ctx: SlashContext):
-        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        await ctx.defer(hidden=True)
 
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        start_role = ctx.guild.get_role(guild_data.configuration.start_level_role)
         for member in ctx.guild.members:
             if member.bot:
                 continue
 
             user_data = await guild_data.get_user(member.id)
-            await user_data.reset_leveling()
-            # ?TODO? Why we don't add start role and don't remove current level role? Need to add later.
+            current_role = ctx.guild.get_role(user_data.leveling.role)
+            try:
+                await member.remove_roles(current_role)
+            except (Forbidden, HTTPException):
+                pass
+            await user_data.set_leveling(
+                level=1, xp=0, xp_amount=0, role=guild_data.configuration.start_level_role
+            )
+            await member.add_roles(start_role)
 
         await ctx.send("✅", hidden=True)  # TODO: Add text
 
@@ -356,6 +376,11 @@ class Levels(Cog):
     )
     @is_enabled()
     async def levels_leaderboard_by__level(self, ctx: SlashContext):
+        def simple(key):
+            return self._get_embed(
+                ctx, guild_data.configuration.embed_color, embed_desc, content, key
+            )
+
         await ctx.defer()
 
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
@@ -375,27 +400,11 @@ class Levels(Cog):
             )
 
             if count % 10 == 0:
-                embeds.append(
-                    self._get_embed(
-                        ctx,
-                        guild_data.configuration.embed_color,
-                        embed_desc,
-                        content,
-                        "TOP_MEMBERS_BY_LEVEL_TEXT",
-                    )
-                )
+                embeds.append(simple("TOP_MEMBERS_BY_LEVEL_TEXT"))
                 embed_desc = ""
 
         if embed_desc:
-            embeds.append(
-                self._get_embed(
-                    ctx,
-                    guild_data.configuration.embed_color,
-                    embed_desc,
-                    content,
-                    "TOP_MEMBERS_BY_LEVEL_TEXT",
-                )
-            )
+            embeds.append(simple("TOP_MEMBERS_BY_LEVEL_TEXT"))
 
         if not embeds:
             return await ctx.send(content["EMPTY_LEADERBOARD"])
@@ -429,6 +438,11 @@ class Levels(Cog):
     )
     @is_enabled()
     async def levels_leaderboard_by__voice__time(self, ctx: SlashContext):
+        def simple(key):
+            return self._get_embed(
+                ctx, guild_data.configuration.embed_color, embed_desc, content, key
+            )
+
         await ctx.defer()
 
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
@@ -451,27 +465,11 @@ class Levels(Cog):
             )
 
             if count % 10 == 0:
-                embeds.append(
-                    self._get_embed(
-                        ctx,
-                        guild_data.configuration.embed_color,
-                        embed_desc,
-                        content,
-                        "TOP_MEMBERS_BY_VOICE_TIME_TEXT",
-                    )
-                )
+                embeds.append(simple("TOP_MEMBERS_BY_VOICE_TIME_TEXT"))
                 embed_desc = ""
 
         if embed_desc:
-            embeds.append(
-                self._get_embed(
-                    ctx,
-                    guild_data.configuration.embed_color,
-                    embed_desc,
-                    content,
-                    "TOP_MEMBERS_BY_VOICE_TIME_TEXT",
-                )
-            )
+            embeds.append(simple("TOP_MEMBERS_BY_VOICE_TIME_TEXT"))
 
         if not embeds:
             return await ctx.send(content["EMPTY_LEADERBOARD"])
