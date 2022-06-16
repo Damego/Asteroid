@@ -9,4 +9,3 @@ pre-commit
 PyGithub
 pymongo
 qrcode
-requests
