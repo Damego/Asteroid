@@ -405,13 +405,15 @@
 			"NOTIFY_GUILD_CHANNEL": "{member} получил `{level}-й` уровень и повышение до {role}",
 			"NOTIFY_DM": "Вы получили `{level}-й` уровень и повышение до {role}"
 		},
-		"FUNC_TOP_MEMBERS": {
+		"LEADERBOARD": {
 			"TITLES": "**ID | Участник | Текущий уровень**\n",
-			"TOP_MEMBERS_TEXT": "Топ участников по уровню",
+			"TOP_MEMBERS_BY_LEVEL_TEXT": "Топ участников по уровню",
+			"TOP_MEMBERS_BY_VOICE_TIME_TEXT": "Топ участников по времени в голосовом канале",
 			"REQUESTED_BY_TEXT": "Запрошено",
 			"LEVEL": "Уровень",
 			"XP": "опыт",
-			"EMPTY_LEADERBOARD": "Топа нет"
+			"EMPTY_LEADERBOARD": "Тут пусто... Проявляйте активность на сервере, чтобы попасть в топ!",
+			"VOICE_TIME": "Время"
 		}
 	},
 	"HELP_COMMAND": {

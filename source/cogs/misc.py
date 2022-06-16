@@ -24,6 +24,7 @@ from utils import (
     SystemChannels,
     _cog_is_enabled,
     bot_owner_or_permissions,
+    format_voice_time,
     get_content,
     is_enabled,
     paginator,
@@ -156,7 +157,7 @@ class Misc(Cog):
             exp_to_next_level=xp_to_next_level,
             exp_amount=user_data.leveling.xp_amount,
         )
-        voice_time = self._format_voice_time(user_data.voice_time_count, content)
+        voice_time = format_voice_time(user_data.voice_time_count, content)
         user_voice_time_count = (
             content["TOTAL_VOICE_TIME"].format(voice_time=voice_time)
             if voice_time is not None
@@ -167,19 +168,6 @@ class Misc(Cog):
             name=content["LEVELING_INFO_TITLE_TEXT"],
             value=f"{user_level_text}\n{user_exp_text}\n{user_voice_time_count}",
         )
-
-    def _format_voice_time(self, voice_time: int, content: dict):
-        days = (voice_time // 60) // 24
-        hours = (voice_time // 60) % 24
-        minutes = voice_time % 60
-        formatted = ""
-        if days != 0:
-            formatted += f" {days} {content['DAYS']}"
-        if hours != 0:
-            formatted += f" {hours} {content['HOURS']}"
-        if minutes != 0:
-            formatted += f" {minutes} {content['MINUTES']}"
-        return formatted.strip() if formatted else None
 
     @slash_subcommand(
         base="info", name="bot", description="Show information of bot", base_dm_permission=False

@@ -287,13 +287,15 @@
         "NOTIFY_GUILD_CHANNEL": "{member} reached level `{level}` and got role {role}",
         "NOTIFY_DM": "You reached level `{level}` and got role {role}"
     },
-    "FUNC_TOP_MEMBERS": {
+    "LEADERBOARD": {
         "TITLES": "**ID | Member | Current Level**\n",
-        "TOP_MEMBERS_TEXT": "Top members by level",
+        "TOP_MEMBERS_BY_LEVEL_TEXT": "Top members by level",
+        "TOP_MEMBERS_BY_VOICE_TIME_TEXT": "Top members by voice time",
         "REQUESTED_BY_TEXT": "Requested by",
         "LEVEL": "Level",
         "XP": "xp",
-        "EMPTY_LEADERBOARD": "Leaderboard is empty"
+        "EMPTY_LEADERBOARD": "Leaderboard is empty",
+        "VOICE_TIME": "Time"
     }
 },
 "HELP_COMMAND": {

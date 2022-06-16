@@ -2,7 +2,7 @@ import datetime
 from random import randint
 from time import time
 
-from discord import Embed, Forbidden, Member, Message, NotFound, Role, VoiceState
+from discord import Embed, Member, Message, Role, VoiceState
 from discord_slash import AutoCompleteContext, SlashCommandOptionType, SlashContext
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_choice, create_option
@@ -12,6 +12,7 @@ from utils import (
     NoData,
     bot_owner_or_permissions,
     cog_is_enabled,
+    format_voice_time,
     get_content,
     is_enabled,
 )
@@ -349,15 +350,16 @@ class Levels(Cog):
 
     @slash_subcommand(
         base="levels",
-        name="leaderboard",
+        subcommand_group="leaderboard",
+        name="by_level",
         description="Shows top members by level",
     )
     @is_enabled()
-    async def levels_leaderboard(self, ctx: SlashContext):
+    async def levels_leaderboard_by__level(self, ctx: SlashContext):
         await ctx.defer()
 
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
-        content = get_content("LEVELS", guild_data.configuration.language)["FUNC_TOP_MEMBERS"]
+        content = get_content("LEVELS", guild_data.configuration.language)["LEADERBOARD"]
         embeds = []
         embed_desc = ""
         list_for_sort = [
@@ -367,21 +369,33 @@ class Levels(Cog):
         ]
         list_for_sort.sort(key=lambda x: (x[1], x[-1]), reverse=True)
         for count, user_data in enumerate(list_for_sort, start=1):
-            member: Member = ctx.guild.get_member(int(user_data[0]))
-            if member is None:
-                try:
-                    member: Member = await ctx.guild.fetch_member(int(user_data[0]))
-                except (NotFound, Forbidden):
-                    continue
-
-            embed_desc += f"**#{count}・{member.mention}**\n╰**{content['LEVEL']}:** `{user_data[1]}` | **{content['XP']}:** `{int(user_data[2])}`\n"
+            embed_desc += (
+                f"**#{count}・<@{user_data[0]}>**\n╰**{content['LEVEL']}:** "
+                f"`{user_data[1]}` | **{content['XP']}:** `{int(user_data[2])}`\n"
+            )
 
             if count % 10 == 0:
-                embeds.append(await self._get_embed(ctx, embed_desc, content))
+                embeds.append(
+                    self._get_embed(
+                        ctx,
+                        guild_data.configuration.embed_color,
+                        embed_desc,
+                        content,
+                        "TOP_MEMBERS_BY_LEVEL_TEXT",
+                    )
+                )
                 embed_desc = ""
 
         if embed_desc:
-            embeds.append(await self._get_embed(ctx, embed_desc, content))
+            embeds.append(
+                self._get_embed(
+                    ctx,
+                    guild_data.configuration.embed_color,
+                    embed_desc,
+                    content,
+                    "TOP_MEMBERS_BY_LEVEL_TEXT",
+                )
+            )
 
         if not embeds:
             return await ctx.send(content["EMPTY_LEADERBOARD"])
@@ -393,11 +407,12 @@ class Levels(Cog):
         )
         await paginator.start()
 
-    async def _get_embed(self, ctx: SlashContext, embed_desc: str, content: dict):
+    @staticmethod
+    def _get_embed(ctx: SlashContext, embed_color: int, embed_desc: str, content: dict, key: str):
         embed = Embed(
-            title=content["TOP_MEMBERS_TEXT"],
+            title=content[key],
             description=embed_desc,
-            color=await self.bot.get_embed_color(ctx.guild_id),
+            color=embed_color,
             timestamp=datetime.datetime.utcnow(),
         )
         embed.set_footer(
@@ -405,3 +420,65 @@ class Levels(Cog):
             icon_url=ctx.author.avatar_url,
         )
         return embed
+
+    @slash_subcommand(
+        base="levels",
+        subcommand_group="leaderboard",
+        name="by_voice_time",
+        description="Shows top members by level",
+    )
+    @is_enabled()
+    async def levels_leaderboard_by__voice__time(self, ctx: SlashContext):
+        await ctx.defer()
+
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        content = get_content("LEVELS", guild_data.configuration.language)["LEADERBOARD"]
+        embeds = []
+        embed_desc = ""
+        to_sort = [
+            (user_data.id, user_data.voice_time_count)
+            for user_data in guild_data.users
+            if user_data.voice_time_count != 0
+        ]
+        to_sort.sort(key=lambda x: x[-1], reverse=True)
+        level_content = get_content("FUNC_MEMBER_INFO", guild_data.configuration.language)[
+            "LEVELING"
+        ]
+        for count, user in enumerate(to_sort, start=1):
+            embed_desc += (
+                f"**#{count}・<@{user[0]}>**\n╰**{content['VOICE_TIME']}:** "
+                f"`{format_voice_time(user[1], level_content)}`\n"
+            )
+
+            if count % 10 == 0:
+                embeds.append(
+                    self._get_embed(
+                        ctx,
+                        guild_data.configuration.embed_color,
+                        embed_desc,
+                        content,
+                        "TOP_MEMBERS_BY_VOICE_TIME_TEXT",
+                    )
+                )
+                embed_desc = ""
+
+        if embed_desc:
+            embeds.append(
+                self._get_embed(
+                    ctx,
+                    guild_data.configuration.embed_color,
+                    embed_desc,
+                    content,
+                    "TOP_MEMBERS_BY_VOICE_TIME_TEXT",
+                )
+            )
+
+        if not embeds:
+            return await ctx.send(content["EMPTY_LEADERBOARD"])
+        if len(embeds) < 2:
+            return await ctx.send(embed=embeds[0])
+
+        paginator = Paginator(
+            self.bot, ctx, style=PaginatorStyle.FIVE_BUTTONS_WITH_COUNT, embeds=embeds
+        )
+        await paginator.start()

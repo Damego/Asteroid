@@ -35,5 +35,5 @@ from .errors import (  # noqa: F401
     TagsIsPrivate,
     UIDNotBinded,
 )
-from .functions import transform_permission  # noqa: F401
+from .functions import format_voice_time, transform_permission  # noqa: F401
 from .locales import get_content, load_localization  # noqa: F401
