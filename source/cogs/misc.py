@@ -7,6 +7,7 @@ from discord import Attachment, Embed, Guild, Member, Role
 from discord_slash import (
     Button,
     ButtonStyle,
+    ComponentContext,
     ContextMenuType,
     MenuContext,
     SlashCommandOptionType,
@@ -79,6 +80,57 @@ class Misc(Cog):
 
         channel = self.bot.get_channel(SystemChannels.SERVERS_UPDATE_CHANNEL)
         await channel.send(embed=embed)
+
+    @Cog.listener()
+    async def on_slash_command(self, ctx: SlashContext):
+        if (
+            not ctx.author.guild_permissions.administrator
+            or not ctx.author.guild_permissions.manage_guild
+        ):
+            return
+        if ctx.locale != "ru":
+            return
+
+        guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        if guild_data.configuration.language == "ru" or guild_data.configuration.suggested_russian:
+            return
+
+        embed = Embed(
+            title="Рекомендация",
+            description="Привет! Я заметил, что твой Дискорд на русском.\n"
+            "Не желаеле ли ты переключить бота на **русский язык**?\n"
+            "Если нет, то ты можешь переключить в любое время с помощью команды `/language`",
+            color=guild_data.configuration.embed_color,
+        )
+        components = [
+            [
+                Button(
+                    label="Переключить", custom_id="suggest_russian_accept", style=ButtonStyle.green
+                ),
+                Button(
+                    label="Отказаться", custom_id="suggest_russian_refuse", style=ButtonStyle.red
+                ),
+            ]
+        ]
+        await ctx.channel.send(embed=embed, components=components)  # type: ignore
+        await guild_data.configuration.set_suggested_russian(status=True)
+
+    @Cog.listener()
+    async def on_button_click(self, ctx: ComponentContext):
+        if not ctx.custom_id.startswith("suggest_russian"):
+            return
+        if (
+            not ctx.author.guild_permissions.administrator
+            or not ctx.author.guild_permissions.manage_guild
+        ):
+            return
+
+        if ctx.custom_id == "suggest_russian_accept":
+            guild_data = await self.bot.get_guild_data(ctx.guild_id)
+            await guild_data.configuration.set_language("ru")
+            await ctx.send("Вы успешно переключили бота на русский язык!")
+
+        await ctx.origin_message.edit(components=[])
 
     @slash_subcommand(base="info", name="user", description="Shows information about guild member")
     @is_enabled()

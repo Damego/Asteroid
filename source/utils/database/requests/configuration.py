@@ -41,3 +41,6 @@ class ConfigurationRequest(BaseRequest):
 
     async def set_start_level_role(self, guild_id: int, role_id: int):
         await self._update(OperatorType.SET, guild_id, {"start_level_role": role_id})
+
+    async def set_suggested_russian(self, guild_id: int, status: int):
+        await self._update(OperatorType.SET, guild_id, {"suggested_russian": status})

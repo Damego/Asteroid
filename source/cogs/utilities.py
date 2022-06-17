@@ -329,10 +329,10 @@ class Utilities(Cog):
         content = get_content("SET_EMBED_COLOR_COMMAND", guild_data.configuration.language)
         if not regex.fullmatch(color):
             return await ctx.send(content["WRONG_COLOR"])
-        color = f"0x{color.replace('#', '')}"
+        color = int(f"0x{color.replace('#', '')}")
 
         await guild_data.configuration.set_embed_color(color)
-        embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=int(color, 16))
+        embed = Embed(title=content["SUCCESSFULLY_CHANGED"], color=color)
         await ctx.send(embed=embed, delete_after=10)
 
     @slash_command(
