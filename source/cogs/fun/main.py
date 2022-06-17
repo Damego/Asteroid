@@ -23,7 +23,6 @@ from utils import AsteroidBot, Cog, get_content, is_enabled
 from .game_consts import bored_api_types, discord_activities_list
 from .games import (
     BoardMode,
-    Calculator,
     MonkeyMemory,
     Pairs,
     RockPaperScissors,
@@ -530,16 +529,6 @@ class Fun(Cog):
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
 
         await ctx.send(embed=embed)
-
-    @slash_subcommand(
-        base="fun",
-        name="calculator",
-        description="Open calculator (based on calculator by Polsulpicien#5020)",
-    )
-    @is_enabled()
-    async def start_calculator(self, ctx: SlashContext):
-        calculator = Calculator(self.bot)
-        await calculator.start(ctx)
 
     @slash_subcommand(
         base="game",
