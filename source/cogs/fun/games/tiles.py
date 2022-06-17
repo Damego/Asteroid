@@ -3,7 +3,7 @@ from copy import copy
 from random import shuffle
 
 from discord_slash import Button, ButtonStyle, ComponentContext, SlashContext
-from utils import AsteroidBot
+from utils import AsteroidBot, get_content
 
 from .game_utils import spread_to_rows
 
@@ -56,8 +56,12 @@ class Tiles:
         def check(ctx: ComponentContext):
             return ctx.author_id == self.ctx.author_id and ctx.origin_message_id == self.message.id
 
+        self.locale_content = get_content(
+            "GAME_TILES", await self.bot.get_guild_bot_lang(self.ctx.guild_id)
+        )
         self.message = await self.ctx.send(
-            f"Tiles. Moves: {self.moves}", components=self._render_components()
+            self.locale_content["BASE_MESSAGE_TEXT"].format(moves=self.moves),
+            components=self._render_components(),
         )
 
         while True:
@@ -67,7 +71,7 @@ class Tiles:
                 )
             except TimeoutError:
                 await self.message.edit(
-                    content=f"Tiles. Moves: {self.moves}",
+                    content=self.locale_content["BASE_MESSAGE_TEXT"].format(moves=self.moves),
                     components=self._render_components(disabled=True),
                 )
                 return
@@ -101,10 +105,10 @@ class Tiles:
 
             if self._is_won():
                 return await ctx.edit_origin(
-                    content=f"Tiles. You won! Moves: {self.moves}",
+                    content=self.locale_content["WON_TEXT"].format(moves=self.moves),
                     components=self._render_components(disabled=True),
                 )
             await ctx.edit_origin(
-                content=f"Tiles. Moves: {self.moves}",
+                content=self.locale_content["BASE_MESSAGE_TEXT"].format(moves=self.moves),
                 components=self._render_components(),
             )

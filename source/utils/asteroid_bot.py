@@ -65,7 +65,7 @@ class AsteroidBot(Bot):
 
     async def async_request(self, url: str) -> dict:
         async with ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, ssl=False) as response:
                 data = await response.json()
         return data
 

@@ -4,7 +4,7 @@ from random import shuffle
 from uuid import uuid1
 
 from discord_slash import Button, ButtonStyle, ComponentContext, SlashContext
-from utils import AsteroidBot
+from utils import AsteroidBot, get_content
 
 from .game_utils import spread_to_rows
 
@@ -96,13 +96,18 @@ class MonkeyMemory:
         try:
             ctx = await self.bot.wait_for("button_click", timeout=600, check=check)
         except asyncio.TimeoutError:
-            await self.message.edit(content="Timed out", components=self._disable_components())
+            await self.message.edit(
+                content=self.locale_content["TIMED_OUT_TEXT"], components=self._disable_components()
+            )
         else:
             return ctx
 
     async def start(self):
+        self.locale_content = get_content(
+            "GAME_MM", await self.bot.get_guild_bot_lang(self.ctx.guild_id)
+        )
         self.message = await self.ctx.send(
-            f"You have `{self.timeout}` seconds to remember the sequence.",
+            self.locale_content["START_MESSAGE_TEXT"].format(timeout=self.timeout),
             components=self._render_start_components(),
         )
         current = 1
@@ -110,7 +115,8 @@ class MonkeyMemory:
 
         await asyncio.sleep(self.timeout)
         await self.message.edit(
-            content="Monkey Memory", components=self.toggle_components_status(hide=True)
+            content=self.locale_content["GAME_NAME"],
+            components=self.toggle_components_status(hide=True),
         )
 
         while True:
@@ -131,6 +137,8 @@ class MonkeyMemory:
                 self._disable_components()
                 is_end = True
 
-            await ctx.edit_origin(components=self.components)
             if is_end:
-                return
+                return await ctx.edit_origin(
+                    content=self.locale_content["LOSE_TEXT"], components=self.components
+                )
+            await ctx.edit_origin(components=self.components)

@@ -4,7 +4,7 @@ import random
 
 from discord import Forbidden, HTTPException
 from discord_slash import Button, ButtonStyle, ComponentContext, SlashContext
-from utils import AsteroidBot
+from utils import AsteroidBot, get_content
 
 from .game_utils import spread_to_rows
 
@@ -279,8 +279,10 @@ class Pairs:
         random.shuffle(cards)
         self.cards = random.sample(cards[:12] * 2, k=24)
         self.first_card = self.second_card = self.first_card_ind = self.second_card_ind = None
-        self.attempts = 0
-        self.base_message = "Collect a pairs! Attempts: `{attempts}`"
+        self.attempts: int = 0
+        self.base_message: str = None
+        self.locale_content: dict = None
+        self.message = None
 
     def _render_start_components(self):
         components = [Button(label=" ", custom_id=f"pairs|{ind}") for ind in range(24)]
@@ -311,10 +313,14 @@ class Pairs:
                 return
 
         self.raw_components[-1].disabled = True
-        self.base_message = "You won! Attempts: `{attempts}`"
+        self.base_message = self.locale_content["START_TEXT"]
         return True
 
     async def start(self):
+        self.locale_content = get_content(
+            "GAME_PAIRS", await self.bot.get_guild_bot_lang(self.ctx.guild_id)
+        )
+        self.base_message = self.locale_content["START_TEXT"]
         self.message = await self.ctx.send(
             self.base_message.format(attempts=self.attempts),
             components=self._render_start_components(),
@@ -326,7 +332,12 @@ class Pairs:
                 return
             _, ind = ctx.custom_id.split("|")
             if ind == "close":
-                return await ctx.edit_origin(components=self._disable_components())
+                return await ctx.edit_origin(
+                    content=self.locale_content["LEFT_FROM_GAME_TEXT"].format(
+                        attempts=self.attempts
+                    ),
+                    components=self._disable_components(),
+                )
             ind = int(ind)
             self.attempts += 1
 
@@ -369,7 +380,7 @@ class Pairs:
         except asyncio.TimeoutError:
             with contextlib.suppress(Forbidden, HTTPException):
                 return await self.message.edit(
-                    content=f"Timed out. Attempts: `{self.attempts}`",
+                    content=self.locale_content["TIMEOUT_TEXT"].format(attempts=self.attempts),
                     components=self._disable_components(),
                 )
         return ctx

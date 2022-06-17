@@ -232,8 +232,29 @@
 		"RESULTS_TITLE": "`          ИТОГИ ИГРЫ            `",
 		"RESULTS_GAME_NAME": "**Игра: Крестики Нолики**",
 		"RESULTS_TEXT": "**Игроки: {player1} И {player2}**\n**Победитель:** {winner}",
-		"RESULTS_TIE": "Ничья"
+		"RESULTS_TIE": "Ничья",
+		"EASY_MODE_TEXT": "Легко",
+		"IMPOSSIBLE_MODE_TEXT": "Невозможно",
+        "GAME_DESCRIPTION": "**Выберите сложность:**\n`Легко` - Бот кликает на рандомную клетку\n`Невозможно` - Бот с ИИ.",
+        "WINNER": "\n**Победитель:** {winner}",
+        "IN_GAME_DESCRIPTION": "**Игрок:** {player}\n**Сложность:** `{difficult}`"
 	},
+	"GAME_MM": {
+        "GAME_NAME": "Обезьянья память",
+        "START_MESSAGE_TEXT": "У вас есть `{timeout}` секунд чтобы запомнить последовательность.",
+        "TIMED_OUT_TEXT": "Время вышло!",
+		"LOSE_TEXT": "Вы проиграли!"
+    },
+	"GAME_PAIRS": {
+        "START_TEXT": "Соберите пары! Попыток: `{attempts}`",
+        "WON_TEXT": "Вы победили! Попыток: `{attempts}`",
+        "TIMEOUT_TEXT": "Время ожидания истекло. Попыток: `{attempts}`",
+        "LEFT_FROM_GAME_TEXT": "Вы вышли из игры. Попыток: `{attempts}`"
+    },
+	"GAME_TILES": {
+        "BASE_MESSAGE_TEXT": "Пятнашки. Ходов: {moves}",
+        "WON_TEXT": "Пятнашки. Вы выиграли! Ходов: {moves}"
+    },
 	"FUNC_MODERATION_CHANGE_NICK_TEXT": "Был изменён ник {} на `{}`",
 	"FUNC_MODERATION_MUTE_MEMBER": {
 		"CANNOT_MUTE_BOT_TEXT": "Вы не можете замутить бота!",

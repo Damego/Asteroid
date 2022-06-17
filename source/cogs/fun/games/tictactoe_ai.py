@@ -23,8 +23,8 @@ class GameState(IntEnum):
 
 
 class TicTacToeMode(IntEnum):
-    easy = 2
-    impossible = 4
+    easy = 1
+    impossible = 2
 
 
 class TicTacToeAI:
@@ -32,16 +32,22 @@ class TicTacToeAI:
         self,
         bot: AsteroidBot,
         ctx: ComponentContext,
+        content: dict,
         mode: TicTacToeMode,
     ):
         self.bot = bot
         self.ctx = ctx
-        self.difficult = "Easy" if mode == 2 else "Impossible"
+        self.difficult = (
+            content["EASY_MODE_TEXT"]
+            if mode == TicTacToeMode.easy
+            else content["IMPOSSIBLE_MODE_TEXT"]
+        )
         self.mode = mode
         self.board: List[list] = None
         self.emoji_circle = self.bot.get_emoji(850792047698509826)
         self.emoji_cross = self.bot.get_emoji(850792048080060456)
         self.game_embed = None
+        self.content = content
 
     def is_won(self, board: List[list], player: GameState):
         win_states = [
@@ -164,12 +170,12 @@ class TicTacToeAI:
         elif self.is_won(self.board, GameState.ai):
             winner = ctx.bot.user.mention
         elif len(self.get_possible_moves(self.board)) == 0:
-            winner = "Draw"
+            winner = self.content["RESULTS_TIE"]
         else:
             winner = None
 
         if winner:
-            self.game_embed.description += f"\n**Winner:** {winner}"
+            self.game_embed.description += self.content["WINNER"].format(winner=winner)
 
         await ctx.edit_origin(embed=self.game_embed, components=self.render_gameboard())
         return winner is not None
@@ -182,8 +188,10 @@ class TicTacToeAI:
     ):
         ctx = self.ctx
         self.game_embed = Embed(
-            title="Tic Tac Toe Game",
-            description=f"**Player:** {ctx.author.mention}" f"\n**Difficult:** `{self.difficult}`",
+            title=self.content["GAME_NAME"],
+            description=self.content["IN_GAME_DESCRIPTION"].format(
+                player=ctx.author.mention, difficult=self.difficult
+            ),
             color=await self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.utcnow(),
         )

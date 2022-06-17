@@ -114,17 +114,23 @@ class Fun(Cog):
     )
     @is_enabled()
     async def ttt_game_ai(self, ctx: SlashContext):
+        lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
+        content = get_content("GAME_TTT", lang)
         components = [
             [
-                Button(label="Easy", style=ButtonStyle.blue, custom_id="ttt_easy"),
-                Button(label="Impossible", style=ButtonStyle.blue, custom_id="ttt_imp"),
+                Button(
+                    label=content["EASY_MODE_TEXT"], style=ButtonStyle.blue, custom_id="ttt_easy"
+                ),
+                Button(
+                    label=content["IMPOSSIBLE_MODE_TEXT"],
+                    style=ButtonStyle.blue,
+                    custom_id="ttt_imp",
+                ),
             ]
         ]
         embed = Embed(
-            title="Tic Tac Toe Game",
-            description="**Choose a difficult:**"
-            "\n`Easy` - Bot random clicks on free cell"
-            "\n`Impossible` - Bot with minimax AI.",
+            title=content["GAME_NAME"],
+            description=content["GAME_DESCRIPTION"],
             color=await self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.utcnow(),
         )
@@ -146,7 +152,7 @@ class Fun(Cog):
         else:
             mode = TicTacToeMode.impossible
 
-        ttt = TicTacToeAI(self.bot, button_ctx, mode=mode)
+        ttt = TicTacToeAI(self.bot, button_ctx, content, mode=mode)
         await ttt.start(edit_origin=True, message=message)
 
     async def start_tictactoe_online(self, ctx, member: Member, mode: str):
@@ -541,7 +547,7 @@ class Fun(Cog):
                 option_type=SlashCommandOptionType.INTEGER,
                 required=False,
                 min_value=1,
-                max_value=60,
+                max_value=30,
             )
         ],
     )
