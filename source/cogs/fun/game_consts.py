@@ -12,8 +12,6 @@ bored_api_types = [
 
 discord_activities_list = {
     "Watch Together": "880218394199220334",
-    "Betrayal.io": "773336526917861400",
-    "Fishington.io": "814288819477020702",
     "awkword": "879863881349087252",
     "PuttParty": "763133495793942528",
     "Word Snacks": "879863976006127627",
