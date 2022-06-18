@@ -1,7 +1,8 @@
+import io
 import json
 from asyncio import TimeoutError
 from datetime import datetime
-from os import environ, remove
+from os import environ
 from random import choice, randint
 
 import qrcode
@@ -262,9 +263,14 @@ class Fun(Cog):
         qr.add_data(data=text)
         qr.make(fit=True)
         img = qr.make_image(fill_color="black", back_color="white")
-        img.save(f"./qrcodes/{ctx.author.id}.png")
-        await ctx.send(file=File(f"./qrcodes/{ctx.author.id}.png"))
-        remove(f"./qrcodes/{ctx.author.id}.png")
+        with io.BytesIO() as image:
+            img.save(image, format="png")
+            image.seek(0)
+            file = File(fp=image, filename=f"{ctx.author.id}.png")
+        embed = Embed(title="QR-code", color=await self.bot.get_embed_color(ctx.guild_id))
+        embed.set_image(url=f"attachment://{ctx.author.id}.png")
+
+        await ctx.send(embed=embed, file=file)
 
     @slash_subcommand(
         base="fun",
