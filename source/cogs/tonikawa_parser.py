@@ -7,12 +7,8 @@ from discord.ext import tasks
 from discord_slash import Button, ButtonStyle
 from utils import AsteroidBot, Cog, DiscordColors, SystemChannels
 
-"""
-Remove after June, 17 since the manga will be finished.
-"""
 
-
-class Parsers(Cog):
+class TonikawaParser(Cog):
     def __init__(self, bot: AsteroidBot) -> None:
         self.bot = bot
         self.hidden = True
@@ -108,4 +104,4 @@ class Parsers(Cog):
 
 
 def setup(bot):
-    bot.add_cog(Parsers(bot))
+    bot.add_cog(TonikawaParser(bot))

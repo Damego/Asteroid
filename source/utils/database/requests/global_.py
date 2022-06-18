@@ -23,7 +23,7 @@ class GlobalRequest(GlobalBaseRequest):
     async def set_genshin_cookies(self, cookies: dict):
         await self._set_data({"genshin_cookies": cookies})
 
-    async def set_fmtm_chapter(self, chapter: str):  # TODO: Remove after June, 17.
+    async def set_fmtm_chapter(self, chapter: str):
         await self._set_data({"fly_me_to_the_moon_chapter": chapter})
 
 
