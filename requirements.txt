@@ -9,3 +9,4 @@ pre-commit
 PyGithub
 pymongo
 qrcode
+pillow
