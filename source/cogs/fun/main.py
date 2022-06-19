@@ -7,6 +7,7 @@ from random import choice, randint
 
 import qrcode
 from aiohttp import ClientSession
+from bored_api import BoredClient
 from discord import ChannelType, Embed, File, Forbidden, Member, VoiceChannel
 from discord_slash import (
     Button,
@@ -522,22 +523,14 @@ class Fun(Cog):
     @is_enabled()
     async def bored_api(self, ctx: SlashContext, type: str = None):
         await ctx.defer()
-        if type:
-            url = f"https://www.boredapi.com/api/activity?type={type}"
-        else:
-            url = "https://www.boredapi.com/api/activity"
-
-        data = await self.bot.async_request(url)
-        activity = data["activity"]
+        activity = await BoredClient().get_by_type(type)
         embed = Embed(
             title="You bored?",
             color=await self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.utcnow(),
         )
-        embed.description = (
-            f'**Activity for you: ** \n{activity}\n\n**Activity type: ** `{type or data["type"]}`\n'
-        )
-        embed.description += f'**Link:** {data["link"]}' if data.get("link") else ""
+        embed.description = f"**Activity for you: ** \n{activity.activity}\n\n**Activity type: ** `{type or activity.type}`\n"
+        embed.description += f"**Link:** {activity.link}" if activity.link else ""
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
 
         await ctx.send(embed=embed)

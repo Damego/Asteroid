@@ -1,12 +1,13 @@
 aiohttp==3.8.1
+bored_api
 certifi
+discord.py==1.7.3
 genshin
 git+https://github.com/Damego/discord-py-interactions.git
-discord.py==1.7.3
 lavalink
 motor
+pillow
 pre-commit
 PyGithub
 pymongo
 qrcode
-pillow
