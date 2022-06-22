@@ -333,7 +333,7 @@
 		}
 	},
 	"FUNC_RANDOM_ITEMS": {
-		"ITEMS_LIST": [
+		"PHASMO_ITEMS_LIST": [
 			"Успокоительное",
 			"Термометр",
 			"Фотокамера",
@@ -358,7 +358,7 @@
 			"Камера с креплением на голову"
 		],
 		"SELECT_BUTTON": "Выборка",
-		"EXCEPTION_BUTTON": "Исключение",
+		"EXCLUSION_BUTTON": "Исключение",
 		"SELECT_ITEMS_TEXT": "Выберите предметы",
 		"START_RANDOM_BUTTON": "Рандом!",
 		"EXIT_BUTTON": "Выйти",

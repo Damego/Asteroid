@@ -215,7 +215,7 @@
         }
     },
     "FUNC_RANDOM_ITEMS": {
-        "ITEMS_LIST": [
+        "PHASMO_ITEMS_LIST": [
             "Sanity Pills",
             "Thermometer",
             "Photo Camera",
@@ -240,7 +240,7 @@
             "Head Mounted Camera"
         ],
         "SELECT_BUTTON": "Select",
-        "EXCEPTION_BUTTON": "Except",
+        "EXCLUSION_BUTTON": "Exclude",
         "SELECT_ITEMS_TEXT": "Select items",
         "START_RANDOM_BUTTON": "Random!",
         "EXIT_BUTTON": "Exit",
@@ -248,7 +248,7 @@
         "SECOND_MESSAGE_CONTENT": "Here will be appear item",
         "SELECTED_ITEMS_TEXT": "**Selected items: **\n"
     },
-    "GENSHIN_BIND_COMMAND": "You binded UID",
+    "GENSHIN_BIND_COMMAND": "You tied UID",
     "GENSHIN_STATISTICS_COMMAND": {
         "EMBED_WORLD_EXPLORATION_TITLE": "Genshin Impact. World exploration",
         "EXPLORED_TEXT": "Explored",

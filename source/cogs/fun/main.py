@@ -13,10 +13,14 @@ from discord_slash import (
     Button,
     ButtonStyle,
     ComponentContext,
+    Modal,
+    ModalContext,
     Select,
     SelectOption,
     SlashCommandOptionType,
     SlashContext,
+    TextInput,
+    TextInputStyle,
 )
 from discord_slash.cog_ext import cog_subcommand as slash_subcommand
 from discord_slash.utils.manage_commands import create_choice, create_option
@@ -362,7 +366,8 @@ class Fun(Cog):
     )
     @is_enabled()
     async def phasmophobia_random_item(self, ctx: SlashContext):
-        await self._start_random(ctx)
+        content = get_content("FUNC_RANDOM_ITEMS", await self.bot.get_guild_bot_lang(ctx.guild_id))
+        await self._start_random(ctx, content["PHASMO_ITEMS_LIST"])
 
     @slash_subcommand(base="phasmo", name="map", description="Random map in Phasmophobia")
     @is_enabled()
@@ -387,19 +392,36 @@ class Fun(Cog):
         description="Random item. To split your items use `,`",
     )
     @is_enabled()
-    async def fun_random_item(self, ctx: SlashContext, items: str):
-        pre_items_list = "".join(items.split(" ")).split(",")
+    async def fun_random_item(self, ctx: SlashContext):
+        modal = Modal(
+            custom_id="modal_random_items",
+            title="Random Item",
+            components=[
+                TextInput(
+                    style=TextInputStyle.PARAGRAPH,
+                    custom_id="items",
+                    label="Input your items. To separate items use ,",
+                    placeholder="apple, banana, orange, grape",
+                )
+            ],
+        )
+
+        await ctx.popup(modal)
+
+    @Cog.listener()
+    async def on_modal(self, ctx: ModalContext):
+        if ctx.custom_id != "modal_random_items":
+            return
+        pre_items_list = "".join(ctx.values["items"].split(" ")).split(",")
         items_list = [item for item in pre_items_list if item]
 
         if not items_list:
             return await ctx.send("Empty list", hidden=True)
         await self._start_random(ctx, items_list)
 
-    async def _start_random(self, ctx: SlashContext, _list: list = None):
+    async def _start_random(self, ctx: SlashContext, _list: list):
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content = get_content("FUNC_RANDOM_ITEMS", lang)
-        if _list is None:
-            _list = content["ITEMS_LIST"]
         components = [
             Button(
                 style=ButtonStyle.blue,
@@ -425,7 +447,7 @@ class Fun(Cog):
             ],
         ]
         selected = None
-        is_exception = False
+        is_exclusion = True
         is_removed = False
         embed = Embed(
             title=content["EMBED_TITLE"],
@@ -443,7 +465,7 @@ class Fun(Cog):
 
             if isinstance(button_ctx.component, Select):
                 selected = button_ctx.values
-                if is_exception:
+                if is_exclusion:
                     _selected = _list.copy()
                     for item in selected:
                         _selected.remove(item)
@@ -452,9 +474,9 @@ class Fun(Cog):
                 await button_ctx.edit_origin(embed=embed)
 
             elif button_ctx.custom_id == "toggle":
-                is_exception = not is_exception
+                is_exclusion = not is_exclusion
                 button_ctx.component.label = (
-                    content["EXCEPTION_BUTTON"] if is_exception else content["SELECT_BUTTON"]
+                    content["EXCLUSION_BUTTON"] if is_exclusion else content["SELECT_BUTTON"]
                 )
                 selected = None
                 is_removed = False
@@ -465,11 +487,11 @@ class Fun(Cog):
                 )
 
             elif button_ctx.custom_id == "start_random":
-                if not is_exception and selected is not None:
+                if not is_exclusion and selected is not None:
                     item = choice(selected)
                     await message_for_update.edit(content=item)
 
-                elif is_exception and selected is not None:
+                elif is_exclusion and selected is not None:
                     if not is_removed:
                         is_removed = True
                         items = _list.copy()
@@ -477,7 +499,7 @@ class Fun(Cog):
                             items.remove(item)
                     item = choice(selected)
                     await message_for_update.edit(content=item)
-                elif is_exception:
+                elif is_exclusion:
                     selected = _list
                     item = choice(selected)
                     await message_for_update.edit(content=item)
