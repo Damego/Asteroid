@@ -525,12 +525,16 @@ class Fun(Cog):
         await ctx.defer()
         activity = await BoredClient().get_by_type(type)
         embed = Embed(
-            title="You bored?",
+            title="Are you bored?",
             color=await self.bot.get_embed_color(ctx.guild_id),
             timestamp=datetime.utcnow(),
         )
-        embed.description = f"**Activity for you: ** \n{activity.activity}\n\n**Activity type: ** `{type or activity.type}`\n"
-        embed.description += f"**Link:** {activity.link}" if activity.link else ""
+        embed.description = (
+            f"**Activity for you: ** \n{activity.activity}\n\n"
+            f"**Activity type: ** `{activity.type.value}`\n"
+        )
+        if activity.link:
+            embed.description += f"**Link:** {activity.link}"
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
 
         await ctx.send(embed=embed)

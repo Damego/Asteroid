@@ -243,7 +243,8 @@
         "GAME_NAME": "Обезьянья память",
         "START_MESSAGE_TEXT": "У вас есть `{timeout}` секунд чтобы запомнить последовательность.",
         "TIMED_OUT_TEXT": "Время вышло!",
-		"LOSE_TEXT": "Вы проиграли!"
+		"LOSE_TEXT": "Вы проиграли!",
+		"WON_TEXT": "Вы выиграли!"
     },
 	"GAME_PAIRS": {
         "START_TEXT": "Соберите пары! Попыток: `{attempts}`",

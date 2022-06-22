@@ -131,7 +131,8 @@
         "GAME_NAME": "Monkey Memory",
         "START_MESSAGE_TEXT": "You have `{timeout}` seconds to remember the sequence.",
         "TIMED_OUT_TEXT": "Timed out!",
-        "LOSE_TEXT": "You lose!"
+        "LOSE_TEXT": "You lose!",
+        "WON_TEXT": "You won!"
     },
     "GAME_TILES": {
         "BASE_MESSAGE_TEXT": "Tiles. Moves: {moves}",

@@ -111,7 +111,8 @@ class MonkeyMemory:
             components=self._render_start_components(),
         )
         current = 1
-        is_end = False
+        is_end = is_won = False
+        status_text = None
 
         await asyncio.sleep(self.timeout)
         await self.message.edit(
@@ -135,10 +136,13 @@ class MonkeyMemory:
                 is_end = True
             if current == 10:
                 self._disable_components()
-                is_end = True
+                is_won = True
 
-            if is_end:
-                return await ctx.edit_origin(
-                    content=self.locale_content["LOSE_TEXT"], components=self.components
-                )
+            if is_won:
+                status_text = self.locale_content["WON_TEXT"]
+            elif is_end:
+                status_text = self.locale_content["LOSE_TEXT"]
+
+            if is_won or is_end:
+                return await ctx.edit_origin(content=status_text, components=self.components)
             await ctx.edit_origin(components=self.components)
