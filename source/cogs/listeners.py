@@ -113,6 +113,11 @@ class Listeners(Cog):
     @staticmethod
     def get_error_description(error, content: dict) -> str:
         exceptions = {
+            AccountNotFound: content["GI_ACCOUNT_NOT_FOUND"],
+            DataNotPublic: content["GI_DATA_NOT_PUBLIC"],
+            NotOwner: content["NOT_BOT_OWNER"],
+            BadArgument: content["BAD_ARGUMENT"],
+            Forbidden: content["FORBIDDEN"],
             errors.CogDisabledOnGuild: content["COG_DISABLED"],
             errors.CommandDisabled: content["COMMAND_DISABLED"],
             errors.NoData: content["NO_DATA_FOUND"],
@@ -120,8 +125,6 @@ class Listeners(Cog):
             errors.ForbiddenTag: content["FORBIDDEN_TAG"],
             errors.NotTagOwner: content["NOT_TAG_OWNER"],
             errors.UIDNotBinded: content["UID_NOT_BINDED"],
-            AccountNotFound: content["GI_ACCOUNT_NOT_FOUND"],
-            DataNotPublic: content["GI_DATA_NOT_PUBLIC"],
             errors.BotNotConnectedToVoice: content["BOT_NOT_CONNECTED"],
             errors.NotConnectedToVoice: content["NOT_CONNECTED_TO_VOICE_TEXT"],
             errors.NotPlaying: content["NOT_PLAYING"],
@@ -138,9 +141,8 @@ class Listeners(Cog):
             errors.NotButton: content["NOT_BUTTON"],
             errors.LabelOrEmojiRequired: content["AT_LEAST_LABEL_OR_EMOJI"],
             errors.ButtonsOverKill: content["LIMIT_25_BUTTONS"],
-            NotOwner: content["NOT_BOT_OWNER"],
-            BadArgument: content["BAD_ARGUMENT"],
-            Forbidden: content["FORBIDDEN"],
+            errors.DuplicateRole: content["DUPLICATE_ROLE"],
+            errors.AutoRoleAlredyExists: content["AUTOROLE_ALREADY_EXISTS"],
         }
         return exceptions.get(type(error))
 

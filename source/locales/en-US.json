@@ -34,7 +34,9 @@
         "LIMIT_25_BUTTONS": "You have reached limit in 25 buttons",
         "AT_LEAST_LABEL_OR_EMOJI": "Should be at least label or emoji",
         "NOT_DROPDOWN": "Autorole should be dropdown",
-        "NOT_BUTTON": "Autorole should be button"
+        "NOT_BUTTON": "Autorole should be button",
+        "DUPLICATE_ROLE": "Button with this role already exists!",
+        "AUTOROLE_ALREADY_EXISTS": "Autorole with this name already exists!"
     },
     "FUNC_RANDOM_NUMBER_OUT_CONTENT": "Random number is `{}`",
     "FUNC_MEMBER_INFO": {
@@ -381,6 +383,7 @@
     "AUTOROLE_DROPDOWN": {
         "ADDED_ROLES_TEXT": "Added Roles: ",
         "REMOVED_ROLES_TEXT": "\nRemoved Roles: ",
+        "FORBIDDEN_ROLES_TEXT": "\nNot added or removed since bot doesn't have permissions to add: ",
         "NO_OPTIONS_TEXT": "No options",
         "CREATED_DROPDOWN_TEXT": "Dropdown created!",
         "SELECT_ROLE_TEXT": "Select role",
@@ -391,7 +394,7 @@
         "DROPDOWN_SAVED_TEXT": "Dropdown saved!",
         "DROPDOWN_LOADED_TEXT": "Dropdown loaded!",
         "DROPDOWN_LIST": "Dropdowns list",
-        "DROPDOWN_DELETED_TEXT": "Dropdown successully deleted! Don't forget to delete a message"
+        "DROPDOWN_DELETED_TEXT": "Dropdown successfully deleted! Don't forget to delete a message"
     },
     "AUTOROLE_ON_JOIN": {
         "ROLE_ADDED_TEXT": "Role {role} Added!",
@@ -414,8 +417,9 @@
         "PLUGIN_ENABLED": "Plugin {plugin_name} was enabled"
     },
     "AUTOROLE_BUTTON": {
-        "EVENT_REMOVED_ROLE_TEXT": "Removed roles: {}",
-        "EVENT_ADDED_ROLE_TEXT": "Added roles: {}",
+        "ROLE_REMOVED_TEXT": "Removed roles: {}",
+        "ROLE_ADDED_TEXT": "Added roles: {}",
+        "FORBIDDEN_ROLE_TEXT": "Bot doesn't have permission to manage {} role",
         "COMMAND_ROLE_ADDED_TEXT": "Role added",
         "COMMAND_ROLE_REMOVED_TEXT": "Role removed",
         "AUTOROLE_CREATED": "Created!"

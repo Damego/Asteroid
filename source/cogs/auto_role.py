@@ -61,7 +61,6 @@ class AutoRole(Cog):
         choices = []
         match ctx.focused_option:
             case "name":
-                # print(ctx.subcommand_group)
                 _type = (
                     ctx.subcommand_group
                     if ctx.subcommand_group is not None
@@ -161,18 +160,23 @@ class AutoRole(Cog):
         if ctx.custom_id != "autorole_select":
             return
 
+        member = ctx.author
         values = ctx.selected_options
         added_roles = []
         removed_roles = []
+        forbidden_roles = []
 
         for _role in values:
             role: Role = ctx.guild.get_role(int(_role))
-            if role in ctx.author.roles:
-                await ctx.author.remove_roles(role)
-                removed_roles.append(f"`{role.name}`")
+            try:
+                await self.__add_remove_role(member, role)
+            except Forbidden:
+                forbidden_roles.append(f"<@&{_role}>")
             else:
-                await ctx.author.add_roles(role)
-                added_roles.append(f"`{role.name}`")
+                if role in member.roles:
+                    removed_roles.append(f"<@&{_role}>")
+                else:
+                    added_roles.append(f"<@&{_role}>")
 
         lang = await self.bot.get_guild_bot_lang(ctx.guild_id)
         content: dict = get_content("AUTOROLE_DROPDOWN", lang)
@@ -181,8 +185,17 @@ class AutoRole(Cog):
             message_content += content["ADDED_ROLES_TEXT"] + ", ".join(added_roles)
         if removed_roles:
             message_content += content["REMOVED_ROLES_TEXT"] + ", ".join(removed_roles)
+        if forbidden_roles:
+            message_content += content["FORBIDDEN_ROLES_TEXT"] + ", ".join(forbidden_roles)
 
         await ctx.send(content=message_content, hidden=True)
+
+    @staticmethod
+    async def __add_remove_role(member: Member, role: Role):
+        if role in member.roles:
+            await member.remove_roles(role)
+        else:
+            await member.add_roles(role)
 
     @slash_subcommand(
         base="autorole",
@@ -192,7 +205,7 @@ class AutoRole(Cog):
     )
     @is_enabled()
     @bot_owner_or_permissions(manage_roles=True)
-    async def autorole_create_dropdown(
+    async def autorole_dropdown_create(
         self,
         ctx: SlashContext,
         name: str,
@@ -200,6 +213,9 @@ class AutoRole(Cog):
         placeholder: str = None,
     ):
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        autorole = guild_data.get_autorole(name)
+        if autorole is not None:
+            raise errors.AutoRoleAlredyExists
 
         content: dict = get_content("AUTOROLE_DROPDOWN", guild_data.configuration.language)
         select = Select(
@@ -437,7 +453,9 @@ class AutoRole(Cog):
 
         await ctx.defer(hidden=True)
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
-        autorole_obj = await self.__base_check(ctx, guild_data, name, type, return_message=False)
+        autorole_obj = await self.__base_autorole_check(
+            ctx, guild_data, name, type, return_message=False
+        )
         message = await ctx.channel.send(
             content=autorole_obj.content,
             components=get_components_from_json(autorole_obj.component),  # type: ignore
@@ -481,7 +499,7 @@ class AutoRole(Cog):
     @bot_owner_or_permissions(manage_roles=True)
     async def autorole_delete(
         self, ctx: SlashContext, type: str, name: str
-    ):  # `type` for better user UX exp.
+    ):  # `type` for better user UX exp but I don't need this lol.
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
         autoroles = guild_data.autoroles
         if not autoroles:
@@ -533,12 +551,17 @@ class AutoRole(Cog):
         )
         role_id = ctx.custom_id.split("|")[1]
         role = ctx.guild.get_role(int(role_id))
+        try:
+            await self.__add_remove_role(ctx.author, role)
+        except Forbidden:
+            return await ctx.send(
+                content["FORBIDDEN_ROLE_TEXT"].format(f"<@&{role_id}>"), hidden=True
+            )
+
         if role in ctx.author.roles:
-            await ctx.author.remove_roles(role)
-            await ctx.send(content["EVENT_REMOVED_ROLE_TEXT"].format(role.mention), hidden=True)
+            await ctx.send(content["ROLE_REMOVED_TEXT"].format(f"<@&{role_id}>"), hidden=True)
         else:
-            await ctx.author.add_roles(role)
-            await ctx.send(content["EVENT_ADDED_ROLE_TEXT"].format(role.mention), hidden=True)
+            await ctx.send(content["ROLE_ADDED_TEXT"].format(f"<@&{role_id}>"), hidden=True)
 
     @slash_subcommand(
         base="autorole",
@@ -551,8 +574,12 @@ class AutoRole(Cog):
     async def autorole_button_create(self, ctx: SlashContext, name: str, message_content: str):
         await ctx.defer(hidden=True)
 
-        message = await ctx.channel.send(message_content)
         guild_data = await self.bot.get_guild_data(ctx.guild_id)
+        autorole = guild_data.get_autorole(name)
+        if autorole is not None:
+            raise errors.AutoRoleAlredyExists
+
+        message = await ctx.channel.send(message_content)
         await guild_data.add_autorole(
             name=name,
             content=message_content,
@@ -629,6 +656,11 @@ class AutoRole(Cog):
         autorole, original_message = await self.check_buttons(ctx, guild_data, name)
 
         original_components = original_message.components
+        for action_row in original_components:
+            for button in action_row:
+                if str(role.id) in button.custom_id:  # type: ignore
+                    raise errors.DuplicateRole
+
         button = Button(
             label=label,
             emoji=self.get_emoji(emoji) if emoji else None,
@@ -638,9 +670,9 @@ class AutoRole(Cog):
         if not original_components:
             original_components = [button]
         else:
-            for row in original_components:
-                if len(row) < 5 and not isinstance(row[0], Select):
-                    row.append(button)
+            for action_row in original_components:
+                if len(action_row) < 5 and not isinstance(action_row[0], Select):
+                    action_row.append(button)
                     break
             else:
                 if len(original_components) == 5:
@@ -651,7 +683,9 @@ class AutoRole(Cog):
         await original_message.edit(components=original_components)
         await ctx.send(content["COMMAND_ROLE_ADDED_TEXT"], hidden=True)
 
-        await autorole.modify(component=[actionrow.to_dict() for actionrow in original_components])
+        await autorole.modify(
+            component=[action_row.to_dict() for action_row in original_components]
+        )
 
     @slash_subcommand(
         base="autorole",
@@ -668,7 +702,7 @@ class AutoRole(Cog):
             ),
             create_option(
                 name="label",
-                description="The label of button",
+                description="The label of button or emoji name",
                 option_type=SlashCommandOptionType.STRING,
                 required=True,
                 autocomplete=True,
@@ -706,7 +740,9 @@ class AutoRole(Cog):
         await original_message.edit(components=original_components)
         await ctx.send(content["COMMAND_ROLE_REMOVED_TEXT"], hidden=True)
 
-        await autorole.modify(component=[actionrow.to_dict() for actionrow in original_components])
+        await autorole.modify(
+            component=[action_row.to_dict() for action_row in original_components]
+        )
 
     def get_emoji(self, emoji: str):
         if emoji.startswith("<"):
@@ -714,7 +750,7 @@ class AutoRole(Cog):
             emoji = self.bot.get_emoji(int(_emoji))
         return emoji
 
-    async def __base_check(
+    async def __base_autorole_check(
         self,
         ctx: SlashContext,
         guild_data: GuildData,
@@ -747,14 +783,14 @@ class AutoRole(Cog):
         return autorole, original_message
 
     async def check_dropdown(self, ctx: SlashContext, guild_data: GuildData, autorole_name: str):
-        autorole, original_message = await self.__base_check(
+        autorole, original_message = await self.__base_autorole_check(
             ctx, guild_data, autorole_name, "dropdown"
         )
         select_component: Select = original_message.components[0].components[0]  # type: ignore
         return autorole, select_component, original_message
 
     async def check_buttons(self, ctx: SlashContext, guild_data: GuildData, autorole_name: str):
-        return await self.__base_check(ctx, guild_data, autorole_name, "button")
+        return await self.__base_autorole_check(ctx, guild_data, autorole_name, "button")
 
 
 def setup(bot):

@@ -97,5 +97,13 @@ class ButtonsOverKill(Exception):
     ...
 
 
+class DuplicateRole(Exception):
+    ...
+
+
+class AutoRoleAlredyExists(Exception):
+    ...
+
+
 class NoteAlreadyExist(Exception):
     ...

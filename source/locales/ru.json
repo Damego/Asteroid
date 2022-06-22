@@ -152,7 +152,9 @@
 		"LIMIT_25_BUTTONS": "Вы достигли лимита в 25 кнопок на сообщение",
 		"AT_LEAST_LABEL_OR_EMOJI": "Должно быть хотя бы `label` или `emoji`",
 		"NOT_DROPDOWN": "Автороль должна быть типа `Меню`",
-		"NOT_BUTTON": "Автороль должна быть типа `Кнопка`"
+		"NOT_BUTTON": "Автороль должна быть типа `Кнопка`",
+		"DUPLICATE_ROLE": "Кнопка с этой ролью уже существует!",
+		"AUTOROLE_ALREADY_EXISTS": "Автороль с таким именем уже существует!"
 	},
 	"FUNC_RANDOM_NUMBER_OUT_CONTENT": "Рандомное число: `{}`",
 	"FUNC_MEMBER_INFO": {
@@ -499,6 +501,7 @@
 	"AUTOROLE_DROPDOWN": {
 		"ADDED_ROLES_TEXT": "Добавлено: ",
 		"REMOVED_ROLES_TEXT": "\nУдалено: ",
+		"FORBIDDEN_ROLES_TEXT": "\nНе добалено или не удалено, так как у бота недостаточно прав: ",
 		"NO_OPTIONS_TEXT": "Нет опций",
 		"CREATED_DROPDOWN_TEXT": "Меню создано!",
 		"SELECT_ROLE_TEXT": "Выберите роль",
@@ -532,8 +535,9 @@
 		"PLUGIN_ENABLED": "Плагин {plugin_name} был включен"
 	},
 	"AUTOROLE_BUTTON": {
-		"EVENT_REMOVED_ROLE_TEXT": "Убраны роли: {}",
-		"EVENT_ADDED_ROLE_TEXT": "Добавлены роли: {}",
+		"ROLE_REMOVED_TEXT": "Роль {} удалена",
+		"ROLE_ADDED_TEXT": "Роль {} добавлена",
+		"FORBIDDEN_ROLE_TEXT": "У бота недостаточно прав, чтобы управлять этой ролью!",
 		"COMMAND_ROLE_ADDED_TEXT": "Роль добавлена",
 		"COMMAND_ROLE_REMOVED_TEXT": "Роль удалена",
 		"AUTOROLE_CREATED": "Создано!"
