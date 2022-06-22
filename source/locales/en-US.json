@@ -89,7 +89,10 @@
         "JOIN_TEXT": "**JOIN**",
         "REQUESTED_BY_TEXT": "Requested by {}"
     },
-    "GAMES_NAMES": {"RPS": "Rock Paper Scissors", "TTT": "Tic Tac Toe"},
+    "GAMES_NAMES": {
+        "RPS": "Rock Paper Scissors",
+        "TTT": "Tic Tac Toe"
+    },
     "FUNC_INVITE_TO_GAME": {
         "SELF_INVITE": "You can not invite yourself!",
         "BOT_INVITE": "You can not invite Bot!",
@@ -159,7 +162,9 @@
         "SERVER": "\n**Server:** {guild}"
     },
     "FUNC_MODERATION_CLEAR_MESSAGES": "Successfully deleted `{}` messages!",
-    "MOD_COMMANDS_CONTENT": {"NOT_VOICE_CHANNEL_TEXT": "This channel is not voice channel!"},
+    "MOD_COMMANDS_CONTENT": {
+        "NOT_VOICE_CHANNEL_TEXT": "This channel is not voice channel!"
+    },
     "PUBLIC_TAGS_COMMAND": {
         "TAGS_PUBLIC": "Tags for now public!",
         "TAGS_FOR_ADMINS": "For now tags only for roles with `Manage Server` permission!"
@@ -174,8 +179,12 @@
         "MODAL_SET_DESCRIPTION": "Description",
         "MODAL_DESCRIPTION_PLACEHOLDER": "Write something interesting"
     },
-    "TAG_REMOVE_COMMAND": {"TAG_REMOVED_TEXT": "Tag `{tag_name}` successfully removed!"},
-    "TAG_RENAME_TAG": {"TAG_RENAMED_TEXT": "Tag `{tag_name}` renamed to `{new_tag_name}`!"},
+    "TAG_REMOVE_COMMAND": {
+        "TAG_REMOVED_TEXT": "Tag `{tag_name}` successfully removed!"
+    },
+    "TAG_RENAME_TAG": {
+        "TAG_RENAMED_TEXT": "Tag `{tag_name}` renamed to `{new_tag_name}`!"
+    },
     "FUNC_TAG_LIST": {
         "TAGS_LIST_TEXT": "Tags list on {server}",
         "NO_TAGS_TEXT": "No tags in this server!"
@@ -303,7 +312,9 @@
         "WRONG_COLOR": "Wrong color format",
         "SUCCESSFULLY_CHANGED": "Embed color was changed!"
     },
-    "SET_LANGUAGE_COMMAND": {"LANGUAGE_CHANGED": "Language changed to English"},
+    "SET_LANGUAGE_COMMAND": {
+        "LANGUAGE_CHANGED": "Language changed to English"
+    },
     "LEVELS": {
         "FUNC_UPDATE_MEMBER": {
             "NOTIFY_GUILD_CHANNEL": "{member} reached level `{level}` and got role {role}",
@@ -320,8 +331,8 @@
             "VOICE_TIME": "Time"
         },
         "AUTOCOMPLETE": {
-                "EXP_TO_LEVEL": "{exp} experience to level {level}"
-            }
+            "EXP_TO_LEVEL": "{exp} experience to level {level}"
+        }
     },
     "HELP_COMMAND": {
         "INFORMATION_TEXT": "Information",
@@ -460,11 +471,11 @@
         "MEMBER_WAS_KICKED": "Member was kicked",
         "OWNERSHIP_TRANSFERED": "Room ownership was changed",
         "DONT_HAVE_PRIVATE_ROOM": "You don't have a room!"
-},
+    },
     "BUG_COMMAND": {
-		"MODAL_BUG_TITLE": "Bug report",
-		"MODAL_BUG_NAME": "The title of bug",
-		"MODAL_BUG_DESCRIPTION": "The description of bug",
-		"BUG_WAS_SENT_TEXT": "Your bug report was sent to developer."
-	}
+        "MODAL_BUG_TITLE": "Bug report",
+        "MODAL_BUG_NAME": "The title of bug",
+        "MODAL_BUG_DESCRIPTION": "The description of bug",
+        "BUG_WAS_SENT_TEXT": "Your bug report was sent to developer."
+    }
 }

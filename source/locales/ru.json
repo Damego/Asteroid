@@ -207,7 +207,10 @@
 		"JOIN_TEXT": "**Присоединиться**",
 		"REQUESTED_BY_TEXT": "Запрошено {}"
 	},
-	"GAMES_NAMES": {"RPS": "Камень Ножницы бумага", "TTT": "Крестики Нолики"},
+	"GAMES_NAMES": {
+		"RPS": "Камень Ножницы бумага",
+		"TTT": "Крестики Нолики"
+	},
 	"FUNC_INVITE_TO_GAME": {
 		"SELF_INVITE": "Вы не можете пригласить себя!",
 		"BOT_INVITE": "Вы не можете пригласить бота!",
@@ -235,27 +238,27 @@
 		"RESULTS_TIE": "Ничья",
 		"EASY_MODE_TEXT": "Легко",
 		"IMPOSSIBLE_MODE_TEXT": "Невозможно",
-        "GAME_DESCRIPTION": "**Выберите сложность:**\n`Легко` - Бот кликает на рандомную клетку\n`Невозможно` - Бот с ИИ.",
-        "WINNER": "\n**Победитель:** {winner}",
-        "IN_GAME_DESCRIPTION": "**Игрок:** {player}\n**Сложность:** `{difficult}`"
+		"GAME_DESCRIPTION": "**Выберите сложность:**\n`Легко` - Бот кликает на рандомную клетку\n`Невозможно` - Бот с ИИ.",
+		"WINNER": "\n**Победитель:** {winner}",
+		"IN_GAME_DESCRIPTION": "**Игрок:** {player}\n**Сложность:** `{difficult}`"
 	},
 	"GAME_MM": {
-        "GAME_NAME": "Обезьянья память",
-        "START_MESSAGE_TEXT": "У вас есть `{timeout}` секунд чтобы запомнить последовательность.",
-        "TIMED_OUT_TEXT": "Время вышло!",
+		"GAME_NAME": "Обезьянья память",
+		"START_MESSAGE_TEXT": "У вас есть `{timeout}` секунд чтобы запомнить последовательность.",
+		"TIMED_OUT_TEXT": "Время вышло!",
 		"LOSE_TEXT": "Вы проиграли!",
 		"WON_TEXT": "Вы выиграли!"
-    },
+	},
 	"GAME_PAIRS": {
-        "START_TEXT": "Соберите пары! Попыток: `{attempts}`",
-        "WON_TEXT": "Вы победили! Попыток: `{attempts}`",
-        "TIMEOUT_TEXT": "Время ожидания истекло. Попыток: `{attempts}`",
-        "LEFT_FROM_GAME_TEXT": "Вы вышли из игры. Попыток: `{attempts}`"
-    },
+		"START_TEXT": "Соберите пары! Попыток: `{attempts}`",
+		"WON_TEXT": "Вы победили! Попыток: `{attempts}`",
+		"TIMEOUT_TEXT": "Время ожидания истекло. Попыток: `{attempts}`",
+		"LEFT_FROM_GAME_TEXT": "Вы вышли из игры. Попыток: `{attempts}`"
+	},
 	"GAME_TILES": {
-        "BASE_MESSAGE_TEXT": "Пятнашки. Ходов: {moves}",
-        "WON_TEXT": "Пятнашки. Вы выиграли! Ходов: {moves}"
-    },
+		"BASE_MESSAGE_TEXT": "Пятнашки. Ходов: {moves}",
+		"WON_TEXT": "Пятнашки. Вы выиграли! Ходов: {moves}"
+	},
 	"FUNC_MODERATION_CHANGE_NICK_TEXT": "Был изменён ник {} на `{}`",
 	"FUNC_MODERATION_MUTE_MEMBER": {
 		"CANNOT_MUTE_BOT_TEXT": "Вы не можете замутить бота!",
@@ -277,7 +280,9 @@
 		"SERVER": "\n**Сервер:** {guild}"
 	},
 	"FUNC_MODERATION_CLEAR_MESSAGES": "Успешно удалено `{}` сообщений!",
-	"MOD_COMMANDS_CONTENT": {"NOT_VOICE_CHANNEL_TEXT": "Данный канал не является голосовым!"},
+	"MOD_COMMANDS_CONTENT": {
+		"NOT_VOICE_CHANNEL_TEXT": "Данный канал не является голосовым!"
+	},
 	"PUBLIC_TAGS_COMMAND": {
 		"TAGS_PUBLIC": "Теги теперь доступны всем!",
 		"TAGS_FOR_ADMINS": "Теги теперь могут создавать только те, у кого есть право `Управлять сервером`!"
@@ -296,8 +301,12 @@
 		"MODAL_SET_DESCRIPTION": "Описание",
 		"MODAL_DESCRIPTION_PLACEHOLDER": "Напишите что-то интересное"
 	},
-	"TAG_REMOVE_COMMAND": {"TAG_REMOVED_TEXT": "Тег `{tag_name}` успешно удалён!"},
-	"TAG_RENAME_TAG": {"TAG_RENAMED_TEXT": "Тег `{tag_name}` переименован в `{new_tag_name}`!"},
+	"TAG_REMOVE_COMMAND": {
+		"TAG_REMOVED_TEXT": "Тег `{tag_name}` успешно удалён!"
+	},
+	"TAG_RENAME_TAG": {
+		"TAG_RENAMED_TEXT": "Тег `{tag_name}` переименован в `{new_tag_name}`!"
+	},
 	"MUSIC_COMMANDS": {
 		"ADDED_IN_QUEUE_DESCRIPTION_TEXT": "Было добавлено в очередь `{tracks_amount}` трек(ов)!\n{tracks}",
 		"ADDED_IN_QUEUE_TITLE_TEXT": "Обновление очереди",
@@ -421,7 +430,9 @@
 		"WRONG_COLOR": "Неверный формат цвета!",
 		"SUCCESSFULLY_CHANGED": "Цвет сообщений успешно изменён!"
 	},
-	"SET_LANGUAGE_COMMAND": {"LANGUAGE_CHANGED": "Язык сменён на русский"},
+	"SET_LANGUAGE_COMMAND": {
+		"LANGUAGE_CHANGED": "Язык сменён на русский"
+	},
 	"LEVELS": {
 		"FUNC_UPDATE_MEMBER": {
 			"NOTIFY_GUILD_CHANNEL": "{member} получил `{level}-й` уровень и повышение до {role}",
@@ -479,7 +490,7 @@
 		"CHANNELS": "Каналы",
 		"ROLES": "Роли",
 		"TEST_MESSAGE_TEXT": "Это сообщение для проверки прав. Вы можете удалить его",
-    	"DONT_HAVE_PERMS_TEXT": "У бота нет прав, чтобы отправлять сообщения в {channel}!"
+		"DONT_HAVE_PERMS_TEXT": "У бота нет прав, чтобы отправлять сообщения в {channel}!"
 	},
 	"AUTOROLE_BASE": {
 		"SUCCESSFULLY_COPIED": "Автороль успешно скопирована!",
@@ -518,7 +529,7 @@
 		"COMMAND_DISABLED": "Команда `{command_name}` была выключена!",
 		"COMMAND_ENABLED": "Команда `{command_name}` была включена!",
 		"PLUGIN_DISABLED": "Плагин {plugin_name} был выключен",
-    	"PLUGIN_ENABLED": "Плагин {plugin_name} был включен"
+		"PLUGIN_ENABLED": "Плагин {plugin_name} был включен"
 	},
 	"AUTOROLE_BUTTON": {
 		"EVENT_REMOVED_ROLE_TEXT": "Убраны роли: {}",
