@@ -219,7 +219,7 @@ class Tags(Cog):
                 title=ctx.values["title"] if type == "embed" else "No title",
                 description=ctx.values["description"],
                 is_embed=type == "embed",
-                created_at=int(datetime.utcnow().timestamp()),
+                created_at=int(datetime.now().timestamp()),
             )
             await ctx.send(content["TAG_CREATED_TEXT"].format(tag_name=name), hidden=True)
         elif custom_id == "modal_edit_tag":
@@ -227,7 +227,7 @@ class Tags(Cog):
             await tag.modify(
                 title=ctx.values["title"] if type == "embed" else None,
                 description=ctx.values["description"],
-                last_edited_at=int(datetime.utcnow().timestamp()),
+                last_edited_at=int(datetime.now().timestamp()),
             )
             await ctx.send(content["TAG_EDITED_TEXT"].format(tag_name=name), hidden=True)
 
