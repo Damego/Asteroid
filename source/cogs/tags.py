@@ -124,7 +124,7 @@ class Tags(Cog):
                     ),
                 ],
             )
-        elif type == "Normal":
+        elif type == "Simple":
             modal = Modal(
                 custom_id=f"modal_new_tag|normal|{name}",
                 title=content["MODAL_TITLE"],
