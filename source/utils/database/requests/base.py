@@ -67,15 +67,31 @@ class GlobalBaseRequest(BaseRequest):
     def __init__(self, _client: Database | AsyncIOMotorDatabase) -> None:
         super().__init__(_client)
 
-    async def _find(self, collection_type: GlobalCollectionType, id: dict | str):
-        _id = {"_id": id} if isinstance(id, str) else id
-        await self._client[collection_type.value].find_one(_id)
+    async def _find(
+        self, collection_type: GlobalCollectionType, id: dict | str | GlobalDocumentType
+    ):
+        if isinstance(id, GlobalDocumentType):
+            _id = {"_id": id.value}
+        elif isinstance(id, dict):
+            _id = id
+        else:
+            _id = {"_id": str(id)}
+
+        return await self._client[collection_type.value].find_one(_id)
 
     async def _insert(self, collection_type: GlobalCollectionType, data: dict):
         await self._client[collection_type.value].insert_one(data)
 
-    async def _delete(self, collection_type: GlobalCollectionType, id: dict | str):
-        _id = {"_id": id} if isinstance(id, str) else id
+    async def _delete(
+        self, collection_type: GlobalCollectionType, id: dict | str | GlobalDocumentType
+    ):
+        if isinstance(id, GlobalDocumentType):
+            _id = {"_id": id.value}
+        elif isinstance(id, dict):
+            _id = id
+        else:
+            _id = {"_id": str(id)}
+
         await self._client[collection_type.value].delete_one(_id)
 
     async def _update(

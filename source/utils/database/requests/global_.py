@@ -15,16 +15,20 @@ class GlobalRequest(GlobalBaseRequest):
             "other_data": [data async for data in other_data_cursor],
         }
 
-    async def _set_data(self, data: dict):
+    async def set_data(self, data: dict):
         await super()._update(
             OperatorType.SET, GlobalCollectionType.OTHER, GlobalDocumentType.MAIN, data
         )
 
     async def set_genshin_cookies(self, cookies: dict):
-        await self._set_data({"genshin_cookies": cookies})
+        await self.set_data({"genshin_cookies": cookies})
 
     async def set_fmtm_chapter(self, chapter: str):
-        await self._set_data({"fly_me_to_the_moon_chapter": chapter})
+        await self.set_data({"fly_me_to_the_moon_chapter": chapter})
+
+    async def get_data(self, key: str):
+        all_data = await super()._find(GlobalCollectionType.OTHER, GlobalDocumentType.MAIN)
+        return all_data.get(key)
 
 
 class GlobalUserRequest(GlobalBaseRequest):
