@@ -61,7 +61,7 @@ class PSUParser(Cog):
                     else "<:_:996003877499453460>"
                 )
                 description = f"{emoji} **{current_position} ({previous_position})**"
-                embed.add_field(name=direction.name, value=description)
+                embed.add_field(name=direction.name, value=description, inline=False)
 
         if embed.fields:
             await self.send_message(embed=embed)
