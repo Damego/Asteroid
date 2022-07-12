@@ -28,6 +28,7 @@ class PSUParser(Cog):
         self.current_data = {}
         self.started = False  # `on_ready` can be called multiple times during runtime
         self.previous_data = None
+        self.hidden = True
 
     @Cog.listener()
     async def on_ready(self):
