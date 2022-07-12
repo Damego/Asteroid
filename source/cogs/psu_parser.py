@@ -49,7 +49,7 @@ class PSUParser(Cog):
         embed = Embed(title="ПГНИУ", color=0xC62E3E)
 
         user: User = self.bot.get_user(143773579320754177)
-        embed.set_author(name=user.name, url=user.avatar_url)
+        embed.set_author(name=user.name, icon_url=user.avatar_url)
 
         for code, direction in data.items():
             current_position = direction.position
