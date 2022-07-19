@@ -1,1 +1,4 @@
+attrs
 discord-py-interactions
+motor
+pymongo
