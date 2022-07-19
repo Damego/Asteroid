@@ -2,3 +2,4 @@ attrs
 discord-py-interactions
 motor
 pymongo
+python-dotenv
