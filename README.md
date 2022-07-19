@@ -10,9 +10,7 @@
 
 <h2>Main libraries</h2>
 
-- discord.py v1.7.3 - Base client
-- <a href="https://github.com/Damego/discord-py-interactions">custom discord-py-interactions v3</a>  - Slash commands and components
-
+- [interactions.py](https://github.com/interactions-py/library)
 <h2>Setup Bot</h2>
 
 Figure it out for yourself
