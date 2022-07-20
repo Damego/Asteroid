@@ -9,7 +9,9 @@ def load_extensions(client: Asteroid, path: str):
     path = Path(path)
     for extension in path.iterdir():
         name = extension.name
+        if name == "__pycache__":
+            continue
         if name.endswith(".py"):
-            client.load(name[:2])
-        if extension.is_dir():
-            client.load(name)
+            client.load(f"{path}.{name[:-3]}")
+        elif extension.is_dir():
+            client.load(f"{path}.{name}")

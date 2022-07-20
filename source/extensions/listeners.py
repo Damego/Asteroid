@@ -5,18 +5,14 @@ from interactions import extension_listener as listener
 
 class Listeners(Extension):
     def __init__(self, client: Asteroid):
-        self.client: Asteroid = (
-            client  # I should add type annotation since current annotation is `Client`
-        )
+        # I should add type annotation since current annotation is `interactions.Client`
+        self.client: Asteroid = client
 
     @listener
-    async def on_ready(self):
-        print("Bot ready")
-
-    @listener
-    async def on_guild_create(self, guild: Guild):
+    async def on_guild_delete(self, guild: Guild):
+        # TODO: Remove guild from database
         ...
 
-    @listener
-    async def on_guild_remove(self, guild: Guild):
-        ...
+
+def setup(client):
+    Listeners(client)
