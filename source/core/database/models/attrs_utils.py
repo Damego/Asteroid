@@ -1,4 +1,5 @@
 from functools import wraps
+from string import ascii_uppercase
 from typing import TYPE_CHECKING, Callable
 
 import attrs
@@ -75,19 +76,25 @@ class DataBaseSerializerMixin(DictSerializerMixin):
             if (self._json.get(key) and self._json[key] != value)
             or (self._json.get(key) is None and key not in ["id", "guild_data"])
         }
+        guild_id = self._json["guild_id"]
         model_name = str(self.__class__.__name__)
         match model_name:
             case "GuildUser":
-                await self._database.update_user(self._json["id"], self._json["guild_id"], data)
+                await self._database.update_user(self._json["id"], guild_id, data)
             case "GuildSettings":
-                await self._database.update_guild(self._json["guild_id"], "configuration", data)
+                await self._database.update_guild(guild_id, "configuration", data)
             case "GuildAutoRole" | "GuildTag" | "GuildEmojiBoard":
                 key = model_name[5:].lower() + "s"
                 document = {"_id": key, f"{key}.name": self._json["name"]}
                 payload = {f"{key}.$.{key}": value for key, value in _json.items()}
-                await self._database.update_guild(
-                    self._json["guild_id"], document, OperatorType.SET, payload
-                )
+                await self._database.update_guild(guild_id, document, OperatorType.SET, payload)
+            case "GuildPrivateVoice" | "GuildLeveling":
+                key = model_name
+                for char in key:
+                    if char in ascii_uppercase:
+                        key = key.replace(char, f"_{char.lower()}", 1)
+                await self._database.update_guild(guild_id, key, OperatorType.SET, data)
+
         self._json = _json
 
 

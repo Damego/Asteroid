@@ -71,6 +71,13 @@ class GuildRequests:
         await self.__insert_document(guild_id, "users", data=data)
         return data
 
+    async def remove_user(self, guild_id: int, user_id: int):
+        data = {
+            "_id": str(user_id),
+        }
+        collection = self.__get_collection(guild_id, "users")
+        await collection.delete_one(data)
+
     async def update_user(self, guild_id: int, user_id: int, data: dict):
         await self.__update_document(
             guild_id, "users", filter=str(user_id), operator=OperatorType.SET, data=data

@@ -59,6 +59,7 @@ class GuildAutoRole(DataBaseSerializerMixin):
 
 @define()
 class GuildTag(DataBaseSerializerMixin):
+    name: str = field()
     title: str = field()
     description: str = field()
     author_id: int = field()
@@ -69,14 +70,14 @@ class GuildTag(DataBaseSerializerMixin):
 
 
 @define()
-class GuildPrivateVoice(DictSerializerMixin):
+class GuildPrivateVoice(DataBaseSerializerMixin):
     active_channels: list[int] = field(factory=list)
     text_channel_id: int = field()
     voice_channel_id: int = field()
 
 
 @define()
-class GuildLeveling(DictSerializerMixin):
+class GuildLeveling(DataBaseSerializerMixin):
     roles_by_level: dict[int, int] = field(factory=dict)
     message_xp_range: list[int] = field(factory=list)
     voice_factor: int = field(default=10)  # TODO: Add enum for default value
@@ -101,6 +102,11 @@ class GuildEmojiBoard(DataBaseSerializerMixin):
         converter=convert_list(GuildEmojiMessage), factory=list
     )
 
+    def add_message(self, message_id: int, channel_message_id: int):
+        self.messages.append(
+            GuildEmojiMessage(message_id=message_id, channel_message_id=channel_message_id)
+        )
+
 
 @define()
 class GuildData(DataBaseSerializerMixin):
@@ -119,7 +125,7 @@ class GuildData(DataBaseSerializerMixin):
     private_voice: GuildPrivateVoice = field(converter=GuildPrivateVoice, default=None)
     voice_time: dict[str, int] = field(default=None)
     leveling: GuildLeveling = field(converter=GuildLeveling, default=None)
-    emojiboards: list[GuildEmojiBoard] = field(converter=convert_list(GuildEmojiBoard))
+    emoji_boards: list[GuildEmojiBoard] = field(converter=convert_list(GuildEmojiBoard))
 
     async def update(self):
         """
@@ -149,11 +155,11 @@ class GuildData(DataBaseSerializerMixin):
             if tag.name == name:
                 return tag
 
-    async def add_user(self, user_id: int, *, data: dict = None) -> GuildUser:
-        ...
+    async def add_user(self, user_id: int) -> GuildUser:
+        return await self._database.add_user(self.guild_id, user_id)
 
     async def remove_user(self, user_id: int):
-        ...
+        await self._database.remove_user(user_id)
 
     async def add_autorole(
         self,

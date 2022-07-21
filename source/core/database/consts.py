@@ -32,7 +32,8 @@ class OperatorType(StrEnum):
 class DocumentType(StrEnum):
     SETTINGS = "configuration"
     CONFIGURATION = "configuration"
-    AUTOROLE = "autorole"
-    AUTOROLES = "autorole"
+    AUTOROLES = "autoroles"
     TAGS = "tags"
-    EMOJI_BOARDS = "emojiboards"
+    EMOJI_BOARDS = "emoji_boards"
+    PRIVATE_VOICE = "private_voice"
+    LEVELING = "leveling"
