@@ -4,15 +4,35 @@ from typing import TypeAlias
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import MongoClient
 
-__all__ = ["AsyncMongoClient", "Language"]
+__all__ = ["AsyncMongoClient", "Language", "OperatorType", "DocumentType"]
 
 AsyncMongoClient: TypeAlias = MongoClient | AsyncIOMotorClient
 
 
-class Language(str, Enum):
+class StrEnum(str, Enum):
+    ...
+
+
+class Language(StrEnum):
     """
     Representing supported languages
     """
 
     RUSSIAN = "ru"
     ENGlISH = "en-US"
+
+
+class OperatorType(StrEnum):
+    SET = "$set"
+    UNSET = "$unset"
+    PUSH = "$push"
+    PULL = "$pull"
+
+
+class DocumentType(StrEnum):
+    SETTINGS = "configuration"
+    CONFIGURATION = "configuration"
+    AUTOROLE = "autorole"
+    AUTOROLES = "autorole"
+    TAGS = "tags"
+    EMOJI_BOARDS = "emojiboards"

@@ -1,6 +1,6 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from .consts import AsyncMongoClient
+from .consts import AsyncMongoClient, DocumentType, OperatorType
 from .models import GuildData
 from .requests import Requests
 
@@ -20,17 +20,24 @@ class DataBaseClient:
         self._cache[str(guild_id)] = guild
         return guild
 
-    def get_guild(self, guild_id: int) -> GuildData:
+    async def get_guild(self, guild_id: int) -> GuildData:
         guild_id = str(guild_id)
         for id, guild in self._cache.items():
             if id == guild_id:
                 return guild
 
-    async def remove_guild(self, guild_id: int):
-        ...
+        guild_raw_data = await self._req.guild.get_guild_raw_data(guild_id)
+        guild_data = GuildData(**guild_raw_data, _database=self, guild_id=guild_id)
+        self._cache[guild_id] = guild_data
+        return guild_data
 
-    async def update_guild(self, guild_id: int, data: dict):
-        ...
+    async def remove_guild(self, guild_id: int):
+        await self._req.guild.remove_guild(guild_id)
+
+    async def update_guild(
+        self, guild_id: int, document: DocumentType | str | dict, operator: OperatorType, data: dict
+    ):
+        await self._req.guild.update_document(guild_id, document, operator, data)
 
     async def update_user(self, guild_id: int, user_id: int, data: dict):
         await self._req.guild.update_user(guild_id, user_id, data)

@@ -13,8 +13,12 @@ load_extensions(bot, "extensions")
 
 @bot.event()
 async def on_start():
-    a, b = await bot.database._req.guild.find_all_documents(822119465575383102)
-    print(a)
+    guild_data = await bot.database.get_guild(822119465575383102)
+    autorole = guild_data.autoroles[0]
+    print(autorole)
+    autorole.content = "Go out!"
+    await autorole.update()
+    print(autorole)
 
 
 bot.start()

@@ -1,4 +1,4 @@
-from ..consts import AsyncMongoClient
+from ..consts import AsyncMongoClient, DocumentType, OperatorType
 
 
 class GuildRequests:
@@ -12,24 +12,48 @@ class GuildRequests:
             collection = collection[str(key)]
         return collection
 
-    async def find_all_documents(self, guild_id: int):
+    async def get_guild_raw_data(self, guild_id: int):
         main_collection = self.__get_collection(guild_id, "configuration")
         users_collection = self.__get_collection(guild_id, "users")
-        data = main_collection.find()
-        users_data = users_collection.find()
-        return [_ async for _ in data], [_ async for _ in users_data]
+        data = [doc async for doc in main_collection.find()]
+        users_data = [doc async for doc in users_collection.find()]
+
+        full_data = {}
+        for document in data:
+            id = document["_id"]
+            match id:
+                case "tags" | "autoroles":
+                    full_data[id] = document[id]
+                case "voice_time":
+                    del document["_id"]
+                    full_data[id] = document
+                case _:
+                    full_data[id] = document
+        full_data["users"] = users_data
+        return full_data
 
     async def __insert_document(self, *keys, data: dict):
         collection = self.__get_collection(*keys)
         await collection.insert_one(data)
 
-    async def __update_document(self, *keys, filter: str | dict, data: dict, upsert: bool = True):
+    async def __update_document(
+        self,
+        *keys,
+        filter: DocumentType | str | dict,
+        operator: OperatorType,
+        data: dict,
+        upsert: bool = True
+    ):
         collection = self.__get_collection(*keys)
-        _filter = {"_id": filter} if isinstance(filter, str) else filter
-        await collection.update_one(_filter, data, upsert)
+        _filter = {"_id": filter} if isinstance(filter, (str, DocumentType)) else filter
+        await collection.update_one(_filter, {operator: data}, upsert)
 
-    async def get_guild(self, guild_id: int) -> dict:
-        ...
+    async def update_document(
+        self, guild_id: int, document: DocumentType | str | dict, operator: OperatorType, data: dict
+    ):
+        await self.__update_document(
+            guild_id, "configuration", filter=document, operator=operator, data=data
+        )
 
     async def add_guild(self, guild_id: int) -> dict:
         data = {"_id": "configuration", "language": "en-US", "embed_color": "0x5865F2"}
@@ -48,4 +72,6 @@ class GuildRequests:
         return data
 
     async def update_user(self, guild_id: int, user_id: int, data: dict):
-        await self.__update_document(guild_id, "users", filter=str(user_id), data=data, upsert=True)
+        await self.__update_document(
+            guild_id, "users", filter=str(user_id), operator=OperatorType.SET, data=data
+        )
