@@ -111,7 +111,11 @@ class GuildEmojiBoard(DataBaseSerializerMixin):
 @define()
 class GuildData(DataBaseSerializerMixin):
     settings: GuildSettings = field(
-        converter=GuildSettings, add_database=True, alias="configuration", default=None
+        converter=GuildSettings,
+        add_database=True,
+        add_guild_id=True,
+        alias="configuration",
+        default=None,
     )
     users: list[GuildUser] = field(
         converter=convert_list(GuildUser), add_database=True, add_guild_id=True, default=None
@@ -135,22 +139,22 @@ class GuildData(DataBaseSerializerMixin):
         """
         raise NotImplementedError
 
-    def get_user(self, user_id: int):
+    def get_user(self, user_id: int) -> GuildUser | None:
         for user in self.users:
             if user.id == user_id:
                 return user
 
-    def get_autorole(self, name: str):
+    def get_autorole(self, name: str) -> GuildAutoRole | None:
         for autorole in self.autoroles:
             if autorole.name == name:
                 return autorole
 
-    def get_emoji_board(self, emoji: str):
+    def get_emoji_board(self, emoji: str) -> GuildEmojiBoard | None:
         for emoji_board in self.emoji_boards:
             if emoji in emoji_board.emojis:
                 return emoji_board
 
-    def get_tag(self, name: str):
+    def get_tag(self, name: str) -> GuildTag | None:
         for tag in self.tags:
             if tag.name == name:
                 return tag
@@ -158,8 +162,8 @@ class GuildData(DataBaseSerializerMixin):
     async def add_user(self, user_id: int) -> GuildUser:
         return await self._database.add_user(self.guild_id, user_id)
 
-    async def remove_user(self, user_id: int):
-        await self._database.remove_user(user_id)
+    async def remove_user(self, *, user_id: int = None, user: GuildUser = None):
+        await self._database.remove_user(self.guild_id, user_id=user_id, user=user)
 
     async def add_autorole(
         self,
@@ -171,10 +175,18 @@ class GuildData(DataBaseSerializerMixin):
         type: str,
         component: dict,
     ) -> GuildAutoRole:
-        ...
+        return await self._database.add_autorole(
+            self.guild_id,
+            name=name,
+            content=content,
+            channel_id=channel_id,
+            message_id=message_id,
+            type=type,
+            component=component,
+        )
 
-    async def remove_autorole(self, name: str):
-        ...
+    async def remove_autorole(self, *, name: str = None, autorole: GuildAutoRole = None):
+        await self._database.remove_autorole(self.guild_id, name=name, autorole=autorole)
 
     async def add_emoji_board(
         self,
@@ -185,15 +197,28 @@ class GuildData(DataBaseSerializerMixin):
         to_add: int,
         to_remove: int,
     ) -> GuildEmojiBoard:
-        ...
+        return await self._database.add_emoji_board(
+            self.guild_id,
+            name=name,
+            channel_id=channel_id,
+            emojis=emojis,
+            to_add=to_add,
+            to_remove=to_remove,
+        )
 
-    async def remove_emoji_board(self, name: str):
-        ...
+    async def remove_emoji_board(self, *, name: str = None, emoji_board: GuildEmojiBoard = None):
+        await self._database.remove_emoji_board(self.guild_id, name=name, emoji_board=emoji_board)
 
     async def add_tag(
         self, *, title: str, description: str, author_id: int, is_embed: bool = None
     ) -> GuildTag:
-        ...
+        return await self._database.add_tag(
+            self.guild_id,
+            title=title,
+            description=description,
+            author_id=author_id,
+            is_embed=is_embed,
+        )
 
-    async def remove_tag(self, name: str):
-        ...
+    async def remove_tag(self, *, name: str = None, tag: GuildTag = None):
+        await self._database.remove_tag(self.guild_id, name=name, tag=tag)

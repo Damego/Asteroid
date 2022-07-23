@@ -73,8 +73,9 @@ class DataBaseSerializerMixin(DictSerializerMixin):
         data = {
             key: value
             for key, value in _json.items()
-            if (self._json.get(key) and self._json[key] != value)
+            if (self._json.get(key) is not None and self._json[key] != value)
             or (self._json.get(key) is None and key not in ["id", "guild_data"])
+            or (value is not self._json.get(key))  # TODO: Lists can had same value and its bad.
         }
         guild_id = self._json["guild_id"]
         model_name = str(self.__class__.__name__)
@@ -82,11 +83,11 @@ class DataBaseSerializerMixin(DictSerializerMixin):
             case "GuildUser":
                 await self._database.update_user(self._json["id"], guild_id, data)
             case "GuildSettings":
-                await self._database.update_guild(guild_id, "configuration", data)
+                await self._database.update_guild(guild_id, "configuration", OperatorType.SET, data)
             case "GuildAutoRole" | "GuildTag" | "GuildEmojiBoard":
                 key = model_name[5:].lower() + "s"
                 document = {"_id": key, f"{key}.name": self._json["name"]}
-                payload = {f"{key}.$.{key}": value for key, value in _json.items()}
+                payload = {f"{key}.$.{k}": value for k, value in _json.items()}
                 await self._database.update_guild(guild_id, document, OperatorType.SET, payload)
             case "GuildPrivateVoice" | "GuildLeveling":
                 key = model_name
@@ -96,6 +97,7 @@ class DataBaseSerializerMixin(DictSerializerMixin):
                 await self._database.update_guild(guild_id, key, OperatorType.SET, data)
 
         self._json = _json
+        self._json["guild_id"] = guild_id
 
 
 def convert_list(obj: Callable):

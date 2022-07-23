@@ -7,8 +7,13 @@ from utils.functions import load_extensions
 
 load_dotenv()
 
-bot = Asteroid(getenv("TOKEN"), getenv("MONGO_URL"), intents=interactions.Intents.ALL)
-load_extensions(bot, "extensions")
+client = Asteroid(getenv("TOKEN"), getenv("MONGO_URL"), intents=interactions.Intents.ALL)
+load_extensions(client, "extensions")
 
 
-bot.start()
+@client.event
+async def on_ready():
+    print("Bot ready")
+
+
+client.start()

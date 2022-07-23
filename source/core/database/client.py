@@ -52,7 +52,7 @@ class DataBaseClient:
         message_id: int,
         type: str,
         component: dict,
-    ):
+    ) -> GuildAutoRole:
         data = {
             "name": name,
             "content": content,
@@ -62,22 +62,35 @@ class DataBaseClient:
             "component": component,
         }
         await self._req.guild.update_document(
-            guild_id, DocumentType.AUTOROLES, OperatorType.PUSH, data
+            guild_id, DocumentType.AUTOROLES, OperatorType.PUSH, {"autoroles": data}
         )
         autorole = GuildAutoRole(**data, _database=self, guild_id=guild_id)
         self.guild_cache[str(guild_id)].autoroles.append(autorole)
+        return autorole
 
-    async def remove_autorole(self, guild_id: int, name: str):
-        for autorole in self.guild_cache[str(guild_id)].autoroles:
-            if autorole.name == name:
-                break
-        else:
-            raise  # TODO: Implement Exception classes
+    async def remove_autorole(
+        self, guild_id: int, *, name: str = None, autorole: GuildAutoRole = None
+    ):
+        if name is not None and autorole is not None:
+            if name != autorole.name:
+                raise Exception(
+                    "Cannot be both name and autorole!"
+                )  # TODO: Implement Exception classes
+        if not name and not autorole:
+            raise Exception(
+                "Should be at least one of name or autorole!"
+            )  # TODO: Implement Exception classes
+
+        if name is not None:
+            for autorole in self.guild_cache[str(guild_id)].autoroles:
+                if autorole.name == name:
+                    break
+            else:
+                raise  # TODO: Implement Exception classes
 
         await self._req.guild.update_document(
             guild_id, DocumentType.AUTOROLES, OperatorType.PULL, autorole._json
         )
-
         self.guild_cache[str(guild_id)].autoroles.remove(autorole)
 
     async def add_tag(
@@ -92,7 +105,7 @@ class DataBaseClient:
         created_at: int,
         last_edited_at: int,
         uses_count: int,
-    ):
+    ) -> GuildTag:
         data = {
             "name": name,
             "title": title,
@@ -103,21 +116,32 @@ class DataBaseClient:
             "last_edited_at": last_edited_at,
             "uses_count": uses_count,
         }
-        await self._req.guild.update_document(guild_id, DocumentType.TAGS, OperatorType.PUSH, data)
+        await self._req.guild.update_document(
+            guild_id, DocumentType.TAGS, OperatorType.PUSH, {"tags": data}
+        )
         tag = GuildTag(**data, _database=self, guild_id=guild_id)
         self.guild_cache[str(guild_id)].tags.append(tag)
+        return tag
 
-    async def remove_tag(self, guild_id: int, name: str):
-        for tag in self.guild_cache[str(guild_id)].tags:
-            if tag.name == name:
-                break
-        else:
-            raise  # TODO: Implement Exception classes
+    async def remove_tag(self, guild_id: int, *, name: str = None, tag: GuildTag = None):
+        if name is not None and tag is not None:
+            if name != tag.name:
+                raise Exception("Cannot be both name and tag!")  # TODO: Implement Exception classes
+        if not name and not tag:
+            raise Exception(
+                "Should be at least one of name or tag!"
+            )  # TODO: Implement Exception classes
+
+        if name is not None:
+            for tag in self.guild_cache[str(guild_id)].tags:
+                if tag.name == name:
+                    break
+            else:
+                raise  # TODO: Implement Exception classes
 
         await self._req.guild.update_document(
             guild_id, DocumentType.TAGS, OperatorType.PULL, tag._json
         )
-
         self.guild_cache[str(guild_id)].tags.remove(tag)
 
     async def add_emoji_board(
@@ -130,7 +154,7 @@ class DataBaseClient:
         to_add: int,
         to_remove: int,
         is_freeze: bool,
-    ):
+    ) -> GuildEmojiBoard:
         data = {
             "name": name,
             "channel_id": channel_id,
@@ -140,22 +164,33 @@ class DataBaseClient:
             "is_freeze": is_freeze,
         }
         await self._req.guild.update_document(
-            guild_id, DocumentType.EMOJI_BOARDS, OperatorType.PUSH, data
+            guild_id, DocumentType.EMOJI_BOARDS, OperatorType.PUSH, {"emoji_boards": data}
         )
         board = GuildEmojiBoard(**data, _database=self, guild_id=guild_id)
         self.guild_cache[str(guild_id)].emoji_boards.append(board)
+        return board
 
-    async def remove_emoji_board(self, guild_id: int, name: str):
-        for emoji_board in self.guild_cache[str(guild_id)].emoji_boards:
-            if emoji_board.name == name:
-                break
-        else:
-            raise  # TODO: Implement Exception classes
+    async def remove_emoji_board(self, guild_id: int, *, name: str, emoji_board: GuildEmojiBoard):
+        if name is not None and emoji_board is not None:
+            if name != emoji_board.name:
+                raise Exception(
+                    "Cannot be both name and emoji_board!"
+                )  # TODO: Implement Exception classes
+        if not name and not emoji_board:
+            raise Exception(
+                "Should be at least one of name or emoji_board!"
+            )  # TODO: Implement Exception classes
+
+        if name is not None:
+            for emoji_board in self.guild_cache[str(guild_id)].emoji_boards:
+                if emoji_board.name == name:
+                    break
+            else:
+                raise  # TODO: Implement Exception classes
 
         await self._req.guild.update_document(
             guild_id, DocumentType.EMOJI_BOARDS, OperatorType.PULL, emoji_board._json
         )
-
         self.guild_cache[str(guild_id)].emoji_boards.remove(emoji_board)
 
     async def add_user(self, guild_id: int, user_id: int) -> GuildUser:
@@ -164,12 +199,26 @@ class DataBaseClient:
         self.guild_cache[str(guild_id)].users.append(user)
         return user
 
-    async def remove_user(self, guild_id: int, user_id: int):
+    async def remove_user(self, guild_id: int, *, user_id: int = None, user: GuildUser = None):
+        if user_id is not None and user is not None:
+            if user_id != user.id:
+                raise Exception(
+                    "Cannot be both user_id and user!"
+                )  # TODO: Implement Exception classes
+        if not user_id and not user:
+            raise Exception(
+                "Should be at least one of user_id or user!"
+            )  # TODO: Implement Exception classes
+
+        if user_id is not None:
+            for user in self.guild_cache[str(guild_id)].users:
+                if user.id == user_id:
+                    break
+            else:
+                raise  # TODO: Implement Exception classes
+
         await self._req.guild.remove_user(guild_id, user_id)
-        for user in self.guild_cache[str(guild_id)].users:
-            if user.id == user_id:
-                self.guild_cache[str(guild_id)].users.remove(user)
-                break
+        self.guild_cache[str(guild_id)].users.remove(user)
 
     async def update_user(self, guild_id: int, user_id: int, data: dict):
         await self._req.guild.update_user(guild_id, user_id, data)
