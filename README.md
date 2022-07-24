@@ -5,6 +5,10 @@
   <img src="https://cdn.discordapp.com/attachments/829309399959863307/964580080032571422/1asteroid-8d.png" style="height: 200px">
 </div>
 
+<h1>Bot in development</h1>
+
+## [Trello](https://trello.com/b/LqKt8jNU/asteroid-v3-development)
+
 <h2>About</h2>
 <p>It's just my pet project to improve my skills in python</p>
 
