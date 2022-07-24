@@ -1,6 +1,4 @@
-import interactions
-from interactions import option  # noqa
-from interactions import (  # noqa
+from interactions import (
     ActionRow,
     Button,
     ButtonStyle,
@@ -8,19 +6,21 @@ from interactions import (  # noqa
     Choice,
     CommandContext,
     ComponentContext,
+    Embed,
+    EmbedField,
     Extension,
     GuildMember,
     OptionType,
     Role,
     SelectMenu,
     SelectOption,
-    autodefer,
 )
 from interactions import extension_command as command
-from interactions import extension_listener as listener  # noqa
+from interactions import extension_listener as listener
+from interactions import option
 
 from utils import components_from_dict, get_emoji_from_str  # isort: skip
-from core.client import Asteroid  # isort: skip
+from core import Asteroid, BotException  # isort: skip
 
 COLORS = {
     "Blue": ButtonStyle.PRIMARY.value,
@@ -43,22 +43,23 @@ class AutoRoles(Extension):
 
     @listener
     async def on_component(self, ctx: ComponentContext):
-        if ctx.custom_id == "select_autorole" or ctx.custom_id.startswith("button_autorole"):
-            roles = (
-                list(map(int, ctx.data.values))
-                if ctx.custom_id == "select_autorole"
-                else [int(ctx.custom_id.split("|")[-1])]
-            )
-            code = "SELECT" if ctx.custom_id == "select_autorole" else "BUTTONS"
-            for role_id in roles:
-                if role_id in ctx.author.roles:
-                    await ctx.author.add_role(
-                        role_id, ctx.guild_id, reason=f"[AUTOROLE {code}] Add role"
-                    )
-                else:
-                    await ctx.author.remove_role(
-                        role_id, ctx.guild_id, reason=f"[AUTOROLE {code}] Remove role"
-                    )
+        if ctx.custom_id != "select_autorole" or not ctx.custom_id.startswith("button_autorole"):
+            return
+        roles = (
+            list(map(int, ctx.data.values))
+            if ctx.custom_id == "select_autorole"
+            else [int(ctx.custom_id.split("|")[-1])]
+        )
+        code = "SELECT" if ctx.custom_id == "select_autorole" else "BUTTONS"
+        for role_id in roles:
+            if role_id in ctx.author.roles:
+                await ctx.author.add_role(
+                    role_id, ctx.guild_id, reason=f"[AUTOROLE {code}] Add role"
+                )
+            else:
+                await ctx.author.remove_role(
+                    role_id, ctx.guild_id, reason=f"[AUTOROLE {code}] Remove role"
+                )
 
     @listener
     async def on_autocomplete(self, ctx: CommandContext):
@@ -68,6 +69,7 @@ class AutoRoles(Extension):
         focused_option = [
             _option for _option in ctx.data.options[0].options[0].options if _option.focused
         ][0]
+        autorole_type = ctx.data.options[0].name
         autorole_name = [
             _option.value
             for _option in ctx.data.options[0].options[0].options
@@ -81,6 +83,7 @@ class AutoRoles(Extension):
                     [
                         Choice(name=autorole.name, value=autorole.name)
                         for autorole in guild_data.autoroles
+                        if autorole.type == autorole_type
                     ]
                 )
             case "button":
@@ -112,7 +115,6 @@ class AutoRoles(Extension):
                 await ctx.populate(choices)
 
     @command(name="autorole")
-    @autodefer(1, ephemeral=True)
     async def autorole(self, ctx: CommandContext):
         """Main command for all autoroles"""
         ...
@@ -120,7 +122,36 @@ class AutoRoles(Extension):
     @autorole.subcommand()
     async def list(self, ctx: CommandContext):
         """Shows list of autoroles like dropdowns, button, on_joins"""
-        ...
+
+        def get_autoroles(type: str):
+            return [
+                f"`{autorole.name}`" for autorole in guild_data.autoroles if autorole.type == type
+            ]
+
+        await ctx.defer()
+
+        guild_data = await self.client.database.get_guild(int(ctx.guild_id))
+        if not guild_data.autoroles and not guild_data.settings.on_join_roles:
+            raise BotException(110)
+
+        fields = []
+        if guild_data.autoroles:
+            if dropdown_roles := get_autoroles("dropdown"):
+                fields.append(EmbedField(name="Dropdown", value="\n".join(dropdown_roles)))
+            if button_roles := get_autoroles("button"):
+                fields.append(EmbedField(name="Buttons", value="\n".join(button_roles)))
+        if guild_data.settings.on_join_roles:
+            fields.append(
+                EmbedField(
+                    name="On join Roles",
+                    value="".join(
+                        [f"<@&{role_id}>" for role_id in guild_data.settings.on_join_roles]
+                    ),
+                )
+            )
+
+        embed = Embed(title="Autoroles", fields=fields)
+        await ctx.send(embeds=embed)
 
     @autorole.group()
     async def dropdown(self, ctx: CommandContext):
@@ -170,7 +201,7 @@ class AutoRoles(Extension):
             content=message,
             channel_id=int(ctx.channel_id),
             message_id=int(_message.id),
-            type="select",
+            type="dropdown",
             component=components._json,
         )
         await ctx.send("Dropdown autorole successfully created!", ephemeral=True)
@@ -188,9 +219,7 @@ class AutoRoles(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         autorole = guild_data.get_autorole(name)
         if autorole is None:
-            raise Exception(
-                "Autorole with this name not found!"
-            )  # TODO: Implement exception classes
+            raise BotException(100)
 
         await guild_data.remove_autorole(autorole=autorole)
 
@@ -225,9 +254,7 @@ class AutoRoles(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         autorole = guild_data.get_autorole(name)
         if autorole is None:
-            raise Exception(
-                "Autorole with this name not found!"
-            )  # TODO: Implement exception classes
+            raise BotException(100)
 
         option = SelectOption(
             label=option_name or role.name,
@@ -236,13 +263,13 @@ class AutoRoles(Extension):
             description=description,
         )
         await ctx.get_guild()
-        channel: Channel = await self.client.get(
-            interactions.Channel, object_id=autorole.channel_id
-        )
+        channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
         components = components_from_dict(message.components)
         select = components[0].components[0]
         options = select.options
+        if len(options) == 25:
+            raise BotException(104)
         if options[0].label == "None":
             options.clear()
             select.disabled = False
@@ -274,13 +301,9 @@ class AutoRoles(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         autorole = guild_data.get_autorole(name)
         if autorole is None:
-            raise Exception(
-                "Autorole with this name not found!"
-            )  # TODO: Implement exception classes
+            raise BotException(100)
         await ctx.get_guild()
-        channel: Channel = await self.client.get(
-            interactions.Channel, object_id=autorole.channel_id
-        )
+        channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
         components = components_from_dict(message.components)
         select = components[0].components[0]
@@ -291,7 +314,7 @@ class AutoRoles(Extension):
                 options.remove(_option)
                 break
         else:
-            raise Exception("Option not found!")  # TODO: Implement exception classes
+            raise BotException(103)
 
         if len(options) == 0:
             options.append(SelectOption(label="None", value="None"))
@@ -335,7 +358,7 @@ class AutoRoles(Extension):
             channel_id=int(ctx.channel_id),
             message_id=int(_message.id),
             component=[],
-            type="buttons",
+            type="button",
         )
         await ctx.send("Autorole created!")
 
@@ -352,9 +375,7 @@ class AutoRoles(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         autorole = guild_data.get_autorole(name)
         if autorole is None:
-            raise Exception(
-                "Autorole with this name not found!"
-            )  # TODO: Implement exception classes
+            raise BotException(100)
 
         await guild_data.remove_autorole(autorole=autorole)
 
@@ -392,7 +413,7 @@ class AutoRoles(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         autorole = guild_data.get_autorole(name)
         if autorole is None:
-            raise  # TODO: Implement error exception
+            raise BotException(100)
 
         button = Button(
             label=label or role.name,
@@ -401,9 +422,7 @@ class AutoRoles(Extension):
             style=color if color is not None else ButtonStyle.SECONDARY,
         )
 
-        channel: Channel = await self.client.get(
-            interactions.Channel, object_id=autorole.channel_id
-        )
+        channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
 
         components = components_from_dict(message.components)
@@ -422,9 +441,8 @@ class AutoRoles(Extension):
                 if len(components) < 5:
                     components.append(ActionRow(components=[button]))
                 else:
-                    raise Exception("Buttons limit")  # TODO: Exception classes
+                    raise BotException(105)
         autorole.component = [_._json for _ in components]
-        print(autorole.component)
         await autorole.update()
         await message.edit(components=components)
 
@@ -450,15 +468,13 @@ class AutoRoles(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         autorole = guild_data.get_autorole(name)
         if autorole is None:
-            raise  # TODO: Implement error exception
+            raise BotException(100)
 
-        channel: Channel = await self.client.get(
-            interactions.Channel, object_id=autorole.channel_id
-        )
+        channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
         components = components_from_dict(message.components)
         if not components:
-            raise Exception("No buttons lol")
+            raise BotException(108)
 
         _break = False
         for action_row in components:
@@ -473,7 +489,7 @@ class AutoRoles(Extension):
             if _break:
                 break
         else:
-            raise Exception("Button not found")
+            raise BotException(106)
         await message.edit(components=components)
         autorole.component = [_._json for _ in components]
         await autorole.update()
@@ -493,7 +509,7 @@ class AutoRoles(Extension):
         role_id = int(role.id)
         roles = guild_data.settings.on_join_roles
         if role_id in roles:
-            raise Exception("Role already exist")
+            raise BotException(109)
 
         guild_data.settings.on_join_roles.append(role_id)
         await guild_data.settings.update()
@@ -513,7 +529,7 @@ class AutoRoles(Extension):
         role_id = int(role)
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         if role_id not in guild_data.settings.on_join_roles:
-            raise Exception("Role not in list")  # TODO: Exception class
+            raise BotException(107)
 
         guild_data.settings.on_join_roles.remove(role_id)
         await guild_data.settings.update()
