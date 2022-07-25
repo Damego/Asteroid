@@ -109,10 +109,6 @@ def convert_list(obj: Callable):
     return wrapper
 
 
-def int16(num: str | int):
-    return int(num, 16) if isinstance(num, str) else num
-
-
 def convert_int(num: int | float | None):
     if num is None or num is MISSING:
         return MISSING

@@ -4,6 +4,7 @@ from interactions import (
     ButtonStyle,
     Channel,
     Choice,
+    Color,
     CommandContext,
     ComponentContext,
     Embed,
@@ -19,8 +20,8 @@ from interactions import extension_command as command
 from interactions import extension_listener as listener
 from interactions import option
 
+from core import Asteroid, BotException, StrEnum, Mentions  # isort: skip
 from utils import components_from_dict, get_emoji_from_str  # isort: skip
-from core import Asteroid, BotException  # isort: skip
 
 COLORS = {
     "Blue": ButtonStyle.PRIMARY.value,
@@ -30,10 +31,19 @@ COLORS = {
 }
 
 
+class CommandsMention(StrEnum):
+    DROPDOWN_ADD_ROLE = "</autorole dropdown add-role:1000330305795792997>"
+    BUTTON_ADD_ROLE = "</autorole button add-role:1000330305795792997>"
+
+
 class AutoRoles(Extension):
     def __init__(self, client: Asteroid):
         # I should add type annotation since current annotation is `interactions.Client`
         self.client: Asteroid = client
+
+    @staticmethod
+    def __build_embed(description: str) -> Embed:
+        return Embed(description=description, color=Color.blurple())
 
     @listener
     async def on_guild_member_add(self, member: GuildMember):
@@ -43,23 +53,37 @@ class AutoRoles(Extension):
 
     @listener
     async def on_component(self, ctx: ComponentContext):
-        if ctx.custom_id != "select_autorole" or not ctx.custom_id.startswith("button_autorole"):
+        if ctx.custom_id != "select_autorole" and not ctx.custom_id.startswith("button_autorole"):
             return
+        await ctx.defer(ephemeral=True)
         roles = (
             list(map(int, ctx.data.values))
             if ctx.custom_id == "select_autorole"
             else [int(ctx.custom_id.split("|")[-1])]
         )
+        added_roles = []
+        removed_roles = []
         code = "SELECT" if ctx.custom_id == "select_autorole" else "BUTTONS"
         for role_id in roles:
             if role_id in ctx.author.roles:
-                await ctx.author.add_role(
+                await ctx.author.remove_role(
                     role_id, ctx.guild_id, reason=f"[AUTOROLE {code}] Add role"
                 )
+                removed_roles.append(role_id)
             else:
-                await ctx.author.remove_role(
+                await ctx.author.add_role(
                     role_id, ctx.guild_id, reason=f"[AUTOROLE {code}] Remove role"
                 )
+                added_roles.append(role_id)
+
+        # TODO: Translate these strings
+        to_send = ""
+        if added_roles:
+            to_send += f"Added roles: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in added_roles])}"
+        if removed_roles:
+            to_send += f"Removed roles: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in removed_roles])}"
+
+        await ctx.send(to_send)
 
     @listener
     async def on_autocomplete(self, ctx: CommandContext):
@@ -133,24 +157,29 @@ class AutoRoles(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         if not guild_data.autoroles and not guild_data.settings.on_join_roles:
             raise BotException(110)
+        locale = await self.client.get_locale(ctx.guild_id)
 
         fields = []
         if guild_data.autoroles:
             if dropdown_roles := get_autoroles("dropdown"):
-                fields.append(EmbedField(name="Dropdown", value="\n".join(dropdown_roles)))
+                fields.append(
+                    EmbedField(name=locale["AUTOROLE_DROPDOWN"], value="\n".join(dropdown_roles))
+                )
             if button_roles := get_autoroles("button"):
-                fields.append(EmbedField(name="Buttons", value="\n".join(button_roles)))
+                fields.append(
+                    EmbedField(name=locale["AUTOROLE_BUTTON"], value="\n".join(button_roles))
+                )
         if guild_data.settings.on_join_roles:
             fields.append(
                 EmbedField(
-                    name="On join Roles",
+                    name=locale["AUTOROLE_ON_JOIN"],
                     value="".join(
                         [f"<@&{role_id}>" for role_id in guild_data.settings.on_join_roles]
                     ),
                 )
             )
 
-        embed = Embed(title="Autoroles", fields=fields)
+        embed = Embed(title=locale["AUTOROLE_LIST"], fields=fields)
         await ctx.send(embeds=embed)
 
     @autorole.group()
@@ -178,6 +207,7 @@ class AutoRoles(Extension):
         self, ctx: CommandContext, name: str, message: str, placeholder: str = None
     ):
         """Creates a dropdown autorole"""
+        await ctx.defer(ephemeral=True)
         components = ActionRow(
             components=[
                 SelectMenu(
@@ -204,7 +234,11 @@ class AutoRoles(Extension):
             type="dropdown",
             component=components._json,
         )
-        await ctx.send("Dropdown autorole successfully created!", ephemeral=True)
+        locale = await self.client.get_locale(ctx.guild_id)
+        embed = self.__build_embed(
+            locale["DROPDOWN_CREATED"].format(command=CommandsMention.DROPDOWN_ADD_ROLE)
+        )
+        await ctx.send(embeds=embed)
 
     @dropdown.subcommand(name="remove")
     @option(
@@ -216,12 +250,16 @@ class AutoRoles(Extension):
     )
     async def dropdown_remove(self, ctx: CommandContext, name: str):
         """Removes a dropdown autorole"""
+        await ctx.defer(ephemeral=True)
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         autorole = guild_data.get_autorole(name)
         if autorole is None:
             raise BotException(100)
 
         await guild_data.remove_autorole(autorole=autorole)
+        locale = await self.client.get_locale(ctx.guild_id)
+        embed = self.__build_embed(locale["DROPDOWN_DELETED"])
+        await ctx.send(embeds=embed)
 
     @dropdown.subcommand(name="add-role")
     @option(
@@ -251,6 +289,7 @@ class AutoRoles(Extension):
         description: str = None,
     ):
         """Adds a role to dropdown"""
+        await ctx.defer(ephemeral=True)
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         autorole = guild_data.get_autorole(name)
         if autorole is None:
@@ -279,7 +318,9 @@ class AutoRoles(Extension):
         autorole.component = [component._json for component in components]
         await autorole.update()
 
-        await ctx.send("Option added", ephemeral=True)
+        locale = await self.client.get_locale(ctx.guild_id)
+        embed = self.__build_embed(locale["OPTION_ADDED"])
+        await ctx.send(embeds=embed)
 
     @dropdown.subcommand(name="remove-role")
     @option(
@@ -325,7 +366,9 @@ class AutoRoles(Extension):
         autorole.component = [component._json for component in components]
         await autorole.update()
 
-        await ctx.send("Option removed")
+        locale = await self.client.get_locale(ctx.guild_id)
+        embed = self.__build_embed(locale["OPTION_REMOVED"])
+        await ctx.send(embeds=embed)
 
     @autorole.group()
     async def button(self, ctx: CommandContext):
@@ -360,7 +403,11 @@ class AutoRoles(Extension):
             component=[],
             type="button",
         )
-        await ctx.send("Autorole created!")
+        locale = await self.client.get_locale(ctx.guild_id)
+        embed = self.__build_embed(
+            locale["BUTTON_CREATED"].format(command=CommandsMention.BUTTON_ADD_ROLE)
+        )
+        await ctx.send(embeds=embed)
 
     @button.subcommand(name="remove")
     @option(
@@ -378,6 +425,10 @@ class AutoRoles(Extension):
             raise BotException(100)
 
         await guild_data.remove_autorole(autorole=autorole)
+
+        locale = await self.client.get_locale(ctx.guild_id)
+        embed = self.__build_embed(locale["BUTTON_DELETED"])
+        await ctx.send(embeds=embed)
 
     @button.subcommand(name="add-role")
     @option(
@@ -446,7 +497,9 @@ class AutoRoles(Extension):
         await autorole.update()
         await message.edit(components=components)
 
-        await ctx.send("Button added!")
+        locale = await self.client.get_locale(ctx.guild_id)
+        embed = self.__build_embed(locale["BUTTON_ADDED"])
+        await ctx.send(embeds=embed)
 
     @button.subcommand(name="remove-role")
     @option(
@@ -494,7 +547,9 @@ class AutoRoles(Extension):
         autorole.component = [_._json for _ in components]
         await autorole.update()
 
-        await ctx.send("Button removed!")
+        locale = await self.client.get_locale(ctx.guild_id)
+        embed = self.__build_embed(locale["BUTTON_REMOVED"])
+        await ctx.send(embeds=embed)
 
     @autorole.group(name="on_joina")
     async def on_join(self, ctx: CommandContext):
@@ -513,7 +568,9 @@ class AutoRoles(Extension):
 
         guild_data.settings.on_join_roles.append(role_id)
         await guild_data.settings.update()
-        await ctx.send("Role added")
+        locale = await self.client.get_locale(ctx.guild_id)
+        embed = self.__build_embed(locale["ON_JOIN_ROLE_ADDED"].format(role=role.mention))
+        await ctx.send(embeds=embed)
 
     @on_join.subcommand(name="remove")
     @option(
@@ -533,7 +590,11 @@ class AutoRoles(Extension):
 
         guild_data.settings.on_join_roles.remove(role_id)
         await guild_data.settings.update()
-        await ctx.send("Role removed")
+        locale = await self.client.get_locale(ctx.guild_id)
+        embed = self.__build_embed(
+            locale["ON_JOIN_ROLE_REMOVED"].format(role=Mentions.ROLE.format(id=role_id))
+        )
+        await ctx.send(embeds=embed)
 
 
 def setup(client):

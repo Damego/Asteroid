@@ -4,7 +4,7 @@ from typing import TypeAlias
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import MongoClient
 
-__all__ = ["AsyncMongoClient", "Language", "OperatorType", "DocumentType"]
+__all__ = ["AsyncMongoClient", "StrEnum", "Language", "OperatorType", "DocumentType"]
 
 AsyncMongoClient: TypeAlias = MongoClient | AsyncIOMotorClient
 

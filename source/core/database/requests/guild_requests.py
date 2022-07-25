@@ -56,7 +56,7 @@ class GuildRequests:
         )
 
     async def add_guild(self, guild_id: int) -> dict:
-        data = {"_id": "configuration", "language": "en-US", "embed_color": "0x5865F2"}
+        data = {"_id": "configuration", "language": "en-US"}
         await self.__insert_document(guild_id, "configuration", data=data)
         return data
 

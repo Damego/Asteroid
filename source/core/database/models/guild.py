@@ -6,7 +6,6 @@ from .attrs_utils import (
     convert_list,
     define,
     field,
-    int16,
 )
 
 __all__ = [
@@ -41,7 +40,6 @@ class GuildUser(DataBaseSerializerMixin):
 @define()
 class GuildSettings(DataBaseSerializerMixin):
     language: Language = field(converter=Language)
-    embed_color: int = field(converter=int16)
     on_join_roles: list[int] = field(factory=list)
     disabled_commands: list[str] = field(factory=list)
     suggested_russian: bool = field(default=False)
