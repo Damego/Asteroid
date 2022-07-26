@@ -208,14 +208,27 @@ class GuildData(DataBaseSerializerMixin):
         await self._database.remove_emoji_board(self.guild_id, name=name, emoji_board=emoji_board)
 
     async def add_tag(
-        self, *, title: str, description: str, author_id: int, is_embed: bool = None
+        self,
+        *,
+        name: str,
+        title: str,
+        description: str,
+        author_id: int,
+        is_embed: bool,
+        created_at: int,
+        last_edited_at: int,
+        uses_count: int,
     ) -> GuildTag:
         return await self._database.add_tag(
             self.guild_id,
+            name=name,
             title=title,
             description=description,
             author_id=author_id,
             is_embed=is_embed,
+            created_at=created_at,
+            last_edited_at=last_edited_at,
+            uses_count=uses_count,
         )
 
     async def remove_tag(self, *, name: str = None, tag: GuildTag = None):

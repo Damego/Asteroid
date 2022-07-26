@@ -3,7 +3,8 @@ from os import getenv
 import interactions
 from core import Asteroid
 from dotenv import load_dotenv
-from utils.functions import load_extensions
+
+from utils.functions import load_extensions  # isort: skip
 
 load_dotenv()
 

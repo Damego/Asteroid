@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+__all__ = ["Locale", "LocaleManager"]
+
 
 class Locale:
     __slots__ = ("commands", "errors")

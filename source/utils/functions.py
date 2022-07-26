@@ -2,9 +2,9 @@ import re
 from pathlib import Path
 
 from core import Asteroid
-from interactions import ActionRow, Emoji
+from interactions import ActionRow, Color, Embed, EmbedField, Emoji
 
-__all__ = ["load_extensions", "components_from_dict", "get_emoji_from_str"]
+__all__ = ["load_extensions", "components_from_dict", "get_emoji_from_str", "create_embed"]
 
 
 def load_extensions(client: Asteroid, path: str):
@@ -34,3 +34,9 @@ def get_emoji_from_str(emoji: str | None) -> Emoji | None:
         if len(emoji) > 1:
             return
         return Emoji(name=emoji)  # btw its still can be any symbol so its bad
+
+
+def create_embed(
+    description: str = None, title: str = None, fields: list[EmbedField] = None
+) -> Embed:
+    return Embed(title=title, description=description, fields=fields, color=Color.blurple())
