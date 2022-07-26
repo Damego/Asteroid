@@ -3,6 +3,7 @@ Parser for site http://www.psu.ru/
 """
 
 from dataclasses import asdict, dataclass
+from threading import Thread
 from typing import Dict
 
 from aiohttp import ClientSession
@@ -22,7 +23,6 @@ class PSUParser(Cog):
     def __init__(self, bot: AsteroidBot) -> None:
         self.bot = bot
         self.url = "http://www.psu.ru/files/docs/priem-2022/#"
-        self.directions = ["090302-13-11", "010302-13-11-67", "010302-13-11-428", "020302-13-11"]
         self.SNILS = "15759849437"
         self.session = ClientSession()
         self.current_data = {}
@@ -40,14 +40,18 @@ class PSUParser(Cog):
         self.main.start()
         self.started = True
 
-    @tasks.loop(hours=6)
+    @tasks.loop(hours=3)
     async def main(self):
         data: Dict[str, Direction] = await self.get_results()
         previous_data: Dict[str, Direction] = await self.get_previous_results()
         if previous_data is None:
             return await self.update_database(data)
 
-        embed = Embed(title="ПГНИУ", color=0xC62E3E)
+        embed = Embed(
+            title="ПГНИУ",
+            description="**Место в конкурсе учётом того, что люди подали оригинал и согласие на зачисление**",
+            color=0xC62E3E,
+        )
 
         user: User = self.bot.get_user(143773579320754177)
         embed.set_author(name=user.name, icon_url=user.avatar_url)
@@ -84,16 +88,38 @@ class PSUParser(Cog):
             data[direction] = Direction(**info)
         return data
 
+    def thread_parse(html: str, result: list):
+        result.append(BeautifulSoup(html, "html.parser"))
+
     async def parse(self, html: str):
-        soup = BeautifulSoup(html, "html.parser")
+        result = []
+        thread = Thread(
+            target=self.thread_parse, args=(html, result)
+        )  # Use threads because it takes more 20 seconds
+        thread.start()
+        while not result:
+            pass
+        soup = result[0]
+        fonts = soup.find_all("font", string=self.SNILS)
         data = {}
-        for direction in self.directions:
-            link = soup.find("a", {"name": direction})
-            article = link.parent
+        for font in fonts:
+            pos = font.parent.parent.find("td").text
+            table = font.parent.parent.parent
+            article = table.parent  # To get name and code
             direction_name = article.find("h2").find_all("span")[2].text
-            about_me = article.find("font", string=self.SNILS).parent.parent
-            position = about_me.find("td").text
-            data[direction] = Direction(name=direction_name, position=int(position))
+            count = 0
+            trs = table.find_all("tr")
+            for tr in trs:
+                tds = tr.find_all("td")
+                _pos = tds[0].text
+                if not _pos.isdigit():  # Skip word `Общий конкурс`
+                    continue
+                if _pos == pos:
+                    break
+                if tds[2].text == "+" and tds[3].text == "+":
+                    count += 1
+            code = article.find("a")["name"]
+            data[code] = Direction(name=direction_name, position=count + 1)
         return data
 
     async def send_message(self, embed: Embed):
