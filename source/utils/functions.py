@@ -2,9 +2,9 @@ import re
 from pathlib import Path
 
 from core import Asteroid
-from interactions import ActionRow, Color, Embed, EmbedField, Emoji
+from interactions import Color, Embed, EmbedField, Emoji
 
-__all__ = ["load_extensions", "components_from_dict", "get_emoji_from_str", "create_embed"]
+__all__ = ["load_extensions", "get_emoji_from_str", "create_embed"]
 
 
 def load_extensions(client: Asteroid, path: str):
@@ -14,13 +14,9 @@ def load_extensions(client: Asteroid, path: str):
         if name == "__pycache__":
             continue
         if name.endswith(".py"):
-            client.load(f"{path}.{name[:-3]}")
+            client.load(f"{path}.{name.removesuffix('.py')}")
         elif extension.is_dir():
             client.load(f"{path}.{name}")
-
-
-def components_from_dict(components: list[dict]) -> list[ActionRow]:
-    return [ActionRow(**action_row) for action_row in components]
 
 
 def get_emoji_from_str(emoji: str | None) -> Emoji | None:

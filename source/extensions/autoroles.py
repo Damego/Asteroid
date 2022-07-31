@@ -20,7 +20,7 @@ from interactions import extension_listener as listener
 from interactions import option
 
 from core import Asteroid, BotException, StrEnum, Mentions  # isort: skip
-from utils import components_from_dict, get_emoji_from_str, create_embed  # isort: skip
+from utils import get_emoji_from_str, create_embed  # isort: skip
 
 COLORS = {
     "Blue": ButtonStyle.PRIMARY.value,
@@ -299,7 +299,7 @@ class AutoRoles(Extension):
         await ctx.get_guild()
         channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
-        components = components_from_dict(message.components)
+        components = message.components
         select = components[0].components[0]
         options = select.options
         if len(options) == 25:
@@ -341,7 +341,7 @@ class AutoRoles(Extension):
         await ctx.get_guild()
         channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
-        components = components_from_dict(message.components)
+        components = message.components
         select = components[0].components[0]
         options = select.options
 
@@ -471,7 +471,7 @@ class AutoRoles(Extension):
         channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
 
-        components = components_from_dict(message.components)
+        components = message.components
         if not components:
             components = [ActionRow(components=[button])]
         else:
@@ -520,7 +520,7 @@ class AutoRoles(Extension):
 
         channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
-        components = components_from_dict(message.components)
+        components = message.components
         if not components:
             raise BotException(108)
 

@@ -1,5 +1,5 @@
 attrs
-discord-py-interactions
+discord-py-interactions>=4.3.0
 motor
 pymongo
 python-dotenv
