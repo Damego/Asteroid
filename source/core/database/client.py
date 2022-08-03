@@ -150,7 +150,7 @@ class DataBaseClient:
         *,
         name: str,
         channel_id: int,
-        emojis: list[str],
+        emoji: str,
         to_add: int,
         to_remove: int,
         is_freeze: bool,
@@ -158,7 +158,7 @@ class DataBaseClient:
         data = {
             "name": name,
             "channel_id": channel_id,
-            "emojis": emojis,
+            "emoji": emoji,
             "to_add": to_add,
             "to_remove": to_remove,
             "is_freeze": is_freeze,

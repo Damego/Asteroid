@@ -92,7 +92,7 @@ class GuildEmojiMessage(DictSerializerMixin):
 class GuildEmojiBoard(DataBaseSerializerMixin):
     name: str = field()
     channel_id: int = field()
-    emojis: list[str] = field()
+    emoji: str = field()
     to_add: int = field()
     to_remove: int = field()
     is_freeze: bool = field()
@@ -104,6 +104,12 @@ class GuildEmojiBoard(DataBaseSerializerMixin):
         self.messages.append(
             GuildEmojiMessage(message_id=message_id, channel_message_id=channel_message_id)
         )
+
+    def remove_message(self, *, message_id: int = None, channel_message_id: int = None):
+        for message in self.messages:
+            if message.message_id == message_id or message.channel_message_id == channel_message_id:
+                self.messages.remove(message)
+                break
 
 
 @define()
@@ -127,7 +133,9 @@ class GuildData(DataBaseSerializerMixin):
     private_voice: GuildPrivateVoice = field(converter=GuildPrivateVoice, default=None)
     voice_time: dict[str, int] = field(default=None)
     leveling: GuildLeveling = field(converter=GuildLeveling, default=None)
-    emoji_boards: list[GuildEmojiBoard] = field(converter=convert_list(GuildEmojiBoard))
+    emoji_boards: list[GuildEmojiBoard] = field(
+        converter=convert_list(GuildEmojiBoard), add_database=True, add_guild_id=True
+    )
 
     async def update(self):
         """
@@ -191,7 +199,7 @@ class GuildData(DataBaseSerializerMixin):
         *,
         name: str,
         channel_id: int,
-        emojis: list[str],
+        emoji: str,
         to_add: int,
         to_remove: int,
     ) -> GuildEmojiBoard:
@@ -199,9 +207,10 @@ class GuildData(DataBaseSerializerMixin):
             self.guild_id,
             name=name,
             channel_id=channel_id,
-            emojis=emojis,
+            emoji=emoji,
             to_add=to_add,
             to_remove=to_remove,
+            is_freeze=False,
         )
 
     async def remove_emoji_board(self, *, name: str = None, emoji_board: GuildEmojiBoard = None):

@@ -22,7 +22,7 @@ class GuildRequests:
         for document in data:
             id = document["_id"]
             match id:
-                case "tags" | "autoroles":
+                case "tags" | "autoroles" | "emoji_boards":
                     full_data[id] = document[id]
                 case "voice_time":
                     del document["_id"]

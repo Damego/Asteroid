@@ -85,19 +85,27 @@ class DataBaseSerializerMixin(DictSerializerMixin):
             case "GuildSettings":
                 await self._database.update_guild(guild_id, "configuration", OperatorType.SET, data)
             case "GuildAutoRole" | "GuildTag" | "GuildEmojiBoard":
-                key = model_name[5:].lower() + "s"
+                if model_name == "GuildEmojiBoard":
+                    key = self._to_database_name(model_name)
+                else:
+                    key = model_name[5:].lower()
+                key += "s"
                 document = {"_id": key, f"{key}.name": self._json["name"]}
-                payload = {f"{key}.$.{k}": value for k, value in _json.items()}
+                payload = {f"{key}.$.{k}": value for k, value in data.items()}
                 await self._database.update_guild(guild_id, document, OperatorType.SET, payload)
             case "GuildPrivateVoice" | "GuildLeveling":
-                key = model_name
-                for char in key:
-                    if char in ascii_uppercase:
-                        key = key.replace(char, f"_{char.lower()}", 1)
+                key = self._to_database_name(model_name)
                 await self._database.update_guild(guild_id, key, OperatorType.SET, data)
 
         self._json = _json
         self._json["guild_id"] = guild_id
+
+    @staticmethod
+    def _to_database_name(name: str) -> str:
+        for char in name:
+            if char in ascii_uppercase:
+                name = name.replace(char, f"_{char.lower()}", 1)
+        return name[7:]
 
 
 def convert_list(obj: Callable):
