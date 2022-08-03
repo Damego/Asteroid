@@ -105,11 +105,21 @@ class GuildEmojiBoard(DataBaseSerializerMixin):
             GuildEmojiMessage(message_id=message_id, channel_message_id=channel_message_id)
         )
 
-    def remove_message(self, *, message_id: int = None, channel_message_id: int = None):
+    def get_message(self, *, message_id: int = None, channel_message_id: int = None):
         for message in self.messages:
             if message.message_id == message_id or message.channel_message_id == channel_message_id:
-                self.messages.remove(message)
-                break
+                return message
+
+    def remove_message(
+        self,
+        *,
+        message: GuildEmojiMessage = None,
+        message_id: int = None,
+        channel_message_id: int = None,
+    ):
+        if message is None:
+            message = self.get_message(message_id=message_id, channel_message_id=channel_message_id)
+        self.messages.remove(message)
 
 
 @define()
@@ -155,9 +165,9 @@ class GuildData(DataBaseSerializerMixin):
             if autorole.name == name:
                 return autorole
 
-    def get_emoji_board(self, emoji: str) -> GuildEmojiBoard | None:
+    def get_emoji_board(self, name: str) -> GuildEmojiBoard | None:
         for emoji_board in self.emoji_boards:
-            if emoji in emoji_board.emojis:
+            if name == emoji_board.name:
                 return emoji_board
 
     def get_tag(self, name: str) -> GuildTag | None:
