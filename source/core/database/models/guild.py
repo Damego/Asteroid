@@ -86,28 +86,50 @@ class GuildLeveling(DataBaseSerializerMixin):
 class GuildEmojiMessage(DictSerializerMixin):
     message_id: int = field()
     channel_message_id: int = field()
+    users: list[int] = field(factory=list)
+
+    def add_user(self, user_id: int):
+        self.users.append(user_id)
+
+    def remove_user(self, user_id: int):
+        self.users.remove(user_id)
 
 
 @define()
 class GuildEmojiBoard(DataBaseSerializerMixin):
     name: str = field()
     channel_id: int = field()
-    emoji: str = field()
+    emojis: str = field()
     to_add: int = field()
     to_remove: int = field()
     is_freeze: bool = field()
     messages: list[GuildEmojiMessage] = field(
         converter=convert_list(GuildEmojiMessage), factory=list
     )
+    embed_color: int = field()
 
-    def add_message(self, message_id: int, channel_message_id: int):
-        self.messages.append(
-            GuildEmojiMessage(message_id=message_id, channel_message_id=channel_message_id)
+    def add_message(
+        self, message_id: int, channel_message_id: int = None, users: list[int] = None
+    ) -> GuildEmojiMessage:
+        message = GuildEmojiMessage(
+            message_id=message_id, channel_message_id=channel_message_id, users=users
         )
+        self.messages.append(message)
+        return message
+
+    def add_user(self, user_id: int, *, message_id: int = None, channel_message_id: int = None):
+        message = self.get_message(message_id=message_id, channel_message_id=channel_message_id)
+        message.add_user(user_id)
+
+    def remove_user(self, user_id: int, *, message_id: int = None, channel_message_id: int = None):
+        message = self.get_message(message_id=message_id, channel_message_id=channel_message_id)
+        message.remove_user(user_id)
 
     def get_message(self, *, message_id: int = None, channel_message_id: int = None):
         for message in self.messages:
-            if message.message_id == message_id or message.channel_message_id == channel_message_id:
+            if (message_id is not None and message.message_id == message_id) or (
+                channel_message_id is not None and message.channel_message_id == channel_message_id
+            ):
                 return message
 
     def remove_message(
@@ -209,18 +231,20 @@ class GuildData(DataBaseSerializerMixin):
         *,
         name: str,
         channel_id: int,
-        emoji: str,
+        emojis: list[str],
         to_add: int,
         to_remove: int,
+        embed_color: int,
     ) -> GuildEmojiBoard:
         return await self._database.add_emoji_board(
             self.guild_id,
             name=name,
             channel_id=channel_id,
-            emoji=emoji,
+            emojis=emojis,
             to_add=to_add,
             to_remove=to_remove,
             is_freeze=False,
+            embed_color=embed_color,
         )
 
     async def remove_emoji_board(self, *, name: str = None, emoji_board: GuildEmojiBoard = None):

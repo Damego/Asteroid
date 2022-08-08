@@ -7,6 +7,9 @@ from .requests import Requests
 
 __all__ = ["DataBaseClient"]
 
+# TODO:
+#   Add support for interactions.Snowflake
+
 
 class DataBaseClient:
     def __init__(self, url: str):
@@ -150,18 +153,20 @@ class DataBaseClient:
         *,
         name: str,
         channel_id: int,
-        emoji: str,
+        emojis: list[str],
         to_add: int,
         to_remove: int,
         is_freeze: bool,
+        embed_color: int,
     ) -> GuildEmojiBoard:
         data = {
             "name": name,
             "channel_id": channel_id,
-            "emoji": emoji,
+            "emojis": emojis,
             "to_add": to_add,
             "to_remove": to_remove,
             "is_freeze": is_freeze,
+            "embed_color": embed_color,
         }
         await self._req.guild.update_document(
             guild_id, DocumentType.EMOJI_BOARDS, OperatorType.PUSH, {"emoji_boards": data}

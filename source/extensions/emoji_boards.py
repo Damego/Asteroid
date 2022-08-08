@@ -1,10 +1,14 @@
 import datetime
+import re
 from asyncio import get_event_loop, sleep
 
-from core import Asteroid, GuildEmojiBoard
+from core import Asteroid, GuildEmojiBoard, GuildEmojiMessage
 from interactions import (
+    Button,
+    ButtonStyle,
     Channel,
     ChannelType,
+    Choice,
     Color,
     CommandContext,
     Embed,
@@ -18,8 +22,7 @@ from interactions import extension_listener as listener
 from interactions import option
 
 # TODO:
-#   Make UI
-#   Autocomplete
+#   UI/UX
 #   Exceptions
 #   Locale
 
@@ -33,97 +36,122 @@ class EmojiBoards(Extension):
         guild_data = await self.client.database.get_guild(int(reaction.guild_id))
         emoji = reaction.emoji
         for emoji_board in guild_data.emoji_boards:
-            if str(emoji) == emoji_board.emoji:
+            if emoji_board.emojis and str(emoji) in emoji_board.emojis:
                 break
         else:
             return
+
         channel: Channel = await self.client.get(Channel, object_id=int(reaction.channel_id))
         message = await channel.get_message(reaction.message_id)
         if message.author.id == reaction.user_id:
             return await message.remove_reaction_from(emoji, reaction.user_id)
+        if (
+            int(reaction.channel_id) == emoji_board.channel_id
+            and reaction.user_id == self.client.me.id
+        ):
+            return
 
-        for _reaction in message.reactions:
-            if _reaction.emoji == emoji:
-                break
+        _message = emoji_board.get_message(message_id=int(reaction.message_id))
+        if _message is None:
+            _message = emoji_board.add_message(message_id=int(reaction.message_id))
 
-        count = _reaction.count
+        _message.add_user(int(reaction.user_id))
+        await emoji_board.update()
 
+        count = len(_message.users)
         if count < emoji_board.to_add:
             return
         if count == emoji_board.to_add:
-            return await self.__add_message(message, emoji_board, count)
+            return await self.__add_message(message, _message, emoji_board, count)
 
-        await self.__update_message(message, emoji_board, count)
+        await self.__update_message(_message, emoji_board, count)
 
     @listener()
     async def on_raw_message_reaction_remove(self, reaction: MessageReaction):
         guild_data = await self.client.database.get_guild(int(reaction.guild_id))
         emoji = reaction.emoji
         for emoji_board in guild_data.emoji_boards:
-            if str(emoji) == emoji_board.emoji:
+            if emoji_board.emojis and str(emoji) in emoji_board.emojis:
                 break
         else:
             return
-        channel: Channel = await self.client.get(Channel, object_id=int(reaction.channel_id))
-        message = await channel.get_message(reaction.message_id)
 
-        for _reaction in message.reactions:
-            if _reaction.emoji == emoji:
-                break
+        _message = emoji_board.get_message(int(reaction.message_id))
+        if _message is None:
+            _message = emoji_board.add_message(message_id=int(reaction.message_id))
 
-        count = _reaction.count
+        _message.remove_user(int(reaction.user_id))
+        await emoji_board.update()
+        count = len(_message.users)
 
         if count > emoji_board.to_remove:
             return
         if count == emoji_board.to_remove:
-            return await self.__remove_message(message, emoji_board)
+            return await self.__remove_message(_message, emoji_board)
 
-        await self.__update_message(message, emoji_board, count)
+        await self.__update_message(_message, emoji_board, count)
 
-    async def __add_message(self, message: Message, emoji_board: GuildEmojiBoard, count: int):
+    async def __add_message(
+        self,
+        message: Message,
+        emoji_message: GuildEmojiMessage,
+        emoji_board: GuildEmojiBoard,
+        count: int,
+    ):
         if message.embeds:
             embed = message.embeds[0]
-            embed.description = embed.description or ""
         else:
             embed = Embed(
                 description=message.content,
-                color=Color.blurple(),  # TODO: Custom color for every emoji board?
+                color=emoji_board.embed_color or Color.blurple(),
             )
-        embed.description += f"\n\n[**Go to message**]({message.url})"
         embed.timestamp = datetime.datetime.utcnow().isoformat()
         embed.set_author(name=message.author.username, icon_url=message.author.avatar_url)
         embed.set_footer(text=f"Emoji board name: {emoji_board.name}")
 
-        channel = await self.client.get(Channel, object_id=emoji_board.channel_id)
-        board_message = await channel.send(f"{emoji_board.emoji} | {count}", embeds=embed)
-
-        emoji_board.add_message(
-            message_id=int(message.id), channel_message_id=int(board_message.id)
-        )
-        await emoji_board.update()
-
-    async def __update_message(self, message: Message, emoji_board: GuildEmojiBoard, count: int):
-        for _message in emoji_board.messages:
-            if _message.message_id == int(message.id):
-                break
-        else:
-            return print("wat")
+        view_msg_button = Button(style=ButtonStyle.LINK, label="Original message", url=message.url)
 
         channel: Channel = await self.client.get(Channel, object_id=emoji_board.channel_id)
-        board_message = await channel.get_message(_message.channel_message_id)
+        board_message = await channel.send(
+            f"**{' '.join(emoji_board.emojis)} | {count}**",
+            embeds=embed,
+            components=view_msg_button,
+        )
+        emoji_message.channel_message_id = int(board_message.id)
+        await emoji_board.update()
+
+    async def __update_message(
+        self, emoji_message: GuildEmojiMessage, emoji_board: GuildEmojiBoard, count: int
+    ):
+        channel: Channel = await self.client.get(Channel, object_id=emoji_board.channel_id)
+        board_message = await channel.get_message(emoji_message.channel_message_id)
         await board_message.edit(f"{emoji_board.emoji} | {count}")
 
-    async def __remove_message(self, message: Message, emoji_board: GuildEmojiBoard):
-        _message = emoji_board.get_message(message_id=int(message.id))
-
+    async def __remove_message(
+        self, emoji_message: GuildEmojiMessage, emoji_board: GuildEmojiBoard
+    ):
         channel: Channel = await self.client.get(Channel, object_id=emoji_board.channel_id)
-        board_message = await channel.get_message(_message.channel_message_id)
+        board_message = await channel.get_message(emoji_message.channel_message_id)
         await board_message.delete(
-            "[EmojiBoard] Remove message because it has less reaction that needed."
+            "[EmojiBoard] Remove message because it lost all reaction that needed to be on board."
         )
 
-        emoji_board.remove_message(message=_message)
+        emoji_board.remove_message(message=emoji_message)
         await emoji_board.update()
+
+    @listener()
+    async def on_autocomplete(self, ctx: CommandContext):
+        if ctx.data.name != "emoji_board":
+            return
+
+        focused_option = [_option for _option in ctx.data.options[0].options if _option.focused][0]
+        if focused_option.name != "name":
+            return
+        guild_data = await self.client.database.get_guild(int(ctx.guild_id))
+        emoji_boards = guild_data.emoji_boards
+        await ctx.populate(
+            [Choice(name=emoji_board.name, value=emoji_board.name) for emoji_board in emoji_boards]
+        )
 
     @command()
     async def emoji_board(self, ctx: CommandContext):
@@ -135,6 +163,7 @@ class EmojiBoards(Extension):
     @option("The emoji for board")
     @option("Count to add emoji to board", min_value=1)
     @option("Count to remove emoji from board", min_value=0)
+    @option("The HEX color for embeds without '#'", min_lenght=6, max_length=6)
     async def create_emoji_board(
         self,
         ctx: CommandContext,
@@ -143,25 +172,38 @@ class EmojiBoards(Extension):
         emoji: str,
         to_add: int = 3,
         to_remove: int = 2,
+        embed_color: str = None,
     ):
         """Create a new emoji board"""
 
-        async def remove_message(message: Message, timeout: int):
-            await sleep(timeout)
-            await message.delete()
+        def remove_message(message: Message, timeout: int):
+            async def inner():
+                await sleep(timeout)
+                await message.delete()
+
+            loop = get_event_loop()
+            loop.create_task(inner())
 
         await ctx.defer()
+
+        if not re.fullmatch(r"[a-zA-z0-9]+", embed_color):
+            raise Exception("Invalid color!")
 
         try:
             message = await channel.send("Test message to check bot permission")
         except LibraryException:
             return await ctx.send("Bot doesn't have permission to that channel!")
-        loop = get_event_loop()
-        loop.create_task(remove_message(message, 5))
+
+        remove_message(message, 5)
 
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         await guild_data.add_emoji_board(
-            name=name, channel_id=int(channel.id), emoji=emoji, to_add=to_add, to_remove=to_remove
+            name=name,
+            channel_id=int(channel.id),
+            emojis=[emoji],
+            to_add=to_add,
+            to_remove=to_remove,
+            embed_color=int(embed_color, 16),
         )
 
         await ctx.send("Emoji board created!")
@@ -197,6 +239,8 @@ class EmojiBoards(Extension):
     @option("The emoji for board")
     @option("Count to add emoji to board", min_value=1)
     @option("Count to remove emoji from board", min_value=0)
+    @option("Should be emoji board be frozen")
+    @option("The embed color for board message", min_lenght=6, max_lenght=6)
     async def edit_emoji_board(
         self,
         ctx: CommandContext,
@@ -206,10 +250,12 @@ class EmojiBoards(Extension):
         emoji: str = None,
         to_add: int = None,
         to_remove: int = None,
+        freeze: bool = None,
+        embed_color: str = None,
     ):
         await ctx.defer()
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
-        emoji_board = await guild_data.get_emoji_board(name)
+        emoji_board = guild_data.get_emoji_board(name)
         if emoji_board is None:
             raise  # TODO: Exception
 
@@ -223,6 +269,12 @@ class EmojiBoards(Extension):
             emoji_board.to_add = to_add
         if to_remove is not None:
             emoji_board.to_remove = to_remove
+        if freeze is not None:
+            emoji_board.freeze = freeze
+        if embed_color:
+            if not re.fullmatch(r"[a-zA-z0-9]+", embed_color):
+                raise Exception("Invalid color!")
+            emoji_board.embed_color = embed_color
 
         await emoji_board.update()
         await ctx.send("Emoji board edited!")
