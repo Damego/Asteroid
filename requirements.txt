@@ -1,7 +1,7 @@
 aiohttp==3.8.1
 bored_api
 certifi
-discord.py==1.7.3
+git+https://github.com/Damego/i-need-this-for-host-my-bot.git
 genshin
 git+https://github.com/Damego/discord-py-interactions.git
 lavalink
