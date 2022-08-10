@@ -13,3 +13,4 @@ pymongo
 qrcode
 python-dotenv
 pygount
+dnspython
