@@ -12,3 +12,4 @@ PyGithub
 pymongo
 qrcode
 python-dotenv
+pygount
