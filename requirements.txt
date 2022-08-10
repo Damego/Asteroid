@@ -11,3 +11,4 @@ pre-commit
 PyGithub
 pymongo
 qrcode
+python-dotenv
