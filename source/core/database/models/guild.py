@@ -16,7 +16,7 @@ __all__ = [
     "GuildTag",
     "GuildPrivateVoice",
     "GuildLeveling",
-    "GuildEmojiMessage",
+    "GuildMessageData",
     "GuildEmojiBoard",
     "GuildData",
 ]
@@ -83,10 +83,11 @@ class GuildLeveling(DataBaseSerializerMixin):
 
 
 @define()
-class GuildEmojiMessage(DictSerializerMixin):
+class GuildMessageData(DictSerializerMixin):
     message_id: int = field()
     channel_message_id: int = field()
     users: list[int] = field(factory=list)
+    author_id: int = field()
 
     def add_user(self, user_id: int):
         self.users.append(user_id)
@@ -99,20 +100,25 @@ class GuildEmojiMessage(DictSerializerMixin):
 class GuildEmojiBoard(DataBaseSerializerMixin):
     name: str = field()
     channel_id: int = field()
-    emojis: str = field()
+    emojis: list[str] = field()
     to_add: int = field()
     to_remove: int = field()
     is_freeze: bool = field()
-    messages: list[GuildEmojiMessage] = field(
-        converter=convert_list(GuildEmojiMessage), factory=list
-    )
+    messages: list[GuildMessageData] = field(converter=convert_list(GuildMessageData), factory=list)
     embed_color: int = field()
 
     def add_message(
-        self, message_id: int, channel_message_id: int = None, users: list[int] = None
-    ) -> GuildEmojiMessage:
-        message = GuildEmojiMessage(
-            message_id=message_id, channel_message_id=channel_message_id, users=users
+        self,
+        author_id: int,
+        message_id: int,
+        channel_message_id: int = None,
+        users: list[int] = None,
+    ) -> GuildMessageData:
+        message = GuildMessageData(
+            author_id=author_id,
+            message_id=message_id,
+            channel_message_id=channel_message_id,
+            users=users,
         )
         self.messages.append(message)
         return message
@@ -135,7 +141,7 @@ class GuildEmojiBoard(DataBaseSerializerMixin):
     def remove_message(
         self,
         *,
-        message: GuildEmojiMessage = None,
+        message: GuildMessageData = None,
         message_id: int = None,
         channel_message_id: int = None,
     ):
