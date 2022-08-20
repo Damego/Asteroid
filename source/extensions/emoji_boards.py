@@ -199,6 +199,11 @@ class EmojiBoards(Extension):
         remove_message(message, 5)
 
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
+        if guild_data.emoji_boards:
+            for _board in guild_data.emoji_boards:
+                if emoji in _board.emojis:
+                    raise  # Emoji taken
+
         await guild_data.add_emoji_board(
             name=name,
             channel_id=int(channel.id),
@@ -283,6 +288,11 @@ class EmojiBoards(Extension):
     async def add_emoji(self, ctx: CommandContext, name: str, emoji: str):
         await ctx.defer()
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
+        if guild_data.emoji_boards:
+            for _board in guild_data.emoji_boards:
+                if emoji in _board.emojis:
+                    raise  # Emoji taken
+
         emoji_board = guild_data.get_emoji_board(name)
         if emoji_board is None:
             raise  # TODO: Exception
