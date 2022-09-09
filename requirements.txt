@@ -1,5 +1,6 @@
 attrs
 discord-py-interactions>=4.3.0
+interactions-lavalink
 motor
 pymongo
 python-dotenv

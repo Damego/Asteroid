@@ -14,7 +14,7 @@ __all__ = [
     "GuildSettings",
     "GuildAutoRole",
     "GuildTag",
-    "GuildPrivateVoice",
+    "GuildVoiceLobbies",
     "GuildLeveling",
     "GuildMessageData",
     "GuildEmojiBoard",
@@ -68,10 +68,32 @@ class GuildTag(DataBaseSerializerMixin):
 
 
 @define()
-class GuildPrivateVoice(DataBaseSerializerMixin):
-    active_channels: list[int] = field(factory=list)
-    text_channel_id: int = field()
+class VoiceLobby(DictSerializerMixin):
+    channel_id: int = field()
+    owner_id: int = field()
+
+
+@define()
+class GuildVoiceLobbies(DataBaseSerializerMixin):
+    active_channels: list[VoiceLobby] = field(converter=convert_list(VoiceLobby))
+    category_channel_id: int = field()
     voice_channel_id: int = field()
+    text_channel_id: int | None = field(default=None)
+    private_lobbies: bool = field()
+
+    def get_lobby(self, channel_id: int = None, owner_id: int = None):
+        for channel in self.active_channels:
+            if channel.channel_id == channel_id or channel.owner_id == owner_id:
+                return channel
+
+    def add_channel(self, channel_id: int, owner_id: int) -> VoiceLobby:
+        lobby = VoiceLobby(channel_id=channel_id, owner_id=owner_id)
+        self.active_channels.append(lobby)
+        return lobby
+
+    def remove_lobby(self, channel_id: int = None, owner_id: int = None):
+        lobby = self.get_lobby(channel_id=channel_id, owner_id=owner_id)
+        self.active_channels.remove(lobby)
 
 
 @define()
@@ -168,7 +190,9 @@ class GuildData(DataBaseSerializerMixin):
     tags: list[GuildTag] = field(
         converter=convert_list(GuildTag), add_database=True, add_guild_id=True, default=None
     )
-    private_voice: GuildPrivateVoice = field(converter=GuildPrivateVoice, default=None)
+    voice_lobbies: GuildVoiceLobbies = field(
+        converter=GuildVoiceLobbies, default=None, add_guild_id=True, add_database=True
+    )
     voice_time: dict[str, int] = field(default=None)
     leveling: GuildLeveling = field(converter=GuildLeveling, default=None)
     emoji_boards: list[GuildEmojiBoard] = field(
@@ -177,7 +201,7 @@ class GuildData(DataBaseSerializerMixin):
 
     async def update(self):
         """
-        We still need a _database attr but we shouldn't use this method
+        We still need a _database attr but we shouldn't use this method here
         because GuildData is not one document.
         It's a lot of documents.
         """

@@ -21,5 +21,6 @@
   "107": "On join role not found. Have you made mistake?",
   "108": "This message does not have buttons to remove.",
   "109": "This role already added.",
-  "110": "You don't have any on join roles. Add some by using command {command}"
+  "110": "You don't have any on join roles. Add some by using command {command}",
+  "200": "Voice lobbies already setup!"
 }

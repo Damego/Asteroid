@@ -62,6 +62,8 @@ class DataBaseSerializerMixin(DictSerializerMixin):
 
     def __init__(self, kwargs_dict: dict = None, **other_kwargs):
         kwargs = kwargs_dict or other_kwargs
+        if hasattr(kwargs, "_json"):
+            kwargs = kwargs._json
         self._database = kwargs.get("_database")
         self.guild_id = kwargs.get("guild_id")
         super().__init__(**kwargs)
@@ -93,7 +95,7 @@ class DataBaseSerializerMixin(DictSerializerMixin):
                 document = {"_id": key, f"{key}.name": self._json["name"]}
                 payload = {f"{key}.$.{k}": value for k, value in data.items()}
                 await self._database.update_guild(guild_id, document, OperatorType.SET, payload)
-            case "GuildPrivateVoice" | "GuildLeveling":
+            case "GuildVoiceLobbies" | "GuildLeveling":
                 key = self._to_database_name(model_name)
                 await self._database.update_guild(guild_id, key, OperatorType.SET, data)
 
