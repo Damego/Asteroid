@@ -24,8 +24,8 @@ def get_emoji_from_str(emoji: str | None) -> Emoji | None:
         return
     if re.fullmatch("<:[a-zA-Z0-9_]+:[0-9]+>", emoji):
         emoji = emoji.replace("<:", "").replace(">", "")
-        name, emoji_id = map(int, emoji.split(":"))
-        return Emoji(name=name, id=emoji_id)
+        name, emoji_id = emoji.split(":")
+        return Emoji(name=name, id=int(emoji_id))
     else:
         if len(emoji) > 1:
             return
