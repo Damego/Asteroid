@@ -1,15 +1,20 @@
+from interactions import Snowflake
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from ..cache import Storage, cache
 from ..error import BotException
 from .consts import AsyncMongoClient, DocumentType, OperatorType
-from .models import GuildAutoRole, GuildData, GuildEmojiBoard, GuildTag, GuildUser
+from .models import (
+    GuildAutoRole,
+    GuildData,
+    GuildEmojiBoard,
+    GuildTag,
+    GuildUser,
+    GuildVoiceLobbies,
+)
 from .requests import Requests
 
 __all__ = ["DataBaseClient"]
-
-# TODO:
-#   Add support for interactions.Snowflake
 
 
 class DataBaseClient:
@@ -19,36 +24,52 @@ class DataBaseClient:
         self._cache = cache
         self.guilds_storage: Storage = self._cache[GuildData]
 
-    async def add_guild(self, guild_id: int) -> GuildData:
-        settings_data = await self._req.guild.add_guild(guild_id)
+    async def add_guild(self, guild_id: int | Snowflake) -> GuildData:
+        settings_data = await self._req.guild.add_guild(
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id
+        )
         full_data = {"settings": settings_data}
         guild = GuildData(**full_data)
         self.guilds_storage[str(guild_id)] = guild
         return guild
 
-    async def get_guild(self, guild_id: int) -> GuildData:
-        guild_id = str(guild_id)
+    async def get_guild(self, guild_id: int | Snowflake) -> GuildData:
+        _guild_id = str(guild_id)
         for _id, guild in self.guilds_storage.items():
-            if _id == guild_id:
+            if _id == _guild_id:
                 return guild
 
-        guild_raw_data = await self._req.guild.get_guild_raw_data(guild_id)
-        guild_data = GuildData(**guild_raw_data, _database=self, guild_id=guild_id)
-        self.guilds_storage[guild_id] = guild_data
+        guild_raw_data = await self._req.guild.get_guild_raw_data(
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id
+        )
+        guild_data = GuildData(
+            **guild_raw_data,
+            _database=self,
+            guild_id=int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+        )
+        self.guilds_storage[_guild_id] = guild_data
         return guild_data
 
-    async def remove_guild(self, guild_id: int):
-        await self._req.guild.remove_guild(guild_id)
+    async def remove_guild(self, guild_id: int | Snowflake):
+        await self._req.guild.remove_guild(
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id
+        )
         del self.guilds_storage[str(guild_id)]
 
     async def update_guild(
-        self, guild_id: int, document: DocumentType | str | dict, operator: OperatorType, data: dict
+        self,
+        guild_id: int | Snowflake,
+        document: DocumentType | str | dict,
+        operator: OperatorType,
+        data: dict,
     ):
-        await self._req.guild.update_document(guild_id, document, operator, data)
+        await self._req.guild.update_document(
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id, document, operator, data
+        )
 
     async def add_autorole(
         self,
-        guild_id: int,
+        guild_id: int | Snowflake,
         *,
         name: str,
         content: str,
@@ -66,20 +87,27 @@ class DataBaseClient:
             "component": component,
         }
         await self._req.guild.update_document(
-            guild_id, DocumentType.AUTOROLES, OperatorType.PUSH, {"autoroles": data}
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+            DocumentType.AUTOROLES,
+            OperatorType.PUSH,
+            {"autoroles": data},
         )
-        autorole = GuildAutoRole(**data, _database=self, guild_id=guild_id)
+        autorole = GuildAutoRole(
+            **data,
+            _database=self,
+            guild_id=int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+        )
         self.guilds_storage[str(guild_id)].autoroles.append(autorole)
         return autorole
 
     async def remove_autorole(
-        self, guild_id: int, *, name: str = None, autorole: GuildAutoRole = None
+        self, guild_id: int | Snowflake, *, name: str = None, autorole: GuildAutoRole = None
     ):
         if name is not None and autorole is not None:
             if name != autorole.name:
                 raise BotException(1)
         if not name and not autorole:
-            raise Exception(2)
+            raise BotException(2)
 
         if name is not None:
             for autorole in self.guilds_storage[str(guild_id)].autoroles:
@@ -89,13 +117,16 @@ class DataBaseClient:
                 raise BotException(3)
 
         await self._req.guild.update_document(
-            guild_id, DocumentType.AUTOROLES, OperatorType.PULL, autorole._json
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+            DocumentType.AUTOROLES,
+            OperatorType.PULL,
+            autorole._json,
         )
         self.guilds_storage[str(guild_id)].autoroles.remove(autorole)
 
     async def add_tag(
         self,
-        guild_id: int,
+        guild_id: int | Snowflake,
         *,
         name: str,
         title: str,
@@ -117,13 +148,22 @@ class DataBaseClient:
             "uses_count": uses_count,
         }
         await self._req.guild.update_document(
-            guild_id, DocumentType.TAGS, OperatorType.PUSH, {"tags": data}
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+            DocumentType.TAGS,
+            OperatorType.PUSH,
+            {"tags": data},
         )
-        tag = GuildTag(**data, _database=self, guild_id=guild_id)
+        tag = GuildTag(
+            **data,
+            _database=self,
+            guild_id=int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+        )
         self.guilds_storage[str(guild_id)].tags.append(tag)
         return tag
 
-    async def remove_tag(self, guild_id: int, *, name: str = None, tag: GuildTag = None):
+    async def remove_tag(
+        self, guild_id: int | Snowflake, *, name: str = None, tag: GuildTag = None
+    ):
         if name is not None and tag is not None:
             if name != tag.name:
                 raise BotException(4)
@@ -138,13 +178,16 @@ class DataBaseClient:
                 raise BotException(6)
 
         await self._req.guild.update_document(
-            guild_id, DocumentType.TAGS, OperatorType.PULL, tag._json
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+            DocumentType.TAGS,
+            OperatorType.PULL,
+            tag._json,
         )
         self.guilds_storage[str(guild_id)].tags.remove(tag)
 
     async def add_emoji_board(
         self,
-        guild_id: int,
+        guild_id: int | Snowflake,
         *,
         name: str,
         channel_id: int,
@@ -164,13 +207,22 @@ class DataBaseClient:
             "embed_color": embed_color,
         }
         await self._req.guild.update_document(
-            guild_id, DocumentType.EMOJI_BOARDS, OperatorType.PUSH, {"emoji_boards": data}
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+            DocumentType.EMOJI_BOARDS,
+            OperatorType.PUSH,
+            {"emoji_boards": data},
         )
-        board = GuildEmojiBoard(**data, _database=self, guild_id=guild_id)
+        board = GuildEmojiBoard(
+            **data,
+            _database=self,
+            guild_id=int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+        )
         self.guilds_storage[str(guild_id)].emoji_boards.append(board)
         return board
 
-    async def remove_emoji_board(self, guild_id: int, *, name: str, emoji_board: GuildEmojiBoard):
+    async def remove_emoji_board(
+        self, guild_id: int | Snowflake, *, name: str, emoji_board: GuildEmojiBoard
+    ):
         if name is not None and emoji_board is not None:
             if name != emoji_board.name:
                 raise BotException(7)
@@ -185,17 +237,28 @@ class DataBaseClient:
                 raise BotException(9)
 
         await self._req.guild.update_document(
-            guild_id, DocumentType.EMOJI_BOARDS, OperatorType.PULL, emoji_board._json
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+            DocumentType.EMOJI_BOARDS,
+            OperatorType.PULL,
+            emoji_board._json,
         )
         self.guilds_storage[str(guild_id)].emoji_boards.remove(emoji_board)
 
-    async def add_user(self, guild_id: int, user_id: int) -> GuildUser:
-        data = await self._req.guild.add_user(guild_id, user_id)
-        user = GuildUser(**data, _database=self, guild_id=guild_id)
+    async def add_user(self, guild_id: int | Snowflake, user_id: int) -> GuildUser:
+        data = await self._req.guild.add_user(
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id, user_id
+        )
+        user = GuildUser(
+            **data,
+            _database=self,
+            guild_id=int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+        )
         self.guilds_storage[str(guild_id)].users.append(user)
         return user
 
-    async def remove_user(self, guild_id: int, *, user_id: int = None, user: GuildUser = None):
+    async def remove_user(
+        self, guild_id: int | Snowflake, *, user_id: int = None, user: GuildUser = None
+    ):
         if user_id is not None and user is not None:
             if user_id != user.id:
                 raise BotException(10)
@@ -209,8 +272,37 @@ class DataBaseClient:
             else:
                 raise BotException(12)
 
-        await self._req.guild.remove_user(guild_id, user_id)
+        await self._req.guild.remove_user(
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id, user_id
+        )
         self.guilds_storage[str(guild_id)].users.remove(user)
 
-    async def update_user(self, guild_id: int, user_id: int, data: dict):
-        await self._req.guild.update_user(guild_id, user_id, data)
+    async def update_user(self, guild_id: int | Snowflake, user_id: int, data: dict):
+        await self._req.guild.update_user(
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id, user_id, data
+        )
+
+    async def setup_voice_lobbies(
+        self,
+        guild_id: int | Snowflake,
+        category_channel_id: int | Snowflake,
+        voice_channel_id: int | Snowflake,
+        text_channel_id: int | Snowflake | None = None,
+        private_lobbies: bool = False,
+    ):
+        data = {
+            "active_channels": [],
+            "category_channel_id": int(category_channel_id),
+            "voice_channel_id": int(voice_channel_id),
+            "text_channel_id": int(text_channel_id) if text_channel_id is not None else None,
+            "private_lobbies": private_lobbies,
+        }
+        await self.update_guild(
+            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+            "voice_lobbies",
+            OperatorType.SET,
+            data,
+        )
+        self.guilds_storage[str(guild_id)].voice_lobbies = GuildVoiceLobbies(
+            **data, _database=self, guild_id=guild_id
+        )
