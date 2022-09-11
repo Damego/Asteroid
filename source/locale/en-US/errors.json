@@ -22,5 +22,9 @@
   "108": "This message does not have buttons to remove.",
   "109": "This role already added.",
   "110": "You don't have any on join roles. Add some by using command {command}",
-  "200": "Voice lobbies already setup!"
+  "200": "Voice lobbies already setup!",
+  "201": "Voice lobbies didn't setup!",
+  "202": "You don't have a lobby!",
+  "203": "You cannot block/unblock yourself!",
+  "204": "You cannot give your ownership to self!"
 }
