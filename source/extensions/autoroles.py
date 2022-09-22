@@ -71,12 +71,12 @@ class AutoRoles(Extension):
                 )
                 added_roles.append(role_id)
 
-        # TODO: Translate these strings
+        locale = await self.client.get_locale(ctx.guild_id)
         to_send = ""
         if added_roles:
-            to_send += f"Added roles: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in added_roles])}"
+            to_send += f"{locale['ADDED_ROLES']}: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in added_roles])}"
         if removed_roles:
-            to_send += f"Removed roles: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in removed_roles])}"
+            to_send += f"{locale['REMOVED_ROLES']}: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in removed_roles])}"
 
         await ctx.send(to_send)
 

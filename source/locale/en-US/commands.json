@@ -1,4 +1,6 @@
 {
+  "ADDED_ROLES": "Added roles",
+  "REMOVED_ROLES": "Removed roles",
   "AUTOROLE_LIST": "List of autoroles",
   "AUTOROLE_DROPDOWN": "Dropdown roles",
   "AUTOROLE_BUTTON": "Button roles",
