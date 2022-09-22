@@ -114,7 +114,7 @@ class DataBaseClient:
                 if autorole.name == name:
                     break
             else:
-                raise BotException(3)
+                raise BotException(3, name=name)
 
         await self._req.guild.update_document(
             int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
@@ -168,14 +168,14 @@ class DataBaseClient:
             if name != tag.name:
                 raise BotException(4)
         if not name and not tag:
-            raise Exception(5)
+            raise BotException(5)
 
         if name is not None:
             for tag in self.guilds_storage[str(guild_id)].tags:
                 if tag.name == name:
                     break
             else:
-                raise BotException(6)
+                raise BotException(6, name=name)
 
         await self._req.guild.update_document(
             int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
@@ -234,7 +234,7 @@ class DataBaseClient:
                 if emoji_board.name == name:
                     break
             else:
-                raise BotException(9)
+                raise BotException(9, name=name)
 
         await self._req.guild.update_document(
             int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
@@ -270,7 +270,7 @@ class DataBaseClient:
                 if user.id == user_id:
                     break
             else:
-                raise BotException(12)
+                raise BotException(12, user_id=user_id)
 
         await self._req.guild.remove_user(
             int(guild_id) if isinstance(guild_id, Snowflake) else guild_id, user_id
