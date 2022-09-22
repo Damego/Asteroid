@@ -1,4 +1,16 @@
-from interactions import Channel, Guild, Member, Message, Role, Snowflake, User, get
+from functools import wraps
+
+from interactions import (
+    Channel,
+    Guild,
+    LibraryException,
+    Member,
+    Message,
+    Role,
+    Snowflake,
+    User,
+    get,
+)
 from interactions.ext.lavalink import VoiceClient
 
 from .database import DataBaseClient
@@ -19,8 +31,18 @@ class Asteroid(VoiceClient):
         )
         return self.locale[guild_data.settings.language]
 
-    async def get(self, *args, **kwargs):
-        return await get(self, *args, **kwargs)
+    async def try_run(self, func, *args):
+        """
+        Tries to run async function and nothing does if got exception
+        """
+        try:
+            return await func(*args)
+        except LibraryException:
+            pass
+
+    @wraps(get)
+    def get(self, *args, **kwargs):
+        return get(self, *args, **kwargs)
 
     # Aliases to `get` function
     async def get_guild(self, guild_id: int | Snowflake) -> Guild:
