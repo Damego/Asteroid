@@ -14,7 +14,7 @@ from interactions import extension_listener as listener
 from interactions import option
 from interactions.ext.lavalink import VoiceState
 
-from core import Asteroid, BotException, GuildData, GuildVoiceLobbies  # isort: skip
+from core import Asteroid, BotException, MissingPermissions, GuildVoiceLobbies  # isort: skip
 
 
 VOICE_CHANNEL_USER_PERMISSIONS: Final = (
@@ -43,7 +43,7 @@ class VoiceLobbies(Extension):
         if after.channel_id == voice_lobbies.voice_channel_id:
             if before and before.channel_id:
                 # Rejoined to main channel from own channel. For what lol?
-                await self.__remove_user_channel(before, after, guild_data)
+                await self.__remove_user_channel(before, after, voice_lobbies)
 
             guild = await after.get_guild()
             member = await self.client.get_member(after.guild_id, after.user_id)
@@ -65,33 +65,30 @@ class VoiceLobbies(Extension):
                 parent_id=voice_lobbies.category_channel_id,
                 permission_overwrites=permissions,
             )
-            await channel.send(
-                "There are some tips for you lmao."
-            )  # TODO: Send a message with buttons & pin it
             await member.modify(guild_id=guild.id, channel_id=channel.id)
             voice_lobbies.add_channel(int(channel.id), int(member.id))
             await voice_lobbies.update()
             return
 
-        await self.__remove_user_channel(before, after, guild_data)
+        await self.__remove_user_channel(before, after, voice_lobbies)
         await self.__check_channels(voice_lobbies)
 
     async def __remove_user_channel(
-        self, before: VoiceState, after: VoiceState, guild_data: GuildData
+        self, before: VoiceState, after: VoiceState, voice_lobbies: GuildVoiceLobbies
     ):
         """
         Removes previous user channel or takes ownership to another channel member, if channel exists.
         """
         if not before or not before.channel_id:
             return
-        lobby = guild_data.voice_lobbies.get_lobby(int(before.channel_id))
+        lobby = voice_lobbies.get_lobby(int(before.channel_id))
         if not lobby:
             return
         channel = await self.client.get_channel(before.channel_id)
         if not channel.voice_states:
             await channel.delete()
-            guild_data.voice_lobbies.remove_lobby(int(before.channel_id))
-            await guild_data.voice_lobbies.update()
+            voice_lobbies.remove_lobby(int(before.channel_id))
+            await voice_lobbies.update()
             return
         first_voice_state: VoiceState = channel.voice_states[0]
         lobby.owner_id = int(first_voice_state.user_id)
@@ -113,11 +110,11 @@ class VoiceLobbies(Extension):
                 permissions.append(permission)
                 break
         await channel.modify(permission_overwrites=permissions)
-        await guild_data.voice_lobbies.update()
+        await voice_lobbies.update()
 
     async def __check_channels(self, voice_lobbies: GuildVoiceLobbies):
         """
-        Removes channels if they somehow doesn't were removed.
+        Removes channels if they somehow don't were removed.
         """
         remove: bool = False
         for lobby in voice_lobbies.active_channels:
@@ -139,34 +136,28 @@ class VoiceLobbies(Extension):
 
     @voice.subcommand()
     @option("Name for voice channel. Can be edited later.")
-    # @option("Create a text channel with control panel.")
     @option("Should be lobbies are private by default? Can be edited later.")
     async def setup(
         self,
         ctx: CommandContext,
         channel_name: str = None,
-        # create_text_channel: bool = False,
         private_lobbies: bool = False,
     ):
         """Setup voice lobbies on your server"""
-        # TODO: Check author perms. Should be MANAGE_SERVER ig
-        # guild_data = await self.client.database.get_guild(ctx.guild_id)
+        if Permissions.MANAGE_GUILD not in ctx.author.permissions:
+            raise MissingPermissions(Permissions.MANAGE_GUILD)
+
         guild = await self.client.get_guild(ctx.guild_id)
         category_channel = await guild.create_channel("Voice Lobbies", ChannelType.GUILD_CATEGORY)
         voice_channel = await guild.create_channel(
             channel_name or "Create lobby", ChannelType.GUILD_VOICE, parent_id=category_channel
         )
-        text_channel = None
-        # if create_text_channel:
-        #     text_channel = await guild.create_channel(
-        #         "Lobby control", ChannelType.GUILD_TEXT, parent_id=category_channel
-        #     )
 
         await self.client.database.setup_voice_lobbies(
             ctx.guild_id,
             category_channel.id,
             voice_channel.id,
-            text_channel.id if text_channel else None,
+            None,
             private_lobbies,
         )
         await ctx.send("Ready")
