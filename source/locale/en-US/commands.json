@@ -13,5 +13,14 @@
   "BUTTON_REMOVED": "Button successfully removed from autorole!",
   "ON_JOIN_ROLE_ADDED": "{role} successfully appended to on join roles",
   "ON_JOIN_ROLE_REMOVED": "{role} successfully removed from on join roles",
-  "LANGUAGE_CHANGED": "Language changed to English"
+  "LANGUAGE_CHANGED": "Language changed to English",
+  "TAG_CREATED": "Tag `{tag_name}` successfully created!",
+  "TAG_DELETED": "Tag `{tag_name}` deleted!",
+  "TAG_EDITED": "Tag `{tag_name}` edited!",
+  "TAG_LIST": "List of tags",
+  "AUTHOR": "Author",
+  "USES_COUNT": "Uses count",
+  "TIMESTAMPS": "Timestamps",
+  "CREATED_AT": "Created at",
+  "LAST_EDITED_AT": "Last edited at"
 }
