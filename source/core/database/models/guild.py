@@ -201,7 +201,7 @@ class GuildData(DataBaseSerializerMixin):
 
     async def update(self):
         """
-        We still need a _database attr but we shouldn't use this method here
+        We still need a _database attr, but we shouldn't use this method here
         because GuildData is not one document.
         It's a lot of documents.
         """

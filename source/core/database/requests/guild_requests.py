@@ -1,18 +1,18 @@
-from ..consts import AsyncMongoClient, DocumentType, OperatorType
+from ..consts import AsyncCollection, AsyncDatabase, AsyncMongoClient, DocumentType, OperatorType
 
 
 class GuildRequests:
-    def __init__(self, client: AsyncMongoClient):
-        self._client = client
-        self._database = client["guilds"]
+    def __init__(self, client):
+        self._client: AsyncMongoClient = client
+        self._database: AsyncDatabase = client["guilds"]
 
-    def __get_collection(self, *keys):
+    def __get_collection(self, *keys: str | int) -> AsyncCollection:
         collection = self._database
         for key in keys:
             collection = collection[str(key)]
         return collection
 
-    async def get_guild_raw_data(self, guild_id: int):
+    async def get_guild_raw_data(self, guild_id: int) -> dict:
         main_collection = self.__get_collection(guild_id, "configuration")
         users_collection = self.__get_collection(guild_id, "users")
         data = [doc async for doc in main_collection.find()]
@@ -32,7 +32,7 @@ class GuildRequests:
         full_data["users"] = users_data
         return full_data
 
-    async def __insert_document(self, *keys, data: dict):
+    async def __insert_document(self, *keys, data: dict) -> None:
         collection = self.__get_collection(*keys)
         await collection.insert_one(data)
 
@@ -43,14 +43,14 @@ class GuildRequests:
         operator: OperatorType,
         data: dict,
         upsert: bool = True
-    ):
+    ) -> None:
         collection = self.__get_collection(*keys)
         _filter = {"_id": filter} if isinstance(filter, (str, DocumentType)) else filter
         await collection.update_one(_filter, {operator: data}, upsert)
 
     async def update_document(
         self, guild_id: int, document: DocumentType | str | dict, operator: OperatorType, data: dict
-    ):
+    ) -> None:
         await self.__update_document(
             guild_id, "configuration", filter=document, operator=operator, data=data
         )
@@ -60,7 +60,7 @@ class GuildRequests:
         await self.__insert_document(guild_id, "configuration", data=data)
         return data
 
-    async def remove_guild(self, guild_id: int):
+    async def remove_guild(self, guild_id: int) -> None:
         for key in ("configuration", "users"):
             await self._database[str(guild_id)][key].drop()
 
@@ -71,14 +71,14 @@ class GuildRequests:
         await self.__insert_document(guild_id, "users", data=data)
         return data
 
-    async def remove_user(self, guild_id: int, user_id: int):
+    async def remove_user(self, guild_id: int, user_id: int) -> None:
         data = {
             "_id": str(user_id),
         }
         collection = self.__get_collection(guild_id, "users")
         await collection.delete_one(data)
 
-    async def update_user(self, guild_id: int, user_id: int, data: dict):
+    async def update_user(self, guild_id: int, user_id: int, data: dict) -> None:
         await self.__update_document(
             guild_id, "users", filter=str(user_id), operator=OperatorType.SET, data=data
         )
