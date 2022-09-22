@@ -1,12 +1,24 @@
 from enum import Enum
 from typing import TypeAlias
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorDatabase
 from pymongo import MongoClient
+from pymongo.collection import Collection
+from pymongo.database import Database
 
-__all__ = ["AsyncMongoClient", "StrEnum", "Language", "OperatorType", "DocumentType"]
+__all__ = [
+    "AsyncMongoClient",
+    "AsyncCollection",
+    "AsyncDatabase",
+    "StrEnum",
+    "Language",
+    "OperatorType",
+    "DocumentType",
+]
 
 AsyncMongoClient: TypeAlias = MongoClient | AsyncIOMotorClient
+AsyncCollection: TypeAlias = Collection | AsyncIOMotorCollection
+AsyncDatabase: TypeAlias = Database | AsyncIOMotorDatabase
 
 
 class StrEnum(str, Enum):
@@ -35,5 +47,5 @@ class DocumentType(StrEnum):
     AUTOROLES = "autoroles"
     TAGS = "tags"
     EMOJI_BOARDS = "emoji_boards"
-    PRIVATE_VOICE = "private_voice"
+    VOICE_LOBBIES = "voice_lobbies"
     LEVELING = "leveling"
