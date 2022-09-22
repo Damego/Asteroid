@@ -15,7 +15,7 @@ from interactions import extension_listener as listener
 from interactions import extension_modal as modal
 from interactions import option
 
-from core import Locale, TimeStampsMentions, Mentions  # isort: skip
+from core import BotException, Locale, TimeStampsMentions, Mentions  # isort: skip
 from utils import create_embed  # isort: skip
 
 
@@ -67,7 +67,7 @@ def build_modal(
 
 
 class Misc(Extension):
-    def __init__(self, client: Asteroid):
+    def __init__(self, client):
         self.client: Asteroid = client
 
     @command()
@@ -104,7 +104,7 @@ class Misc(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         tag = guild_data.get_tag(name)
         if tag is None:
-            raise  # TODO: Exception
+            raise BotException(6, name=name)
         if tag.is_embed:
             await ctx.send(embeds=create_embed(description=tag.description, title=tag.title))
         else:
@@ -144,7 +144,7 @@ class Misc(Extension):
             uses_count=0,
         )
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(locale["TAG_CREATED"].format(name=name))
+        embed = create_embed(locale["TAG_CREATED"].format(tag_name=name))
         await ctx.send(embeds=embed)
 
     @tag.subcommand(name="delete")
@@ -154,6 +154,10 @@ class Misc(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         await guild_data.remove_tag(name)
 
+        locale = await self.client.get_locale(ctx.guild_id)
+
+        await ctx.send(locale["TAG_DELETED"].format(tag_name=name))
+
     @tag.subcommand(name="edit")
     @option(description="The name of tag to edit", autocomplete=True)
     async def tag_edit(self, ctx: CommandContext, name: str):
@@ -161,8 +165,8 @@ class Misc(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         tag = guild_data.get_tag(name)
         if tag is None:
-            raise  # TODO: Exception
-        locale = await self.client.get_locale(int(ctx.guild_id))
+            raise BotException(6, name=name)
+        locale = await self.client.get_locale(ctx.guild_id)
 
         await ctx.popup(
             build_modal(
@@ -189,6 +193,7 @@ class Misc(Extension):
             title = get_value(1)
             description = get_value(2)
         else:
+            title = None
             description = get_value(1)
 
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
@@ -199,18 +204,19 @@ class Misc(Extension):
         tag.last_edited_at = int(datetime.utcnow().timestamp())
         await tag.update()
 
-        await ctx.send("Tag edited!")  # TODO: Locale
+        locale = await self.client.get_locale(ctx.guild_id)
+
+        await ctx.send(locale["TAG_EDITED"].format(tag_name=name))
 
     @tag.subcommand(name="list")
     async def tag_list(self, ctx: CommandContext):
         """Show list of tags"""
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         description = "\n".join(
-            [f"**{ind}.** `{tag.name}`" for ind, tag in enumerate(guild_data.tags, start=1)]
+            [f"**` {ind} `** `{tag.name}`" for ind, tag in enumerate(guild_data.tags, start=1)]
         )
-        await ctx.send(
-            embeds=create_embed(description=description, title="List of tags")
-        )  # TODO: Locale
+        locale = await self.client.get_locale(ctx.guild_id)
+        await ctx.send(embeds=create_embed(description=description, title=locale["TAG_LIST"]))
 
     @tag.subcommand(name="info")
     @option(description="The name of tag to view", autocomplete=True)
@@ -219,20 +225,25 @@ class Misc(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         tag = guild_data.get_tag(name)
         if tag is None:
-            raise  # TODO: Exception
+            raise BotException(6, name=name)
 
         def get_timestamp_string(timestamp: int):
-            return f"{TimeStampsMentions.LONG.format(timestamp=timestamp)} ({TimeStampsMentions.RELATIVE.format(timestamp=timestamp)})"
+            return (
+                f"{TimeStampsMentions.LONG.format(timestamp=timestamp)} "
+                f"({TimeStampsMentions.RELATIVE.format(timestamp=timestamp)})"
+            )
 
-        # TODO: Locale
+        locale = await self.client.get_locale(ctx.guild_id)
         fields = [
-            EmbedField(name="Author", value=Mentions.USER.format(id=tag.author_id), inline=True),
-            EmbedField(name="Uses count", value=f"`{tag.uses_count}`", inline=True),
             EmbedField(
-                name="Timestamps",
-                value=f"**Created at** {get_timestamp_string(tag.created_at)}\n"
+                name=locale["AUTHOR"], value=Mentions.USER.format(id=tag.author_id), inline=True
+            ),
+            EmbedField(name=locale["USES_COUNT"], value=f"`{tag.uses_count}`", inline=True),
+            EmbedField(
+                name=locale["TIMESTAMPS"],
+                value=f"**{locale['CREATED_AT']}** {get_timestamp_string(tag.created_at)}\n"
                 + (
-                    f"**Last edited at** {get_timestamp_string(tag.last_edited_at)}"
+                    f"**{Locale['LAST_EDITED_AT']}** {get_timestamp_string(tag.last_edited_at)}"
                     if tag.last_edited_at is not None
                     else ""
                 ),
