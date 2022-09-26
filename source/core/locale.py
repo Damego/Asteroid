@@ -4,6 +4,14 @@ from pathlib import Path
 __all__ = ["Locale", "LocaleManager"]
 
 
+class CallStr(str):
+    def __init__(self, value: str):
+        self.value = value
+
+    def __call__(self, **kwargs) -> str:
+        return self.value.format(**kwargs)
+
+
 class Locale:
     __slots__ = ("commands", "errors")
 
@@ -15,6 +23,9 @@ class Locale:
         if item.isdigit():
             return self.errors.get(item, item)
         return self.commands.get(item, item)
+
+    def __getattr__(self, item: str) -> CallStr:
+        return CallStr(self.commands.get(item, item))
 
 
 class LocaleManager:
