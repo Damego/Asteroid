@@ -74,9 +74,9 @@ class AutoRoles(Extension):
         locale = await self.client.get_locale(ctx.guild_id)
         to_send = ""
         if added_roles:
-            to_send += f"{locale['ADDED_ROLES']}: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in added_roles])}"
+            to_send += f"{locale.ADDED_ROLES}: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in added_roles])}"
         if removed_roles:
-            to_send += f"{locale['REMOVED_ROLES']}: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in removed_roles])}"
+            to_send += f"{locale.REMOVED_ROLES}: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in removed_roles])}"
 
         await ctx.send(to_send)
 
@@ -158,23 +158,23 @@ class AutoRoles(Extension):
         if guild_data.autoroles:
             if dropdown_roles := get_autoroles("dropdown"):
                 fields.append(
-                    EmbedField(name=locale["AUTOROLE_DROPDOWN"], value="\n".join(dropdown_roles))
+                    EmbedField(name=locale.AUTOROLE_DROPDOWN, value="\n".join(dropdown_roles))
                 )
             if button_roles := get_autoroles("button"):
                 fields.append(
-                    EmbedField(name=locale["AUTOROLE_BUTTON"], value="\n".join(button_roles))
+                    EmbedField(name=locale.AUTOROLE_BUTTON, value="\n".join(button_roles))
                 )
         if guild_data.settings.on_join_roles:
             fields.append(
                 EmbedField(
-                    name=locale["AUTOROLE_ON_JOIN"],
+                    name=locale.AUTOROLE_ON_JOIN,
                     value="".join(
                         [f"<@&{role_id}>" for role_id in guild_data.settings.on_join_roles]
                     ),
                 )
             )
 
-        embed = Embed(title=locale["AUTOROLE_LIST"], fields=fields)
+        embed = Embed(title=locale.AUTOROLE_LIST, fields=fields)
         await ctx.send(embeds=embed)
 
     @autorole.group()
@@ -230,9 +230,7 @@ class AutoRoles(Extension):
             component=components._json,
         )
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(
-            locale["DROPDOWN_CREATED"].format(command=CommandsMention.DROPDOWN_ADD_ROLE)
-        )
+        embed = create_embed(locale.DROPDOWN_CREATED(command=CommandsMention.DROPDOWN_ADD_ROLE))
         await ctx.send(embeds=embed)
 
     @dropdown.subcommand(name="remove")
@@ -253,7 +251,7 @@ class AutoRoles(Extension):
 
         await guild_data.remove_autorole(autorole=autorole)
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(locale["DROPDOWN_DELETED"])
+        embed = create_embed(locale.DROPDOWN_DELETED)
         await ctx.send(embeds=embed)
 
     @dropdown.subcommand(name="add-role")
@@ -314,7 +312,7 @@ class AutoRoles(Extension):
         await autorole.update()
 
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(locale["OPTION_ADDED"])
+        embed = create_embed(locale.OPTION_ADDED)
         await ctx.send(embeds=embed)
 
     @dropdown.subcommand(name="remove-role")
@@ -362,7 +360,7 @@ class AutoRoles(Extension):
         await autorole.update()
 
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(locale["OPTION_REMOVED"])
+        embed = create_embed(locale.OPTION_REMOVED)
         await ctx.send(embeds=embed)
 
     @autorole.group()
@@ -399,9 +397,7 @@ class AutoRoles(Extension):
             type="button",
         )
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(
-            locale["BUTTON_CREATED"].format(command=CommandsMention.BUTTON_ADD_ROLE)
-        )
+        embed = create_embed(locale.BUTTON_CREATED(command=CommandsMention.BUTTON_ADD_ROLE))
         await ctx.send(embeds=embed)
 
     @button.subcommand(name="remove")
@@ -422,7 +418,7 @@ class AutoRoles(Extension):
         await guild_data.remove_autorole(autorole=autorole)
 
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(locale["BUTTON_DELETED"])
+        embed = create_embed(locale.BUTTON_DELETED)
         await ctx.send(embeds=embed)
 
     @button.subcommand(name="add-role")
@@ -493,7 +489,7 @@ class AutoRoles(Extension):
         await message.edit(components=components)
 
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(locale["BUTTON_ADDED"])
+        embed = create_embed(locale.BUTTON_ADDED)
         await ctx.send(embeds=embed)
 
     @button.subcommand(name="remove-role")
@@ -543,7 +539,7 @@ class AutoRoles(Extension):
         await autorole.update()
 
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(locale["BUTTON_REMOVED"])
+        embed = create_embed(locale.BUTTON_REMOVED)
         await ctx.send(embeds=embed)
 
     @autorole.group()
@@ -564,7 +560,7 @@ class AutoRoles(Extension):
         guild_data.settings.on_join_roles.append(role_id)
         await guild_data.settings.update()
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(locale["ON_JOIN_ROLE_ADDED"].format(role=role.mention))
+        embed = create_embed(locale.ON_JOIN_ROLE_ADDED(role=role.mention))
         await ctx.send(embeds=embed)
 
     @on_join.subcommand(name="remove")
@@ -586,9 +582,7 @@ class AutoRoles(Extension):
         guild_data.settings.on_join_roles.remove(role_id)
         await guild_data.settings.update()
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(
-            locale["ON_JOIN_ROLE_REMOVED"].format(role=Mentions.ROLE.format(id=role_id))
-        )
+        embed = create_embed(locale.ON_JOIN_ROLE_REMOVED(role=Mentions.ROLE.format(id=role_id)))
         await ctx.send(embeds=embed)
 
 
