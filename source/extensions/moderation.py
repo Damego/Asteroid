@@ -4,7 +4,7 @@ from interactions import (
     Extension,
     Member,
 )
-# from interactions import option
+from interactions import option
 
 from core import Asteroid, BotException, MissingPermissions, GuildVoiceLobbies, command, listener  # isort: skip
 
@@ -22,18 +22,22 @@ class Moderation(Extension):
         """Group command for member"""
 
     @mod_member.subcommand()
+    @option("The member to ban")
     async def ban(self, ctx: CommandContext, member: Member):
         """Bans a member"""
 
     @mod_member.subcommand()
+    @option("The member to kick")
     async def kick(self, ctx: CommandContext, member: Member):
         """Kicks a member"""
 
     @mod_member.subcommand()
+    @option("The member to warn")
     async def warn(self, ctx: CommandContext, member: Member):
         """Warns a member"""
 
     @mod_member.subcommand()
+    @option("The member to view warns")
     async def warns(self, ctx: CommandContext, member: Member):
         """List of member warns"""
 
