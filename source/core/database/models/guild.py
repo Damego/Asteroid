@@ -1,3 +1,5 @@
+import datetime
+
 from ..consts import Language
 from .attrs_utils import (
     DataBaseSerializerMixin,
@@ -29,12 +31,29 @@ class GuildUserLeveling(DictSerializerMixin):
     xp_amount: int = field(converter=convert_int, default=0)  # TODO: Add enum for default value
 
 
+class GuildUserWarn(DictSerializerMixin):
+    author_id: int = field()
+    reason: str | None = field(default=None)
+    warned_at: datetime.datetime = field(converter=datetime.datetime.fromisoformat)
+
+
 @define()
 class GuildUser(DataBaseSerializerMixin):
     id: int = field(converter=int, alias="_id", default=None)
     leveling: GuildUserLeveling = field(converter=GuildUserLeveling, default=None)
     voice_time: int = field(default=0, alias="voice_time_count")
     music_playlists: list[str] = field(factory=list)
+    warns: list[GuildUserWarn] = field(converter=convert_list(GuildUserWarn))
+
+    def add_warn(
+        self, author_id: int, warned_at: datetime.datetime, reason: str | None = None
+    ) -> GuildUserWarn:
+        warn = GuildUserWarn(author_id=author_id, reason=reason, warned_at=warned_at)
+        self.warns.append(warn)
+        return warn
+
+    def remove_warn(self, index: int) -> None:
+        self.warns.remove(index)
 
 
 @define()
