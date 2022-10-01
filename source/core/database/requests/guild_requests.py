@@ -17,7 +17,6 @@ class GuildRequests:
         users_collection = self.__get_collection(guild_id, "users")
         data = [doc async for doc in main_collection.find()]
         users_data = [doc async for doc in users_collection.find()]
-
         full_data = {}
         for document in data:
             id = document["_id"]
@@ -32,7 +31,11 @@ class GuildRequests:
         full_data["users"] = users_data
         return full_data
 
-    async def __insert_document(self, *keys, data: dict) -> None:
+    async def __get_document(self, *keys: str, data: dict) -> dict | None:
+        collection = self.__get_collection(*keys)
+        return await collection.find_one(data)
+
+    async def __insert_document(self, *keys: str, data: dict) -> None:
         collection = self.__get_collection(*keys)
         await collection.insert_one(data)
 
@@ -65,16 +68,16 @@ class GuildRequests:
             await self._database[str(guild_id)][key].drop()
 
     async def add_user(self, guild_id: int, user_id: int) -> dict:
-        data = {
-            "_id": str(user_id),
-        }
+        data = {"_id": str(user_id)}
         await self.__insert_document(guild_id, "users", data=data)
         return data
 
+    async def get_user(self, guild_id: int, user_id: int) -> dict | None:
+        data = {"_id": str(user_id)}
+        return await self.__get_document(guild_id, "users", data=data)
+
     async def remove_user(self, guild_id: int, user_id: int) -> None:
-        data = {
-            "_id": str(user_id),
-        }
+        data = {"_id": str(user_id)}
         collection = self.__get_collection(guild_id, "users")
         await collection.delete_one(data)
 
