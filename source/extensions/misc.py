@@ -15,7 +15,7 @@ from interactions import extension_listener as listener
 from interactions import extension_modal as modal
 from interactions import option
 
-from core import BotException, Locale, TimeStampsMentions, Mentions  # isort: skip
+from core import BotException, Locale, TimestampMention, Mention  # isort: skip
 from utils import create_embed  # isort: skip
 
 
@@ -229,14 +229,14 @@ class Misc(Extension):
 
         def get_timestamp_string(timestamp: int):
             return (
-                f"{TimeStampsMentions.LONG.format(timestamp=timestamp)} "
-                f"({TimeStampsMentions.RELATIVE.format(timestamp=timestamp)})"
+                f"{TimestampMention.LONG.format(timestamp)} "
+                f"({TimestampMention.RELATIVE.format(timestamp)})"
             )
 
         locale = await self.client.get_locale(ctx.guild_id)
         fields = [
             EmbedField(
-                name=locale["AUTHOR"], value=Mentions.USER.format(id=tag.author_id), inline=True
+                name=locale["AUTHOR"], value=Mention.USER.format(id=tag.author_id), inline=True
             ),
             EmbedField(name=locale["USES_COUNT"], value=f"`{tag.uses_count}`", inline=True),
             EmbedField(

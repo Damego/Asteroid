@@ -1,9 +1,9 @@
 from .database.consts import StrEnum
 
-__all__ = ["Mentions", "TimeStampsMentions"]
+__all__ = ["Mention", "TimestampMention"]
 
 
-class Mentions(StrEnum):
+class Mention(StrEnum):
     """
     Representing strings to mention role/member/etc.
     """
@@ -14,11 +14,11 @@ class Mentions(StrEnum):
     COMMAND = "</{name}:{id}>"
 
 
-class TimeStampsMentions(StrEnum):
-    SHORT_TIME = "<t:{timestamp}:t>"
-    LONG_TIME = "<t:{timestamp}:T>"
-    SHORT_DATE = "<t:{timestamp}:d>"
-    LONG_DATE = "<t:{timestamp}:D>"
-    SHORT = "<t:{timestamp}:f>"
-    LONG = "<t:{timestamp}:F>"
-    RELATIVE = "<t:{timestamp}:R>"
+class TimestampMention(StrEnum):
+    SHORT_TIME = "<t:{0}:t>"
+    LONG_TIME = "<t:{0}:T>"
+    SHORT_DATE = "<t:{0}:d>"
+    LONG_DATE = "<t:{0}:D>"
+    SHORT = "<t:{0}:f>"
+    LONG = "<t:{0}:F>"
+    RELATIVE = "<t:{0}:R>"

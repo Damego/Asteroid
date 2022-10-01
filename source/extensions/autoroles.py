@@ -19,7 +19,7 @@ from interactions import extension_command as command
 from interactions import extension_listener as listener
 from interactions import option
 
-from core import Asteroid, BotException, StrEnum, Mentions  # isort: skip
+from core import Asteroid, BotException, StrEnum, Mention  # isort: skip
 from utils import get_emoji_from_str, create_embed  # isort: skip
 
 COLORS = {
@@ -74,9 +74,9 @@ class AutoRoles(Extension):
         locale = await self.client.get_locale(ctx.guild_id)
         to_send = ""
         if added_roles:
-            to_send += f"{locale.ADDED_ROLES}: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in added_roles])}"
+            to_send += f"{locale.ADDED_ROLES}: {', '.join([Mention.ROLE.format(id=role_id) for role_id in added_roles])}"
         if removed_roles:
-            to_send += f"{locale.REMOVED_ROLES}: {', '.join([Mentions.ROLE.format(id=role_id) for role_id in removed_roles])}"
+            to_send += f"{locale.REMOVED_ROLES}: {', '.join([Mention.ROLE.format(id=role_id) for role_id in removed_roles])}"
 
         await ctx.send(to_send)
 
@@ -582,7 +582,7 @@ class AutoRoles(Extension):
         guild_data.settings.on_join_roles.remove(role_id)
         await guild_data.settings.update()
         locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(locale.ON_JOIN_ROLE_REMOVED(role=Mentions.ROLE.format(id=role_id)))
+        embed = create_embed(locale.ON_JOIN_ROLE_REMOVED(role=Mention.ROLE.format(id=role_id)))
         await ctx.send(embeds=embed)
 
 
