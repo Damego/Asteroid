@@ -38,14 +38,13 @@ class DataBaseClient:
         for _id, guild in self.guilds_storage.items():
             if _id == _guild_id:
                 return guild
-
         guild_raw_data = await self._req.guild.get_guild_raw_data(
             int(guild_id) if isinstance(guild_id, Snowflake) else guild_id
         )
         guild_data = GuildData(
             **guild_raw_data,
             _database=self,
-            guild_id=int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
+            guild_id=int(guild_id),
         )
         self.guilds_storage[_guild_id] = guild_data
         return guild_data
@@ -254,6 +253,16 @@ class DataBaseClient:
             guild_id=int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
         )
         self.guilds_storage[str(guild_id)].users.append(user)
+        return user
+
+    async def get_user(self, guild_id: int | Snowflake, user_id: int) -> GuildUser | None:
+        data = await self._req.guild.get_user(int(guild_id), int(user_id))
+        if data is None:
+            return
+
+        user = GuildUser(**data, _database=self, guild_id=int(guild_id))
+        self.guilds_storage[str(guild_id)].users.append(user)
+
         return user
 
     async def remove_user(
