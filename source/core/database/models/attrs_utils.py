@@ -83,7 +83,7 @@ class DataBaseSerializerMixin(DictSerializerMixin):
         model_name = str(self.__class__.__name__)
         match model_name:
             case "GuildUser":
-                await self._database.update_user(self._json["id"], guild_id, data)
+                await self._database.update_user(guild_id, self._json["_id"], data)
             case "GuildSettings":
                 await self._database.update_guild(guild_id, "configuration", OperatorType.SET, data)
             case "GuildAutoRole" | "GuildTag" | "GuildEmojiBoard":
