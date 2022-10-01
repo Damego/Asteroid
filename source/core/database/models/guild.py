@@ -31,10 +31,11 @@ class GuildUserLeveling(DictSerializerMixin):
     xp_amount: int = field(converter=convert_int, default=0)  # TODO: Add enum for default value
 
 
+@define()
 class GuildUserWarn(DictSerializerMixin):
     author_id: int = field()
     reason: str | None = field(default=None)
-    warned_at: datetime.datetime = field(converter=datetime.datetime.fromisoformat)
+    warned_at: datetime.datetime = field()
 
 
 @define()
