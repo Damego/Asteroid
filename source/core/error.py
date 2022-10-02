@@ -1,6 +1,6 @@
 from interactions import Permissions
 
-__all__ = ["BotException", "MissingPermissions"]
+__all__ = ["BotException", "MissingPermissions", "MissingAllArguments"]
 
 
 class BotException(Exception):
@@ -50,3 +50,10 @@ class MissingPermissions(Exception):
 
     def __init__(self, *permissions: Permissions):
         self.missed_permissions: tuple[Permissions] = permissions
+
+
+class MissingAllArguments(Exception):
+    """User missed all optional arguments"""
+
+    def __init__(self, *args: str):
+        self.missed_args: tuple[str] = args

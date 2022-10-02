@@ -24,5 +24,19 @@
   "USES_COUNT": "Uses count",
   "TIMESTAMPS": "Timestamps",
   "CREATED_AT": "Created at",
-  "LAST_EDITED_AT": "Last edited at"
+  "LAST_EDITED_AT": "Last edited at",
+  "SUCCESSFULLY_CONFIGURED": "Successfully configured",
+  "CANNOT_BAN_BOT": "I won't ban myself from this server lol!",
+  "CANNOT_BAN_YOURSELF": "You cannot ban yourself from this server!",
+  "MEMBER_BANNED": "{member} was banned from this server!",
+  "CANNOT_KICK_BOT": "I won't kick myself from this server lol!",
+  "CANNOT_KICK_YOURSELF": "You cannot kick yourself from this server!",
+  "MEMBER_KICKED": "{member} was kicked from this server!",
+  "CANNOT_WARN_BOT": "You cannot warn the bot!",
+  "CANNOT_WARN_YOURSELF": "Uhh... For what lol?",
+  "MEMBER_WARNED": "{member} was warned! Total warns: `{amount}`",
+  "WARNED_AT": "Warned at",
+  "REASON": "Reason",
+  "MESSAGES_REMOVED": "Removed {amount} messages",
+  "WARN_SYSTEM_DISABLED": "Warns system disabled on this server!"
 }
