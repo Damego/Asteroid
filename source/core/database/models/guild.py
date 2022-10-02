@@ -59,7 +59,7 @@ class GuildUser(DataBaseSerializerMixin):
 
 @define()
 class GuildSettings(DataBaseSerializerMixin):
-    language: Language = field(converter=Language)
+    language: Language = field(converter=Language, default=Language.ENGlISH)
     on_join_roles: list[int] = field(factory=list)
     disabled_commands: list[str] = field(factory=list)
     suggested_russian: bool = field(default=False)
