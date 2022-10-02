@@ -14,6 +14,9 @@ from interactions import (
 
 from core import Asteroid, Mention, MissingAllArguments, TimestampMention, command
 
+# TODO:
+#   Add perms checks
+
 
 class Moderation(Extension):
     def __init__(self, client) -> None:
@@ -144,6 +147,9 @@ class Moderation(Extension):
                 + (f"> **{locale.REASON}:** {warn.reason}" if warn.reason else "")
                 + "\n\n"
             )
+
+        # TODO:
+        #   If ctx.author is a mod then send components to remove warn
 
         await ctx.send(embeds=embed)
 
