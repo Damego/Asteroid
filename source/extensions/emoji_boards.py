@@ -16,12 +16,10 @@ from interactions import (
     LibraryException,
     Message,
     MessageReaction,
+    option,
 )
-from interactions import extension_command as command
-from interactions import extension_listener as listener
-from interactions import option
 
-from core import Asteroid, GuildEmojiBoard, GuildMessageData, Mention  # isort: skip
+from core import Asteroid, GuildEmojiBoard, GuildMessageData, Mention, command, listener
 
 # TODO:
 #   UI/UX

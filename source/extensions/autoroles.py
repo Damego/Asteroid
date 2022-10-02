@@ -19,8 +19,8 @@ from interactions import extension_command as command
 from interactions import extension_listener as listener
 from interactions import option
 
-from core import Asteroid, BotException, StrEnum, Mention  # isort: skip
-from utils import get_emoji_from_str, create_embed  # isort: skip
+from core import Asteroid, BotException, Mention, StrEnum
+from utils import create_embed, get_emoji_from_str
 
 COLORS = {
     "Blue": ButtonStyle.PRIMARY.value,

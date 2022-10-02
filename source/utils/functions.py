@@ -1,8 +1,9 @@
 import re
 from pathlib import Path
 
-from core import Asteroid
 from interactions import Color, Embed, EmbedField, Emoji
+
+from core import Asteroid
 
 __all__ = ["load_extensions", "get_emoji_from_str", "create_embed"]
 

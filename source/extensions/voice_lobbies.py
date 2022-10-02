@@ -8,14 +8,11 @@ from interactions import (
     Member,
     Overwrite,
     Permissions,
+    option,
 )
-from interactions import extension_command as command
-from interactions import extension_listener as listener
-from interactions import option
 from interactions.ext.lavalink import VoiceState
 
-from core import Asteroid, BotException, MissingPermissions, GuildVoiceLobbies  # isort: skip
-
+from core import Asteroid, BotException, GuildVoiceLobbies, MissingPermissions, command, listener
 
 VOICE_CHANNEL_USER_PERMISSIONS: Final = (
     Permissions.MANAGE_CHANNELS

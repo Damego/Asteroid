@@ -1,10 +1,10 @@
 from os import getenv
 
 import interactions
-from core import Asteroid
 from dotenv import load_dotenv
 
-from utils.functions import load_extensions  # isort: skip
+from core import Asteroid
+from utils.functions import load_extensions
 
 load_dotenv()
 
