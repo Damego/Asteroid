@@ -8,17 +8,13 @@ from interactions import (
     Extension,
     Member,
     Message,
-    Role,
-    option,
+    Permissions,
     SelectMenu,
     SelectOption,
-    Permissions
+    option,
 )
 
-from core import Asteroid, Mention, MissingAllArguments, TimestampMention, command, MissingPermissions
-
-# TODO:
-#   Add perms checks
+from core import Asteroid, Mention, MissingPermissions, TimestampMention, command
 
 
 class Moderation(Extension):
@@ -43,9 +39,7 @@ class Moderation(Extension):
             raise MissingPermissions(Permissions.MANAGE_GUILD)
 
         guild_data = await self.client.database.get_guild(ctx.guild_id)
-
         guild_data.settings.warns_limit = warns_to_ban
-
         await guild_data.settings.update()
 
         locale = await self.client.get_locale(ctx.guild_id)
@@ -62,6 +56,7 @@ class Moderation(Extension):
         """Bans a member of the server"""
         if not ctx.has_permissions(Permissions.BAN_MEMBERS):
             raise MissingPermissions(Permissions.BAN_MEMBERS)
+
         locale = await self.client.get_locale(ctx.guild_id)
 
         if member.id == self.client.me.id:
@@ -163,8 +158,8 @@ class Moderation(Extension):
                     placeholder=locale.REMOVE_WARNS,
                     custom_id="select_remove_user_warn",
                     options=[
-                        SelectOption(name=i+1, value=i) for i in range(len(user_data.warns))
-                    ]
+                        SelectOption(name=i + 1, value=i) for i in range(len(user_data.warns))
+                    ],
                 )
             ]
 
