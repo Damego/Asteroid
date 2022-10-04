@@ -12,9 +12,10 @@ from interactions import (
     SelectMenu,
     SelectOption,
     option,
+    ComponentContext
 )
 
-from core import Asteroid, Mention, MissingPermissions, TimestampMention, command
+from core import Asteroid, Mention, MissingPermissions, TimestampMention, command, listener
 
 
 class Moderation(Extension):
@@ -156,14 +157,36 @@ class Moderation(Extension):
             components = [
                 SelectMenu(
                     placeholder=locale.REMOVE_WARNS,
-                    custom_id="select_remove_user_warn",
+                    custom_id=f"select_remove_user_warn|{member.id}",
                     options=[
                         SelectOption(name=i + 1, value=i) for i in range(len(user_data.warns))
                     ],
+                    max_values=len(user_data.warns)
                 )
             ]
 
         await ctx.send(embeds=embed, commponents=components)
+
+    @listener("on_component")
+    async def select_remove_user_warns(self, ctx: ComponentContext):
+        if not ctx.custom_id.startswith("select_remove_user_warn"):
+            return
+        if not ctx.has_permissions(Permissions.MODERATE_MEMBERS):
+            raise MissingPermissions(Permissions.MODERATE_MEMBERS)
+
+        member_id = int(ctx.custom_id.split("|")[1])
+        warn_indexes: list[str] = list(map(int, ctx.data.values))
+
+        guild_data = await self.client.database.get_guild(ctx.guild_id)
+        user_data = guild_data.get_user(member_id)
+        locale = await self.client.get_locale(ctx.guild_id)
+
+        for index in warn_indexes:
+            user_data.warns.remove(index)
+
+        # TODO:
+        #   Rewrite this
+
 
     @mod.group(name="channel")
     async def mod_channel(self, ctx: CommandContext):
