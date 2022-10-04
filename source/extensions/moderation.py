@@ -10,9 +10,12 @@ from interactions import (
     Message,
     Role,
     option,
+    SelectMenu,
+    SelectOption,
+    Permissions
 )
 
-from core import Asteroid, Mention, MissingAllArguments, TimestampMention, command
+from core import Asteroid, Mention, MissingAllArguments, TimestampMention, command, MissingPermissions
 
 # TODO:
 #   Add perms checks
@@ -33,17 +36,15 @@ class Moderation(Extension):
         max_value=10,  # 10 is fine?
     )
     @option("The moderator role to use special commands")
-    async def configure(self, ctx: CommandContext, warns_to_ban: int = None, mod_role: Role = None):
+    async def configure(self, ctx: CommandContext, warns_to_ban: int):
         """Configures warns and moderator role"""
-        if warns_to_ban is None and mod_role is None:
-            raise MissingAllArguments("warns_to_ban", "mod_role")
+        # TODO: Wait for interactions-checks
+        if not ctx.has_permissions(Permissions.MANAGE_GUILD):
+            raise MissingPermissions(Permissions.MANAGE_GUILD)
 
         guild_data = await self.client.database.get_guild(ctx.guild_id)
 
-        if warns_to_ban is not None:
-            guild_data.settings.warns_limit = warns_to_ban
-        if mod_role is not None:
-            guild_data.settings.moderator_role = mod_role
+        guild_data.settings.warns_limit = warns_to_ban
 
         await guild_data.settings.update()
 
@@ -59,6 +60,8 @@ class Moderation(Extension):
     @option("The reason of banning")
     async def ban(self, ctx: CommandContext, member: Member, reason: str = None):
         """Bans a member of the server"""
+        if not ctx.has_permissions(Permissions.BAN_MEMBERS):
+            raise MissingPermissions(Permissions.BAN_MEMBERS)
         locale = await self.client.get_locale(ctx.guild_id)
 
         if member.id == self.client.me.id:
@@ -75,6 +78,9 @@ class Moderation(Extension):
     @option("The reason of kicking")
     async def kick(self, ctx: CommandContext, member: Member, reason: str = None):
         """Kicks a member of the server"""
+        if not ctx.has_permissions(Permissions.KICK_MEMBERS):
+            raise MissingPermissions(Permissions.KICK_MEMBERS)
+
         locale = await self.client.get_locale(ctx.guild_id)
 
         if member.id == self.client.me.id:
@@ -91,14 +97,16 @@ class Moderation(Extension):
     @option("The reason of warning")
     async def warn(self, ctx: CommandContext, member: Member, reason: str = None):
         """Warns a member"""
+        if not ctx.has_permissions(Permissions.MODERATE_MEMBERS):
+            raise MissingPermissions(Permissions.MODERATE_MEMBERS)
+
         locale = await self.client.get_locale(ctx.guild_id)
         guild_data = await self.client.database.get_guild(ctx.guild_id)
 
         if not guild_data.settings.warns_limit:
-            # Works for 0 and None
             return await ctx.send(
                 locale.WARN_SYSTEM_DISABLED, ephemeral=True
-            )  # Optimize for all systems
+            )  # TODO: Make it for all systems
 
         if member.id == self.client.me.id or member.user.bot:
             return await ctx.send(locale.CANNOT_WARN_BOT, ephemeral=True)
@@ -148,10 +156,19 @@ class Moderation(Extension):
                 + "\n\n"
             )
 
-        # TODO:
-        #   If ctx.author is a mod then send components to remove warn
+        components = []
+        if ctx.has_permissions(Permissions.MODERATE_MEMBERS):
+            components = [
+                SelectMenu(
+                    placeholder=locale.REMOVE_WARNS,
+                    custom_id="select_remove_user_warn",
+                    options=[
+                        SelectOption(name=i+1, value=i) for i in range(len(user_data.warns))
+                    ]
+                )
+            ]
 
-        await ctx.send(embeds=embed)
+        await ctx.send(embeds=embed, commponents=components)
 
     @mod.group(name="channel")
     async def mod_channel(self, ctx: CommandContext):
@@ -165,6 +182,8 @@ class Moderation(Extension):
         self, ctx: CommandContext, amount: int, member: Member = None, bulk: bool = True
     ):
         """Deletes the messages in the current channel"""
+        if not ctx.has_permissions(Permissions.MANAGE_CHANNELS):
+            raise MissingPermissions(Permissions.MANAGE_CHANNELS)
 
         def check(message: Message):
             return message.author.id == member.id

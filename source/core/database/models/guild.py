@@ -64,7 +64,6 @@ class GuildSettings(DataBaseSerializerMixin):
     disabled_commands: list[str] = field(factory=list)
     suggested_russian: bool = field(default=False)
     warns_limit: int = field(default=None)
-    moderator_role: int = field(default=None)
 
 
 @define()
