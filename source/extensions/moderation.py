@@ -175,18 +175,22 @@ class Moderation(Extension):
             raise MissingPermissions(Permissions.MODERATE_MEMBERS)
 
         member_id = int(ctx.custom_id.split("|")[1])
-        warn_indexes: list[str] = list(map(int, ctx.data.values))
+        warn_indexes: list[int] = list(map(int, ctx.data.values))
 
         guild_data = await self.client.database.get_guild(ctx.guild_id)
         user_data = guild_data.get_user(member_id)
         locale = await self.client.get_locale(ctx.guild_id)
 
+        # Does it works?
+        warns = {i: warn for i, warn in enumerate(user_data.warns)}
+
         for index in warn_indexes:
-            user_data.warns.remove(index)
+            user_data.warns.remove(warns[index])
 
-        # TODO:
-        #   Rewrite this
-
+        if len(warn_indexes) == 1:
+            await ctx.send(locale.WARN_REMOVED)
+        else:
+            await ctx.send(locale.WARNS_REMOVED)
 
     @mod.group(name="channel")
     async def mod_channel(self, ctx: CommandContext):
