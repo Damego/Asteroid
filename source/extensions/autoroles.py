@@ -2,7 +2,6 @@ from interactions import (
     ActionRow,
     Button,
     ButtonStyle,
-    Channel,
     Choice,
     CommandContext,
     ComponentContext,
@@ -37,7 +36,6 @@ class CommandsMention(StrEnum):
 
 class AutoRoles(Extension):
     def __init__(self, client: Asteroid):
-        # I should add type annotation since current annotation is `interactions.Client`
         self.client: Asteroid = client
 
     @listener
@@ -180,7 +178,7 @@ class AutoRoles(Extension):
     @autorole.group()
     async def dropdown(self, ctx: CommandContext):
         """Group for dropdown autorole"""
-        ...
+        await ctx.defer(ephemeral=True)
 
     @dropdown.subcommand(name="create")
     @option(
@@ -202,7 +200,6 @@ class AutoRoles(Extension):
         self, ctx: CommandContext, name: str, message: str, placeholder: str = None
     ):
         """Creates a dropdown autorole"""
-        await ctx.defer(ephemeral=True)
         components = ActionRow(
             components=[
                 SelectMenu(
@@ -217,8 +214,8 @@ class AutoRoles(Extension):
                 )
             ]
         )
-        await ctx.get_channel()
-        _message = await ctx.channel.send(message, components=components)
+        channel = await self.client.get_channel(ctx.channel_id)
+        _message = await channel.send(message, components=components)
 
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         await guild_data.add_autorole(
@@ -243,7 +240,6 @@ class AutoRoles(Extension):
     )
     async def dropdown_remove(self, ctx: CommandContext, name: str):
         """Removes a dropdown autorole"""
-        await ctx.defer(ephemeral=True)
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         autorole = guild_data.get_autorole(name)
         if autorole is None:
@@ -282,7 +278,6 @@ class AutoRoles(Extension):
         description: str = None,
     ):
         """Adds a role to dropdown"""
-        await ctx.defer(ephemeral=True)
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         autorole = guild_data.get_autorole(name)
         if autorole is None:
@@ -294,20 +289,23 @@ class AutoRoles(Extension):
             emoji=get_emoji_from_str(emoji),
             description=description,
         )
-        await ctx.get_guild()
-        channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
+        channel = await self.client.get_channel(autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
         components = message.components
         select = components[0].components[0]
         options = select.options
         if len(options) == 25:
             raise BotException(104)
+
         if options[0].label == "None":
             options.clear()
             select.disabled = False
+
         options.append(option)  # It's doesn't update json
         select.options = options  # So I need to do this thing
+
         await message.edit(components=components)
+
         autorole.component = [component._json for component in components]
         await autorole.update()
 
@@ -336,8 +334,8 @@ class AutoRoles(Extension):
         autorole = guild_data.get_autorole(name)
         if autorole is None:
             raise BotException(100)
-        await ctx.get_guild()
-        channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
+
+        channel = await self.client.get_channel(autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
         components = message.components
         select = components[0].components[0]
@@ -464,7 +462,7 @@ class AutoRoles(Extension):
             style=color if color is not None else ButtonStyle.SECONDARY,
         )
 
-        channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
+        channel = await self.client.get_channel(autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
 
         components = message.components
@@ -514,7 +512,7 @@ class AutoRoles(Extension):
         if autorole is None:
             raise BotException(100)
 
-        channel: Channel = await self.client.get(Channel, object_id=autorole.channel_id)
+        channel = await self.client.get_channel(autorole.channel_id)
         message = await channel.get_message(autorole.message_id)
         components = message.components
         if not components:
@@ -534,6 +532,7 @@ class AutoRoles(Extension):
                 break
         else:
             raise BotException(106)
+
         await message.edit(components=components)
         autorole.component = [_._json for _ in components]
         await autorole.update()
@@ -545,7 +544,6 @@ class AutoRoles(Extension):
     @autorole.group()
     async def on_join(self, ctx: CommandContext):
         """Group for on_join roles"""
-        ...
 
     @on_join.subcommand(name="add")
     @option(option_type=OptionType.ROLE, name="role", description="The role to add", required=True)
