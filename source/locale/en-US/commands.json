@@ -38,5 +38,8 @@
   "WARNED_AT": "Warned at",
   "REASON": "Reason",
   "MESSAGES_REMOVED": "Removed {amount} messages",
-  "WARN_SYSTEM_DISABLED": "Warns system disabled on this server!"
+  "WARN_SYSTEM_DISABLED": "Warns system disabled on this server!",
+  "SELECT_REMOVE_WARNS": "Select the warns to remove",
+  "WARN_REMOVED": "Warn was removed!",
+  "WARNS_REMOVED": "Warns were removed!"
 }

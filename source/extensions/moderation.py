@@ -156,7 +156,7 @@ class Moderation(Extension):
         if ctx.has_permissions(Permissions.MODERATE_MEMBERS):
             components = [
                 SelectMenu(
-                    placeholder=locale.REMOVE_WARNS,
+                    placeholder=locale.SELECT_REMOVE_WARNS,
                     custom_id=f"select_remove_user_warn|{member.id}",
                     options=[
                         SelectOption(name=i + 1, value=i) for i in range(len(user_data.warns))
