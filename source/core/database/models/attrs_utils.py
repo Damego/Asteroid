@@ -20,8 +20,8 @@ class DictSerializerMixin:
 
     def __init__(self, kwargs_dict: dict = None, **other_kwargs):
         kwargs = kwargs_dict or other_kwargs
-        self._json = kwargs.copy()
         database = kwargs.pop("_database", None)
+        guild_id = kwargs.pop("guild_id", None)
         passed_kwargs = {}
         attribs: tuple[attrs.Attribute, ...] = self.__attrs_attrs__
         for attrib in attribs:
@@ -29,21 +29,22 @@ class DictSerializerMixin:
                 continue
             metadata = attrib.metadata
             attr_name = attrib.name
-            if (value := kwargs.get(metadata["alias"], MISSING)) is MISSING:
-                if (value := kwargs.get(attr_name, MISSING)) is MISSING:
-                    value = MISSING
+            value = kwargs.get(metadata["alias"], MISSING)
+            if value is MISSING:
+                value = kwargs.get(attr_name, MISSING)
+
             if value is not None and value is not MISSING:
                 if isinstance(value, list):
                     for item in value:
                         if metadata["add_database"]:
                             item["_database"] = database
                         if metadata["add_guild_id"]:
-                            item["guild_id"] = kwargs.get("guild_id", MISSING)
+                            item["guild_id"] = guild_id
                 elif isinstance(value, dict):
                     if metadata["add_database"]:
                         value["_database"] = database
                     if metadata["add_guild_id"]:
-                        value["guild_id"] = kwargs.get("guild_id", MISSING)
+                        value["guild_id"] = guild_id
             elif attrib.default is not attrs.NOTHING:
                 value = attrib.default
                 if isinstance(value, attrs.Factory):  # type: ignore
@@ -52,6 +53,9 @@ class DictSerializerMixin:
                 value = None
 
             passed_kwargs[attr_name] = value
+
+        self._json = passed_kwargs.copy()
+        self._json["guild_id"] = guild_id
         self.__attrs_init__(**passed_kwargs)
 
 
@@ -72,18 +76,21 @@ class DataBaseSerializerMixin(DictSerializerMixin):
         _json = attrs.asdict(
             self, filter=lambda attr, value: attr.name not in ("_json", "_database", "guild_id")
         )
+
         data = {
             key: value
             for key, value in _json.items()
-            if (self._json.get(key) is not None and self._json[key] != value)
-            or (self._json.get(key) is None and key not in ["id", "guild_data"])
-            or (value is not self._json.get(key))  # TODO: Lists can had same value and its bad.
+            if (
+                ((before := self._json.get(key)) is not None and before != value)
+                and (key not in ("id", "guild_data"))
+            )
         }
+
         guild_id = self._json["guild_id"]
-        model_name = str(self.__class__.__name__)
+        model_name = self.__class__.__name__
         match model_name:
             case "GuildUser":
-                await self._database.update_user(guild_id, self._json["_id"], data)
+                await self._database.update_user(guild_id, self._json["id"], data)
             case "GuildSettings":
                 await self._database.update_guild(guild_id, "configuration", OperatorType.SET, data)
             case "GuildAutoRole" | "GuildTag" | "GuildEmojiBoard":
