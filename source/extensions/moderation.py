@@ -4,6 +4,7 @@ from interactions import (
     MISSING,
     Color,
     CommandContext,
+    ComponentContext,
     Embed,
     Extension,
     Member,
@@ -12,10 +13,21 @@ from interactions import (
     SelectMenu,
     SelectOption,
     option,
-    ComponentContext
 )
 
-from core import Asteroid, Mention, MissingPermissions, TimestampMention, command, listener
+from core import (
+    Asteroid,
+    GuildUser,
+    Locale,
+    Mention,
+    MissingPermissions,
+    TimestampMention,
+    command,
+    listener,
+)
+
+# TODO:
+#   Send embed messages
 
 
 class Moderation(Extension):
@@ -32,11 +44,10 @@ class Moderation(Extension):
         min_value=0,
         max_value=10,  # 10 is fine?
     )
-    @option("The moderator role to use special commands")
     async def configure(self, ctx: CommandContext, warns_to_ban: int):
         """Configures warns and moderator role"""
         # TODO: Wait for interactions-checks
-        if not ctx.has_permissions(Permissions.MANAGE_GUILD):
+        if not await ctx.has_permissions(Permissions.MANAGE_GUILD):
             raise MissingPermissions(Permissions.MANAGE_GUILD)
 
         guild_data = await self.client.database.get_guild(ctx.guild_id)
@@ -55,7 +66,7 @@ class Moderation(Extension):
     @option("The reason of banning")
     async def ban(self, ctx: CommandContext, member: Member, reason: str = None):
         """Bans a member of the server"""
-        if not ctx.has_permissions(Permissions.BAN_MEMBERS):
+        if not await ctx.has_permissions(Permissions.BAN_MEMBERS):
             raise MissingPermissions(Permissions.BAN_MEMBERS)
 
         locale = await self.client.get_locale(ctx.guild_id)
@@ -65,7 +76,7 @@ class Moderation(Extension):
         if member.id == ctx.author.id:
             return await ctx.send(locale.CANNOT_BAN_YOURSELF, ephemeral=True)
 
-        await member.ban(ctx.guild_id, reason)
+        await member.ban(ctx.guild_id, reason=reason)
 
         await ctx.send(locale.MEMBER_BANNED(member=member), ephemeral=True)
 
@@ -74,7 +85,7 @@ class Moderation(Extension):
     @option("The reason of kicking")
     async def kick(self, ctx: CommandContext, member: Member, reason: str = None):
         """Kicks a member of the server"""
-        if not ctx.has_permissions(Permissions.KICK_MEMBERS):
+        if not await ctx.has_permissions(Permissions.KICK_MEMBERS):
             raise MissingPermissions(Permissions.KICK_MEMBERS)
 
         locale = await self.client.get_locale(ctx.guild_id)
@@ -84,7 +95,7 @@ class Moderation(Extension):
         if member.id == ctx.author.id:
             return await ctx.send(locale.CANNOT_KICK_YOURSELF, ephemeral=True)
 
-        await member.ban(ctx.guild_id, reason)
+        await member.kick(ctx.guild_id, reason)
 
         await ctx.send(locale.MEMBER_KICKED(member=member), ephemeral=True)
 
@@ -93,7 +104,7 @@ class Moderation(Extension):
     @option("The reason of warning")
     async def warn(self, ctx: CommandContext, member: Member, reason: str = None):
         """Warns a member"""
-        if not ctx.has_permissions(Permissions.MODERATE_MEMBERS):
+        if not await ctx.has_permissions(Permissions.MODERATE_MEMBERS):
             raise MissingPermissions(Permissions.MODERATE_MEMBERS)
 
         locale = await self.client.get_locale(ctx.guild_id)
@@ -136,6 +147,16 @@ class Moderation(Extension):
         if user_data is None or not user_data.warns:
             return await ctx.send(locale.NO_WARNS, ephemeral=True)
 
+        embed, components = await self.__render_user_warns(ctx, member, locale, user_data)
+        await ctx.send(embeds=embed, components=components)
+
+    async def __render_user_warns(
+        self,
+        ctx: CommandContext | ComponentContext,
+        member: Member,
+        locale: Locale,
+        user_data: GuildUser,
+    ):
         embed = Embed(title=locale.WARNS_LIST, description="", color=Color.blurple())
         embed.set_thumbnail(url=member.user.avatar_url)
         embed.set_author(
@@ -149,30 +170,32 @@ class Moderation(Extension):
                 f"> **{locale.AUTHOR}:** {Mention.USER.format(id=warn.author_id)}\n"
                 f"> **{locale.WARNED_AT}:** {TimestampMention.LONG_DATE.format(int(warn.warned_at.timestamp()))}\n"
                 + (f"> **{locale.REASON}:** {warn.reason}" if warn.reason else "")
-                + "\n\n"
+                + "\n"
             )
 
         components = []
-        if ctx.has_permissions(Permissions.MODERATE_MEMBERS):
+        if await ctx.has_permissions(Permissions.MODERATE_MEMBERS):
             components = [
                 SelectMenu(
                     placeholder=locale.SELECT_REMOVE_WARNS,
                     custom_id=f"select_remove_user_warn|{member.id}",
                     options=[
-                        SelectOption(name=i + 1, value=i) for i in range(len(user_data.warns))
+                        SelectOption(label=i + 1, value=i) for i in range(len(user_data.warns))
                     ],
-                    max_values=len(user_data.warns)
+                    max_values=len(user_data.warns),
                 )
             ]
 
-        await ctx.send(embeds=embed, commponents=components)
+        return embed, components
 
-    @listener("on_component")
+    @listener(name="on_component")
     async def select_remove_user_warns(self, ctx: ComponentContext):
         if not ctx.custom_id.startswith("select_remove_user_warn"):
             return
-        if not ctx.has_permissions(Permissions.MODERATE_MEMBERS):
+        if not await ctx.has_permissions(Permissions.MODERATE_MEMBERS):
             raise MissingPermissions(Permissions.MODERATE_MEMBERS)
+
+        await ctx.defer(ephemeral=True)
 
         member_id = int(ctx.custom_id.split("|")[1])
         warn_indexes: list[int] = list(map(int, ctx.data.values))
@@ -181,11 +204,20 @@ class Moderation(Extension):
         user_data = guild_data.get_user(member_id)
         locale = await self.client.get_locale(ctx.guild_id)
 
-        # Does it works?
+        # Does it work?
         warns = {i: warn for i, warn in enumerate(user_data.warns)}
 
         for index in warn_indexes:
             user_data.warns.remove(warns[index])
+
+        await user_data.update()
+
+        if user_data.warns:
+            member = await self.client.get_member(ctx.guild_id, member_id)
+            embed, components = await self.__render_user_warns(ctx, member, locale, user_data)
+            await ctx.message.edit(embeds=embed, components=components)
+        else:
+            await ctx.message.delete("[AUTO-MOD] User doesn't have warns.")
 
         if len(warn_indexes) == 1:
             await ctx.send(locale.WARN_REMOVED)
@@ -204,7 +236,7 @@ class Moderation(Extension):
         self, ctx: CommandContext, amount: int, member: Member = None, bulk: bool = True
     ):
         """Deletes the messages in the current channel"""
-        if not ctx.has_permissions(Permissions.MANAGE_CHANNELS):
+        if not await ctx.has_permissions(Permissions.MANAGE_CHANNELS):
             raise MissingPermissions(Permissions.MANAGE_CHANNELS)
 
         def check(message: Message):
