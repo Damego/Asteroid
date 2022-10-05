@@ -124,9 +124,9 @@ class AutoRoles(Extension):
                 ]
                 await ctx.populate(choices)
             case "role":  # `on_join remove` command
-                guild = await ctx.get_guild()
                 roles = [
-                    await guild.get_role(role_id) for role_id in guild_data.settings.on_join_roles
+                    await ctx.guild.get_role(role_id)
+                    for role_id in guild_data.settings.on_join_roles
                 ]
                 choices = [Choice(name=role.name, value=str(role.id)) for role in roles]
                 await ctx.populate(choices)
@@ -134,7 +134,6 @@ class AutoRoles(Extension):
     @command(name="autorole")
     async def autorole(self, ctx: CommandContext):
         """Main command for all autoroles"""
-        ...
 
     @autorole.subcommand()
     async def list(self, ctx: CommandContext):
@@ -364,7 +363,7 @@ class AutoRoles(Extension):
     @autorole.group()
     async def button(self, ctx: CommandContext):
         """Group for button autorole"""
-        ...
+        await ctx.defer(ephemeral=True)
 
     @button.subcommand(name="create")
     @option(
@@ -383,8 +382,8 @@ class AutoRoles(Extension):
         """Creates a button autorole"""
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
 
-        await ctx.get_channel()
-        _message = await ctx.channel.send(content=message)
+        channel = await self.client.get_channel(ctx.channel_id)
+        _message = await channel.send(content=message)
 
         await guild_data.add_autorole(
             name=name,
