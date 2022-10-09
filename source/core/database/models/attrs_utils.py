@@ -72,9 +72,10 @@ class DataBaseSerializerMixin(DictSerializerMixin):
         self.guild_id = kwargs.get("guild_id")
         super().__init__(**kwargs)
 
-    async def update(self):
+    def get_changes(self) -> dict:
+        """Returns changes between previous data and current"""
         _json = attrs.asdict(
-            self, filter=lambda attr, value: attr.name not in ("_json", "_database", "guild_id")
+            self, filter=lambda attr, value: attr.name not in ("_json", "_database")
         )
 
         data = {
@@ -82,38 +83,24 @@ class DataBaseSerializerMixin(DictSerializerMixin):
             for key, value in _json.items()
             if (
                 ((before := self._json.get(key)) is not None and before != value)
-                and (key not in ("id", "guild_data"))
+                and (key not in ("id", "guild_data", "guild_id"))
             )
         }
-
-        guild_id = self._json["guild_id"]
-        model_name = self.__class__.__name__
-        match model_name:
-            case "GuildUser":
-                await self._database.update_user(guild_id, self._json["id"], data)
-            case "GuildSettings":
-                await self._database.update_guild(guild_id, "configuration", OperatorType.SET, data)
-            case "GuildAutoRole" | "GuildTag" | "GuildEmojiBoard":
-                if model_name == "GuildEmojiBoard":
-                    key = self._to_database_name(model_name)
-                else:
-                    key = model_name[5:].lower()
-                key += "s"
-                document = {"_id": key, f"{key}.name": self._json["name"]}
-                payload = {f"{key}.$.{k}": value for k, value in data.items()}
-                await self._database.update_guild(guild_id, document, OperatorType.SET, payload)
-            case "GuildVoiceLobbies" | "GuildLeveling":
-                key = self._to_database_name(model_name)
-                await self._database.update_guild(guild_id, key, OperatorType.SET, data)
-
         self._json = _json
-        self._json["guild_id"] = guild_id
+        return data
+
+    async def update(self):
+        raise NotImplementedError
 
     @staticmethod
     def _to_database_name(name: str) -> str:
+        if name == "GuildAutoRole":
+            return "autoroles"
         for char in name:
             if char in ascii_uppercase:
                 name = name.replace(char, f"_{char.lower()}", 1)
+        if not name.endswith("s"):
+            name += "s"
         return name[7:]
 
 
@@ -152,3 +139,14 @@ def field(
     metadata = dict(add_database=add_database, alias=alias, add_guild_id=add_guild_id)
 
     return attrs.field(converter=converter, default=default, metadata=metadata, **kwargs)
+
+
+@define()
+class ListMixin(DataBaseSerializerMixin):
+    async def update(self):
+        key = self._to_database_name(self.__class__.__name__)
+        data = self.get_changes()
+        document = {"_id": key, f"{key}.name": self._json["name"]}
+        payload = {f"{key}.$.{k}": value for k, value in data.items()}
+
+        await self._database.update_guild(self.guild_id, document, OperatorType.SET, payload)

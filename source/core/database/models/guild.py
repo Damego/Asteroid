@@ -1,9 +1,10 @@
 import datetime
 
-from ..consts import Language
+from ..consts import Language, OperatorType
 from .attrs_utils import (
     DataBaseSerializerMixin,
     DictSerializerMixin,
+    ListMixin,
     convert_int,
     convert_list,
     define,
@@ -54,7 +55,10 @@ class GuildUser(DataBaseSerializerMixin):
         return warn
 
     def remove_warn(self, index: int) -> None:
-        self.warns.remove(index)
+        self.warns.pop(index)
+
+    async def update(self):
+        await self._database.update_user(self.guild_id, self.id, self.get_changes())
 
 
 @define()
@@ -65,9 +69,14 @@ class GuildSettings(DataBaseSerializerMixin):
     suggested_russian: bool = field(default=False)
     warns_limit: int = field(default=None)
 
+    async def update(self):
+        await self._database.update_guild(
+            self.guild_id, "configuration", OperatorType.SET, self.get_changes()
+        )
+
 
 @define()
-class GuildAutoRole(DataBaseSerializerMixin):
+class GuildAutoRole(ListMixin):
     name: str = field()
     content: str = field()
     channel_id: int = field()
@@ -77,7 +86,7 @@ class GuildAutoRole(DataBaseSerializerMixin):
 
 
 @define()
-class GuildTag(DataBaseSerializerMixin):
+class GuildTag(ListMixin):
     name: str = field()
     title: str = field()
     description: str = field()
@@ -116,6 +125,10 @@ class GuildVoiceLobbies(DataBaseSerializerMixin):
         lobby = self.get_lobby(channel_id=channel_id, owner_id=owner_id)
         self.active_channels.remove(lobby)
 
+    async def update(self):
+        key = self._to_database_name(self.__class__.__name__)
+        await self._database.update_guild(self.guild_id, key, OperatorType.SET, self.get_changes())
+
 
 @define()
 class GuildLeveling(DataBaseSerializerMixin):
@@ -123,6 +136,10 @@ class GuildLeveling(DataBaseSerializerMixin):
     message_xp_range: list[int] = field(factory=list)
     voice_factor: int = field(default=10)  # TODO: Add enum for default value
     start_level_role: int = field(default=None)
+
+    async def update(self):
+        key = self._to_database_name(self.__class__.__name__)
+        await self._database.update_guild(self.guild_id, key, OperatorType.SET, self.get_changes())
 
 
 @define()
@@ -140,7 +157,7 @@ class GuildMessageData(DictSerializerMixin):
 
 
 @define()
-class GuildEmojiBoard(DataBaseSerializerMixin):
+class GuildEmojiBoard(ListMixin):
     name: str = field()
     channel_id: int = field()
     emojis: list[str] = field()
@@ -221,11 +238,6 @@ class GuildData(DataBaseSerializerMixin):
     )
 
     async def update(self):
-        """
-        We still need a _database attr, but we shouldn't use this method here
-        because GuildData is not one document.
-        It's a lot of documents.
-        """
         raise NotImplementedError
 
     def get_user(self, user_id: int) -> GuildUser | None:
