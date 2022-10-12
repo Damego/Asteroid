@@ -252,7 +252,10 @@ class DataBaseClient:
             _database=self,
             guild_id=int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
         )
-        self.guilds_storage[str(guild_id)].users.append(user)
+
+        guild_data = await self.get_guild(guild_id)
+        guild_data.users.append(user)
+
         return user
 
     async def get_user(self, guild_id: int | Snowflake, user_id: int) -> GuildUser | None:
@@ -261,7 +264,9 @@ class DataBaseClient:
             return
 
         user = GuildUser(**data, _database=self, guild_id=int(guild_id))
-        self.guilds_storage[str(guild_id)].users.append(user)
+
+        guild_data = await self.get_guild(guild_id)
+        guild_data.users.append(user)
 
         return user
 
@@ -274,17 +279,18 @@ class DataBaseClient:
         if not user_id and not user:
             raise BotException(11)
 
-        if user_id is not None:
-            for user in self.guilds_storage[str(guild_id)].users:
-                if user.id == user_id:
-                    break
-            else:
-                raise BotException(12, user_id=user_id)
+        # if user_id is not None:
+        #     for user in self.guilds_storage[str(guild_id)].users:
+        #         if user.id == user_id:
+        #             break
+        #     else:
+        #         raise BotException(12, user_id=user_id)
 
         await self._req.guild.remove_user(
             int(guild_id) if isinstance(guild_id, Snowflake) else guild_id, user_id
         )
-        self.guilds_storage[str(guild_id)].users.remove(user)
+        guild_data = await self.get_guild(guild_id)
+        guild_data.users.remove(user)
 
     async def update_user(self, guild_id: int | Snowflake, user_id: int, data: dict):
         await self._req.guild.update_user(

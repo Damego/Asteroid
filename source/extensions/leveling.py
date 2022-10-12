@@ -1,15 +1,54 @@
+from time import time
+from collections import defaultdict
+from random import randint
+
 from interactions import Extension, Message, CommandContext, option, Member, Role
 
-from core import Asteroid, command, listener
+from core import Asteroid, command, listener, GuildUser
+
+
+COOLDOWN = 10
 
 
 class Leveling(Extension):
     def __init__(self, client):
         self.client: Asteroid = client
+        self.cooldowns: dict[tuple[int, int], int] = defaultdict(lambda: int(time()))
 
     @listener
     async def on_message_create(self, message: Message):
-        ...
+        if message.author.bot:
+            return
+        
+        guild_data = await self.client.database.get_guild(message.guild_id)
+        if not guild_data.leveling or not guild_data.leveling.message_xp_range:
+            return
+        user_data = await self.client.database.get_user(message.get_guild, message.author.id)
+
+        if self._is_cooldown(message):
+            return
+        
+        await self._increate_exp(user_data, randint(*guild_data.leveling.message_xp_range))
+
+    def _is_cooldown(self, message: Message):
+        return int(time()) - self.cooldowns[(str(message.guild_id), str(message.author.id))] <= COOLDOWN
+
+    def _get_level_xp(self, level: int):
+        return int((100 * level) ** 1.2)
+
+    async def _increate_exp(self, user_data: GuildUser, exp: int):
+        user_leveling = user_data.leveling
+        user_leveling.exp += exp
+        exp_to_next_level = self._get_level_xp(user_leveling.level + 1)
+
+        # TODO:
+        #   1. Add exp to member
+        #   2. Increase level if needed ->
+        #       2.1. Give role if needed
+        #       2.2. Notify member
+        #   3. Update user in db 
+        #   4. Add user to cooldown
+
 
     @command()
     async def leveling(self, ctx: CommandContext):
