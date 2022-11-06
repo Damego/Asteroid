@@ -134,7 +134,6 @@ class GuildVoiceLobbies(DataBaseSerializerMixin):
 @define()
 class GuildLeveling(DataBaseSerializerMixin):
     roles_by_level: dict[int, int] = field(factory=dict)
-    message_xp_range: list[int] = field(factory=list)
     voice_factor: int = field(default=10)  # TODO: Add enum for default value
     start_level_role: int = field(default=None)
 
