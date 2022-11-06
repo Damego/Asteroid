@@ -31,12 +31,12 @@ class Asteroid(VoiceClient):
         )
         return self.locale[guild_data.settings.language]
 
-    async def try_run(self, func, *args):
+    async def try_run(self, func, *args, **kwargs):
         """
         Tries to run async function and nothing does if got exception
         """
         try:
-            return await func(*args)
+            return await func(*args, **kwargs)
         except LibraryException:
             pass
 
