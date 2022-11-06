@@ -30,6 +30,7 @@ class GuildUserLeveling(DictSerializerMixin):
     level: int = field(converter=convert_int, default=0)  # TODO: Add enum for default value
     xp: int = field(converter=convert_int, default=0)  # TODO: Add enum for default value
     xp_amount: int = field(converter=convert_int, default=0)  # TODO: Add enum for default value
+    role: int = field(default=None)
 
 
 @define()
