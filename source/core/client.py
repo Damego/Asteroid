@@ -2,6 +2,7 @@ from functools import wraps
 
 from interactions import (
     Channel,
+    Client,
     Guild,
     LibraryException,
     Member,
@@ -11,7 +12,6 @@ from interactions import (
     User,
     get,
 )
-from interactions.ext.lavalink import VoiceClient
 
 from .database import DataBaseClient
 from .locale import Locale, LocaleManager
@@ -19,9 +19,9 @@ from .locale import Locale, LocaleManager
 __all__ = ["Asteroid"]
 
 
-class Asteroid(VoiceClient):
-    def __init__(self, bot_token: str, mongodb_url: str, **kwargs):
-        super().__init__(bot_token, **kwargs)
+class Asteroid(Client):
+    def __init__(self, mongodb_url: str, **kwargs):
+        super().__init__(**kwargs)
         self.database = DataBaseClient(mongodb_url)
         self.locale = LocaleManager("locale")
 
