@@ -1,6 +1,9 @@
 from typing import Final
 
 from interactions import (
+    ActionRow,
+    Button,
+    ButtonStyle,
     Channel,
     ChannelType,
     CommandContext,
@@ -8,13 +11,13 @@ from interactions import (
     Member,
     Overwrite,
     Permissions,
+    VoiceState,
     option,
 )
-from interactions.ext.lavalink import VoiceState
 
 from core import Asteroid, BotException, GuildVoiceLobbies, MissingPermissions, command, listener
 
-VOICE_CHANNEL_USER_PERMISSIONS: Final = (
+VOICE_CHANNEL_OWNER_PERMISSIONS: Final = (
     Permissions.MANAGE_CHANNELS
     | Permissions.MOVE_MEMBERS
     | Permissions.VIEW_CHANNEL
@@ -49,7 +52,7 @@ class VoiceLobbies(Extension):
                 Overwrite(
                     id=int(member.id),
                     type=1,
-                    allow=VOICE_CHANNEL_USER_PERMISSIONS,
+                    allow=VOICE_CHANNEL_OWNER_PERMISSIONS,
                 )
             ]
             if voice_lobbies.private_lobbies:
@@ -93,12 +96,12 @@ class VoiceLobbies(Extension):
             Overwrite(
                 id=int(after.user_id),
                 type=1,
-                deny=VOICE_CHANNEL_USER_PERMISSIONS,
+                deny=VOICE_CHANNEL_OWNER_PERMISSIONS,
             ),
             Overwrite(
                 id=int(first_voice_state.user_id),
                 type=1,
-                allow=VOICE_CHANNEL_USER_PERMISSIONS,
+                allow=VOICE_CHANNEL_OWNER_PERMISSIONS,
             ),
         ]
         for permission in channel.permission_overwrites:
@@ -134,11 +137,13 @@ class VoiceLobbies(Extension):
     @voice.subcommand()
     @option("Name for voice channel. Can be edited later.")
     @option("Should be lobbies are private by default? Can be edited later.")
+    @option("Creates the special channel to control lobbies")
     async def setup(
         self,
         ctx: CommandContext,
         channel_name: str = None,
         private_lobbies: bool = False,
+        create_menu_channel: bool = True,
     ):
         """Setup voice lobbies on your server"""
         if Permissions.MANAGE_GUILD not in ctx.author.permissions:
@@ -149,12 +154,18 @@ class VoiceLobbies(Extension):
         voice_channel = await guild.create_channel(
             channel_name or "Create lobby", ChannelType.GUILD_VOICE, parent_id=category_channel
         )
+        text_channel = None
+        if create_menu_channel:
+            text_channel = await guild.create_channel(
+                "Control", ChannelType.GUILD_TEXT, parent_id=category_channel
+            )
+            await self.__send_control_menu(text_channel)
 
         await self.client.database.setup_voice_lobbies(
             ctx.guild_id,
             category_channel.id,
             voice_channel.id,
-            None,
+            text_channel.id if text_channel else None,
             private_lobbies,
         )
         await ctx.send("Ready")
@@ -242,13 +253,13 @@ class VoiceLobbies(Extension):
             channel.permission_overwrites,
             id=int(ctx.author.id),
             type=1,
-            deny=VOICE_CHANNEL_USER_PERMISSIONS,
+            deny=VOICE_CHANNEL_OWNER_PERMISSIONS,
         )
         self.__set_overwrite(
             channel.permission_overwrites,
             id=int(member.id),
             type=1,
-            allow=VOICE_CHANNEL_USER_PERMISSIONS,
+            allow=VOICE_CHANNEL_OWNER_PERMISSIONS,
         )
 
         await channel.modify(permission_overwrites=channel.permission_overwrites)
@@ -257,6 +268,35 @@ class VoiceLobbies(Extension):
         lobby = guild_data.voice_lobbies.get_lobby(int(channel.id))
         lobby.owner_id = int(member.id)
         await guild_data.voice_lobbies.update()
+
+    async def __send_control_menu(self, channel: Channel):
+        components = [
+            ActionRow(
+                components=[
+                    Button(
+                        label="CLOSE/OPEN", custom_id="vl|toggle-close", style=ButtonStyle.PRIMARY
+                    ),
+                    Button(label="RENAME", custom_id="vl|rename", style=ButtonStyle.PRIMARY),
+                    Button(label="SET LIMIT", custom_id="vl|set-limit", style=ButtonStyle.PRIMARY),
+                ]
+            ),
+            ActionRow(
+                components=[
+                    Button(label="BAN", custom_id="vl|close-room", style=ButtonStyle.PRIMARY),
+                    Button(label="UNBAN", custom_id="vl|close-room", style=ButtonStyle.PRIMARY),
+                    Button(label="CLOSE", custom_id="vl|close-room", style=ButtonStyle.PRIMARY),
+                    Button(label="CLOSE", custom_id="vl|close-room", style=ButtonStyle.PRIMARY),
+                    Button(label="CLOSE", custom_id="vl|close-room", style=ButtonStyle.PRIMARY),
+                ]
+            ),
+        ]
+        # embed = Embed(
+        #     title="You could manage your room via these buttons",
+        #     description="",  # TODO: add text like (emoji: what button with this emoji does)
+        #     color=Color.BLURPLE
+        # )
+        # message =
+        await channel.send(components=components)
 
     async def __get_lobby_channel(self, ctx: CommandContext) -> Channel:
         guild_data = await self.client.database.get_guild(ctx.guild_id)
