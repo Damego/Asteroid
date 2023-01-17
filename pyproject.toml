@@ -6,3 +6,25 @@ line-length = 100
 profile = "black"
 line_length = 100
 known_first_party = ["core", "utils"]
+
+[tool.poetry]
+name = "asteroid"
+version = "3.0.0"
+description = "The multifunctional discord bot written on python"
+authors = ["Damego <danyabatueff@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+attrs = "^22.2.0"
+discord-py-interactions = {git = "https://github.com/Damego/interactions-py-v4.5.git"}
+interactions-lavalink = "^1.0.0"
+pymongo = "^4.3.3"
+motor = "^3.1.1"
+python-dotenv = "^0.21.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
