@@ -1,14 +1,20 @@
 from os import getenv
 
-import interactions
 from dotenv import load_dotenv
+from interactions import Intents
+from interactions.ext.i18n import setup
 
 from core import Asteroid
 from utils.functions import load_extensions
 
 load_dotenv()
 
-client = Asteroid(getenv("TOKEN"), getenv("MONGO_URL"), intents=interactions.Intents.ALL)
+client = Asteroid(
+    getenv("MONGO_URL"),
+    intents=Intents.ALL,
+)
+i18n = setup(client)
+
 load_extensions(client, "extensions")
 
 
@@ -17,4 +23,4 @@ async def on_ready():
     print("Bot ready")
 
 
-client.start()
+client.start(getenv("TOKEN"))
