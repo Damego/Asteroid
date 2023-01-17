@@ -20,7 +20,6 @@ __all__ = [
     "GuildVoiceLobbies",
     "GuildLeveling",
     "GuildMessageData",
-    "GuildEmojiBoard",
     "GuildData",
 ]
 
@@ -157,60 +156,6 @@ class GuildMessageData(DictSerializerMixin):
 
 
 @define()
-class GuildEmojiBoard(ListMixin):
-    name: str = field()
-    channel_id: int = field()
-    emojis: list[str] = field()
-    to_add: int = field()
-    to_remove: int = field()
-    is_freeze: bool = field()
-    messages: list[GuildMessageData] = field(converter=convert_list(GuildMessageData), factory=list)
-    embed_color: int = field()
-
-    def add_message(
-        self,
-        author_id: int,
-        message_id: int,
-        channel_message_id: int = None,
-        users: list[int] = None,
-    ) -> GuildMessageData:
-        message = GuildMessageData(
-            author_id=author_id,
-            message_id=message_id,
-            channel_message_id=channel_message_id,
-            users=users,
-        )
-        self.messages.append(message)
-        return message
-
-    def add_user(self, user_id: int, *, message_id: int = None, channel_message_id: int = None):
-        message = self.get_message(message_id=message_id, channel_message_id=channel_message_id)
-        message.add_user(user_id)
-
-    def remove_user(self, user_id: int, *, message_id: int = None, channel_message_id: int = None):
-        message = self.get_message(message_id=message_id, channel_message_id=channel_message_id)
-        message.remove_user(user_id)
-
-    def get_message(self, *, message_id: int = None, channel_message_id: int = None):
-        for message in self.messages:
-            if (message_id is not None and message.message_id == message_id) or (
-                channel_message_id is not None and message.channel_message_id == channel_message_id
-            ):
-                return message
-
-    def remove_message(
-        self,
-        *,
-        message: GuildMessageData = None,
-        message_id: int = None,
-        channel_message_id: int = None,
-    ):
-        if message is None:
-            message = self.get_message(message_id=message_id, channel_message_id=channel_message_id)
-        self.messages.remove(message)
-
-
-@define()
 class GuildData(DataBaseSerializerMixin):
     settings: GuildSettings = field(
         converter=GuildSettings,
@@ -233,9 +178,6 @@ class GuildData(DataBaseSerializerMixin):
     )
     voice_time: dict[str, int] = field(default=None)
     leveling: GuildLeveling = field(converter=GuildLeveling, default=None)
-    emoji_boards: list[GuildEmojiBoard] = field(
-        converter=convert_list(GuildEmojiBoard), add_database=True, add_guild_id=True
-    )
 
     async def update(self):
         raise NotImplementedError
@@ -249,11 +191,6 @@ class GuildData(DataBaseSerializerMixin):
         for autorole in self.autoroles:
             if autorole.name == name:
                 return autorole
-
-    def get_emoji_board(self, name: str) -> GuildEmojiBoard | None:
-        for emoji_board in self.emoji_boards:
-            if name == emoji_board.name:
-                return emoji_board
 
     def get_tag(self, name: str) -> GuildTag | None:
         for tag in self.tags:
@@ -288,30 +225,6 @@ class GuildData(DataBaseSerializerMixin):
 
     async def remove_autorole(self, *, name: str = None, autorole: GuildAutoRole = None):
         await self._database.remove_autorole(self.guild_id, name=name, autorole=autorole)
-
-    async def add_emoji_board(
-        self,
-        *,
-        name: str,
-        channel_id: int,
-        emojis: list[str],
-        to_add: int,
-        to_remove: int,
-        embed_color: int,
-    ) -> GuildEmojiBoard:
-        return await self._database.add_emoji_board(
-            self.guild_id,
-            name=name,
-            channel_id=channel_id,
-            emojis=emojis,
-            to_add=to_add,
-            to_remove=to_remove,
-            is_freeze=False,
-            embed_color=embed_color,
-        )
-
-    async def remove_emoji_board(self, *, name: str = None, emoji_board: GuildEmojiBoard = None):
-        await self._database.remove_emoji_board(self.guild_id, name=name, emoji_board=emoji_board)
 
     async def add_tag(
         self,

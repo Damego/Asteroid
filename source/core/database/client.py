@@ -4,14 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from ..cache import Storage, cache
 from ..error import BotException
 from .consts import AsyncMongoClient, DocumentType, OperatorType
-from .models import (
-    GuildAutoRole,
-    GuildData,
-    GuildEmojiBoard,
-    GuildTag,
-    GuildUser,
-    GuildVoiceLobbies,
-)
+from .models import GuildAutoRole, GuildData, GuildTag, GuildUser, GuildVoiceLobbies
 from .requests import Requests
 
 __all__ = ["DataBaseClient"]
@@ -183,65 +176,6 @@ class DataBaseClient:
             tag._json,
         )
         self.guilds_storage[str(guild_id)].tags.remove(tag)
-
-    async def add_emoji_board(
-        self,
-        guild_id: int | Snowflake,
-        *,
-        name: str,
-        channel_id: int,
-        emojis: list[str],
-        to_add: int,
-        to_remove: int,
-        is_freeze: bool,
-        embed_color: int,
-    ) -> GuildEmojiBoard:
-        data = {
-            "name": name,
-            "channel_id": channel_id,
-            "emojis": emojis,
-            "to_add": to_add,
-            "to_remove": to_remove,
-            "is_freeze": is_freeze,
-            "embed_color": embed_color,
-        }
-        await self._req.guild.update_document(
-            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
-            DocumentType.EMOJI_BOARDS,
-            OperatorType.PUSH,
-            {"emoji_boards": data},
-        )
-        board = GuildEmojiBoard(
-            **data,
-            _database=self,
-            guild_id=int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
-        )
-        self.guilds_storage[str(guild_id)].emoji_boards.append(board)
-        return board
-
-    async def remove_emoji_board(
-        self, guild_id: int | Snowflake, *, name: str, emoji_board: GuildEmojiBoard
-    ):
-        if name is not None and emoji_board is not None:
-            if name != emoji_board.name:
-                raise BotException(7)
-        if not name and not emoji_board:
-            raise BotException(8)
-
-        if name is not None:
-            for emoji_board in self.guilds_storage[str(guild_id)].emoji_boards:
-                if emoji_board.name == name:
-                    break
-            else:
-                raise BotException(9, name=name)
-
-        await self._req.guild.update_document(
-            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id,
-            DocumentType.EMOJI_BOARDS,
-            OperatorType.PULL,
-            emoji_board._json,
-        )
-        self.guilds_storage[str(guild_id)].emoji_boards.remove(emoji_board)
 
     async def add_user(self, guild_id: int | Snowflake, user_id: int) -> GuildUser:
         data = await self._req.guild.add_user(
