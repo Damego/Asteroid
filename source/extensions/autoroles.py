@@ -8,7 +8,7 @@ from interactions import (
     Embed,
     EmbedField,
     Extension,
-    GuildMember,
+    Member,
     OptionType,
     Role,
     SelectMenu,
@@ -39,7 +39,7 @@ class AutoRoles(Extension):
         self.client: Asteroid = client
 
     @listener
-    async def on_guild_member_add(self, member: GuildMember):
+    async def on_guild_member_add(self, member: Member):
         guild_data = await self.client.database.get_guild(int(member.guild_id))
         for role_id in guild_data.settings.on_join_roles:
             await member.add_role(role_id, reason="[AUTOROLE ON_JOIN] Add role")
@@ -300,8 +300,7 @@ class AutoRoles(Extension):
             options.clear()
             select.disabled = False
 
-        options.append(option)  # It's doesn't update json
-        select.options = options  # So I need to do this thing
+        options.append(option)
 
         await message.edit(components=components)
 
@@ -351,7 +350,6 @@ class AutoRoles(Extension):
             options.append(SelectOption(label="None", value="None"))
             select.disabled = True
 
-        select.options = options
         await message.edit(components=components)
         autorole.component = [component._json for component in components]
         await autorole.update()
@@ -470,11 +468,7 @@ class AutoRoles(Extension):
         else:
             for action_row in components:
                 if len(action_row.components) < 5:
-                    _components = action_row.components  # I need to update ._json
-                    _components.append(
-                        button
-                    )  # Simply action_row.components.append(button) does not update ._json
-                    action_row.components = _components  # So I can only wait fix
+                    action_row.components.append(button)
                     break
             else:
                 if len(components) < 5:
@@ -521,11 +515,7 @@ class AutoRoles(Extension):
         for action_row in components:
             for _button in action_row.components:
                 if _button.custom_id == button:
-                    _components = action_row.components  # I need to update ._json
-                    _components.remove(
-                        _button
-                    )  # Simply action_row.components.append(button) does not update ._json
-                    action_row.components = _components  # So I can only wait fix
+                    action_row.components.remove(_button)
                     _break = True
             if _break:
                 break
