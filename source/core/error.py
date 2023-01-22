@@ -1,11 +1,12 @@
 from interactions import Permissions
 
-__all__ = ["BotException", "MissingPermissions", "MissingAllArguments"]
+__all__ = ("BotException", "MissingPermissions", "MissingAllArguments")
 
 
 class BotException(Exception):
-    def __init__(self, code: int, **kwargs):
+    def __init__(self, code: int, key: str = None, **kwargs):
         self.code = code
+        self.key = key
         self.kwargs = kwargs
 
     @property
