@@ -73,7 +73,7 @@ class Music(Cog):
     @Cog.listener()
     async def on_ready(self):
         self.bot.lavalink = lavalink.Client(self.bot.user.id)
-        self.bot.lavalink.add_node("127.0.0.1", 3678, "testpassword", "ru", "default-node")
+        self.bot.lavalink.add_node("127.0.0.1", 58634, "testpassword", "ru", "default-node")
 
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):

@@ -11,7 +11,7 @@ from .requests import RequestClient
 class DataBaseClient:
     def __init__(self, mongo_token: str) -> None:
         self.mongo_client: AsyncIOMotorClient | MongoClient = AsyncIOMotorClient(
-            mongo_token, ssl_cert_reqs=ssl.CERT_NONE
+            mongo_token
         )
         self.request_client: RequestClient = RequestClient(self.mongo_client)
         self.guilds: Dict[str, GuildData] = {}
