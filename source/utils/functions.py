@@ -1,11 +1,12 @@
 import re
 from pathlib import Path
+from typing import Any, Callable, Coroutine
 
 from interactions import Color, Embed, EmbedField, Emoji
 
 from core import Asteroid
 
-__all__ = ["load_extensions", "get_emoji_from_str", "create_embed"]
+__all__ = ("load_extensions", "get_emoji_from_str", "create_embed", "try_run")
 
 
 def load_extensions(client: Asteroid, path: str):
@@ -27,13 +28,22 @@ def get_emoji_from_str(emoji: str | None) -> Emoji | None:
         emoji = emoji.replace("<:", "").replace(">", "")
         name, emoji_id = emoji.split(":")
         return Emoji(name=name, id=int(emoji_id))
-    else:
-        if len(emoji) > 1:
-            return
-        return Emoji(name=emoji)  # btw its still can be any symbol so its bad
+
+    if len(emoji) > 1:
+        return
+    return Emoji(name=emoji)
 
 
 def create_embed(
     description: str = None, title: str = None, fields: list[EmbedField] = None
 ) -> Embed:
-    return Embed(title=title, description=description, fields=fields, color=Color.blurple())
+    return Embed(title=title, description=description, fields=fields, color=Color.BLURPLE)
+
+
+async def try_run(coro: Callable[..., Coroutine], *args, **kwargs) -> Any | Exception:
+    """Run's a function and ignores exceptions. Returns a result or exception"""
+    try:
+        res = await coro(*args, **kwargs)
+    except Exception as error:
+        return error
+    return res
