@@ -1,32 +1,26 @@
-from os import getenv, listdir
+from os import getenv
 
 from dotenv import load_dotenv
-from utils import AsteroidBot, load_localization, slash_override  # noqa: F401
+from interactions import Intents
+from interactions.ext.i18n import setup
 
-
-def load_extensions(bot):
-    for filename in listdir("./cogs"):
-        try:
-            if filename.startswith("_"):
-                continue
-            if filename.endswith(".py"):
-                bot.load_extension(f"cogs.{filename[:-3]}")
-            elif "." in filename:
-                continue
-            else:
-                bot.load_extension(f"cogs.{filename}")
-        except Exception as e:
-            print(f"Extension {filename} not loaded!\nError: {e}")
-
+from core import Asteroid
+from utils.functions import load_extensions
 
 load_dotenv()
-load_localization()
 
-bot = AsteroidBot(
-    mongodb_token=getenv("MONGODB_URL"),
-    github_token=getenv("GITHUB_TOKEN"),
-    repo_name="Damego/Asteroid-Discord-Bot",
+client = Asteroid(
+    getenv("MONGO_URL"),
+    intents=Intents.ALL,
 )
-load_extensions(bot)
+i18n = setup(client)
 
-bot.run(getenv("BOT_TOKEN"))
+load_extensions(client, "extensions")
+
+
+@client.event
+async def on_ready():
+    print("Bot ready")
+
+
+client.start(getenv("TOKEN"))
