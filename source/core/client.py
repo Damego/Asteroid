@@ -1,66 +1,72 @@
-from functools import wraps
+from interactions import Channel, Client, Guild, Member, Message, Role, Snowflake, User
+from interactions.ext.i18n import Localization
 
-from interactions import (
-    Channel,
-    Client,
-    Guild,
-    LibraryException,
-    Member,
-    Message,
-    Role,
-    Snowflake,
-    User,
-    get,
-)
-
+from .context import CommandContext, ComponentContext
 from .database import DataBaseClient
-from .locale import Locale, LocaleManager
 
 __all__ = ["Asteroid"]
 
 
 class Asteroid(Client):
     def __init__(self, mongodb_url: str, **kwargs):
-        super().__init__(**kwargs)
-        self.database = DataBaseClient(mongodb_url)
-        self.locale = LocaleManager("locale")
-
-    async def get_locale(self, guild_id: int | Snowflake) -> Locale:
-        guild_data = await self.database.get_guild(
-            int(guild_id) if isinstance(guild_id, Snowflake) else guild_id
+        super().__init__(
+            command_context=CommandContext, component_context=ComponentContext, **kwargs
         )
-        return self.locale[guild_data.settings.language]
+        self.database = DataBaseClient(mongodb_url)
+        self.i18n = Localization(self)
 
-    async def try_run(self, func, *args, **kwargs):
-        """
-        Tries to run async function and nothing does if got exception
-        """
-        try:
-            return await func(*args, **kwargs)
-        except LibraryException:
-            pass
+    # async def send_error(self, exception: Exception, *, guild_id: int | Snowflake = None, channel_id: int | Snowflake = None):
+    #     if channel_id is not None:
+    #         channel = await self.get_channel(channel_id)
+    #     else:
+    #         guild = await self.get_guild(guild_id)
+    #         if guild.system_channel_id is None:
+    #             return  #
+    #         channel = await self.get_channel(guild.system_channel_id)
 
-    @wraps(get)
-    def get(self, *args, **kwargs):
-        return get(self, *args, **kwargs)
-
-    # Aliases to `get` function
     async def get_guild(self, guild_id: int | Snowflake) -> Guild:
-        return await get(self, Guild, object_id=int(guild_id))
+        if guild := self.cache.get_guild(Snowflake(guild_id)):
+            return guild
+
+        res = await self._http.get_guild(int(guild_id), with_counts=True)
+        return self.cache.add_guild(res)
 
     async def get_channel(self, channel_id: int | Snowflake) -> Channel:
-        return await get(self, Channel, object_id=int(channel_id))
+        if channel := self.cache.get_channel(Snowflake(channel_id)):
+            return channel
+
+        res = await self._http.get_channel(channel_id)
+        return self.cache.add_channel(res)
 
     async def get_role(self, guild_id: int | Snowflake, role_id: int | Snowflake) -> Role:
-        return await get(self, Role, parent_id=int(guild_id), object_id=int(role_id))
+        if role := self.cache.get_role(Snowflake(role_id)):
+            return role
+
+        res = await self._http.get_all_roles(int(guild_id))
+        self.cache.add_roles(res, Snowflake(guild_id))
+
+        return self.cache.get_role(Snowflake(role_id))
 
     async def get_message(
         self, channel_id: int | Snowflake, message_id: int | Snowflake
     ) -> Message:
-        return await get(self, Message, parent_id=int(channel_id), object_id=int(message_id))
+        if message := self.cache.get_message(Snowflake(message_id)):
+            return message
+
+        res = await self._http.get_message(int(channel_id), int(message_id))
+        return self.cache.add_message(res)
 
     async def get_user(self, user_id: int | Snowflake) -> User:
-        return await get(self, User, object_id=int(user_id))
+        # direct methods are not implemented
+        if user := self.cache._get_object(User, Snowflake(user_id)):
+            return user
+
+        res = await self._http.get_user(int(user_id))
+        return self.cache._add_object(res, User)
 
     async def get_member(self, guild_id: int | Snowflake, member_id: int | Snowflake) -> Member:
-        return await get(self, Member, parent_id=int(guild_id), object_id=int(member_id))
+        if member := self.cache.get_member(Snowflake(guild_id), Snowflake(member_id)):
+            return member
+
+        res = await self._http.get_member(int(guild_id), int(member_id))
+        return self.cache.add_member(res, Snowflake(guild_id))
