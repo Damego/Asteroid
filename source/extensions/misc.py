@@ -1,25 +1,18 @@
 from datetime import datetime
 
-from interactions import (
-    Choice,
-    CommandContext,
-    EmbedField,
-    Extension,
-    Modal,
-    TextInput,
-    TextStyleType,
-)
-from interactions import extension_command as command
-from interactions import extension_listener as listener
+from interactions import Choice, EmbedField, Extension, Modal, TextInput, TextStyleType
 from interactions import extension_modal as modal
 from interactions import option
+from rapidfuzz import fuzz, process
 
-from core import Asteroid, BotException, Language, Locale, Mention, TimestampMention
+from core import Asteroid, BotException, Language, Mention, TimestampMention, command, listener
+from core.context import CommandContext
+from core.database.models import GuildTag
 from utils import create_embed
 
 
 def build_modal(
-    locale: Locale,
+    ctx: CommandContext,
     is_embed: bool = True,
     *,
     name: str = None,
@@ -29,7 +22,7 @@ def build_modal(
 ) -> Modal:
     components = [
         TextInput(
-            label=locale["MODAL_TAG_NAME"],
+            label=ctx.translate("MODAL_TAG_NAME"),
             custom_id="name",
             placeholder="The cool tag",
             required=True,
@@ -37,7 +30,7 @@ def build_modal(
             value=name,
         ),
         TextInput(
-            label=locale["MODAL_TAG_CONTENT"],
+            label=ctx.translate("MODAL_TAG_CONTENT"),
             custom_id="content",
             placeholder="There is a way to apply for moderator",
             required=True,
@@ -49,7 +42,7 @@ def build_modal(
         components.insert(
             1,
             TextInput(
-                label=locale["MODAL_TAG_TITLE"],
+                label=ctx.translate("MODAL_TAG_TITLE"),
                 custom_id="title",
                 placeholder="Apply for moderator",
                 required=True,
@@ -59,7 +52,7 @@ def build_modal(
         )
 
     return Modal(
-        title=locale["MODAL_CREATE_TAG"],
+        title=ctx.translate("MODAL_CREATE_TAG"),
         custom_id=custom_id or "modal_create_tag",
         components=components,
     )
@@ -82,18 +75,30 @@ class Misc(Extension):
         guild_data.settings.language = language
         await guild_data.settings.update()
 
-        locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(description=locale["LANGUAGE_CHANGED"])
+        translate = ctx.translate("LANGUAGE_CHANGED")
+        embed = create_embed(description=translate)
         await ctx.send(embeds=embed)
 
     @command()
     async def tag(self, ctx: CommandContext):
-        ...
+        """Command for tags"""
+
+    @staticmethod
+    def _process_tag_name(tag: GuildTag):
+        return tag.name.lower().strip()
 
     @tag.autocomplete("name")
-    async def tag_autocomplete(self, ctx: CommandContext):
+    async def tag_autocomplete(self, ctx: CommandContext, user_input: str):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
-        choices = [Choice(name=tag.name, value=tag.name) for tag in guild_data.tags]
+        options = process.extract(
+            user_input.lower(),
+            guild_data.tags,
+            scorer=fuzz.partial_ratio,
+            processor=self._process_tag_name,
+            limit=25,
+            score_cutoff=75,
+        )
+        choices = [Choice(name=tag.name, value=tag.name) for tag, _, _ in options]
         await ctx.populate(choices)
 
     @tag.subcommand(name="view")
@@ -115,12 +120,11 @@ class Misc(Extension):
     @tag.subcommand(name="create")
     @option(
         description="The type of tag",
-        choices=[Choice(name=i, value=i.lower()) for i in ["Embed", "Simple"]],
+        choices=[Choice(name=i, value=i.lower()) for i in {"Embed", "Simple"}],
     )
     async def tag_create(self, ctx: CommandContext, type: str):
         """Create a tag"""
-        locale = await self.client.get_locale(ctx.guild_id)
-        await ctx.popup(build_modal(locale, type == "embed"))
+        await ctx.popup(build_modal(ctx, type == "embed"))
 
     @modal("modal_create_tag")
     async def modal_create_tag(
@@ -142,9 +146,9 @@ class Misc(Extension):
             last_edited_at=None,
             uses_count=0,
         )
-        locale = await self.client.get_locale(ctx.guild_id)
-        embed = create_embed(locale["TAG_CREATED"].format(tag_name=name))
-        await ctx.send(embeds=embed)
+
+        translate = ctx.translate("TAG_CREATED").format(tag_name=name)
+        await ctx.send(embeds=create_embed(translate))
 
     @tag.subcommand(name="delete")
     @option(description="The name of tag to delete", autocomplete=True)
@@ -153,9 +157,8 @@ class Misc(Extension):
         guild_data = await self.client.database.get_guild(int(ctx.guild_id))
         await guild_data.remove_tag(name)
 
-        locale = await self.client.get_locale(ctx.guild_id)
-
-        await ctx.send(locale["TAG_DELETED"].format(tag_name=name))
+        translate = ctx.translate("TAG_CREATED").format(tag_name=name)
+        await ctx.send(translate)
 
     @tag.subcommand(name="edit")
     @option(description="The name of tag to edit", autocomplete=True)
@@ -165,11 +168,10 @@ class Misc(Extension):
         tag = guild_data.get_tag(name)
         if tag is None:
             raise BotException(6, name=name)
-        locale = await self.client.get_locale(ctx.guild_id)
 
         await ctx.popup(
             build_modal(
-                locale,
+                ctx,
                 is_embed=tag.is_embed,
                 name=tag.name,
                 title=tag.title,
@@ -201,11 +203,11 @@ class Misc(Extension):
         tag.title = title
         tag.description = description
         tag.last_edited_at = int(datetime.utcnow().timestamp())
+
         await tag.update()
 
-        locale = await self.client.get_locale(ctx.guild_id)
-
-        await ctx.send(locale["TAG_EDITED"].format(tag_name=name))
+        translate = ctx.translate("TAG_EDITED").format(tag_name=name)
+        await ctx.send(translate)
 
     @tag.subcommand(name="list")
     async def tag_list(self, ctx: CommandContext):
@@ -214,8 +216,8 @@ class Misc(Extension):
         description = "\n".join(
             [f"**` {ind} `** `{tag.name}`" for ind, tag in enumerate(guild_data.tags, start=1)]
         )
-        locale = await self.client.get_locale(ctx.guild_id)
-        await ctx.send(embeds=create_embed(description=description, title=locale["TAG_LIST"]))
+        translate = ctx.translate("TAG_LIST")
+        await ctx.send(embeds=create_embed(description=description, title=translate))
 
     @tag.subcommand(name="info")
     @option(description="The name of tag to view", autocomplete=True)
@@ -232,17 +234,17 @@ class Misc(Extension):
                 f"({TimestampMention.RELATIVE.format(timestamp)})"
             )
 
-        locale = await self.client.get_locale(ctx.guild_id)
+        translate = ctx.translate
         fields = [
             EmbedField(
-                name=locale["AUTHOR"], value=Mention.USER.format(id=tag.author_id), inline=True
+                name=translate("AUTHOR"), value=Mention.USER.format(id=tag.author_id), inline=True
             ),
-            EmbedField(name=locale["USES_COUNT"], value=f"`{tag.uses_count}`", inline=True),
+            EmbedField(name=translate("USES_COUNT"), value=f"`{tag.uses_count}`", inline=True),
             EmbedField(
-                name=locale["TIMESTAMPS"],
-                value=f"**{locale['CREATED_AT']}** {get_timestamp_string(tag.created_at)}\n"
+                name=translate("TIMESTAMPS"),
+                value=f"**{translate('CREATED_AT')}** {get_timestamp_string(tag.created_at)}\n"
                 + (
-                    f"**{Locale['LAST_EDITED_AT']}** {get_timestamp_string(tag.last_edited_at)}"
+                    f"**{translate('LAST_EDITED_AT')}** {get_timestamp_string(tag.last_edited_at)}"
                     if tag.last_edited_at is not None
                     else ""
                 ),
