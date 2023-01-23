@@ -218,11 +218,11 @@ class Moderation(Extension):
         else:
             await ctx.send(translate("WARNS_REMOVED"))
 
-    @mod.group(name="channel")
-    async def mod_channel(self, ctx: CommandContext):
-        """Group command for channels"""
-
     # TODO: Restore after fix for Channel.purge
+    # @mod.group(name="channel")
+    # async def mod_channel(self, ctx: CommandContext):
+    #     """Group command for channels"""
+
     # @mod_channel.subcommand()
     # @option("The amount of messages to delete", min_value=1, max_value=1000)
     # @option("The member to delete messages for")
