@@ -4,8 +4,7 @@ __all__ = ("BotException", "MissingPermissions", "MissingAllArguments")
 
 
 class BotException(Exception):
-    def __init__(self, code: int, key: str = None, **kwargs):
-        self.code = code
+    def __init__(self, key: str = None, **kwargs):
         self.key = key
         self.kwargs = kwargs
 
