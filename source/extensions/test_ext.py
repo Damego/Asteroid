@@ -1,7 +1,7 @@
 import interactions
 
 from core import Asteroid
-from core.context import CommandContext
+from core.context import CommandContext, endl
 
 
 class TestCog(interactions.Extension):
@@ -14,7 +14,7 @@ class TestCog(interactions.Extension):
         components = [
             interactions.Button(label=f"Button {i}", style=1, custom_id=f"{i}") for i in range(1, 6)
         ]
-        await (ctx << "cursed message" << embeds << components << {"ephemeral": True})
+        await ctx << "cursed message" << embeds << components << {"ephemeral": True} << endl
 
 
 def setup(bot):
