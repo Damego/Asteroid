@@ -13,14 +13,18 @@ MINIMUM_EXP = 10
 MAXIMUM_EXP = 30
 
 
+def get_current_timestamp() -> int:
+    return int(time())
+
+
+def get_random_experience() -> int:
+    return randint(MINIMUM_EXP, MAXIMUM_EXP)
+
+
 class Leveling(Extension):
     def __init__(self, client):
         self.client: Asteroid = client
         self.cooldowns: defaultdict[tuple[str, str], int] = defaultdict(lambda: 0)
-
-    @staticmethod
-    def generate_exp() -> int:
-        return randint(MINIMUM_EXP, MAXIMUM_EXP)
 
     @listener
     async def on_message_create(self, message: Message):
@@ -35,18 +39,18 @@ class Leveling(Extension):
         if self._is_cooldown(message):
             return
 
-        await self._increase_exp(guild_data, user_data, self.generate_exp())
-        self.cooldowns[(str(message.guild_id), str(message.author.id))] = int(time())
+        await self._increase_exp(guild_data, user_data, get_random_experience())
+        self.cooldowns[(str(message.guild_id), str(message.author.id))] = get_current_timestamp()
 
-    def get_user_cooldown(self, user: Member):
+    def get_user_cooldown(self, user: Member) -> int:
         return self.cooldowns[(str(user.guild_id), str(user.id))]
 
-    def _is_cooldown(self, message: Message):
+    def _is_cooldown(self, message: Message) -> bool:
         user_cooldown = self.get_user_cooldown(message.member)
-        return int(time()) - user_cooldown <= COOLDOWN
+        return get_current_timestamp() - user_cooldown <= COOLDOWN
 
     @staticmethod
-    def _get_level_xp(level: int):
+    def calculate_experience_for_level(level: int) -> int:
         return int((100 * level) ** 1.2)
 
     async def _increase_exp(self, guild_data: GuildData, user_data: GuildUser, exp: int):
@@ -55,13 +59,13 @@ class Leveling(Extension):
 
         user_leveling.xp += exp
         user_leveling.xp_amount += exp
-        exp_to_next_level = self._get_level_xp(user_leveling.level + 1)
+        exp_to_next_level = self.calculate_experience_for_level(user_leveling.level + 1)
         role_to_add = None
 
         while user_leveling.xp >= exp_to_next_level:
             user_leveling.xp -= exp_to_next_level
             user_leveling.level += 1
-            exp_to_next_level = self._get_level_xp(user_leveling.level + 1)
+            exp_to_next_level = self.calculate_experience_for_level(user_leveling.level + 1)
 
             role = guild_data.leveling.roles_by_level.get(user_leveling.level)
             if role is not None:
