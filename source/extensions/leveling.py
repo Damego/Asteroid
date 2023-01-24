@@ -4,8 +4,9 @@ from time import time
 
 from interactions import Choice, Color, Embed, Extension, Member, Message, Permissions, Role, option
 
-from core import Asteroid, BotException, GuildData, GuildUser, MissingPermissions, command, listener
+from core import Asteroid, BotException, MissingPermissions, command, listener
 from core.context import CommandContext
+from core.database.models import GuildData, GuildUser, GuildUserLeveling
 from utils import try_run
 
 COOLDOWN = 10
@@ -54,32 +55,35 @@ class Leveling(Extension):
         return int((100 * level) ** 1.2)
 
     async def _increase_exp(self, guild_data: GuildData, user_data: GuildUser, exp: int):
-        member = await self.client.get_member(user_data.guild_id, user_data.id)
         user_leveling = user_data.leveling
 
         user_leveling.xp += exp
         user_leveling.xp_amount += exp
-        exp_to_next_level = self.calculate_experience_for_level(user_leveling.level + 1)
-        role_to_add = None
+        exp_to_next_level: int = self.calculate_experience_for_level(user_leveling.level + 1)
+        role_to_add: int = None  # type: ignore
 
         while user_leveling.xp >= exp_to_next_level:
             user_leveling.xp -= exp_to_next_level
             user_leveling.level += 1
             exp_to_next_level = self.calculate_experience_for_level(user_leveling.level + 1)
 
-            role = guild_data.leveling.roles_by_level.get(user_leveling.level)
-            if role is not None:
-                role_to_add = role
+            if role_id := guild_data.leveling.roles_by_level.get(user_leveling.level):
+                role_to_add = role_id
 
         if role_to_add is not None:
-            if user_leveling.role is not None:
-                await try_run(member.remove_role, user_leveling.role, guild_id=guild_data.guild_id)
-                # if isinstance(res, Exception):
-                #     await self.client.send_error(guild_data.guild_id, res)
-            await try_run(member.add_role, role_to_add, guild_id=guild_data.guild_id)
-            user_leveling.role = role_to_add
+            member = await self.client.get_member(user_data.guild_id, user_data.id)
+            await self._add_level_role_to_user(member, role_to_add, user_leveling)
 
         await user_data.update()
+
+    @staticmethod
+    async def _add_level_role_to_user(
+        member: Member, role_id: int, user_leveling: GuildUserLeveling
+    ):
+        if user_leveling.role is not None:
+            await try_run(member.remove_role, user_leveling.role, guild_id=member.guild_id)
+        await try_run(member.add_role, role_id, guild_id=member.guild_id)
+        user_leveling.role = role_id
 
     @command()
     async def leveling(self, ctx: CommandContext):
@@ -126,7 +130,7 @@ class Leveling(Extension):
         roles_by_level[_level] = int(role.id)
         await guild_data.leveling.update()
 
-        translate = self.client.i18n.get_translate("LEVEL_ROLE_ADDED", ctx.locale)
+        translate = ctx.translate("LEVEL_ROLE_ADDED")
         await ctx.send(translate, ephemeral=True)
 
     @level_roles.subcommand()
