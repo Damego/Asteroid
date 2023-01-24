@@ -312,6 +312,21 @@ files = [
 ]
 
 [[package]]
+name = "interactions-i18n"
+version = "1.0.0"
+description = "Add localization support to your interactions.py bot"
+category = "main"
+optional = false
+python-versions = ">=3.8.6"
+files = [
+    {file = "interactions-i18n-1.0.0.tar.gz", hash = "sha256:6497635cee3537097f91dd8b138c44e212ef8fdf01d984e0c6d17d8d40fae328"},
+    {file = "interactions_i18n-1.0.0-py3-none-any.whl", hash = "sha256:4fb0f081d0f743cd4b16ab2749b8a9d57c04bc4ad9101754875325e2e21a1a15"},
+]
+
+[package.dependencies]
+discord-py-interactions = ">=4.3.2"
+
+[[package]]
 name = "interactions-lavalink"
 version = "1.0.0"
 description = "Lavalink and voice support for interactions.py"
@@ -756,4 +771,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d6d1afec08b11e8178f542a548cc3fda6a7cb58680f05202e9a271e1ab812e44"
+content-hash = "a2d5184fc412bc39c2d7bccf8e7d8e44d840467a47153e73eb92bb6877403d18"
