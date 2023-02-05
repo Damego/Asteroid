@@ -183,19 +183,13 @@ class GuildData(DataBaseSerializerMixin):
         raise NotImplementedError
 
     def get_user(self, user_id: int) -> GuildUser | None:
-        for user in self.users:
-            if user.id == user_id:
-                return user
+        return next(filter(lambda user: user.id == user_id, self.users), None)
 
     def get_autorole(self, name: str) -> GuildAutoRole | None:
-        for autorole in self.autoroles:
-            if autorole.name == name:
-                return autorole
+        return next(filter(lambda autorole: autorole.name == name, self.autoroles), None)
 
     def get_tag(self, name: str) -> GuildTag | None:
-        for tag in self.tags:
-            if tag.name == name:
-                return tag
+        return next(filter(lambda tag: tag.name == name, self.tags), None)
 
     async def add_user(self, user_id: int) -> GuildUser:
         return await self._database.add_user(self.guild_id, user_id)
