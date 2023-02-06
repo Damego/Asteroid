@@ -48,7 +48,7 @@ class VoiceLobbies(Extension):
                 # Rejoined to main channel from own channel.
                 # I think better remove old channel and create a new one
                 # because user can break own channel somehow
-                await self._remove_voice_lobby(before, after, voice_lobbies)
+                await self._remove_transfer_voice_lobby(before, after, voice_lobbies)
 
             guild = await after.get_guild()
             member = await self.client.get_member(after.guild_id, after.user_id)
@@ -77,10 +77,10 @@ class VoiceLobbies(Extension):
 
             return
 
-        await self._remove_voice_lobby(before, after, voice_lobbies)
+        await self._remove_transfer_voice_lobby(before, after, voice_lobbies)
         await self._cleanup_voice_lobbies(voice_lobbies)
 
-    async def _remove_voice_lobby(
+    async def _remove_transfer_voice_lobby(
         self, before: VoiceState, after: VoiceState, voice_lobbies: GuildVoiceLobbies
     ):
         """
@@ -88,15 +88,18 @@ class VoiceLobbies(Extension):
         """
         if not before or not before.channel_id:
             return
+
         lobby = voice_lobbies.get_lobby(int(before.channel_id))
         if not lobby:
             return
+
         channel = await self.client.get_channel(before.channel_id)
         if not channel.voice_states:
             await channel.delete()
             voice_lobbies.remove_lobby(int(before.channel_id))
             await voice_lobbies.update()
             return
+
         first_voice_state: VoiceState = channel.voice_states[0]
         lobby.owner_id = int(first_voice_state.user_id)
         permissions = [
