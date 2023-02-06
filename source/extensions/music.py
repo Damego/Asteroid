@@ -119,11 +119,14 @@ class Music(Extension):
             return
 
         if not player.queue:
-            embed = Embed(title="Empty queue", color=Color.BLURPLE)
+            empty_queue = ctx.translate("EMPTY_QUEUE_EMBED_TITLE")
+            embed = Embed(title=empty_queue, color=Color.BLURPLE)
             return await ctx.send(embeds=embed, ephemeral=True)
 
         embed = Embed(
-            title=f"{ctx.guild.name}'s current queue", description="", color=Color.BLURPLE
+            title=ctx.translate("CURRENT_QUEUE_EMBED_TITLE"),
+            description="",
+            color=Color.BLURPLE
         )
 
         for index, track in enumerate(player.queue, start=1):
@@ -140,7 +143,8 @@ class Music(Extension):
 
         queue = player.queue
         if not queue:
-            return await ctx.send("Empty queue", ephemeral=True)
+            empty_queue = ctx.translate("EMPTY_QUEUE_EMBED_TITLE")
+            return await ctx.send(empty_queue, ephemeral=True)
 
         if track_name is not None:
             for i in range(len(queue) - 1):
@@ -150,7 +154,8 @@ class Music(Extension):
 
         await player.skip()
 
-        embed = Embed(title="Track was skipped", color=Color.BLURPLE)
+        track_skipped = ctx.translate("TRACK_WAS_SKIPPED")
+        embed = Embed(title=track_skipped, color=Color.BLURPLE)
         await ctx.send(embeds=embed)
 
     async def check_state(self, ctx: CommandContext) -> Player | None:

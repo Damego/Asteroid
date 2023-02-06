@@ -237,3 +237,7 @@ class Tags(Extension):
         ]
         embed = create_embed(title=tag.name, fields=fields)
         await ctx.send(embeds=embed)
+
+
+def setup(client):
+    Tags(client)
