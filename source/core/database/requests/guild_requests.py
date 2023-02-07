@@ -43,7 +43,7 @@ class GuildRequests:
         filter: DocumentType | str | dict,
         operator: OperatorType,
         data: dict,
-        upsert: bool = True
+        upsert: bool = True,
     ) -> None:
         collection = self.__get_collection(*keys)
         _filter = {"_id": filter} if isinstance(filter, (str, DocumentType)) else filter

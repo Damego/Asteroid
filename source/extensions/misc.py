@@ -11,7 +11,6 @@ from core.database.models import GuildTag
 from utils import create_embed
 
 
-
 class Misc(Extension):
     def __init__(self, client):
         self.client: Asteroid = client
@@ -32,6 +31,7 @@ class Misc(Extension):
         translate = ctx.translate("LANGUAGE_CHANGED")
         embed = create_embed(description=translate)
         await ctx.send(embeds=embed)
+
 
 def setup(client):
     Misc(client)
