@@ -124,9 +124,7 @@ class Music(Extension):
             return await ctx.send(embeds=embed, ephemeral=True)
 
         embed = Embed(
-            title=ctx.translate("CURRENT_QUEUE_EMBED_TITLE"),
-            description="",
-            color=Color.BLURPLE
+            title=ctx.translate("CURRENT_QUEUE_EMBED_TITLE"), description="", color=Color.BLURPLE
         )
 
         for index, track in enumerate(player.queue, start=1):
