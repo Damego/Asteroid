@@ -1,20 +1,9 @@
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Damego/Asteroid-Discord-Bot/main.svg)](https://results.pre-commit.ci/latest/github/Damego/Asteroid-Discord-Bot/main)
+# Project Closed.
 
 <div align="center">
   <h1>Asteroid | Discord Bot</h1>
   <img src="https://cdn.discordapp.com/attachments/829309399959863307/964580080032571422/1asteroid-8d.png" style="height: 200px">
 </div>
 
-<h1>Bot in development</h1>
-
-## [Trello](https://trello.com/b/LqKt8jNU/asteroid-v3-development)
-
-<h2>About</h2>
-<p>It's just my pet project to improve my skills in python</p>
-
-<h2>Main libraries</h2>
-
-- [interactions.py](https://github.com/interactions-py/library)
-<h2>Setup Bot</h2>
-
-Figure it out for yourself
+## About
+Asteroid bot was a pet project with aim to improve python and other skills. Project was done after [pr #27](https://github.com/Damego/Asteroid/pull/27). A bit later I planned to rewrite this project with a new codebase. However, I lost motivation to continue support this project, so I decided to close it.
